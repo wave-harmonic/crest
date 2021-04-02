@@ -1142,7 +1142,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "A material for the ocean must be assigned on the Material property of the OceanRenderer.",
+                    "No ocean material specified.",
+                    "Assign a valid ocean material to the Material property of the OceanRenderer.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
 
@@ -1154,7 +1155,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
+                    "Multiple OceanRenderer components detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
+                    "Remove extra OceanRenderer components.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
             }
@@ -1166,7 +1168,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "No ShapeGerstnerBatched script found, so ocean will appear flat (no waves).",
+                    "No ShapeGerstnerBatched component found, so ocean will appear flat (no waves).",
+                    "Assign a ShapeGerstnerBatched component to a GameObject.",
                     ValidatedHelper.MessageType.Info, ocean
                 );
             }
@@ -1178,7 +1181,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Base mesh density is lower than 8. There will be visible gaps in the ocean surface. " +
+                    "Base mesh density is lower than 8. There will be visible gaps in the ocean surface.",
                     "Increase the <i>LOD Data Resolution</i> or decrease the <i>Geometry Down Sample Factor</i>.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
@@ -1187,7 +1190,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Base mesh density is lower than 16. There will be visible transitions when traversing the ocean surface. " +
+                    "Base mesh density is lower than 16. There will be visible transitions when traversing the ocean surface. ",
                     "Increase the <i>LOD Data Resolution</i> or decrease the <i>Geometry Down Sample Factor</i>.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
@@ -1214,9 +1217,8 @@ namespace Crest
                     {
                         showMessage
                         (
-                            "There is no skybox set in the lighting settings window. " +
-                            oceanColourIncorrectText +
-                            alternativesText,
+                            "There is no skybox set in the Lighting window. " + oceanColourIncorrectText,
+                            "Configure a valid skybox. " + alternativesText,
                             ValidatedHelper.MessageType.Warning, ocean
                         );
                     }
@@ -1225,10 +1227,8 @@ namespace Crest
                     {
                         showMessage
                         (
-                            "Lighting data is missing which provides baked spherical harmonics." +
-                            oceanColourIncorrectText +
-                            "Generate lighting or enable Auto Generate from the Lighting window. " +
-                            alternativesText,
+                            "Lighting data is missing which provides baked spherical harmonics." + oceanColourIncorrectText,
+                            "Generate lighting or enable Auto Generate from the Lighting window. " + alternativesText,
                             ValidatedHelper.MessageType.Warning, ocean
                         );
                     }
@@ -1240,10 +1240,8 @@ namespace Crest
                     {
                         showMessage
                         (
-                            "Environmental Reflections is set to Custom, but no cubemap has been provided. " +
-                            oceanColourIncorrectText +
-                            "Assign a cubemap in the lighting settings window. " +
-                            alternativesText,
+                            "Environmental Reflections is set to Custom, but no cubemap has been provided. " + oceanColourIncorrectText,
+                            "Assign a cubemap in the Lighting window. " + alternativesText,
                             ValidatedHelper.MessageType.Warning, ocean
                         );
                     }
@@ -1256,8 +1254,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>Override Reflection Cubemap</i> is enabled but no cubemap has been provided. " +
-                    oceanColourIncorrectText +
+                    "<i>Override Reflection Cubemap</i> is enabled but no cubemap has been provided. " + oceanColourIncorrectText,
                     "Assign a cubemap or disable the checkbox on the ocean material.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
@@ -1274,6 +1271,7 @@ namespace Crest
                 showMessage
                 (
                     $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    "Clear this rotation from the GameObject.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
             }
@@ -1288,11 +1286,11 @@ namespace Crest
             {
                 if (ocean.CreateFoamSim)
                 {
-                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 }
                 else
                 {
-                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
                 }
             }
 
@@ -1300,11 +1298,12 @@ namespace Crest
             {
                 if (ocean.CreateFlowSim)
                 {
-                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 }
                 else
                 {
-                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
+                        ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
                 }
             }
 
@@ -1312,11 +1311,13 @@ namespace Crest
             {
                 if (ocean.CreateShadowData)
                 {
-                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 }
                 else
                 {
-                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
+                        ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
                 }
             }
 
@@ -1324,11 +1325,11 @@ namespace Crest
             {
                 if (ocean.CreateClipSurfaceData)
                 {
-                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 }
                 else
                 {
-                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
                 }
             }
 

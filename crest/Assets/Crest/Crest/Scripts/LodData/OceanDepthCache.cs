@@ -437,8 +437,8 @@ namespace Crest
                 {
                     showMessage
                     (
-                        "Depth cache is outdated. Click <i>Populate Cache</i> or re-bake the cache to bring the cache " +
-                        "up-to-date with component changes.",
+                        "Depth cache is outdated.",
+                        "Click <i>Populate Cache</i> or re-bake the cache to bring the cache up-to-date with component changes.",
                         ValidatedHelper.MessageType.Warning, this
                     );
                 }
@@ -451,6 +451,7 @@ namespace Crest
                     showMessage
                     (
                         "Depth cache type is 'Saved Cache' but no saved cache data is provided.",
+                        "Assign a saved cache asset.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -464,6 +465,7 @@ namespace Crest
                     showMessage
                     (
                         "No layers specified for rendering into depth cache.",
+                        "Specify one or may layers using the <i>Layers</i> field.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -475,6 +477,7 @@ namespace Crest
                     showMessage
                     (
                         $"<i>Force Always Update Debug</i> option is enabled on depth cache <i>{gameObject.name}</i>, which means it will render every frame instead of running from the cache.",
+                        "Disable the <i>Force Always Update Debug</i> option.",
                         ValidatedHelper.MessageType.Warning, this
                     );
 
@@ -485,7 +488,8 @@ namespace Crest
                 {
                     showMessage
                     (
-                        $"Cache resolution {_resolution} is very low. Is this intentional?",
+                        $"Cache resolution {_resolution} is very low, which may not be intentional.",
+                        "Increase the resolution.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -496,9 +500,10 @@ namespace Crest
                 {
                     showMessage
                     (
-                        "The <i>Ocean Depth Cache</i> in realtime only supports a uniform scale for X and Z. " +
+                        "The <i>Ocean Depth Cache</i> in real-time only supports a uniform scale for X and Z. " +
                         "These values currently do not match. " +
                         $"Its current scale in the hierarchy is: X = {transform.lossyScale.x} Z = {transform.lossyScale.z}.",
+                        "Ensure the X & Z scale values are equal on this object and all parents in the hierarchy.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -513,6 +518,7 @@ namespace Crest
                 showMessage
                 (
                     "Ocean depth cache transform scale is small and will capture a small area of the world. The scale sets the size of the area that will be cached, and this cache is set to render a very small area.",
+                    "Increase the X & Z scale to increase the size of the cache.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 
@@ -524,6 +530,7 @@ namespace Crest
                 showMessage
                 (
                     $"Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.",
+                    "Set the Y scale to 1.0.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -535,6 +542,7 @@ namespace Crest
                 showMessage
                 (
                     "It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level.",
+                    "Set the Y position to the same height as the ocean object.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 
@@ -555,6 +563,7 @@ namespace Crest
                     (
                         "It is not expected that a depth cache object has a Renderer component in its hierarchy." +
                         "The cache is typically attached to an empty GameObject. Please refer to the example content.",
+                        "Remove the Renderer component from this object or its children.",
                         ValidatedHelper.MessageType.Warning, renderer
                     );
 
@@ -579,14 +588,11 @@ namespace Crest
                 (
                     "<i>Layer Names</i> on the <i>Ocean Depth Cache</i> is obsolete and is no longer used. " +
                     "Use <i>Layers</i> instead.",
+                    "Populate layer mask using the legacy layer names data.",
                     ValidatedHelper.MessageType.Error, this, (SerializedObject serializedObject) =>
                     {
-                        if (serializedObject != null)
-                        {
-                            serializedObject.FindProperty("_layers").intValue = LayerMask.GetMask(_layerNames);
-                            serializedObject.FindProperty("_layerNames").arraySize = 0;
-                        }
-                        return "Populate layer mask using the legacy layer names data";
+                        serializedObject.FindProperty("_layers").intValue = LayerMask.GetMask(_layerNames);
+                        serializedObject.FindProperty("_layerNames").arraySize = 0;
                     }
                 );
 

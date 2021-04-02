@@ -49,7 +49,8 @@ namespace Crest.Spline
                 {
                     showMessage
                     (
-                        $"All child GameObjects under <i>Spline</i> must have <i>SplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not and should have one added, or be moved out of the hierarchy.",
+                        $"All child GameObjects under <i>Spline</i> must have <i>SplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not have one.",
+                        $"Add a <i>SplinePoint</i> component to object <i>{transform.GetChild(i).gameObject.name}<i>, or move this object out in the hierarchy.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -66,7 +67,8 @@ namespace Crest.Spline
             {
                 showMessage
                 (
-                    "Spline must have at least 2 spline points. Click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
+                    "Spline must have at least 2 spline points.",
+                    "Click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -76,7 +78,8 @@ namespace Crest.Spline
             {
                 showMessage
                 (
-                    "Closed splines must have at least 3 spline points. See the <i>Closed</i> parameter and tooltip. To add a point click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
+                    "Closed splines must have at least 3 spline points. See the <i>Closed</i> parameter and tooltip.",
+                    "Add a point by clicking the <i>Add point</i> button in the Inspector.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

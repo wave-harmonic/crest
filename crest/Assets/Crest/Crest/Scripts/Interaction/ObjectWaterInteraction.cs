@@ -168,7 +168,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> requires dynamic wave simulation to be enabled on <i>OceanRenderer</i>.",
+                    "<i>ObjectWaterInteraction</i> requires dynamic wave simulation to be enabled.",
+                    $"Enable <i>{LodDataMgrDynWaves.FEATURE_TOGGLE_NAME}</i> option on the <i>OceanRenderer</i> component.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
 
@@ -179,7 +180,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> script requires a parent <i>GameObject</i>.",
+                    "<i>ObjectWaterInteraction</i> script requires a parent GameObject.",
+                    "Create a primary GameObject for the object, and parent this underneath it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -190,8 +192,9 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> script requires <i>RegisterDynWavesInput</i> script to be present.",
-                    ValidatedHelper.MessageType.Error, this
+                    "<i>ObjectWaterInteraction</i> script requires <i>RegisterDynWavesInput</i> component to be present.",
+                    "Attach a <i>RegisterDynWavesInput</i> component.",
+                    ValidatedHelper.MessageType.Error, this, ValidatedHelper.FixAttachComponent<RegisterDynWavesInput>
                 );
 
                 isValid = false;
@@ -201,8 +204,10 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> script requires <i>Renderer</i> component.",
-                    ValidatedHelper.MessageType.Error, this
+                    "<i>ObjectWaterInteraction</i> component requires <i>MeshRenderer</i> component.",
+                    "Attach a MeshRenderer component.",
+                    ValidatedHelper.MessageType.Error, this,
+                    ValidatedHelper.FixAttachComponent<MeshRenderer>
                 );
 
                 isValid = false;

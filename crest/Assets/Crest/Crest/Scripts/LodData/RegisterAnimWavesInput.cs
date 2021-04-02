@@ -74,7 +74,7 @@ namespace Crest
 #if UNITY_EDITOR
         // Animated waves are always enabled
         protected override bool FeatureEnabled(OceanRenderer ocean) => true;
-        protected override string FixOceanFeatureDisabled(SerializedObject oceanComponent) => null;
+        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent) { }
 #endif // UNITY_EDITOR
     }
 }

@@ -258,15 +258,16 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
+        protected virtual string FeatureToggleName => null;
         protected abstract bool FeatureEnabled(OceanRenderer ocean);
+
         protected virtual string RequiredShaderKeyword => null;
         // NOTE: Temporary until shader keywords are the same across pipelines.
         protected virtual string RequiredShaderKeywordProperty => null;
 
-        protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
         protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
 
-        protected abstract string FixOceanFeatureDisabled(SerializedObject oceanComponent);
+        protected abstract void FixOceanFeatureDisabled(SerializedObject oceanComponent);
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
@@ -274,13 +275,16 @@ namespace Crest
 
             if (!FeatureEnabled(ocean))
             {
-                showMessage(FeatureDisabledErrorMessage, ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled);
+                showMessage($"<i>{FeatureToggleName}</i> must be enabled on the OceanRenderer component.",
+                    $"Enable this option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled
+                    );
                 isValid = false;
             }
 
             if (!string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
             {
-                showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                showMessage(KeywordMissingErrorMessage, KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;
             }
 

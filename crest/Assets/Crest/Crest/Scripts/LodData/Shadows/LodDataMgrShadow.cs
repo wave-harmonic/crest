@@ -24,8 +24,10 @@ namespace Crest
 
         internal const string MATERIAL_KEYWORD_PROPERTY = "_Shadows";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_SHADOWS_ON";
-        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Shadowing must be enabled on the ocean material. Tick the <i>Shadowing</i> option in the <i>Scattering</i> parameter section on the material currently assigned to the OceanRenderer component.";
-        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The shadow feature is disabled on this component but is enabled on the ocean material. If this is not intentional, either enable the <i>Create Shadow Data</i> option on this component to turn it on, or disable the Shadowing feature on the ocean material to save performance.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Shadowing must be enabled on the ocean material.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Shadowing</i> option in the <i>Scattering</i> parameter section on the material currently assigned to the OceanRenderer component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The shadow feature is disabled on this component but is enabled on the ocean material.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Shadow Data</i> option on this component to turn it on, or disable the Shadowing feature on the ocean material to save performance.";
 
         public static bool s_processData = true;
 

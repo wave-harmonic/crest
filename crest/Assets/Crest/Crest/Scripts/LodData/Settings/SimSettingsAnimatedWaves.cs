@@ -91,6 +91,7 @@ namespace Crest
                     "<i>Gerstner Waves CPU</i> has significant drawbacks. It does not include wave attenuation from " +
                     "water depth or any custom rendered shape. It does not support multiple " +
                     "<i>GerstnerWavesBatched</i> components including cross blending. Please read the user guide for more information.",
+                    "Set collision source to <i>ComputeShaderQueries</i>",
                     ValidatedHelper.MessageType.Info, this
                 );
             }
@@ -99,6 +100,7 @@ namespace Crest
                 showMessage
                 (
                     "Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.",
+                    "Set collision source to <i>ComputeShaderQueries</i>",
                     ValidatedHelper.MessageType.Warning, this
                 );
             }

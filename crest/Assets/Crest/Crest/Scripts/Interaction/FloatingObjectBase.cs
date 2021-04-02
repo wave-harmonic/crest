@@ -32,6 +32,7 @@ namespace Crest
                 showMessage
                 (
                     "<i>Collision Source</i> in <i>Animated Waves Settings</i> is set to <i>None</i>. The floating objects in the scene will use a flat horizontal plane.",
+                    "Set the <i>Collision Source</i> to <i>ComputeShaderQueries</i> to get accurate physics.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
 
@@ -44,6 +45,7 @@ namespace Crest
                 showMessage
                 (
                     $"Expected to have one rigidbody on floating object, currently has {rbs.Length} object(s).",
+                    "Remove additional <i>Rigidbody</i> components.",
                     ValidatedHelper.MessageType.Error, this
                 );
             }

@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Crest
 {
-    using ValidationFixFunc = System.Func<SerializedObject, string>;
+    using ValidationFixFunc = System.Action<SerializedObject>;
 
     public interface IValidated
     {
@@ -33,6 +33,7 @@ namespace Crest
         public struct HelpBoxMessage
         {
             public string _message;
+            public string _fixDescription;
             public Object _object;
             public ValidationFixFunc _action;
         }
@@ -46,38 +47,35 @@ namespace Crest
             new List<HelpBoxMessage>(),
         };
 
-        public delegate void ShowMessage(string message, MessageType type, Object @object = null, ValidationFixFunc action = null);
+        public delegate void ShowMessage(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null);
 
-        public static void DebugLog(string message, MessageType type, Object @object = null, ValidationFixFunc action = null)
+        public static void DebugLog(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
             message = $"Validation: {message} Click this message to highlight the problem object.";
 
             switch (type)
             {
-                case MessageType.Error: Debug.LogError(message, @object); break;
-                case MessageType.Warning: Debug.LogWarning(message, @object); break;
-                default: Debug.Log(message, @object); break;
+                case MessageType.Error: Debug.LogError(message + " " + fixDescription, @object); break;
+                case MessageType.Warning: Debug.LogWarning(message + " " + fixDescription, @object); break;
+                default: Debug.Log(message + " " + fixDescription, @object); break;
             }
         }
 
-        public static void HelpBox(string message, MessageType type, Object @object = null, ValidationFixFunc action = null)
+        public static void HelpBox(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
-            messages[(int)type].Add(new HelpBoxMessage { _message = message, _object = @object, _action = action });
+            messages[(int)type].Add(new HelpBoxMessage { _message = message, _fixDescription = fixDescription, _object = @object, _action = action });
         }
 
-        public static void Suppressed(string message, MessageType type, Object @object = null, ValidationFixFunc action = null)
+        public static void Suppressed(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
         }
 
-        static string FixAttachRenderer(SerializedObject lodInputComponent)
+        internal static void FixAttachComponent<ComponentType>(SerializedObject lodInputComponent)
+            where ComponentType : Component
         {
-            if (lodInputComponent != null)
-            {
-                var gameObject = lodInputComponent.targetObject as GameObject;
-                gameObject.AddComponent<MeshRenderer>();
-                EditorUtility.SetDirty(gameObject);
-            }
-            return "Attach MeshRenderer component";
+            var gameObject = lodInputComponent.targetObject as GameObject;
+            gameObject.AddComponent<ComponentType>();
+            EditorUtility.SetDirty(gameObject);
         }
 
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
@@ -87,8 +85,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "No renderer has been attached to ocean input. A renderer is required.",
-                    MessageType.Error, gameObject, FixAttachRenderer
+                    "A MeshRenderer component is required but none is attached to ocean input.",
+                    "Attach a MeshRenderer component.", MessageType.Error, gameObject, FixAttachComponent<MeshRenderer>
                 );
 
                 return false;
@@ -99,7 +97,7 @@ namespace Crest
                 showMessage
                 (
                     $"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.",
-                    MessageType.Error, gameObject
+                    "Assign a material that uses a shader of this type.", MessageType.Error, gameObject
                 );
 
                 return false;
@@ -177,7 +175,7 @@ namespace Crest
                         foreach (var message in messages)
                         {
                             EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.HelpBox(message._message, messageType);
+                            EditorGUILayout.HelpBox(message._message + " " + message._fixDescription, messageType);
 
                             // Jump to object button.
                             if (message._object != null)
@@ -205,12 +203,19 @@ namespace Crest
                             if (message._action != null)
                             {
                                 // Call fix function with null argument to retrieve the resolution info
-                                string resolution = message._action.Invoke(null);
                                 if (s_fixButtonContent == null)
                                 {
                                     s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"));
                                 }
-                                s_fixButtonContent.tooltip = $"Fix: {resolution}";
+
+                                if (message._fixDescription != null)
+                                {
+                                    s_fixButtonContent.tooltip = $"Fix: {message._fixDescription}";
+                                }
+                                else
+                                {
+                                    s_fixButtonContent.tooltip = "Fix issue";
+                                }
 
                                 if (GUILayout.Button(s_fixButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
                                 {
@@ -220,7 +225,7 @@ namespace Crest
                                     if (serializedObject.ApplyModifiedProperties())
                                     {
                                         // SerializedObject does this for us, but gives the history item a nicer label.
-                                        Undo.RecordObject(message._object, resolution);
+                                        Undo.RecordObject(message._object, s_fixButtonContent.tooltip);
                                     }
                                 }
                             }

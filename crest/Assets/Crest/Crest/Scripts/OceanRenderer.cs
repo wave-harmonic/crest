@@ -1369,6 +1369,11 @@ namespace Crest
                 _lodDataResolution = newLDR;
             }
         }
+
+        internal static void FixSetFeatureEnabled(SerializedObject oceanSO, string paramName, bool enabled)
+        {
+            oceanSO.FindProperty(paramName).boolValue = enabled;
+        }
     }
 
     [CustomEditor(typeof(OceanRenderer))]

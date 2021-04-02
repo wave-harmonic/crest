@@ -24,11 +24,8 @@ namespace Crest
 
 #if UNITY_EDITOR
         protected override string FeatureToggleName => LodDataMgrDynWaves.FEATURE_TOGGLE_NAME;
+        protected override string FeatureToggleLabel => LodDataMgrDynWaves.FEATURE_TOGGLE_LABEL;
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateDynamicWaveSim;
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
-        {
-            oceanComponent.FindProperty("_createDynamicWaveSim").boolValue = true;
-        }
 #endif
     }
 }

@@ -438,7 +438,7 @@ namespace Crest
                     showMessage
                     (
                         "Depth cache is outdated.",
-                        "Click <i>Populate Cache</i> or re-bake the cache to bring the cache up-to-date with component changes.",
+                        "Click Populate Cache or re-bake the cache to bring the cache up-to-date with component changes.",
                         ValidatedHelper.MessageType.Warning, this
                     );
                 }
@@ -465,7 +465,7 @@ namespace Crest
                     showMessage
                     (
                         "No layers specified for rendering into depth cache.",
-                        "Specify one or may layers using the <i>Layers</i> field.",
+                        "Specify one or may layers using the Layers field.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -477,7 +477,7 @@ namespace Crest
                     showMessage
                     (
                         $"<i>Force Always Update Debug</i> option is enabled on depth cache <i>{gameObject.name}</i>, which means it will render every frame instead of running from the cache.",
-                        "Disable the <i>Force Always Update Debug</i> option.",
+                        "Disable the Force Always Update Debug option.",
                         ValidatedHelper.MessageType.Warning, this
                     );
 

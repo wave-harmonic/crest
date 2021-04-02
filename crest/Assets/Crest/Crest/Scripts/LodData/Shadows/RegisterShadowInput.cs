@@ -25,12 +25,9 @@ namespace Crest
         protected override bool FollowHorizontalMotion => false;
 
 #if UNITY_EDITOR
-        protected override string FeatureToggleName => "Create Shadow Data";
+        protected override string FeatureToggleName => "_createShadowData";
+        protected override string FeatureToggleLabel => "Create Shadow Data";
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateShadowData;
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
-        {
-            oceanComponent.FindProperty("_createShadowData").boolValue = true;
-        }
 
         protected override string RequiredShaderKeyword => LodDataMgrShadow.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING;

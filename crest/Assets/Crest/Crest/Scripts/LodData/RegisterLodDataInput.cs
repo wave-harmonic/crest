@@ -258,8 +258,9 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
+        protected virtual string FeatureToggleLabel => null;
         protected virtual string FeatureToggleName => null;
-        protected abstract bool FeatureEnabled(OceanRenderer ocean);
+        protected virtual bool FeatureEnabled(OceanRenderer ocean) => true;
 
         protected virtual string RequiredShaderKeyword => null;
         // NOTE: Temporary until shader keywords are the same across pipelines.
@@ -267,17 +268,15 @@ namespace Crest
 
         protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
 
-        protected abstract void FixOceanFeatureDisabled(SerializedObject oceanComponent);
-
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             bool isValid = ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
 
             if (!FeatureEnabled(ocean))
             {
-                showMessage($"<i>{FeatureToggleName}</i> must be enabled on the OceanRenderer component.",
-                    $"Enable this option on the <i>OceanRenderer</i> component.",
-                    ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled
+                showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the OceanRenderer component.",
+                    $"Enable this option on the OceanRenderer component.",
+                    ValidatedHelper.MessageType.Error, ocean, (so) => OceanRenderer.FixSetFeatureEnabled(so, FeatureToggleName, true)
                     );
                 isValid = false;
             }

@@ -860,7 +860,7 @@ namespace Crest
                 showMessage
                 (
                     "The MeshRenderer component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
-                    "Either remove the MeshRenderer component or set the <i>Mode</i> option to <i>Geometry</i>.",
+                    "Either remove the MeshRenderer component or set the Mode option to Geometry.",
                     ValidatedHelper.MessageType.Warning, this
                 );
             }
@@ -870,7 +870,7 @@ namespace Crest
                 showMessage
                 (
                     "The MeshRenderer component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
-                    "Either remove the MeshRenderer component or set the <i>Mode</i> option to <i>Geometry</i>.",
+                    "Either remove the MeshRenderer component or set the Mode option to Geometry.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 
@@ -882,7 +882,7 @@ namespace Crest
                 showMessage
                 (
                     "There is no spectrum assigned meaning this Gerstner component won't generate any waves.",
-                    "Assign a valid spectrum asset to the <i>Spectrum</i> field.", ValidatedHelper.MessageType.Warning, this
+                    "Assign a valid spectrum asset to the Spectrum field.", ValidatedHelper.MessageType.Warning, this
                 );
 
                 isValid = false;
@@ -893,7 +893,7 @@ namespace Crest
                 showMessage
                 (
                     "<i>Components Per Octave</i> set to 0 meaning this Gerstner component won't generate any waves.",
-                    "Increase this value to 8 or 16.", ValidatedHelper.MessageType.Warning, this
+                    "Increase Components Per Octave to 8 or 16.", ValidatedHelper.MessageType.Warning, this
                 );
 
                 isValid = false;

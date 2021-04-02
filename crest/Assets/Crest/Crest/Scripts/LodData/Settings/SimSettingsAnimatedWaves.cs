@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -22,7 +23,7 @@ namespace Crest
 
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
-        public CollisionSources CollisionSource { get { return _collisionSource; } }
+        public CollisionSources CollisionSource { get { return _collisionSource; } set { _collisionSource = value; } }
 
         [Tooltip("Maximum number of wave queries that can be performed when using ComputeShaderQueries.")]
         [PredicatedField("_collisionSource", true, (int)CollisionSources.ComputeShaderQueries), SerializeField]
@@ -91,7 +92,7 @@ namespace Crest
                     "<i>Gerstner Waves CPU</i> has significant drawbacks. It does not include wave attenuation from " +
                     "water depth or any custom rendered shape. It does not support multiple " +
                     "<i>GerstnerWavesBatched</i> components including cross blending. Please read the user guide for more information.",
-                    "Set collision source to <i>ComputeShaderQueries</i>",
+                    "Set collision source to ComputeShaderQueries",
                     ValidatedHelper.MessageType.Info, this
                 );
             }
@@ -100,12 +101,22 @@ namespace Crest
                 showMessage
                 (
                     "Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.",
-                    "Set collision source to <i>ComputeShaderQueries</i>",
-                    ValidatedHelper.MessageType.Warning, this
+                    "Set collision source to ComputeShaderQueries.",
+                    ValidatedHelper.MessageType.Warning, this, FixSetCollisionSourceToCompute
                 );
             }
 
             return isValid;
+        }
+
+        internal static void FixSetCollisionSourceToCompute(SerializedObject settingsObject)
+        {
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance._simSettingsAnimatedWaves != null)
+            {
+                Undo.RecordObject(OceanRenderer.Instance._simSettingsAnimatedWaves, "Set collision source to compute");
+                OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource = CollisionSources.ComputeShaderQueries;
+                EditorUtility.SetDirty(OceanRenderer.Instance._simSettingsAnimatedWaves);
+            }
         }
     }
 #endif

@@ -206,8 +206,9 @@ namespace Crest
                 showMessage
                 (
                     "<i>SphereWaterInteraction</i> requires dynamic wave simulation to be enabled on <i>OceanRenderer</i>.",
-                    $"Enable <i>{LodDataMgrDynWaves.FEATURE_TOGGLE_NAME}</i> option on the <i>OceanRenderer</i> component.",
-                    ValidatedHelper.MessageType.Error, ocean
+                    $"Enable {LodDataMgrDynWaves.FEATURE_TOGGLE_LABEL} option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, ocean,
+                    (so) => OceanRenderer.FixSetFeatureEnabled(so, LodDataMgrDynWaves.FEATURE_TOGGLE_NAME, true)
                 );
 
                 isValid = false;
@@ -230,7 +231,7 @@ namespace Crest
                 showMessage
                 (
                     "<i>SphereWaterInteraction</i> component requires <i>RegisterDynWavesInput</i> component to be present.",
-                    "Attach a <i>RegisterDynWavesInput</i> component.",
+                    "Attach a RegisterDynWavesInput component.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -242,7 +243,7 @@ namespace Crest
                 showMessage
                 (
                     "<i>SphereWaterInteraction</i> component requires a <i>MeshRenderer</i> component.",
-                    "Attach a <i>MeshRenderer</i> component.",
+                    "Attach a MeshRenderer component.",
                     ValidatedHelper.MessageType.Error, this,
                     ValidatedHelper.FixAttachComponent<MeshRenderer>
                 );

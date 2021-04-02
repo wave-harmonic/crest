@@ -22,6 +22,17 @@ namespace Crest.Spline
     {
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
+
+        [SerializeField]
+        float _radius = 20f;
+        [SerializeField]
+        int _subdivisions = 1;
+        [SerializeField]
+        int _smoothingIterations = 0;
+
+        public float Radius => _radius;
+        public int Subdivisions => _subdivisions;
+        public int SmoothingIterations => _smoothingIterations;
     }
 
 #if UNITY_EDITOR

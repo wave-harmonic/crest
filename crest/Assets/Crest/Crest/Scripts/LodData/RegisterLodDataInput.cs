@@ -271,10 +271,12 @@ namespace Crest
     {
         [Header("Spline settings")]
         [SerializeField]
+        bool _overrideSplineSettings = false;
+        [SerializeField, PredicatedField("_overrideSplineSettings")]
         float _radius = 20f;
-        [SerializeField]
+        [SerializeField, PredicatedField("_overrideSplineSettings")]
         int _subdivisions = 1;
-        [SerializeField]
+        [SerializeField, PredicatedField("_overrideSplineSettings")]
         int _smoothingIterations = 0;
 
         protected Material _splineMaterial;
@@ -288,7 +290,10 @@ namespace Crest
         {
             if (TryGetComponent<Spline.Spline>(out _spline))
             {
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
+                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
 
                 if (_splineMaterial == null)
                 {
@@ -349,7 +354,10 @@ namespace Crest
 
                 if (_spline != null)
                 {
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
+                    var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                    var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                    var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
 
                     if (_splineMaterial == null)
                     {

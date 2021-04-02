@@ -58,15 +58,15 @@ namespace Crest
         bool _debugDrawSlicesInEditor = false;
 #pragma warning restore 414
 
-        [Header("Spline Settings")]
-        [SerializeField, Delayed]
-        int _subdivisions = 1;
-
+        [Header("Spline settings")]
         [SerializeField]
-        float _radius = 50f;
-
-        [SerializeField, Delayed]
-        int _smoothingIterations = 60;
+        bool _overrideSplineSettings = false;
+        [SerializeField, PredicatedField("_overrideSplineSettings")]
+        float _radius = 20f;
+        [SerializeField, PredicatedField("_overrideSplineSettings")]
+        int _subdivisions = 1;
+        [SerializeField, PredicatedField("_overrideSplineSettings")]
+        int _smoothingIterations = 0;
 
         [SerializeField]
         float _featherWaveStart = 0.1f;
@@ -557,7 +557,11 @@ namespace Crest
 
             if (TryGetComponent<Spline.Spline>(out var splineForWaves))
             {
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, Vector2.one, ref _meshForDrawingWaves))
+                var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
+                var smooth = _overrideSplineSettings ? _smoothingIterations : splineForWaves.SmoothingIterations;
+
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, smooth, Vector2.one, ref _meshForDrawingWaves))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }

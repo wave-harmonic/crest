@@ -29,18 +29,29 @@ namespace Crest.Spline
     {
         public void OnDrawGizmos()
         {
-            Gizmos.color = Color.black * 0.5f;
             var points = GetComponentsInChildren<SplinePoint>();
             for (int i = 0; i < points.Length - 1; i++)
             {
+                SetLineColor(points[i], points[i + 1], false);
                 Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
             }
 
-            Gizmos.color = Color.white;
-
             if (_closed && points.Length > 2)
             {
+                SetLineColor(points[points.Length - 1], points[0], true);
                 Gizmos.DrawLine(points[points.Length - 1].transform.position, points[0].transform.position);
+            }
+
+            Gizmos.color = Color.white;
+        }
+
+        void SetLineColor(SplinePoint from, SplinePoint to, bool isClosing)
+        {
+            Gizmos.color = isClosing ? Color.white : Color.black * 0.5f;
+
+            if (Selection.activeObject == from.gameObject || Selection.activeObject == to.gameObject)
+            {
+                Gizmos.color = Color.yellow;
             }
         }
 

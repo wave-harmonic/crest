@@ -589,7 +589,8 @@ namespace Crest
                     "<i>Layer Names</i> on the <i>Ocean Depth Cache</i> is obsolete and is no longer used. " +
                     "Use <i>Layers</i> instead.",
                     "Populate layer mask using the legacy layer names data.",
-                    ValidatedHelper.MessageType.Error, this, (SerializedObject serializedObject) =>
+                    ValidatedHelper.MessageType.Error, this,
+                    (SerializedObject serializedObject) =>
                     {
                         serializedObject.FindProperty("_layers").intValue = LayerMask.GetMask(_layerNames);
                         serializedObject.FindProperty("_layerNames").arraySize = 0;

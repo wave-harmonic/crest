@@ -33,7 +33,8 @@ namespace Crest
                 (
                     "<i>Collision Source</i> in <i>Animated Waves Settings</i> is set to <i>None</i>. The floating objects in the scene will use a flat horizontal plane.",
                     "Set the Collision Source to ComputeShaderQueries to incorporate waves into physics.",
-                    ValidatedHelper.MessageType.Warning, ocean, SimSettingsAnimatedWaves.FixSetCollisionSourceToCompute
+                    ValidatedHelper.MessageType.Warning, ocean,
+                    SimSettingsAnimatedWaves.FixSetCollisionSourceToCompute
                 );
 
                 isValid = false;

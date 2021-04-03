@@ -276,7 +276,8 @@ namespace Crest
             if (!FeatureEnabled(ocean))
             {
                 showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the OceanRenderer component.",
-                    $"Enable this option on the OceanRenderer component.", ValidatedHelper.MessageType.Error, ocean,
+                    $"Enable this option on the OceanRenderer component.",
+                    ValidatedHelper.MessageType.Error, ocean,
                     (so) => OceanRenderer.FixSetFeatureEnabled(so, FeatureToggleName, true)
                     );
                 isValid = false;

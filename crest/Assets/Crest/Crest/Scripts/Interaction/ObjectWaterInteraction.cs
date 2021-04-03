@@ -195,7 +195,8 @@ namespace Crest
                 (
                     "<i>ObjectWaterInteraction</i> script requires <i>RegisterDynWavesInput</i> component to be present.",
                     "Attach a RegisterDynWavesInput component.",
-                    ValidatedHelper.MessageType.Error, this, ValidatedHelper.FixAttachComponent<RegisterDynWavesInput>
+                    ValidatedHelper.MessageType.Error, this,
+                    ValidatedHelper.FixAttachComponent<RegisterDynWavesInput>
                 );
 
                 isValid = false;

@@ -233,7 +233,7 @@ namespace Crest
 
                                 if (GUILayout.Button(s_fixButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
                                 {
-                                    // Fix for real
+                                    // Run fix function
                                     var serializedObject = new SerializedObject(message._object);
                                     message._action.Invoke(serializedObject);
                                     if (serializedObject.ApplyModifiedProperties())

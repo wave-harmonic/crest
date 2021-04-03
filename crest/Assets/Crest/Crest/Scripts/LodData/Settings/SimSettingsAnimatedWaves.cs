@@ -102,7 +102,8 @@ namespace Crest
                 (
                     "Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.",
                     "Set collision source to ComputeShaderQueries.",
-                    ValidatedHelper.MessageType.Warning, this, FixSetCollisionSourceToCompute
+                    ValidatedHelper.MessageType.Warning, this,
+                    FixSetCollisionSourceToCompute
                 );
             }
 

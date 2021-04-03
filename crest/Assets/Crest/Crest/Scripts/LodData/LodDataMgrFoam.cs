@@ -21,8 +21,10 @@ namespace Crest
 
         internal const string MATERIAL_KEYWORD_PROPERTY = "_Foam";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FOAM_ON";
-        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Foam must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Foam</i> parameter section on the material currently assigned to the OceanRenderer component.";
-        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Foam feature is disabled on this component but is enabled on the ocean material. If this is not intentional, either enable the <i>Create Foam Sim</i> option on this component to turn it on, or disable the Foam feature on the ocean material to save performance.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Foam is not enabled on the ocean material and will not be visible.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Foam</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Foam feature is disabled on this component but is enabled on the ocean material.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Foam Sim</i> option on this component to turn it on, or disable the <i>Foam</i> feature on the ocean material to save performance.";
 
         readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
         readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
@@ -60,7 +62,7 @@ namespace Crest
                 && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING, _ocean);
+                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }

@@ -23,16 +23,15 @@ namespace Crest
         protected override string ShaderPrefix => "Crest/Inputs/Flow";
 
 #if UNITY_EDITOR
+        protected override string FeatureToggleName => "_createFlowSim";
+        protected override string FeatureToggleLabel => "Create Flow Sim";
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFlowSim;
-        protected override string FeatureDisabledErrorMessage => "<i>Create Flow Sim</i> must be enabled on the OceanRenderer component to enable flow on the water surface.";
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
-        {
-            oceanComponent.FindProperty("_createFlowSim").boolValue = true;
-        }
 
         protected override string RequiredShaderKeywordProperty => LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrFlow.MATERIAL_KEYWORD;
-        protected override string KeywordMissingErrorMessage => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;
+
+        protected override string MaterialFeatureDisabledError => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;
+        protected override string MaterialFeatureDisabledFix => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
 }

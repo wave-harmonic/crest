@@ -217,7 +217,6 @@ namespace Crest
                             // Fix the issue button.
                             if (message._action != null)
                             {
-                                // Call fix function with null argument to retrieve the resolution info
                                 if (s_fixButtonContent == null)
                                 {
                                     s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"));

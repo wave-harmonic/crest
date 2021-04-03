@@ -21,6 +21,7 @@ namespace Crest
             public float _textureRes;
             public Vector3 _posSnapped;
             public int _frame;
+            public float _maxWavelength;
 
             public RenderData Validate(int frameOffset, string context)
             {
@@ -90,12 +91,15 @@ namespace Crest
 
                 _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
 
+                _renderData[lodIdx]._maxWavelength = MaxWavelength(lodIdx);
+
                 // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
                 if (_renderDataSource[lodIdx]._textureRes == 0f)
                 {
                     _renderDataSource[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
                     _renderDataSource[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
                     _renderDataSource[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                    _renderDataSource[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
                 }
 
                 _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
@@ -153,6 +157,9 @@ namespace Crest
                 cascadeParamsSrc[lodIdx]._texelWidth = _renderDataSource[lodIdx]._texelWidth;
 
                 cascadeParamsTgt[lodIdx]._weight = cascadeParamsSrc[lodIdx]._weight = 1f;
+
+                cascadeParamsTgt[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
+                cascadeParamsSrc[lodIdx]._maxWavelength = _renderDataSource[lodIdx]._maxWavelength;
             }
 
             // Duplicate last element so that things can safely read off the end of the cascades

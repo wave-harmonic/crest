@@ -19,7 +19,10 @@ namespace Crest
     ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer).
     ///  * LodDataDynamicWaves adds its results into this LodData. The dynamic waves piggy back off the combine
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
-    ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
+    ///
+    /// The RGB channels are the XYZ displacement from a rest plane at sea level to the corresponding displaced position on the
+    /// surface. The A channel holds the variance/energy in all the smaller wavelengths that are too small to go into the cascade
+    /// slice. This is used as a statistical measure for the missing waves and is used to ensure foam is generated everywhere.
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {
@@ -35,12 +38,6 @@ namespace Crest
         /// Turn shape combine pass on/off. Debug only - ifdef'd out in standalone
         /// </summary>
         public static bool _shapeCombinePass = true;
-
-        /// <summary>
-        /// Ping pong between render targets to do the combine. Disabling this uses a compute shader instead which doesn't need
-        /// to copy back and forth between targets, but has dodgy historical support as pre-DX11.3 hardware may not support typed UAV loads.
-        /// </summary>
-        public static bool _shapeCombinePassPingPong = true;
 
         RenderTexture _waveBuffers;
         RenderTexture _combineBuffer;
@@ -231,7 +228,7 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
             }
 
-            foreach(var gerstner in _gerstners)
+            foreach (var gerstner in _gerstners)
             {
                 gerstner.CrestUpdate(buf);
             }
@@ -252,7 +249,7 @@ namespace Crest
             }
 
             // Combine the LODs - copy results from biggest LOD down to LOD 0
-            if (_shapeCombinePassPingPong)
+            if (Settings.PingPongCombinePass)
             {
                 CombinePassPingPong(buf);
             }

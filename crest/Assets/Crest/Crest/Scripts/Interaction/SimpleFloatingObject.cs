@@ -12,6 +12,7 @@ namespace Crest
     /// Applies simple approximation of buoyancy force - force based on submerged depth and torque based on alignment
     /// to water normal.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Simple Floating Object")]
     public class SimpleFloatingObject : FloatingObjectBase
     {
         [Header("Buoyancy Force")]

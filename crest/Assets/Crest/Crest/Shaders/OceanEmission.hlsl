@@ -5,48 +5,6 @@
 #ifndef CREST_OCEAN_EMISSION_INCLUDED
 #define CREST_OCEAN_EMISSION_INCLUDED
 
-uniform half3 _Diffuse;
-uniform half3 _DiffuseGrazing;
-
-// this is copied from the render target by unity
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
-
-#if _TRANSPARENCY_ON
-uniform half _RefractionStrength;
-#endif // _TRANSPARENCY_ON
-uniform half4 _DepthFogDensity;
-
-#if _SUBSURFACESCATTERING_ON
-uniform half3 _SubSurfaceColour;
-uniform half _SubSurfaceBase;
-uniform half _SubSurfaceSun;
-uniform half _SubSurfaceSunFallOff;
-#endif // _SUBSURFACESCATTERING_ON
-
-#if _SUBSURFACESHALLOWCOLOUR_ON
-uniform half _SubSurfaceDepthMax;
-uniform half _SubSurfaceDepthPower;
-uniform half3 _SubSurfaceShallowCol;
-#if _SHADOWS_ON
-uniform half3 _SubSurfaceShallowColShadow;
-#endif // _SHADOWS_ON
-#endif // _SUBSURFACESHALLOWCOLOUR_ON
-
-#if _CAUSTICS_ON
-uniform sampler2D _CausticsTexture;
-uniform half _CausticsTextureScale;
-uniform half _CausticsTextureAverage;
-uniform half _CausticsStrength;
-uniform half _CausticsFocalDepth;
-uniform half _CausticsDepthOfField;
-uniform half _CausticsDistortionScale;
-uniform half _CausticsDistortionStrength;
-#endif // _CAUSTICS_ON
-
-#if _SHADOWS_ON
-uniform half3 _DiffuseShadow;
-#endif
-
 half3 ScatterColour(
 	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
@@ -143,11 +101,10 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 
 	const float3 scenePosUV = WorldToUV(scenePos.xz, cascadeData1, _LD_SliceIndex + 1);
 
-	half3 disp = 0.;
-	half sss = 0.;
+	float3 disp = 0.0;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp, sss);
+	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -195,7 +152,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
-	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
+	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ,
 	in const half3 i_bubbleCol, in sampler2D i_normals, in const bool i_underwater, in const half3 i_scatterCol,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
@@ -217,7 +174,9 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	if (!i_underwater)
 	{
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-		const float sceneZRefract = LinearEyeDepth(UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, i_uvDepth + refractOffset).x);
+		// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
+		const float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i_uvDepth + refractOffset).x;
+		const float sceneZRefract = CrestLinearEyeDepth(rawDepth);
 		half2 uvBackgroundRefract;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise

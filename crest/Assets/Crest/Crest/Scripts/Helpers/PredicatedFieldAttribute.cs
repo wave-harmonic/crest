@@ -6,13 +6,14 @@ using System;
 using UnityEngine;
 
 #if UNITY_EDITOR
+using Crest.EditorHelpers;
 using UnityEditor;
 #endif
 
 namespace Crest
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class PredicatedFieldAttribute : PropertyAttribute
+    public class PredicatedFieldAttribute : MultiPropertyAttribute
     {
         public readonly string _propertyName;
         public readonly bool _inverted;
@@ -67,33 +68,21 @@ namespace Crest
 
             return _inverted ? !result : result;
         }
-#endif
-    }
 
-#if UNITY_EDITOR
-    [CustomPropertyDrawer(typeof(PredicatedFieldAttribute))]
-    public class PredicatedFieldAttributePropertyDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer, bool isLast)
         {
-            var attrib = (attribute as PredicatedFieldAttribute);
-            var propName = attrib._propertyName;
-            var prop = property.serializedObject.FindProperty(propName);
-
-            var before = GUI.enabled;
-            if (prop != null)
+            // Get the other property to be the predicate for the enabled/disabled state of this property.
+            var otherProperty = property.serializedObject.FindProperty(_propertyName);
+            if (otherProperty != null)
             {
-                GUI.enabled = attrib.GUIEnabled(prop);
-            }
-            else
-            {
-                Debug.LogError($"PredicatedFieldAttributePropertyDrawer - field '{propName}' not found.");
+                GUI.enabled = GUIEnabled(otherProperty);
             }
 
-            EditorGUI.PropertyField(position, property, label);
-
-            GUI.enabled = before;
+            if (isLast)
+            {
+                EditorGUI.PropertyField(position, property, label);
+            }
         }
-    }
 #endif
+    }
 }

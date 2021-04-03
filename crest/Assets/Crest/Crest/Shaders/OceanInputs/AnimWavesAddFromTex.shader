@@ -6,11 +6,9 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 {
 	Properties
 	{
-		_MainTex("Texture", 2D) = "white" {}
+		_MainTex("Texture", 2D) = "black" {}
 		_Strength( "Strength", float ) = 1
 		[Toggle] _HeightsOnly("Heights Only", Float) = 1
-		[Toggle] _SSSFromAlpha("Sub Surface Scattering (SSS) from Alpha", Float) = 0
-		_SSSStrength("SSS Strength", Float) = 0.5
 	}
 
 	SubShader
@@ -27,7 +25,6 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 			#pragma fragment Frag
 
 			#pragma shader_feature_local _HEIGHTSONLY_ON
-			#pragma shader_feature_local _SSSFROMALPHA_ON
 
 			#include "UnityCG.cginc"
 
@@ -36,7 +33,6 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
 			float _Strength;
-			float _SSSStrength;
 			float _Weight;
 			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
@@ -68,22 +64,16 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				half3 displacement = 0.0;
-				half sss = 0.0;
+				half3 texSample = tex2D(_MainTex, input.uv).xyz;
 
-				half4 texSample = tex2D(_MainTex, input.uv);
-
+				half3 displacement = (half3)0.0;
 #if _HEIGHTSONLY_ON
 				displacement.y = texSample.x * _Strength;
 #else
-				displacement.xyz = texSample.xyz * _Strength;
+				displacement.xyz = texSample * _Strength;
 #endif
 
-#if _SSSFROMALPHA_ON
-				sss = texSample.x * _SSSStrength;
-#endif
-
-				return _Weight * half4(displacement, sss);
+				return _Weight * half4(displacement, 0.0);
 			}
 
 			ENDCG

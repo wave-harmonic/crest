@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -10,6 +11,7 @@ namespace Crest
     /// Registers a custom input to the clip surface simulation. Attach this to GameObjects that you want to use to
     /// clip the surface of the ocean.
     /// </summary>
+    [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         bool _enabled = true;
@@ -39,7 +41,7 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.Instance == null || _renderer == null)
             {
                 return;
             }
@@ -80,5 +82,18 @@ namespace Crest
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
+
+#if UNITY_EDITOR
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
+        protected override string RequiredShaderKeywordProperty => LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY;
+        protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
+        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        {
+            oceanComponent.FindProperty("_createClipSurfaceData").boolValue = true;
+        }
+
+        protected override string FeatureDisabledErrorMessage => "<i>Create Clip Surface Data</i> must be enabled on the OceanRenderer component to enable clipping holes in the water surface.";
+        protected override string KeywordMissingErrorMessage => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;
+#endif
     }
 }

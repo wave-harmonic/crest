@@ -7,9 +7,6 @@
 
 #if _APPLYNORMALMAPPING_ON
 
-uniform half _NormalsStrength;
-uniform half _NormalsScale;
-
 half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha, in const CascadeParams cascadeData, in const PerCascadeInstanceData instanceData)
 {
 	const float lodDataGridSize = cascadeData._texelWidth;

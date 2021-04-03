@@ -5,6 +5,7 @@
 using Crest;
 using UnityEngine;
 
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ripple Generator")]
 public class RippleGenerator : MonoBehaviour
 {
     public bool _animate = true;
@@ -67,8 +68,7 @@ public class RippleGenerator : MonoBehaviour
             return;
         }
 
-        float dt;
-        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out _, out dt);
+        var dt = 1 / OceanRenderer.Instance._lodDataDynWaves.Settings._simulationFrequency;
 
         _rend.GetPropertyBlock(_mpb);
 

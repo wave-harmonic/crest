@@ -470,7 +470,7 @@ namespace Crest
             dc.transform.localScale = localScale;
         }
 
-        void FixCacheHeight(SerializedObject depthCache)
+        void FixHeight(SerializedObject depthCache)
         {
             var dc = depthCache.targetObject as OceanDepthCache;
 
@@ -598,20 +598,14 @@ namespace Crest
                 isValid = false;
             }
 
-            if (ocean != null && ocean.Root != null && Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
+            if (ocean != null && ocean.Root != null && !Mathf.Approximately(transform.position.y, ocean.Root.position.y))
             {
-                Action<SerializedObject> fix = null;
-                if (OceanRenderer.Instance != null)
-                {
-                    fix = FixCacheHeight;
-                }
-
                 showMessage
                 (
                     "It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level.",
                     "Set the Y position to the same height as the ocean object.",
                     ValidatedHelper.MessageType.Warning, this,
-                    fix
+                    FixHeight
                 );
 
                 isValid = false;

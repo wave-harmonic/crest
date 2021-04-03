@@ -8,6 +8,7 @@
 #if UNITY_EDITOR
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -224,7 +225,8 @@ namespace Crest
 
                                 if (message._fixDescription != null)
                                 {
-                                    s_fixButtonContent.tooltip = $"Fix: {message._fixDescription}";
+                                    var sanitisedFixDescr = Regex.Replace(message._fixDescription, @"<[^<>]*>", "'");
+                                    s_fixButtonContent.tooltip = $"Apply fix: {sanitisedFixDescr}";
                                 }
                                 else
                                 {

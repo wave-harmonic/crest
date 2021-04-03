@@ -63,9 +63,9 @@ namespace Crest
         bool _overrideSplineSettings = false;
         [SerializeField, PredicatedField("_overrideSplineSettings")]
         float _radius = 20f;
-        [SerializeField, PredicatedField("_overrideSplineSettings")]
+        [SerializeField, PredicatedField("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
-        [SerializeField, PredicatedField("_overrideSplineSettings")]
+        [SerializeField, PredicatedField("_overrideSplineSettings"), Delayed]
         int _smoothingIterations = 0;
 
         [SerializeField]

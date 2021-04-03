@@ -25,9 +25,9 @@ namespace Crest.Spline
 
         [SerializeField]
         float _radius = 20f;
-        [SerializeField]
+        [SerializeField, Delayed]
         int _subdivisions = 1;
-        [SerializeField]
+        [SerializeField, Delayed]
         int _smoothingIterations = 0;
 
         public float Radius => _radius;

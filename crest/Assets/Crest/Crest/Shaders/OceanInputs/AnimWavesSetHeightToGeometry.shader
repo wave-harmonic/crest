@@ -4,7 +4,7 @@
 
 // This writes straight into the displacement texture and sets the water height to the y value of the geometry.
 
-Shader "Crest/Inputs/Animated Waves/Lock Water Height To Geometry"
+Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
 {
 	Properties
 	{

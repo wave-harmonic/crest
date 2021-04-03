@@ -1287,7 +1287,8 @@ namespace Crest
                 if (ocean.CreateFoamSim)
                 {
                     showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrFoam.MATERIAL_KEYWORD, LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY, true));
                 }
                 else
                 {
@@ -1301,7 +1302,8 @@ namespace Crest
                 if (ocean.CreateFlowSim)
                 {
                     showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrFlow.MATERIAL_KEYWORD, LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY, true));
                 }
                 else
                 {
@@ -1315,7 +1317,8 @@ namespace Crest
                 if (ocean.CreateShadowData)
                 {
                     showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrShadow.MATERIAL_KEYWORD, LodDataMgrShadow.MATERIAL_KEYWORD_PROPERTY, true));
                 }
                 else
                 {
@@ -1329,7 +1332,8 @@ namespace Crest
                 if (ocean.CreateClipSurfaceData)
                 {
                     showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrClipSurface.MATERIAL_KEYWORD, LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY, true));
                 }
                 else
                 {

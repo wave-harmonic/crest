@@ -41,7 +41,7 @@ namespace Crest
                 showMessage
                 (
                     "Layer name required by AssignLayer script.",
-                    "Specify the name of a valid layer in the 'Layer Name' field.",
+                    "Specify the name of a valid layer in the <i>Layer Name</i> field.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

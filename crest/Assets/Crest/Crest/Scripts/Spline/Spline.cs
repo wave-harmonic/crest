@@ -50,7 +50,7 @@ namespace Crest.Spline
                     showMessage
                     (
                         $"All child GameObjects under <i>Spline</i> must have <i>SplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not have one.",
-                        $"Add a SplinePoint component to object {transform.GetChild(i).gameObject.name}, or move this object out in the hierarchy.",
+                        $"Add a <i>SplinePoint</i> component to object {transform.GetChild(i).gameObject.name}, or move this object out in the hierarchy.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -68,7 +68,7 @@ namespace Crest.Spline
                 showMessage
                 (
                     "Spline must have at least 2 spline points.",
-                    "Click the Add Point button in the Inspector, or add a child GameObject and attach SplinePoint component to it.",
+                    "Click the <i>Add Point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -79,7 +79,7 @@ namespace Crest.Spline
                 showMessage
                 (
                     "Closed splines must have at least 3 spline points. See the <i>Closed</i> parameter and tooltip.",
-                    "Add a point by clicking the Add Point button in the Inspector.",
+                    "Add a point by clicking the <i>Add Point</i> button in the Inspector.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

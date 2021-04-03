@@ -102,7 +102,9 @@ namespace Crest
                 showMessage
                 (
                     "A MeshRenderer component is required but none is attached to ocean input.",
-                    "Attach a MeshRenderer component.", MessageType.Error, gameObject, FixAttachComponent<MeshRenderer>
+                    "Attach a <i>MeshRenderer</i> component.",
+                    MessageType.Error, gameObject,
+                    FixAttachComponent<MeshRenderer>
                 );
 
                 return false;

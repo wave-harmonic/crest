@@ -1143,7 +1143,7 @@ namespace Crest
                 showMessage
                 (
                     "No ocean material specified.",
-                    "Assign a valid ocean material to the Material property of the OceanRenderer.",
+                    "Assign a valid ocean material to the Material property of the <i>OceanRenderer</i> component.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
 
@@ -1155,8 +1155,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Multiple OceanRenderer components detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
-                    "Remove extra OceanRenderer components.",
+                    "Multiple <i>OceanRenderer</i> components detected in open scenes, this is not typical - usually only one <i>OceanRenderer</i> is expected to be present.",
+                    "Remove extra <i>OceanRenderer</i> components.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
             }

@@ -859,8 +859,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "The MeshRenderer component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
-                    "Either remove the MeshRenderer component or set the Mode option to Geometry.",
+                    "The <i>MeshRenderer</i> component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
+                    "Either remove the <i>MeshRenderer</i> component or set the <i>Mode</i> option to <i>Geometry</i>.",
                     ValidatedHelper.MessageType.Warning, this
                 );
             }
@@ -869,8 +869,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "The MeshRenderer component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
-                    "Either remove the MeshRenderer component or set the Mode option to Geometry.",
+                    "The <i>MeshRenderer</i> component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
+                    "Either remove the <i>MeshRenderer</i> component or set the Mode option to <i>Geometry</i>.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 
@@ -882,7 +882,7 @@ namespace Crest
                 showMessage
                 (
                     "There is no spectrum assigned meaning this Gerstner component won't generate any waves.",
-                    "Assign a valid spectrum asset to the Spectrum field.",
+                    "Assign a valid spectrum asset to the <i>Spectrum</i> field.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 
@@ -894,7 +894,7 @@ namespace Crest
                 showMessage
                 (
                     "<i>Components Per Octave</i> set to 0 meaning this Gerstner component won't generate any waves.",
-                    "Increase Components Per Octave to 8 or 16.",
+                    "Increase <i>Components Per Octave</i> to 8 or 16.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 

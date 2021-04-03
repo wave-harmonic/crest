@@ -251,7 +251,7 @@ namespace Crest
                 showMessage
                 (
                     "Underwater effects expect to be parented to a camera.",
-                    "Parent this GameObject underneath a GameObject that has a Camera component attached.",
+                    "Parent this GameObject underneath a GameObject that has a <i>Camera</i> component attached.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

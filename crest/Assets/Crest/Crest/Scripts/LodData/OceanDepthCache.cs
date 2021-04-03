@@ -438,7 +438,7 @@ namespace Crest
                     showMessage
                     (
                         "Depth cache is outdated.",
-                        "Click Populate Cache or re-bake the cache to bring the cache up-to-date with component changes.",
+                        "Click <i>Populate Cache</i> or re-bake the cache to bring the cache up-to-date with component changes.",
                         ValidatedHelper.MessageType.Warning, this
                     );
                 }
@@ -450,7 +450,7 @@ namespace Crest
                 {
                     showMessage
                     (
-                        "Depth cache type is 'Saved Cache' but no saved cache data is provided.",
+                        "Depth cache type is <i>Saved Cache</i> but no saved cache data is provided.",
                         "Assign a saved cache asset.",
                         ValidatedHelper.MessageType.Error, this
                     );

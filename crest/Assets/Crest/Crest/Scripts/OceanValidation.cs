@@ -51,13 +51,13 @@ namespace Crest
 
         public static void DebugLog(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
-            message = $"Validation: {message} Click this message to highlight the problem object.";
+            message = $"Validation: {message} {fixDescription} Click this message to highlight the problem object.";
 
             switch (type)
             {
-                case MessageType.Error: Debug.LogError(message + " " + fixDescription, @object); break;
-                case MessageType.Warning: Debug.LogWarning(message + " " + fixDescription, @object); break;
-                default: Debug.Log(message + " " + fixDescription, @object); break;
+                case MessageType.Error: Debug.LogError(message, @object); break;
+                case MessageType.Warning: Debug.LogWarning(message, @object); break;
+                default: Debug.Log(message, @object); break;
             }
         }
 

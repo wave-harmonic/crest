@@ -467,6 +467,10 @@ namespace Crest
             localScale.y *= ymul;
             localScale.z *= zmul;
 
+            // Try to recover from 0 scale
+            if (localScale.x == 0f) localScale.x = localScale.z;
+            if (localScale.z == 0f) localScale.z = localScale.x;
+
             dc.transform.localScale = localScale;
         }
 

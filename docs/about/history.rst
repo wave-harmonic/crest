@@ -22,6 +22,9 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   - Rename *Add Water Height From Geometry* to *Set Base Water Height Using Geometry*.
+   - Rename *Set Water Height To Geometry* to *Set Water Height Using Geometry*.
+
    .. only:: hdrp
 
       -  Rearrange some material properties. `[HDRP]`

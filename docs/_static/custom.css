@@ -53,6 +53,12 @@ article[role="main"] > .admonition:first-child
     margin-top: 2rem;
 }
 
+#assets .sphinx-bs.container.pb-4.docutils
+{
+    /* Assets have too much padding. */
+    padding-bottom: 0 !important;
+}
+
 
 /****************************************************************************/
 /* Sidebar Logo

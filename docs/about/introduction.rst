@@ -32,10 +32,13 @@ Social
 
 .. TODO: Add social icons? Wait for https://github.com/fraoustin/sphinx_fontawesome/issues/7
 
-* **Discord** : `<https://discord.gg/g7GpjDC>`_
 * **YouTube** `<https://www.youtube.com/channel/UC7_ZKKCXZmH64rRZqe-C0WA>`_
 * **Twitter** `<https://twitter.com/@crest_ocean>`_
+* **Discord** `<https://discord.gg/g7GpjDC>`_
 
+.. raw:: html
+
+   <iframe src="https://discord.com/widget?id=559866092546424832&theme=dark" width="350" height="400" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
 
 .. only:: html
 

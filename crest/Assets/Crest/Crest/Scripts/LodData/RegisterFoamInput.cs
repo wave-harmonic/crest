@@ -31,16 +31,15 @@ namespace Crest
         bool _followHorizontalMotion = false;
 
 #if UNITY_EDITOR
+        protected override string FeatureToggleName => "_createFoamSim";
+        protected override string FeatureToggleLabel => "Create Foam Sim";
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFoamSim;
-        protected override string FeatureDisabledErrorMessage => "<i>Create Foam Sim</i> must be enabled on the OceanRenderer component.";
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
-        {
-            oceanComponent.FindProperty("_createFoamSim").boolValue = true;
-        }
 
         protected override string RequiredShaderKeywordProperty => LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrFoam.MATERIAL_KEYWORD;
-        protected override string KeywordMissingErrorMessage => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING;
+
+        protected override string MaterialFeatureDisabledError => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING;
+        protected override string MaterialFeatureDisabledFix => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
 }

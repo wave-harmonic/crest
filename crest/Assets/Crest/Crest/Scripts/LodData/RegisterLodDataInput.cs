@@ -389,15 +389,16 @@ namespace Crest
     {
         protected virtual bool RendererRequired => true;
 
-        protected abstract bool FeatureEnabled(OceanRenderer ocean);
+        protected virtual string FeatureToggleLabel => null;
+        protected virtual string FeatureToggleName => null;
+        protected virtual bool FeatureEnabled(OceanRenderer ocean) => true;
+
         protected virtual string RequiredShaderKeyword => null;
         // NOTE: Temporary until shader keywords are the same across pipelines.
         protected virtual string RequiredShaderKeywordProperty => null;
 
-        protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
-        protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
-
-        protected abstract void FixOceanFeatureDisabled(SerializedObject oceanComponent);
+        protected virtual string MaterialFeatureDisabledError => null;
+        protected virtual string MaterialFeatureDisabledFix => null;
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
@@ -410,13 +411,19 @@ namespace Crest
 
             if (!FeatureEnabled(ocean))
             {
-                showMessage(FeatureDisabledErrorMessage, ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled);
+                showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the <i>OceanRenderer</i> component.",
+                    $"Enable the <i>{FeatureToggleLabel}</i> option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, ocean,
+                    (so) => OceanRenderer.FixSetFeatureEnabled(so, FeatureToggleName, true)
+                    );
                 isValid = false;
             }
 
             if (!string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
             {
-                showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                showMessage(MaterialFeatureDisabledError, MaterialFeatureDisabledFix,
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                    (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, RequiredShaderKeyword, RequiredShaderKeywordProperty, true));
                 isValid = false;
             }
 

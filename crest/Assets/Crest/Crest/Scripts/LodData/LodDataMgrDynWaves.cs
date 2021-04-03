@@ -22,6 +22,8 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
+        public const string FEATURE_TOGGLE_NAME = "_createDynamicWaveSim";
+        public const string FEATURE_TOGGLE_LABEL = "Create Dynamic Wave Sim";
         public const string DYNWAVES_KEYWORD = "CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL";
 
         bool[] _active;

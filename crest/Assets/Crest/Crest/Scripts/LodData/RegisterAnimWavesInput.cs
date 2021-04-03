@@ -74,11 +74,5 @@ namespace Crest
                 OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxDisplacementHorizontal, maxDispVert, 0f);
             }
         }
-
-#if UNITY_EDITOR
-        // Animated waves are always enabled
-        protected override bool FeatureEnabled(OceanRenderer ocean) => true;
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent) { }
-#endif // UNITY_EDITOR
     }
 }

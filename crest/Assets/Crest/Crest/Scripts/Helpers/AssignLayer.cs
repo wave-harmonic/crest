@@ -41,6 +41,7 @@ namespace Crest
                 showMessage
                 (
                     "Layer name required by AssignLayer script.",
+                    "Specify the name of a valid layer in the <i>Layer Name</i> field.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -51,7 +52,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    $"Layer <i>{_layerName}</i> does not exist in the project, please add it.",
+                    $"Layer <i>{_layerName}</i> does not exist in the project.",
+                    $"Add a layer with name in the <i>Tags and Layers</i> section of the Project Settings.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

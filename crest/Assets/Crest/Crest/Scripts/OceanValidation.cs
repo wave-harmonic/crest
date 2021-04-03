@@ -8,11 +8,14 @@
 #if UNITY_EDITOR
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
 namespace Crest
 {
+    using ValidationFixFunc = System.Action<SerializedObject>;
+
     public interface IValidated
     {
         bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage);
@@ -31,8 +34,9 @@ namespace Crest
         public struct HelpBoxMessage
         {
             public string _message;
+            public string _fixDescription;
             public Object _object;
-            public System.Action<SerializedObject> _action;
+            public ValidationFixFunc _action;
         }
 
         // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we
@@ -44,11 +48,11 @@ namespace Crest
             new List<HelpBoxMessage>(),
         };
 
-        public delegate void ShowMessage(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null);
+        public delegate void ShowMessage(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null);
 
-        public static void DebugLog(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
+        public static void DebugLog(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
-            message = $"Validation: {message} Click this message to highlight the problem object.";
+            message = $"Validation: {message} {fixDescription} Click this message to highlight the problem object.";
 
             switch (type)
             {
@@ -58,59 +62,62 @@ namespace Crest
             }
         }
 
-        public static void HelpBox(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
+        public static void HelpBox(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
-            messages[(int)type].Add(new HelpBoxMessage { _message = message, _object = @object, _action = action });
+            messages[(int)type].Add(new HelpBoxMessage { _message = message, _fixDescription = fixDescription, _object = @object, _action = action });
         }
 
-        public static void Suppressed(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
+        public static void Suppressed(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
         }
 
-        static void FixAttachSpline(SerializedObject lodInputComponent)
+        internal static void FixAttachComponent<ComponentType>(SerializedObject lodInputComponent)
+            where ComponentType : Component
         {
             var gameObject = lodInputComponent.targetObject as GameObject;
-            Undo.AddComponent<Spline.Spline>(gameObject);
+            gameObject.AddComponent<ComponentType>();
             EditorUtility.SetDirty(gameObject);
         }
 
-        static void FixRemoveRenderer(SerializedObject lodInputComponent)
+        internal static void FixSetMaterialOptionEnabled(SerializedObject material, string keyword, string floatParam, bool enabled)
         {
-            var gameObject = lodInputComponent.targetObject as GameObject;
-            var renderer = gameObject.GetComponent<MeshRenderer>();
-            Undo.DestroyObjectImmediate(renderer);
-            EditorUtility.SetDirty(gameObject);
-        }
-
-        public static bool ValidateMaterial(Material material, string shaderPrefix, GameObject gameObject, ShowMessage showMessage)
-        {
-            if (!material || material.shader && !material.shader.name.StartsWith(shaderPrefix))
+            var mat = material.targetObject as Material;
+            Undo.RecordObject(mat, $"Enable keyword {keyword}");
+            if (enabled)
             {
-                showMessage($"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.", MessageType.Error, gameObject);
+                mat.EnableKeyword(keyword);
+            }
+            else
+            {
+                mat.DisableKeyword(keyword);
+            }
+            mat.SetFloat(floatParam, enabled ? 1f : 0f);
+        }
+
+        public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
+        {
+            var renderer = gameObject.GetComponent<Renderer>();
+            if (!renderer)
+            {
+                showMessage
+                (
+                    "A MeshRenderer component is required but none is attached to ocean input.",
+                    "Attach a <i>MeshRenderer</i> component.",
+                    MessageType.Error, gameObject,
+                    FixAttachComponent<MeshRenderer>
+                );
+
                 return false;
             }
 
-            return true;
-        }
-
-        public static bool ValidateInputMesh(bool rendererRequired, GameObject gameObject, ShowMessage showMessage)
-        {
-            var renderer = gameObject.GetComponent<MeshRenderer>();
-
-            if (!rendererRequired)
+            if (!renderer.sharedMaterial || renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
             {
-                if (renderer)
-                {
-                    showMessage("A MeshRenderer is present but is unused and should be removed.", MessageType.Warning, gameObject, FixRemoveRenderer);
-                    return false;
-                }
+                showMessage
+                (
+                    $"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.",
+                    "Assign a material that uses a shader of this type.", MessageType.Error, gameObject
+                );
 
-                return true;
-            }
-
-            if (!renderer)
-            {
-                showMessage("A Crest Spline component is required to drive this data. Alternative a MeshRenderer can be added. Neither is currently attached to ocean input.", MessageType.Error, gameObject, FixAttachSpline);
                 return false;
             }
 
@@ -186,7 +193,7 @@ namespace Crest
                         foreach (var message in messages)
                         {
                             EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.HelpBox(message._message, messageType);
+                            EditorGUILayout.HelpBox(message._message + " " + message._fixDescription, messageType);
 
                             // Jump to object button.
                             if (message._object != null)
@@ -215,17 +222,28 @@ namespace Crest
                             {
                                 if (s_fixButtonContent == null)
                                 {
-                                    s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"), "Fix the issue");
+                                    s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"));
+                                }
+
+                                if (message._fixDescription != null)
+                                {
+                                    var sanitisedFixDescr = Regex.Replace(message._fixDescription, @"<[^<>]*>", "'");
+                                    s_fixButtonContent.tooltip = $"Apply fix: {sanitisedFixDescr}";
+                                }
+                                else
+                                {
+                                    s_fixButtonContent.tooltip = "Fix issue";
                                 }
 
                                 if (GUILayout.Button(s_fixButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
                                 {
+                                    // Run fix function
                                     var serializedObject = new SerializedObject(message._object);
                                     message._action.Invoke(serializedObject);
                                     if (serializedObject.ApplyModifiedProperties())
                                     {
                                         // SerializedObject does this for us, but gives the history item a nicer label.
-                                        Undo.RecordObject(message._object, $"Fix for {message._object.name}");
+                                        Undo.RecordObject(message._object, s_fixButtonContent.tooltip);
                                     }
                                 }
                             }

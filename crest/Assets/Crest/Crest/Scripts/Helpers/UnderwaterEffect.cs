@@ -251,6 +251,7 @@ namespace Crest
                 showMessage
                 (
                     "Underwater effects expect to be parented to a camera.",
+                    "Parent this GameObject underneath a GameObject that has a <i>Camera</i> component attached.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -265,6 +266,7 @@ namespace Crest
                 showMessage
                 (
                     $"Shader assigned to underwater effect expected to be of type <i>{shaderPrefix}</i>.",
+                    $"Assign shader of type <i>{shaderPrefix}</i>.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -286,6 +288,7 @@ namespace Crest
                             $"Keyword {keyword} was enabled on the underwater material <i>{renderer.sharedMaterial.name}</i>"
                             + $"but not on the ocean material <i>{ocean.OceanMaterial.name}</i>, underwater appearance "
                             + "may not match ocean surface in standalone builds.",
+                            "Compare the toggles on the ocean material and the underwater material and ensure they match.",
                             ValidatedHelper.MessageType.Warning, this
                         );
                     }
@@ -305,6 +308,7 @@ namespace Crest
                             $"Keyword {keyword} is enabled on the ocean material <i>{ocean.OceanMaterial.name}</i> but "
                             + $"not on the underwater material <i>{renderer.sharedMaterial.name}</i>, underwater "
                             + "appearance may not match ocean surface in standalone builds.",
+                            "Compare the toggles on the ocean material and the underwater material and ensure they match.",
                             ValidatedHelper.MessageType.Warning, this
                         );
                     }

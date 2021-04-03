@@ -19,6 +19,9 @@ namespace Crest
 
         bool _targetsClear = false;
 
+        public const string FEATURE_TOGGLE_NAME = "_createSeaFloorDepthData";
+        public const string FEATURE_TOGGLE_LABEL = "Create Sea Floor Depth Data";
+
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
         // We want the null colour to be the depth where wave attenuation begins (1000 metres)

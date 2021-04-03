@@ -665,6 +665,19 @@ namespace Crest
                 isValid = false;
             }
 
+            if (!ocean.CreateSeaFloorDepthData)
+            {
+                showMessage
+                (
+                    $"<i>{LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_LABEL}</i> must be enabled on the <i>OceanRenderer</i> component.",
+                    $"Enable the <i>{LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_LABEL}</i> option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, ocean,
+                    (so) => OceanRenderer.FixSetFeatureEnabled(so, LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_NAME, true)
+                );
+
+                isValid = false;
+            }
+            
             return isValid;
         }
 

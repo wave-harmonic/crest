@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -40,8 +39,8 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        protected override string FeatureToggleName => "_createSeaFloorDepthData";
-        protected override string FeatureToggleLabel => "Create Sea Floor Depth Data";
+        protected override string FeatureToggleName => LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_NAME;
+        protected override string FeatureToggleLabel => LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_LABEL;
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateSeaFloorDepthData;
 #endif // UNITY_EDITOR
     }

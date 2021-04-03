@@ -22,6 +22,11 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  More validation help boxes added to catch a wider range of setup issues.
+   -  Fix buttons in help boxes now describe action that will be taken.
+   - Rename *Add Water Height From Geometry* to *Set Base Water Height Using Geometry*.
+   - Rename *Set Water Height To Geometry* to *Set Water Height Using Geometry*.
+
    .. only:: hdrp
 
       -  Rearrange some material properties. `[HDRP]`

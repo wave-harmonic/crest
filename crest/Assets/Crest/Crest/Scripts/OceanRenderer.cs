@@ -1293,7 +1293,7 @@ namespace Crest
                 else
                 {
                     showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Info, ocean);
                 }
             }
 
@@ -1308,7 +1308,7 @@ namespace Crest
                 else
                 {
                     showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Info, ocean);
                 }
             }
 
@@ -1323,7 +1323,7 @@ namespace Crest
                 else
                 {
                     showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Info, ocean);
                 }
             }
 
@@ -1338,7 +1338,7 @@ namespace Crest
                 else
                 {
                     showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                        ValidatedHelper.MessageType.Info, ocean);
                 }
             }
 

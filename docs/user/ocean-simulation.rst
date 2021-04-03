@@ -46,11 +46,11 @@ The following input shaders are provided under *Crest/Inputs/Animated Waves*:
 -  **Add From Texture** allows any kind of shape added to the surface from a texture.
    Can ether be a heightmap texture (1 channel) or a 3 channel XYZ displacement texture.
    Optionally the alpha channel can be used to write to subsurface scattering which increases the amount of light emitted from the water volume, which is useful for approximating light scattering.
--  **Add Water Height From Geometry** allows the sea level (average water height) to be offset some amount.
+-  **Set Base Water Height Using Geometry** allows the sea level (average water height) to be offset some amount.
    The top surface of the geometry will provide the water height, and the waves will apply on top.
 -  **Push Water Under Convex Hull** pushes the water underneath the geometry.
    Can be used to define a volume of space which should stay 'dry'.
--  **Set Water Height To Geometry** snaps the water surface to the top surface of the geometry.
+-  **Set Water Height Using Geometry** snaps the water surface to the top surface of the geometry.
    Will override any waves.
 -  **Wave Particle** is a 'bump' of water.
    Many bumps can be combined to make interesting effects such as wakes for boats or choppy water.

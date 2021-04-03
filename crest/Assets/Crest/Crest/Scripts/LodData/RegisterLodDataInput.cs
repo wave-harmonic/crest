@@ -31,8 +31,21 @@ namespace Crest
 
     public interface ILodDataInput
     {
+        /// <summary>
+        /// Draw the input (the render target will be bound)
+        /// </summary>
         void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
+
+        /// <summary>
+        /// The wavelength of the input - used to choose which level of detail to apply the input to.
+        /// This is primarily used for displacement/surface shape inputs which support rendering to
+        /// specific LODs (which are then combined later). Specify 0 for no preference / render to all LODs.
+        /// </summary>
         float Wavelength { get; }
+
+        /// <summary>
+        /// Whether to apply this input.
+        /// </summary>
         bool Enabled { get; }
     }
 
@@ -46,6 +59,8 @@ namespace Crest
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         bool _checkShaderName = true;
 #endif
+
+        public const string MENU_PREFIX = Internal.Constants.MENU_SCRIPTS + "LOD Inputs/Crest Register ";
 
         public abstract float Wavelength { get; }
 
@@ -243,9 +258,33 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
+        protected abstract bool FeatureEnabled(OceanRenderer ocean);
+        protected virtual string RequiredShaderKeyword => null;
+        // NOTE: Temporary until shader keywords are the same across pipelines.
+        protected virtual string RequiredShaderKeywordProperty => null;
+
+        protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
+        protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
+
+        protected abstract void FixOceanFeatureDisabled(SerializedObject oceanComponent);
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            return ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+            bool isValid = ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+
+            if (!FeatureEnabled(ocean))
+            {
+                showMessage(FeatureDisabledErrorMessage, ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled);
+                isValid = false;
+            }
+
+            if (!string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
+            {
+                showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                isValid = false;
+            }
+
+            return isValid;
         }
     }
 

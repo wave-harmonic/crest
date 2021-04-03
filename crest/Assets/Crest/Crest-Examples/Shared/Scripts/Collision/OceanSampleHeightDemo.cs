@@ -8,6 +8,7 @@ using UnityEngine;
 /// <summary>
 /// Places the game object on the water surface by moving it vertically.
 /// </summary>
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ocean Sample Height Demo")]
 public class OceanSampleHeightDemo : MonoBehaviour
 {
     SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();

@@ -43,6 +43,16 @@ namespace Crest.EditorHelpers
 
             return sceneCamera;
         }
+
+        public static LayerMask LayerMaskField(string label, LayerMask layerMask)
+        {
+            // Adapted from: http://answers.unity.com/answers/1387522/view.html
+            var temporary = EditorGUILayout.MaskField(
+                label,
+                UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
+                UnityEditorInternal.InternalEditorUtility.layers);
+            return UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(temporary);
+        }
     }
 }
 

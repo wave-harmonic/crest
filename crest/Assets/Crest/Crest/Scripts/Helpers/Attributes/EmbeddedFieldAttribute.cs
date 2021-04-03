@@ -25,7 +25,7 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer)
+        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer, bool isLast)
         {
             EmbeddedFieldAttribute embeddedAttribute = this;
             embeddedAttribute.editor.DrawEditorCombo(drawer, property, "asset");

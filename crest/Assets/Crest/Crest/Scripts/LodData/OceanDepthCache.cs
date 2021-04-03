@@ -482,6 +482,18 @@ namespace Crest
             dc.transform.position = pos;
         }
 
+        void FixRotation(SerializedObject depthCache)
+        {
+            var dc = depthCache.targetObject as OceanDepthCache;
+
+            Undo.RecordObject(dc.transform, "Fix depth cache rotation");
+            EditorUtility.SetDirty(dc.transform);
+
+            var ea = dc.transform.eulerAngles;
+            ea.x = ea.z = 0f;
+            dc.transform.eulerAngles = ea;
+        }
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
@@ -606,6 +618,19 @@ namespace Crest
                     "Set the Y position to the same height as the ocean object.",
                     ValidatedHelper.MessageType.Warning, this,
                     FixHeight
+                );
+
+                isValid = false;
+            }
+
+            if (!Mathf.Approximately(transform.eulerAngles.x, 0f) || !Mathf.Approximately(transform.eulerAngles.z, 0f))
+            {
+                showMessage
+                (
+                    "The depth cache should have 0 rotation around X and Z (but rotation around Y is allowed).",
+                    "Adjust the rotation on this transform and parents in the hierarchy to eliminate X and Z rotation.",
+                    ValidatedHelper.MessageType.Error, this,
+                    FixRotation
                 );
 
                 isValid = false;

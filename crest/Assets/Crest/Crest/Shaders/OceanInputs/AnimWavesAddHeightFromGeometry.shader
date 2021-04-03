@@ -5,7 +5,7 @@
 // This adds the height from the geometry. This allows setting the water height to some level for rivers etc, but still
 // getting the waves added on top.
 
-Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
+Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 {
 	Properties
 	{

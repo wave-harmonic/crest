@@ -682,7 +682,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "A Spline component is attached but it has validation errors.",
+                    "A <i>Spline</i> component is attached but it has validation errors.",
                     "Check this component in the Inspector for issues.",
                     ValidatedHelper.MessageType.Error, this
                 );

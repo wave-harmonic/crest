@@ -11,6 +11,7 @@ namespace Crest
     /// No data. This should not be attached to any apline point, but is used as a symbol
     /// in the code when no data is required.
     /// </summary>
+    [AddComponentMenu("")]
     public class SplinePointDataNone : MonoBehaviour, ISplinePointCustomData
     {
         public Vector2 GetData()

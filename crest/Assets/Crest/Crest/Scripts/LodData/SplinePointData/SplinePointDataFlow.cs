@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// Custom spline point data for flow
     /// </summary>
+    [AddComponentMenu("")]
     public class SplinePointDataFlow : MonoBehaviour, ISplinePointCustomData
     {
         public const float k_defaultSpeed = 2f;

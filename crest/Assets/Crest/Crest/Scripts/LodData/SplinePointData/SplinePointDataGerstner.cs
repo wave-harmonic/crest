@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// Custom spline point data for Gerstner waves
     /// </summary>
+    [AddComponentMenu("")]
     public class SplinePointDataGerstner : MonoBehaviour, ISplinePointCustomData
     {
         [Tooltip("Weight multiplier to scale waves."), SerializeField]

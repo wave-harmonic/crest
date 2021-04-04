@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// Foam tweakable param on spline points
     /// </summary>
+    [AddComponentMenu("")]
     public class SplinePointDataFoam : MonoBehaviour, ISplinePointCustomData
     {
         [Tooltip("Amount of foam emitted."), SerializeField]

@@ -472,6 +472,11 @@ namespace Crest
             if (localScale.z == 0f) localScale.z = localScale.x;
 
             dc.transform.localScale = localScale;
+
+            if (dc.Type == OceanDepthCacheType.Realtime)
+            {
+                dc.PopulateCache(true);
+            }
         }
 
         void FixHeight(SerializedObject depthCache)
@@ -484,6 +489,11 @@ namespace Crest
             var pos = dc.transform.position;
             pos.y = OceanRenderer.Instance.transform.position.y;
             dc.transform.position = pos;
+
+            if (dc.Type == OceanDepthCacheType.Realtime)
+            {
+                dc.PopulateCache(true);
+            }
         }
 
         void FixRotation(SerializedObject depthCache)
@@ -496,6 +506,11 @@ namespace Crest
             var ea = dc.transform.eulerAngles;
             ea.x = ea.z = 0f;
             dc.transform.eulerAngles = ea;
+
+            if (dc.Type == OceanDepthCacheType.Realtime)
+            {
+                dc.PopulateCache(true);
+            }
         }
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)

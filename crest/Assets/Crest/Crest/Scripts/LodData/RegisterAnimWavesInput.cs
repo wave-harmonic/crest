@@ -55,7 +55,7 @@ namespace Crest
                 return;
             }
 
-            var maxDispVert = 0f;
+            var maxDispVert = _maxDisplacementVertical;
 
             // let ocean system know how far from the sea level this shape may displace the surface
             if (_reportRendererBoundsToOceanSystem)
@@ -63,10 +63,8 @@ namespace Crest
                 var minY = _renderer.bounds.min.y;
                 var maxY = _renderer.bounds.max.y;
                 var seaLevel = OceanRenderer.Instance.SeaLevel;
-                maxDispVert = Mathf.Max(Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
+                maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
             }
-
-            maxDispVert = Mathf.Max(maxDispVert, _maxDisplacementVertical);
 
             if (_maxDisplacementHorizontal > 0f || maxDispVert > 0f)
             {

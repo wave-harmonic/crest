@@ -16,8 +16,21 @@ namespace Crest
     public class PredicatedFieldAttribute : MultiPropertyAttribute
     {
         public readonly string _propertyName;
+        public readonly Type _requiredComponentType;
         public readonly bool _inverted;
         public readonly int _disableIfValueIs;
+
+        /// <summary>
+        /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
+        /// to disable a field if a toggle is false. Limitation - conflicts with other property drawers such as Range().
+        /// </summary>
+        /// <param name="requiredComponentType">If a component of this type is not attached to this GameObject, disable the GUI (or enable if inverted is true).</param>
+        /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
+        public PredicatedFieldAttribute(Type requiredComponentType, bool inverted = false)
+        {
+            _requiredComponentType = requiredComponentType;
+            _inverted = inverted;
+        }
 
         /// <summary>
         /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
@@ -29,6 +42,22 @@ namespace Crest
         public PredicatedFieldAttribute(string propertyName, bool inverted = false, int disableIfValueIs = 0)
         {
             _propertyName = propertyName;
+            _inverted = inverted;
+            _disableIfValueIs = disableIfValueIs;
+        }
+
+        /// <summary>
+        /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
+        /// to disable a field if a toggle is false. Limitation - conflicts with other property drawers such as Range().
+        /// </summary>
+        /// <param name="propertyName">The name of the other property whose value dictates whether this field is enabled or not.</param>
+        /// <param name="requiredComponentType">If a component of this type is not attached to this GameObject, disable the GUI (or enable if inverted is true).</param>
+        /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
+        /// <param name="disableIfValueIs">If the field has this value, disable the GUI (or enable if inverted is true).</param>
+        public PredicatedFieldAttribute(string propertyName, Type requiredComponentType, bool inverted = false, int disableIfValueIs = 0)
+        {
+            _propertyName = propertyName;
+            _requiredComponentType = requiredComponentType;
             _inverted = inverted;
             _disableIfValueIs = disableIfValueIs;
         }
@@ -71,12 +100,27 @@ namespace Crest
 
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer, bool isLast)
         {
-            // Get the other property to be the predicate for the enabled/disabled state of this property.
-            var otherProperty = property.serializedObject.FindProperty(_propertyName);
-            if (otherProperty != null)
+            var enabled = true;
+
+            if (_propertyName != null)
             {
-                GUI.enabled = GUIEnabled(otherProperty);
+                // Get the other property to be the predicate for the enabled/disabled state of this property.
+                var otherProperty = property.serializedObject.FindProperty(_propertyName);
+                if (otherProperty != null)
+                {
+                    enabled = GUIEnabled(otherProperty);
+                }
             }
+
+            if (_requiredComponentType != null && property.serializedObject.targetObject != null)
+            {
+                var comp = property.serializedObject.targetObject as Component;
+                var enabledByComponent = comp.gameObject.TryGetComponent(_requiredComponentType, out _);
+                if (_inverted) enabledByComponent = !enabledByComponent;
+                enabled = enabledByComponent && enabled;
+            }
+
+            GUI.enabled = enabled;
 
             if (isLast)
             {

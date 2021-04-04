@@ -58,6 +58,7 @@ namespace Crest
     {
 #if UNITY_EDITOR
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
+        [PredicatedField(typeof(MeshRenderer))]
         bool _checkShaderName = true;
 #endif
 
@@ -174,7 +175,8 @@ namespace Crest
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
 
-        [SerializeField] bool _disableRenderer = true;
+        [SerializeField, PredicatedField(typeof(MeshRenderer))]
+        bool _disableRenderer = true;
 
         protected abstract Color GizmoColor { get; }
 
@@ -270,13 +272,13 @@ namespace Crest
         where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
         [Header("Spline settings")]
-        [SerializeField]
+        [SerializeField, PredicatedField(typeof(Spline.Spline))]
         bool _overrideSplineSettings = false;
-        [SerializeField, PredicatedField("_overrideSplineSettings")]
+        [SerializeField, PredicatedField("_overrideSplineSettings", typeof(Spline.Spline))]
         float _radius = 20f;
-        [SerializeField, PredicatedField("_overrideSplineSettings"), Delayed]
+        [SerializeField, PredicatedField("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
         int _subdivisions = 1;
-        [SerializeField, PredicatedField("_overrideSplineSettings"), Delayed]
+        [SerializeField, PredicatedField("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
         int _smoothingIterations = 0;
 
         protected Material _splineMaterial;

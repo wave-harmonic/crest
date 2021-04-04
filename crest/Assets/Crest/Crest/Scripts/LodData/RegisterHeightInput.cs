@@ -57,7 +57,7 @@ namespace Crest
 
             maxDispVert = Mathf.Max(maxDispVert, _maxDisplacementVertical);
 
-            if (_maxDisplacementVertical > 0f)
+            if (maxDispVert > 0f)
             {
                 OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, maxDispVert, 0f);
             }

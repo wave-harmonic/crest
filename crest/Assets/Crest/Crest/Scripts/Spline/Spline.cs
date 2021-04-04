@@ -39,6 +39,18 @@ namespace Crest.Spline
             }
         }
 
+        void FixAddSplinePoints(SerializedObject splineComponent)
+        {
+            var spline = splineComponent.targetObject as Spline;
+            var requiredPoints = spline._closed ? 3 : 2;
+            var needToAdd = requiredPoints - spline.GetComponentsInChildren<SplinePoint>().Length;
+
+            for (var i = 0; i < needToAdd; i++)
+            {
+                SplineEditor.ExtendSpline(spline);
+            }
+        }
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
@@ -69,7 +81,8 @@ namespace Crest.Spline
                 (
                     "Spline must have at least 2 spline points.",
                     "Click the <i>Add Point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
-                    ValidatedHelper.MessageType.Error, this
+                    ValidatedHelper.MessageType.Error, this,
+                    FixAddSplinePoints
                 );
 
                 isValid = false;
@@ -80,7 +93,8 @@ namespace Crest.Spline
                 (
                     "Closed splines must have at least 3 spline points. See the <i>Closed</i> parameter and tooltip.",
                     "Add a point by clicking the <i>Add Point</i> button in the Inspector.",
-                    ValidatedHelper.MessageType.Error, this
+                    ValidatedHelper.MessageType.Error, this,
+                    FixAddSplinePoints
                 );
 
                 isValid = false;
@@ -101,9 +115,7 @@ namespace Crest.Spline
 
             if (GUILayout.Button("Add point (extend)"))
             {
-                var newPoint = SplinePointEditor.AddSplinePointAfter(targetSpline.transform);
-
-                Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
+                ExtendSpline(targetSpline);
             }
 
             GUILayout.BeginHorizontal();
@@ -127,6 +139,13 @@ namespace Crest.Spline
                     targetSpline.transform.GetChild(i).SetSiblingIndex(0);
                 }
             }
+        }
+
+        public static void ExtendSpline(Spline spline)
+        {
+            var newPoint = SplinePointEditor.AddSplinePointAfter(spline.transform);
+
+            Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
         }
     }
 #endif

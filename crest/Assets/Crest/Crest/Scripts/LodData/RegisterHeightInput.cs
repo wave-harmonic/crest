@@ -23,7 +23,7 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Animated Waves";
 
-        protected override string SplineShaderName => "Crest/Inputs/Animated Waves/Add Water Height From Geometry";
+        protected override string SplineShaderName => "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry";
         protected override Vector2 DefaultCustomData => Vector2.zero;
 
         protected override bool FollowHorizontalMotion => true;

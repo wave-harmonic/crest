@@ -150,11 +150,12 @@ To configure the foam sim, create a *Foam Sim Settings* asset by right clicking 
 User Inputs
 ^^^^^^^^^^^
 
-User provided foam contributions can be added similar to the Animated Waves.
-In this case the *RegisterFoamInput* script should be applied to any inputs.
-There is no combine pass for foam so this does not have to be taken into consideration - one must simply render 0-1 values for foam as desired.
+Crest supports inputing any foam into the system, which can be helpful for fine tuning where foam is placed.
+To place foam, add some geometry into the world at the area where foam should be added.
+Then assign the *RegisterFoamInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Foam/...*.
 See the *DepositFoamTex* object in the *whirlpool.unity* scene for an example.
-This is also demonstrated in :numref:`adding-inputs-video`.
+
+The process for adding inputs is demonstrated in this :numref:`adding-inputs-video`.
 
 The following input shaders are provided under *Crest/Inputs/Foam*:
 
@@ -167,6 +168,9 @@ The following input shaders are provided under *Crest/Inputs/Foam*:
 -  **Override Foam** sets the foam to the provided value.
    Useful for removing foam from unwanted areas.
 
+
+Settings
+^^^^^^^^
 
 General Settings
 ~~~~~~~~~~~~~~~~
@@ -203,16 +207,6 @@ If water depth input is provided to the system (see **Sea Floor Depth** section 
 -  **Shoreline Foam Strength** - Scales intensity of foam generated in shallow water.
    This setting should be balanced with the *Foam Fade Rate* setting.
 
-
-Adding custom foam areas
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Crest supports inputing any foam into the system, which can be helpful for fine tuning where foam is placed.
-To place foam, add some geometry into the world at the area where foam should be added.
-Then assign the *RegisterFoamInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Foam/...*.
-The process for adding inputs is demonstrated in this :numref:`adding-inputs-video`.
-
-Foam can be masked/removed by using the *FoamOverride* material.
 
 .. _sea-floor-depth-section:
 

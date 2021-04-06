@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -12,6 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Dynamic Waves Input")]
+    [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#dynamic-waves")]
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
     {
         public override float Wavelength => 0f;

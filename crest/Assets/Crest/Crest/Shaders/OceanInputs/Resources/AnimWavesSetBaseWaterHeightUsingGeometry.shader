@@ -28,7 +28,7 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../OceanGlobals.hlsl"
+			#include "../../OceanGlobals.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;

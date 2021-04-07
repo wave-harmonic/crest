@@ -12,7 +12,13 @@ namespace Crest
     /// </summary>
     public static class ShapeGerstnerSplineHandling
     {
-        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, ref Mesh mesh)
+        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh)
+        {
+            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, smoothingIterations, customDataDefault, ref mesh);
+        }
+
+        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh)
+            where SplinePointCustomData : ISplinePointCustomData
         {
             var splinePoints = spline.GetComponentsInChildren<SplinePoint>();
             if (splinePoints.Length < 2) return false;
@@ -46,14 +52,36 @@ namespace Crest
 
             var sampledPtsOnSpline = new Vector3[pointCount];
             var sampledPtsOffSpline = new Vector3[pointCount];
+            var customData = new Vector2[pointCount];
 
             // First set of sample points lie on spline
             sampledPtsOnSpline[0] = points[0];
+            customData[0] = customDataDefault;
+            if (splinePoints[0].TryGetComponent(out SplinePointCustomData customDataComp00))
+            {
+                customData[0] = customDataComp00.GetData();
+            }
+
             for (var i = 1; i < pointCount; i++)
             {
                 float t = i / (float)(pointCount - 1);
 
                 SplineInterpolation.InterpolateCubicPosition(splinePointCount, points, t, out sampledPtsOnSpline[i]);
+
+                var tpts = t * (splinePoints.Length - 1f);
+                var spidx = Mathf.FloorToInt(tpts);
+                var alpha = tpts - spidx;
+                var customData0 = customDataDefault;
+                if (splinePoints[spidx].TryGetComponent(out SplinePointCustomData customDataComp0))
+                {
+                    customData0 = customDataComp0.GetData();
+                }
+                var customData1 = customDataDefault;
+                if (splinePoints[Mathf.Min(spidx + 1, splinePoints.Length - 1)].TryGetComponent(out SplinePointCustomData customDataComp1))
+                {
+                    customData1 = customDataComp1.GetData();
+                }
+                customData[i] = Vector2.Lerp(customData0, customData1, Mathf.SmoothStep(0f, 1f, alpha));
             }
 
             // Second set of sample points lie off-spline - some distance to the right
@@ -78,6 +106,7 @@ namespace Crest
                 var normal = tangent;
                 normal.x = tangent.z;
                 normal.z = -tangent.x;
+                normal.y = 0f;
                 normal = normal.normalized;
                 sampledPtsOffSpline[i] = sampledPtsOnSpline[i] + normal * radius;
             }
@@ -133,21 +162,15 @@ namespace Crest
                 }
             }
 
-            return UpdateMesh(transform, sampledPtsOnSpline, sampledPtsOffSpline, spline._closed, ref mesh);
+            return UpdateMesh(transform, sampledPtsOnSpline, sampledPtsOffSpline, customData, spline._closed, ref mesh);
         }
 
         // Generates a mesh from the points sampled along the spline, and corresponding offset points. Bridges points with a ribbon of triangles.
-        static bool UpdateMesh(Transform transform, Vector3[] sampledPtsOnSpline, Vector3[] sampledPtsOffSpline, bool closed, ref Mesh mesh)
+        static bool UpdateMesh(Transform transform, Vector3[] sampledPtsOnSpline, Vector3[] sampledPtsOffSpline, Vector2[] customData, bool closed, ref Mesh mesh)
         {
             if (mesh == null)
             {
                 mesh = new Mesh();
-            }
-
-            var splineLength = 0f;
-            for (var i = 1; i < sampledPtsOnSpline.Length; i++)
-            {
-                splineLength += (sampledPtsOnSpline[i] - sampledPtsOnSpline[i - 1]).magnitude;
             }
 
             //                       \
@@ -172,7 +195,7 @@ namespace Crest
             var verts = new Vector3[vertCount];
             var uvs = new Vector2[vertCount];
             var uvs2 = new Vector2[vertCount];
-            var distSoFar = 0f;
+            var uvs3 = new Vector2[vertCount];
 
             // This iterates over result points and emits a quad starting from the current result points (resultPts0[i0], resultPts1[i1]) to
             // the next result points. If the spline is closed, last quad bridges the last result points and the first result points.
@@ -192,11 +215,6 @@ namespace Crest
                 //    splinePoint0--------|
                 //
 
-                if (i > 0)
-                {
-                    distSoFar += (sampledPtsOnSpline[i - 1] - sampledPtsOnSpline[i]).magnitude;
-                }
-
                 verts[2 * i] = transform.InverseTransformPoint(sampledPtsOnSpline[i]);
                 verts[2 * i + 1] = transform.InverseTransformPoint(sampledPtsOffSpline[i]);
 
@@ -204,11 +222,12 @@ namespace Crest
                 uvs[2 * i] = axis0;
                 uvs[2 * i + 1] = axis0;
 
-                // uvs2.x - Dist to closest spline end
-                // uvs2.y - 1-0 inverted normalized dist from shoreline
-                uvs2[2 * i].x = uvs2[2 * i + 1].x = Mathf.Min(distSoFar, splineLength - distSoFar);
-                uvs2[2 * i].y = 1f;
-                uvs2[2 * i + 1].y = 0f;
+                // uvs2.x - 1-0 inverted normalized dist from shoreline
+                uvs2[2 * i].x = 1f;
+                uvs2[2 * i + 1].x = 0f;
+
+                uvs3[2 * i] = customData[i];
+                uvs3[2 * i + 1] = customData[i];
 
                 // Emit two triangles
                 if (i < sampledPtsOnSpline.Length - 1)
@@ -229,6 +248,7 @@ namespace Crest
             mesh.vertices = verts;
             mesh.uv = uvs;
             mesh.uv2 = uvs2;
+            mesh.uv3 = uvs3;
             mesh.SetIndices(indices, MeshTopology.Triangles, 0);
             mesh.RecalculateNormals();
 

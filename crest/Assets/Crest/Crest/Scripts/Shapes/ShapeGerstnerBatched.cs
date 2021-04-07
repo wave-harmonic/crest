@@ -291,7 +291,7 @@ namespace Crest
         {
             // Get the wave
             MeshRenderer rend = GetComponent<MeshRenderer>();
-            if (_mode == GerstnerMode.Geometry)
+            if (_mode == GerstnerMode.Geometry && rend != null)
             {
                 rend.enabled = false;
 #if UNITY_EDITOR
@@ -346,6 +346,8 @@ namespace Crest
                 }
             }
 #endif
+
+            if (rend == null) return;
 
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)

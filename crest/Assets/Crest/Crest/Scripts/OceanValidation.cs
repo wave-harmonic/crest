@@ -94,6 +94,14 @@ namespace Crest
             mat.SetFloat(floatParam, enabled ? 1f : 0f);
         }
 
+        static void FixRemoveRenderer(SerializedObject lodInputComponent)
+        {
+            var gameObject = lodInputComponent.targetObject as GameObject;
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+            Undo.DestroyObjectImmediate(renderer);
+            EditorUtility.SetDirty(gameObject);
+        }
+
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
         {
             var renderer = gameObject.GetComponent<Renderer>();
@@ -110,14 +118,65 @@ namespace Crest
                 return false;
             }
 
-            if (!renderer.sharedMaterial || renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
+            if (!ValidateMaterial(renderer.sharedMaterial, shaderPrefix, gameObject, showMessage))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool ValidateMaterial(Material material, string shaderPrefix, GameObject gameObject, ShowMessage showMessage)
+        {
+            if (!material || material.shader && !material.shader.name.StartsWith(shaderPrefix))
             {
                 showMessage
                 (
                     $"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.",
-                    "Assign a material that uses a shader of this type.", MessageType.Error, gameObject
+                    "Assign a material that uses a shader of this type.",
+                    MessageType.Error, gameObject
                 );
 
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool ValidateInputMesh(bool rendererRequired, GameObject gameObject, ShowMessage showMessage)
+        {
+            if (gameObject.TryGetComponent<Spline.Spline>(out _))
+            {
+                return true;
+            }
+
+            gameObject.TryGetComponent<MeshRenderer>(out var renderer);
+
+            if (!rendererRequired)
+            {
+                if (renderer)
+                {
+                    showMessage
+                    (
+                        "A <i>MeshRenderer</i> is present but is unused and should be removed.",
+                        "Remove the <i>MeshRenderer</i> component.",
+                        MessageType.Warning, gameObject,
+                        FixRemoveRenderer
+                    );
+                    return false;
+                }
+                return true;
+            }
+
+            if (!renderer)
+            {
+                showMessage
+                (
+                    "A <i>Crest Spline</i> component is required to drive this data. Alternatively a <i>MeshRenderer</i> can be added. Neither is currently attached to ocean input.",
+                    "Attach a <i>Crest Spline</i> component.",
+                    MessageType.Error, gameObject,
+                    FixAttachComponent<Spline.Spline>
+                );
                 return false;
             }
 

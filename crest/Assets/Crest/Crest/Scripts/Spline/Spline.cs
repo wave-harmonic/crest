@@ -7,6 +7,11 @@ using UnityEngine;
 
 namespace Crest.Spline
 {
+    public interface ISplinePointCustomDataSetup
+    {
+        bool AttachDataToSplinePoint(GameObject splinePoint);
+    }
+
     /// <summary>
     /// Simple spline object. Spline points are child gameobjects.
     /// </summary>
@@ -17,6 +22,17 @@ namespace Crest.Spline
     {
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
+
+        [SerializeField]
+        float _radius = 20f;
+        [SerializeField, Delayed]
+        int _subdivisions = 1;
+        [SerializeField, Delayed]
+        int _smoothingIterations = 0;
+
+        public float Radius => _radius;
+        public int Subdivisions => _subdivisions;
+        public int SmoothingIterations => _smoothingIterations;
     }
 
 #if UNITY_EDITOR
@@ -24,18 +40,29 @@ namespace Crest.Spline
     {
         public void OnDrawGizmos()
         {
-            Gizmos.color = Color.black * 0.5f;
             var points = GetComponentsInChildren<SplinePoint>();
             for (int i = 0; i < points.Length - 1; i++)
             {
+                SetLineColor(points[i], points[i + 1], false);
                 Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
             }
 
-            Gizmos.color = Color.white;
-
             if (_closed && points.Length > 2)
             {
+                SetLineColor(points[points.Length - 1], points[0], true);
                 Gizmos.DrawLine(points[points.Length - 1].transform.position, points[0].transform.position);
+            }
+
+            Gizmos.color = Color.white;
+        }
+
+        void SetLineColor(SplinePoint from, SplinePoint to, bool isClosing)
+        {
+            Gizmos.color = isClosing ? Color.white : Color.black * 0.5f;
+
+            if (Selection.activeObject == from.gameObject || Selection.activeObject == to.gameObject)
+            {
+                Gizmos.color = Color.yellow;
             }
         }
 

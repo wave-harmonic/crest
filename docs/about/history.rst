@@ -22,10 +22,14 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
-   -  More validation help boxes added to catch a wider range of setup issues.
-   -  Fix buttons in help boxes now describe action that will be taken.
+   - Spline can now be used with any ocean input type, so can be used to set water level, add flow, and more.
+   - System for tweaking data on spline points such as flow speed.
+   - *RegisterHeightInput* component added for a clearer way to change water height (can be used instead of *RegisterAnimWavesInput*).
+   - More validation help boxes added to catch a wider range of setup issues.
+   - Fix buttons in help boxes now describe action that will be taken.
    - Rename *Add Water Height From Geometry* to *Set Base Water Height Using Geometry*.
    - Rename *Set Water Height To Geometry* to *Set Water Height Using Geometry*.
+   - Improved spline gizmo line drawing to highlight selected spline point.
 
    .. only:: hdrp
 

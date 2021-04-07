@@ -21,6 +21,7 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     [HelpURL("https://crest.readthedocs.io/en/latest/user/wave-conditions.html#shapegerstner-preview")]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
+        , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
@@ -57,21 +58,18 @@ namespace Crest
         bool _debugDrawSlicesInEditor = false;
 #pragma warning restore 414
 
-        [Header("Spline Settings")]
-        [SerializeField, Delayed]
-        int _subdivisions = 1;
-
+        [Header("Spline settings")]
         [SerializeField]
-        float _radius = 50f;
-
-        [SerializeField, Delayed]
-        int _smoothingIterations = 60;
+        bool _overrideSplineSettings = false;
+        [SerializeField, PredicatedField("_overrideSplineSettings")]
+        float _radius = 20f;
+        [SerializeField, PredicatedField("_overrideSplineSettings"), Delayed]
+        int _subdivisions = 1;
+        [SerializeField, PredicatedField("_overrideSplineSettings"), Delayed]
+        int _smoothingIterations = 0;
 
         [SerializeField]
         float _featherWaveStart = 0.1f;
-
-        [SerializeField]
-        float _featherFromSplineEnds = 0f;
 
         Mesh _meshForDrawingWaves;
 
@@ -179,7 +177,6 @@ namespace Crest
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
-        static readonly int sp_FeatherFromSplineEnds = Shader.PropertyToID("_FeatherFromSplineEnds");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         readonly float _twoPi = 2f * Mathf.PI;
@@ -244,7 +241,6 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            _matGenerateWaves.SetFloat(sp_FeatherFromSplineEnds, _featherFromSplineEnds);
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
@@ -561,7 +557,11 @@ namespace Crest
 
             if (TryGetComponent<Spline.Spline>(out var splineForWaves))
             {
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, ref _meshForDrawingWaves))
+                var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
+                var smooth = _overrideSplineSettings ? _smoothingIterations : splineForWaves.SmoothingIterations;
+
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, smooth, Vector2.one, ref _meshForDrawingWaves))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
@@ -669,6 +669,18 @@ namespace Crest
             DrawMesh();
         }
 #endif
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (splinePoint.TryGetComponent(out SplinePointDataGerstner _))
+            {
+                // Already existing, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointDataGerstner>();
+            return true;
+        }
     }
 
 #if UNITY_EDITOR

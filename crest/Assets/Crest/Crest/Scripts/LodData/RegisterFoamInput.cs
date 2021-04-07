@@ -12,7 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#foam")]
-    public class RegisterFoamInput : RegisterLodDataInputDisplacementCorrection<LodDataMgrFoam>
+    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>
     {
         public override bool Enabled => true;
 
@@ -21,6 +21,14 @@ namespace Crest
         protected override Color GizmoColor => new Color(1f, 1f, 1f, 0.5f);
 
         protected override string ShaderPrefix => "Crest/Inputs/Foam";
+
+        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+
+        protected override string SplineShaderName => "Hidden/Crest/Inputs/Foam/Spline Geometry";
+        protected override Vector2 DefaultCustomData => Vector2.right;
+
+        [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
+        bool _followHorizontalMotion = false;
 
 #if UNITY_EDITOR
         protected override string FeatureToggleName => "_createFoamSim";

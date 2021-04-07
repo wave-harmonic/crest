@@ -263,12 +263,7 @@ namespace Crest
             var renderer = GetComponent<Renderer>();
             if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
             {
-                showMessage
-                (
-                    $"Shader assigned to underwater effect expected to be of type <i>{shaderPrefix}</i>.",
-                    $"Assign shader of type <i>{shaderPrefix}</i>.",
-                    ValidatedHelper.MessageType.Error, this
-                );
+                ValidatedHelper.ValidateMaterial(renderer.sharedMaterial, shaderPrefix, gameObject, showMessage);
 
                 isValid = false;
             }

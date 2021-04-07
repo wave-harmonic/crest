@@ -25,6 +25,7 @@ version = "4.10"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
 
+# notfound_no_urls_prefix = True
 
 # -- General configuration ---------------------------------------------------
 
@@ -49,6 +50,8 @@ extensions = [
     "tags",
     "links",
     "hacks",
+
+    "notfound.extension",
 
     # These extensions require RTDs to work so they will not work locally.
     "hoverxref.extension",

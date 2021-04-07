@@ -12,7 +12,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#clip-surface")]
-    public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
+    public class RegisterClipSurfaceInput : RegisterLodDataInputWithSplineSupport<LodDataMgrClipSurface>
     {
         bool _enabled = true;
         public override bool Enabled => _enabled;
@@ -30,6 +30,9 @@ namespace Crest
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
 
         protected override string ShaderPrefix => "Crest/Inputs/Clip Surface";
+
+        protected override string SplineShaderName => "Crest/Inputs/Clip Surface/Remove Area";
+        protected override Vector2 DefaultCustomData => Vector2.zero;
 
         // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
         protected override bool FollowHorizontalMotion => true;

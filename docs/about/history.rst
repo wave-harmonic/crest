@@ -44,6 +44,7 @@ Fixed
 
       -  Fix shader compilation errors for `HDRP` 10.4. `[HDRP]`
       -  Remove duplicate foam bubble properties. `[HDRP]`
+      -  New horizon line bug fix which is enabled by default (with option to switch back to old safety margin). `[HDRP]`
 
 
 4.9

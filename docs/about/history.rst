@@ -42,6 +42,7 @@ Fixed
 
    .. only:: hdrp
 
+      -  Fix shader compilation errors for `HDRP` 10.4. `[HDRP]`
       -  Remove duplicate foam bubble properties. `[HDRP]`
 
 

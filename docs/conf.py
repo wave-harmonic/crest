@@ -176,7 +176,7 @@ rst_prolog = f"""
 .. set:: AssetVersion {version}
 """
 rst_prolog = rst_prolog + """
-.. set:: RPMinVersion 7.3
+.. set:: RPMinVersion 7.5
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
 .. set:: UnityMinVersionShort 2019.4
 .. set:: UnityMinVersion {UnityMinVersionShort}.9

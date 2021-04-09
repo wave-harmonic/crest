@@ -31,10 +31,13 @@ Changed
    -  Rename *Set Water Height To Geometry* to *Set Water Height Using Geometry*.
    -  Improved spline gizmo line drawing to highlight selected spline point.
 
+   .. only:: hdrp or urp
+
+      -  Set minimum render pipeline package version to 7.5 which is correct for 2019.4. `[HDRP] [URP]`
+
    .. only:: hdrp
 
       -  Rearrange some material properties. `[HDRP]`
-      -  Document *Caustics Distortion Texture*. `[HDRP]`
 
 Fixed
 ^^^^^
@@ -45,6 +48,18 @@ Fixed
       -  Fix shader compilation errors for `HDRP` 10.4. `[HDRP]`
       -  Remove duplicate foam bubble properties. `[HDRP]`
       -  New horizon line bug fix which is enabled by default (with option to switch back to old safety margin). `[HDRP]`
+
+Documentation
+^^^^^^^^^^^^^
+.. bullet_list::
+
+   .. only:: hdrp
+
+      -  Document *Caustics Distortion Texture*. `[HDRP]`
+
+   .. only:: hdrp or urp
+
+      -  Fix broken Unity documentation links by correctly setting minimum render pipeline version. `[HDRP] [URP]`
 
 
 4.9

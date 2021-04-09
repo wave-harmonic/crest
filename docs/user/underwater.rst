@@ -59,7 +59,7 @@ Only the camera rendering the ocean surface will be used.
    #. Ensure Crest is properly set up and working before proceeding.
 
    #. Add the custom post-process (*Crest.UnderwaterPostProcessHDRP*) to the *Before Post Process* list.
-      See the :link:`Custom Post Process documentation <{HDRPDocLink}/Custom-Post-Process.html#effect-ordering}>`
+      See the :link:`Custom Post Process documentation <{HDRPDocLink}/Custom-Post-Process.html#effect-ordering>`
 
       .. note:: For Unity 2020.2+/`HDRP` 10+, use *Before TAA*. This will fix the outline on alpha clipped objects when undewater.
 

@@ -53,6 +53,8 @@ Documentation
 ^^^^^^^^^^^^^
 .. bullet_list::
 
+   -  Add :ref:`_detecting_above_or_below_water` and have Q&A question refer to it.
+
    .. only:: hdrp
 
       -  Document *Caustics Distortion Texture*. `[HDRP]`

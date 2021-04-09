@@ -83,8 +83,7 @@ The OceanRenderer uses this helper to get the height of the viewer above the wat
 
 Can I trigger something when an object is above or under the ocean surface without any scripting knowledge?
 -----------------------------------------------------------------------------------------------------------
-The OceanSampleHeightEvents can be used for this purpose.
-It will invoke a UnityEvent when the attached game object is above or below the ocean surface once per state change.
+Yes. Please see :ref:`detecting_above_or_below_water`.
 
 Does Crest support orthographic projection?
 -------------------------------------------

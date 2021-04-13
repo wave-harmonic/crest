@@ -51,6 +51,9 @@ Only the camera rendering the ocean surface will be used.
 
       Unlike the Underwater Curtain, the custom post-process effect is pixel-perfect.
 
+
+   .. _underwater_pp_setup:
+
    Setup steps
    ^^^^^^^^^^^
 
@@ -58,10 +61,20 @@ Only the camera rendering the ocean surface will be used.
 
    #. Ensure Crest is properly set up and working before proceeding.
 
+   #. Enable :link:`Custom Pass on the {HDRP} Asset <{HDRPDocLink}/HDRP-Asset.html#rendering>` and ensure that :link:`Custom pass on the camera's Frame Settings <{HDRPDocLink}/Frame-Settings.html#rendering>` is not disabled.
+
    #. Add the custom post-process (*Crest.UnderwaterPostProcessHDRP*) to the *Before Post Process* list.
-      See the :link:`Custom Post Process documentation <{HDRPDocLink}/Custom-Post-Process.html#effect-ordering>`
+      See the :link:`Custom Post Process documentation <{HDRPDocLink}/Custom-Post-Process.html#effect-ordering>`.
 
       .. note:: For Unity 2020.2+/`HDRP` 10+, use *Before TAA*. This will fix the outline on alpha clipped objects when undewater.
+
+   #. Add the *Crest/Underwater* :link:`Volume Component <{HDRPDocLink}/Volume-Components.html>`.
+
+      -  Please learn how to use the *Volume Framework* before proceeding as covering this is beyond the scope of our documentation:
+
+         .. youtube:: vczkfjLoPf8
+
+            Adding Volumes to `HDRP` (Tutorial)
 
    #. Configure the ocean material for underwater rendering - in the *Underwater* section of the material params, ensure *Cull Mode* is set to *Off* so that the underside of the ocean surface renders.
       See *Ocean-Underwater.mat* for an example.

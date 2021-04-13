@@ -59,6 +59,7 @@ Documentation
    .. only:: hdrp
 
       -  Document *Caustics Distortion Texture*. `[HDRP]`
+      -  Fixed Underwater :ref:`underwater_pp_setup` not being complete. `[HDRP]`
 
    .. only:: hdrp or urp
 

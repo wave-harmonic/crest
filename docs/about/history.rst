@@ -30,6 +30,7 @@ Changed
    -  Rename *Add Water Height From Geometry* to *Set Base Water Height Using Geometry*.
    -  Rename *Set Water Height To Geometry* to *Set Water Height Using Geometry*.
    -  Improved spline gizmo line drawing to highlight selected spline point.
+   -  Add version and render pipeline to help button documentation links.
 
    .. only:: hdrp or urp
 

@@ -22,6 +22,10 @@ const RENDER_PIPELINES = [
 
 const isLocalHost = location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname === ""
 const isLatest = window.location.pathname.startsWith("/en/latest/") || isLocalHost
+const isStable = window.location.pathname.startsWith("/en/stable/")
+const version = isLocalHost ? "latest" : window.location.pathname.split("/").filter(x => x)[1]
+// NOTE: regex could be expanded to support pre-release versions (eg 1.0-alpha).
+const isVersion = !isLatest && !isStable && /\d+(?:\.\d+)*/.test(version)
 
 function updateLinksWithRenderPipeline(renderPipeline) {
     $("a.reference.internal").attr("href", (_, href) => {
@@ -82,3 +86,27 @@ $(document).ready(_ => {
         `)
     }
 })
+
+if (isPage404 && !isVersion) {
+    $.ajax({
+        type: "HEAD",
+        url: `/en/${version}/`,
+        error: _ => {
+            var newUrl = window.location.href.replace(`/${version}/`, "/latest/")
+            $("#404-page-script").before(`
+                <div id="404-admonition" class="admonition attention">
+                    <p class="admonition-title">Attention</p>
+                    <p class="last">
+                        Looks like you are on a version without a published tag.
+                        We will redirect you to the latest documentation automatically.
+                        If it does not redirect automatically in a few seconds, please click the follow:
+                        <a href="${newUrl}">${newUrl}</a>
+                    </p>
+                </div>
+            `)
+
+            // TODO: enable once tested on live server.
+            // window.location.replace(newUrl)
+        }
+    })
+}

@@ -33,6 +33,24 @@ When editing static files, generally you will need to do a `make clean html` to 
 
 RTDs will rebuild automatically on git push.
 
+## Versioned Documentation
+
+[Read The Docs documentation](https://docs.readthedocs.io/en/stable/versions.html).
+
+https://crest.readthedocs.io/en/latest/ points to HEAD on master.
+https://crest.readthedocs.io/en/stable/ points to the latest git tag.
+https://crest.readthedocs.io/ redirects to stable.
+https://crest.readthedocs.io/en/4.9/ points to 4.9 git tag.
+
+After a new version is published (new git tag and asset store upload), in the RTDs admin, the new tag must be made active for the version to be visible.
+
+Then the version must be updated in the following two locations:
+[docs/conf.py](https://github.com/wave-harmonic/crest/blob/master/docs/conf.py)
+[crest/Assets/Crest/Crest/Scripts/Constants.cs](https://github.com/wave-harmonic/crest/blob/master/crest/Assets/Crest/Crest/Scripts/Constants.cs)
+
+For example, after the git tag for 4.9 is published and the asset store versions are uploaded, we will open those two files to change 4.9 to 4.10.
+Even though 4.10 doesn't exist yet, this approach removes the need to change the version before publishing, and then having to change it back to latest, which reduces the burden a little.
+
 ## Extensions
 
 - [Furo Theme](https://pradyunsg.me/furo)

@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Shadow Input")]
-    [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#shadows")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#shadows")]
     public class RegisterShadowInput : RegisterLodDataInput<LodDataMgrShadow>
     {
         public override bool Enabled => true;

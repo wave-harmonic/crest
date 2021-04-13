@@ -15,7 +15,7 @@ namespace Crest
     [HelpURL(HELP_URL)]
     public class SimSettingsFoam : SimSettingsBase
     {
-        public const string HELP_URL = "https://crest.readthedocs.io/en/latest/user/ocean-simulation.html#general-settings";
+        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#id5";
 
         [Header("General settings")]
         [Range(0f, 20f), Tooltip("Speed at which foam fades/dissipates.")]

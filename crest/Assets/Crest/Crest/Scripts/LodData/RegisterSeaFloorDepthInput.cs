@@ -12,7 +12,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Sea Floor Depth Input")]
-    [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#sea-floor-depth")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#sea-floor-depth")]
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
         public override bool Enabled => true;

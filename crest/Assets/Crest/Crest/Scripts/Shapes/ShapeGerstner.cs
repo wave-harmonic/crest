@@ -19,7 +19,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
-    [HelpURL("https://crest.readthedocs.io/en/latest/user/wave-conditions.html#shapegerstner-preview")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstner-preview")]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR

@@ -11,7 +11,7 @@ namespace Crest
     /// clip the surface of the ocean.
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
-    [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#clip-surface")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         bool _enabled = true;

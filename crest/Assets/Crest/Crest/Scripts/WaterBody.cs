@@ -16,7 +16,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Water Body")]
-    [HelpURL("https://crest.readthedocs.io/en/latest/user/water-bodies.html")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-bodies.html")]
     public partial class WaterBody : MonoBehaviour
     {
 #pragma warning disable 414

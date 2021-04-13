@@ -1430,7 +1430,7 @@ namespace Crest
 
             if (GUILayout.Button("Open Material Online Help"))
             {
-                Application.OpenURL("https://crest.readthedocs.io/en/latest/user/configuration.html#material-parameters");
+                Application.OpenURL(Internal.Constants.HELP_URL_BASE_USER + "configuration.html" + Internal.Constants.HELP_URL_RP + "#material-parameters");
             }
 
             DrawMaterialEditor();

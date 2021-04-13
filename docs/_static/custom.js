@@ -92,7 +92,9 @@ if (isPage404 && isVersion) {
         type: "HEAD",
         url: `/en/${version}/`,
         error: _ => {
-            var newUrl = window.location.href.replace(`/${version}/`, "/latest/")
+            var newUrl = new URL(window.location)
+            if (!newUrl.pathname.endsWith("/")) newUrl.pathname += "/"
+            newUrl.href = newUrl.href.replace(`/${version}/`, "/latest/")
             $("#404-page-script").before(`
                 <div id="404-admonition" class="admonition attention">
                     <p class="admonition-title">Attention</p>
@@ -100,7 +102,7 @@ if (isPage404 && isVersion) {
                         Looks like you are on a version without a published tag.
                         We will redirect you to the latest documentation automatically.
                         If it does not redirect automatically in a few seconds, please click the follow:
-                        <a href="${newUrl}">${newUrl}</a>
+                        <a href="${newUrl.href}">${newUrl.href}</a>
                     </p>
                 </div>
             `)

@@ -87,7 +87,7 @@ $(document).ready(_ => {
     }
 })
 
-if (isPage404 && !isVersion) {
+if (isPage404 && isVersion) {
     $.ajax({
         type: "HEAD",
         url: `/en/${version}/`,

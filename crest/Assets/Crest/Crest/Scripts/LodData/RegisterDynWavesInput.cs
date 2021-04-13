@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Dynamic Waves Input")]
-    [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#dynamic-waves")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#dynamic-waves")]
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
     {
         public override float Wavelength => 0f;

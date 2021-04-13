@@ -11,7 +11,7 @@ namespace Crest
     [HelpURL(HELP_URL)]
     public class SimSettingsWave : SimSettingsBase
     {
-        public const string HELP_URL = "https://crest.readthedocs.io/en/latest/user/ocean-simulation.html#simulation-settings";
+        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#simulation-settings";
 
         //[Header("Range")]
         [Range(0f, 32f), Tooltip("NOT CURRENTLY WORKING. The wave sim will not run if the simulation grid is smaller in resolution than this size. Useful to limit sim range for performance."),

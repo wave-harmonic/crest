@@ -17,7 +17,7 @@ namespace Crest.Spline
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
-    [HelpURL("https://crest.readthedocs.io/en/latest/user/wave-conditions.html#wave-splines-preview")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines-preview")]
     public partial class Spline : MonoBehaviour
     {
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]

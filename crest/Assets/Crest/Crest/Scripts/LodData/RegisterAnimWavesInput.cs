@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Animated Waves Input")]
-    [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#animated-waves")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves")]
     public class RegisterAnimWavesInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAnimWaves>
     {
         public override bool Enabled => true;

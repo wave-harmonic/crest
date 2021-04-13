@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
-    [HelpURL("https://crest.readthedocs.io/en/stable/user/ocean-simulation.html#foam")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#foam")]
     public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>
     {
         public override bool Enabled => true;

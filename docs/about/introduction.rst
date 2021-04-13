@@ -61,9 +61,9 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
 
       <br>
 
-      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/164158/widget-wide-light?aid=1011lic2K" style="width:100%; height:130px; border:0px;"></iframe>
+      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/164158/widget-wide-light?aid=1011lic2K" style="width:600px; height:130px; border:0px;"></iframe>
 
-      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/141674/widget-wide-light?aid=1011lic2K" style="width:100%; height:130px; border:0px;"></iframe>
+      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/141674/widget-wide-light?aid=1011lic2K" style="width:600px; height:130px; border:0px;"></iframe>
 
 Social
 ------

@@ -18,7 +18,7 @@ serve:
 	echo "http://localhost:8000"; python3 -m http.server -d _build/html
 
 live:
-	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -a $(O)
 
 pdf-hdrp:
 	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -E -a -t hdrp -t no-tabs $(O)

@@ -93,7 +93,7 @@ if (isPage404 && isVersion) {
         url: `/en/${version}/`,
         error: _ => {
             var newUrl = new URL(window.location)
-            if (!newUrl.pathname.endsWith("/")) newUrl.pathname += "/"
+            if (!newUrl.pathname.endsWith("/") && !newUrl.pathname.endsWith(".html")) newUrl.pathname += "/"
             newUrl.href = newUrl.href.replace(`/${version}/`, "/latest/")
             $("#404-page-script").before(`
                 <div id="404-admonition" class="admonition attention">
@@ -107,8 +107,7 @@ if (isPage404 && isVersion) {
                 </div>
             `)
 
-            // TODO: enable once tested on live server.
-            // window.location.replace(newUrl)
+            window.location.replace(newUrl)
         }
     })
 }

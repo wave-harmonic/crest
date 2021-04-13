@@ -25,8 +25,6 @@ version = "4.10"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
 
-# notfound_no_urls_prefix = True
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -80,6 +78,8 @@ if os.environ.get('PLATFORM') == "READTHEDOCS":
     tags.add("birp")
     tags.add("hdrp")
     tags.add("urp")
+else:
+    notfound_no_urls_prefix = True
 
 # -- Features ----------------------------------------------------------------
 
@@ -126,7 +126,7 @@ html_css_files = [
 
 html_js_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js',
-    'custom.js?v1.1.2',
+    'custom.js?v1.1.3',
 ]
 
 # -- Options for PDF output --------------------------------------------------

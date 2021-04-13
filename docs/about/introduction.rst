@@ -41,7 +41,7 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
       Crest Ocean System URP
       ^^^^^^^^^^^^^^^^^^^^^^
 
-      .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674
+      .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K
          :type: url
          :text: Asset Store
          :classes: btn-outline-primary btn-block stretched-link
@@ -52,10 +52,18 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
       Crest Ocean System HDRP
       ^^^^^^^^^^^^^^^^^^^^^^^
 
-      .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158
+      .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K
          :type: url
          :text: Asset Store
          :classes: btn-outline-primary btn-block stretched-link
+
+   .. raw:: html
+
+      <br>
+
+      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/164158/widget-wide-light?aid=1011lic2K" style="width:100%; height:130px; border:0px;"></iframe>
+
+      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/141674/widget-wide-light?aid=1011lic2K" style="width:100%; height:130px; border:0px;"></iframe>
 
 Social
 ------

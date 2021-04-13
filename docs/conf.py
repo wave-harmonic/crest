@@ -126,7 +126,7 @@ html_css_files = [
 
 html_js_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js',
-    'custom.js?v1.1.3',
+    'custom.js?v1.2.0',
 ]
 
 # -- Options for PDF output --------------------------------------------------

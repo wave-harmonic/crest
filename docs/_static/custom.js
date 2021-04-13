@@ -87,7 +87,8 @@ $(document).ready(_ => {
     }
 })
 
-if (isPage404 && isVersion) {
+// Redirect to latest documentation when visitor lands on an unpublished version.
+if (typeof isPage404 !== 'undefined' && isPage404 && isVersion) {
     $.ajax({
         type: "HEAD",
         url: `/en/${version}/`,
@@ -110,4 +111,23 @@ if (isPage404 && isVersion) {
             window.location.replace(newUrl)
         }
     })
+}
+
+// Light/Dark mode support for UAS store widgets.
+if (window.matchMedia) {
+    function applyLightOrDarkMode(isDarkMode) {
+        const iframes = $("iframe.asset-store")
+        // NOTE: Not robust. Will break if we remove the question mark.
+        const dark = "/widget-wide?"
+        const light = "/widget-wide-light?"
+        const oldWidget = isDarkMode ? light : dark
+        const newWidget = isDarkMode ? dark : light
+
+        if (iframes.attr("src").includes(oldWidget)) {
+            iframes.attr("src", iframes.attr("src").replace(oldWidget, newWidget))
+        }
+    }
+
+    $(document).ready(_ => applyLightOrDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches))
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => applyLightOrDarkMode(event.matches))
 }

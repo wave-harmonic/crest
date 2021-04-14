@@ -33,6 +33,10 @@ The amount that waves are attenuated is configurable using the *Attenuation In S
 User Inputs
 ^^^^^^^^^^^
 
+.. admonition:: Preview
+
+   Splines now support animated waves. Please see :ref:`wave-splines-section` for general spline information.
+
 To add some shape, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements.
 Then assign the *Register Anim Waves Input* script which will tag it for rendering into the shape.
 This is demonstrated in :numref:`adding-inputs-video`
@@ -149,6 +153,10 @@ To configure the foam sim, create a *Foam Sim Settings* asset by right clicking 
 
 User Inputs
 ^^^^^^^^^^^
+
+.. admonition:: Preview
+
+   Splines now support foam. Please see :ref:`wave-splines-section` for general spline information.
 
 Crest supports inputing any foam into the system, which can be helpful for fine tuning where foam is placed.
 To place foam, add some geometry into the world at the area where foam should be added.
@@ -329,6 +337,10 @@ This horizontal motion also affects physics.
 
 User Inputs
 ^^^^^^^^^^^
+
+.. admonition:: Preview
+
+   Splines now support flow. Please see :ref:`wave-splines-section` for general spline information.
 
 Crest supports adding any flow velocities to the system.
 To add flow, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements.

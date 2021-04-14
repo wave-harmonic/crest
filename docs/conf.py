@@ -121,7 +121,7 @@ html_static_path = ["_static", "../logo"]
 # These paths are either relative to html_static_path or fully qualified paths (eg. https://...).
 # Increment query parameter to invalidate the cache.
 html_css_files = [
-    'custom.css?v1.0.1',
+    'custom.css?v1.1.0',
 ]
 
 html_js_files = [

@@ -47,6 +47,7 @@ Fixed
    -  Fix water body creation not being part of undo/redo history.
    -  Fix spline point delete not being part of undo/redo history.
    -  Fix validation fix buttons that attach components not being part of undo/redo history.
+   -  Fix ShapeGerstnerBatched not having default spectrum when using "Reset" and correct undo/redo history.
 
    .. only:: hdrp
 

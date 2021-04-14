@@ -151,23 +151,29 @@ namespace Crest
             public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
+#if UNITY_EDITOR
+        void Reset()
+        {
+            // Initialise with spectrum.
+            _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+            _spectrum.name = "Default Waves (auto)";
+            _spectrum.Upgrade();
+        }
+#endif
+
         private void OnEnable()
         {
 #if UNITY_EDITOR
-            // Initialise with spectrum
-            if (_spectrum == null)
-            {
-                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _spectrum.name = "Default Waves (auto)";
-            }
-
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
             }
 
-            _spectrum.Upgrade();
+            if (_spectrum != null)
+            {
+                _spectrum.Upgrade();
+            }
 #endif
 
             InitBatches();

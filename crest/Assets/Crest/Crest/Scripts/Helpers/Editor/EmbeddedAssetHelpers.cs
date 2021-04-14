@@ -57,11 +57,12 @@ namespace Crest.EditorHelpers
 
         const int kIndentOffset = 3;
 
-        public void DrawEditorCombo(PropertyDrawer drawer, SerializedProperty property, string extension)
+        public void DrawEditorCombo(GUIContent label, PropertyDrawer drawer, SerializedProperty property, string extension)
         {
             type = drawer.fieldInfo.FieldType;
 
             DrawEditorCombo(
+                label,
                 $"Create {property.displayName} Asset",
                 $"{property.displayName.Replace(' ', '_')}",
                 extension,
@@ -76,19 +77,20 @@ namespace Crest.EditorHelpers
         /// the embedded editor, or a Create Asset button, if no asset is set.
         /// </summary>
         public void DrawEditorCombo(
-            string title, string defaultName, string extension, string message, bool indent, SerializedProperty property)
+            GUIContent label, string title, string defaultName, string extension, string message, bool indent, SerializedProperty property)
         {
             UpdateEditor(property);
 
             if (m_Editor == null)
-                AssetFieldWithCreateButton(property, title, defaultName, extension, message, property.serializedObject);
+                AssetFieldWithCreateButton(label, property, title, defaultName, extension, message, property.serializedObject);
             else
             {
                 EditorGUILayout.BeginVertical(GUI.skin.box);
                 Rect rect = EditorGUILayout.GetControlRect(true);
                 rect.height = EditorGUIUtility.singleLineHeight;
                 EditorGUI.BeginChangeCheck();
-                EditorGUI.PropertyField(rect, property);
+                // 2020 needs the label passed through.
+                EditorGUI.PropertyField(rect, property, label);
                 if (EditorGUI.EndChangeCheck())
                 {
                     property.serializedObject.ApplyModifiedProperties();
@@ -143,6 +145,7 @@ namespace Crest.EditorHelpers
         }
 
         private void AssetFieldWithCreateButton(
+            GUIContent label,
             SerializedProperty property,
             string title, string defaultName, string extension, string message, SerializedObject serializedObject)
         {
@@ -152,7 +155,8 @@ namespace Crest.EditorHelpers
             float buttonWidth = GUI.skin.button.CalcSize(m_CreateButtonGUIContent).x;
             Rect r = EditorGUILayout.GetControlRect(true);
             r.width -= buttonWidth + hSpace;
-            EditorGUI.PropertyField(r, property);
+            // 2020 needs the label passed through.
+            EditorGUI.PropertyField(r, property, label);
             r.x += r.width + hSpace; r.width = buttonWidth;
             if (GUI.Button(r, m_CreateButtonGUIContent))
             {

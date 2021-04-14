@@ -28,7 +28,7 @@ namespace Crest
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer, bool isLast)
         {
             EmbeddedFieldAttribute embeddedAttribute = this;
-            embeddedAttribute.editor.DrawEditorCombo(drawer, property, "asset");
+            embeddedAttribute.editor.DrawEditorCombo(label, drawer, property, "asset");
         }
 
         // Removes space above embedded editor so the embedded editor replaces this drawer.

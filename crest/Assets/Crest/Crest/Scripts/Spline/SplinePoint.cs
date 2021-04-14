@@ -73,6 +73,8 @@ namespace Crest.Spline
             var customDatas = parent.GetComponents<ISplinePointCustomDataSetup>();
             foreach (var customData in customDatas)
             {
+                // NOTE: This will not be registered with the undo/redo history, but with the way these are attached, it
+                // wouldn't make sense to register them. These data objects are harmless.
                 if (customData.AttachDataToSplinePoint(thisSP.gameObject))
                 {
                     EditorUtility.SetDirty(thisSP.gameObject);
@@ -146,7 +148,7 @@ namespace Crest.Spline
                         Selection.activeObject = parent;
                     }
                 }
-                DestroyImmediate(thisSP.gameObject);
+                Undo.DestroyObjectImmediate(thisSP.gameObject);
             }
         }
 

@@ -44,6 +44,10 @@ Fixed
 ^^^^^
 .. bullet_list::
 
+   -  Fix water body creation not being part of undo/redo history.
+   -  Fix spline point delete not being part of undo/redo history.
+   -  Fix validation fix buttons that attach components not being part of undo/redo history.
+
    .. only:: hdrp
 
       -  Fix shader compilation errors for `HDRP` 10.4. `[HDRP]`

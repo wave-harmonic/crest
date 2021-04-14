@@ -226,6 +226,7 @@ namespace Crest
         void CreateWaterBody()
         {
             var waterBodyGO = new GameObject("WaterBody");
+            Undo.RegisterCreatedObjectUndo(waterBodyGO, "Add Crest WaterBody");
             waterBodyGO.transform.position = _position;
             waterBodyGO.transform.rotation = Quaternion.AngleAxis(_rotation, Vector3.up);
             waterBodyGO.transform.localScale = new Vector3(_sizeX, 1f, _sizeZ);

@@ -75,8 +75,7 @@ namespace Crest
             where ComponentType : Component
         {
             var gameObject = lodInputComponent.targetObject as GameObject;
-            gameObject.AddComponent<ComponentType>();
-            EditorUtility.SetDirty(gameObject);
+            Undo.AddComponent<ComponentType>(gameObject);
         }
 
         internal static void FixSetMaterialOptionEnabled(SerializedObject material, string keyword, string floatParam, bool enabled)

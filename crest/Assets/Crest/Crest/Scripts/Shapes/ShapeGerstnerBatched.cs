@@ -29,7 +29,7 @@ namespace Crest
         [Tooltip("If set to 'Global', waves will render everywhere. If set to 'Geometry', the geometry on this GameObject will be rendered from a top down perspective to generate the waves. This allows having local wave conditions by placing Quad geometry where desired. The geometry must have one of the Gerstner shaders on it such as 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'.")]
         public GerstnerMode _mode = GerstnerMode.Global;
 
-        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum."), EmbeddedField]
+        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum."), DecoratedEmbeddedField]
         public OceanWaveSpectrum _spectrum;
 
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
@@ -107,13 +107,13 @@ namespace Crest
         // Data for all components
         [Header("Wave data (usually populated at runtime)")]
         public bool _evaluateSpectrumAtRuntime = true;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _wavelengths;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _amplitudes;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _angleDegs;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _phases;
 
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]

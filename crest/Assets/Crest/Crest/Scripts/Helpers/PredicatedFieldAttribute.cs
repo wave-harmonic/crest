@@ -12,8 +12,7 @@ using UnityEditor;
 
 namespace Crest
 {
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class PredicatedFieldAttribute : MultiPropertyAttribute
+    public class PredicatedAttribute : DecoratorAttribute
     {
         public readonly string _propertyName;
         public readonly Type _requiredComponentType;
@@ -22,11 +21,11 @@ namespace Crest
 
         /// <summary>
         /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
-        /// to disable a field if a toggle is false. Limitation - conflicts with other property drawers such as Range().
+        /// to disable a field if a toggle is false.
         /// </summary>
         /// <param name="requiredComponentType">If a component of this type is not attached to this GameObject, disable the GUI (or enable if inverted is true).</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
-        public PredicatedFieldAttribute(Type requiredComponentType, bool inverted = false)
+        public PredicatedAttribute(Type requiredComponentType, bool inverted = false)
         {
             _requiredComponentType = requiredComponentType;
             _inverted = inverted;
@@ -34,12 +33,12 @@ namespace Crest
 
         /// <summary>
         /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
-        /// to disable a field if a toggle is false. Limitation - conflicts with other property drawers such as Range().
+        /// to disable a field if a toggle is false.
         /// </summary>
         /// <param name="propertyName">The name of the other property whose value dictates whether this field is enabled or not.</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
         /// <param name="disableIfValueIs">If the field has this value, disable the GUI (or enable if inverted is true).</param>
-        public PredicatedFieldAttribute(string propertyName, bool inverted = false, int disableIfValueIs = 0)
+        public PredicatedAttribute(string propertyName, bool inverted = false, int disableIfValueIs = 0)
         {
             _propertyName = propertyName;
             _inverted = inverted;
@@ -48,13 +47,13 @@ namespace Crest
 
         /// <summary>
         /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
-        /// to disable a field if a toggle is false. Limitation - conflicts with other property drawers such as Range().
+        /// to disable a field if a toggle is false.
         /// </summary>
         /// <param name="propertyName">The name of the other property whose value dictates whether this field is enabled or not.</param>
         /// <param name="requiredComponentType">If a component of this type is not attached to this GameObject, disable the GUI (or enable if inverted is true).</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
         /// <param name="disableIfValueIs">If the field has this value, disable the GUI (or enable if inverted is true).</param>
-        public PredicatedFieldAttribute(string propertyName, Type requiredComponentType, bool inverted = false, int disableIfValueIs = 0)
+        public PredicatedAttribute(string propertyName, Type requiredComponentType, bool inverted = false, int disableIfValueIs = 0)
         {
             _propertyName = propertyName;
             _requiredComponentType = requiredComponentType;
@@ -91,14 +90,14 @@ namespace Crest
             }
             else
             {
-                Debug.LogError($"PredicatedFieldAttributePropertyDrawer - property type not implemented yet: {prop.type}.", prop.serializedObject.targetObject);
+                Debug.LogError($"PredicatedAttribute - property type not implemented yet: {prop.type}.", prop.serializedObject.targetObject);
                 return true;
             }
 
             return _inverted ? !result : result;
         }
 
-        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer, bool isLast)
+        internal override void Decorate(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
             var enabled = true;
 
@@ -121,11 +120,6 @@ namespace Crest
             }
 
             GUI.enabled = enabled;
-
-            if (isLast)
-            {
-                EditorGUI.PropertyField(position, property, label);
-            }
         }
 #endif
     }

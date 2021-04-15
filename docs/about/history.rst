@@ -48,6 +48,7 @@ Fixed
    -  Fix spline point delete not being part of undo/redo history.
    -  Fix validation fix buttons that attach components not being part of undo/redo history.
    -  Fix ShapeGerstnerBatched not having default spectrum when using "Reset" and correct undo/redo history.
+   -  Fix properties with embedded asset editors appearing broken for Unity 2020 and 2021.
 
    .. only:: hdrp
 

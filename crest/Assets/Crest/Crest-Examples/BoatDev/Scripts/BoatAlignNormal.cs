@@ -34,7 +34,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
-    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField, PredicatedField("_useBoatLength")]
+    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField, Predicated("_useBoatLength"), DecoratedField]
     float _boatLength = 3f;
 
     [Header("Drag")]

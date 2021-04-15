@@ -132,7 +132,7 @@ namespace Crest
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;
         [Tooltip("If Primary Light is not set, search the scene for all directional lights and pick the brightest to use as the sun light.")]
-        [SerializeField, PredicatedField("_primaryLight", true)]
+        [SerializeField, Predicated("_primaryLight", true), DecoratedField]
         bool _searchForPrimaryLightOnStartup = true;
 
         [Header("Ocean Params")]
@@ -179,7 +179,7 @@ namespace Crest
 
         [Header("Simulation Params")]
 
-        [EmbeddedField]
+        [DecoratedEmbeddedField]
         public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
 
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
@@ -189,25 +189,25 @@ namespace Crest
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
         public bool CreateFoamSim { get { return _createFoamSim; } }
-        [PredicatedField("_createFoamSim", order = 0), EmbeddedField(order = 1)]
+        [Predicated("_createFoamSim"), DecoratedEmbeddedField]
         public SimSettingsFoam _simSettingsFoam;
 
         [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
         bool _createDynamicWaveSim = false;
         public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
-        [PredicatedField("_createDynamicWaveSim", order = 0), EmbeddedField(order = 1)]
+        [Predicated("_createDynamicWaveSim"), DecoratedEmbeddedField]
         public SimSettingsWave _simSettingsDynamicWaves;
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
         public bool CreateFlowSim { get { return _createFlowSim; } }
-        [PredicatedField("_createFlowSim", order = 0), EmbeddedField(order = 1)]
+        [Predicated("_createFlowSim"), DecoratedEmbeddedField]
         public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [PredicatedField("_createShadowData", order = 0), EmbeddedField(order = 1)]
+        [Predicated("_createShadowData"), DecoratedEmbeddedField]
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
@@ -219,7 +219,7 @@ namespace Crest
             EverythingClipped,
         }
         [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
-        [PredicatedField("_createClipSurfaceData")]
+        [Predicated("_createClipSurfaceData"), DecoratedField]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -238,7 +238,7 @@ namespace Crest
         float _editModeFPS = 30f;
 #pragma warning restore 414
 
-        [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField, PredicatedField("_showOceanProxyPlane", true)]
+        [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField, Predicated("_showOceanProxyPlane", true), DecoratedField]
 #pragma warning disable 414
         bool _followSceneCamera = true;
 #pragma warning restore 414

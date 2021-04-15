@@ -427,7 +427,7 @@ Shader "Crest/Ocean"
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				#define TINT_COUNT (uint)7
 				half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
-				o.debugtint = wt_smallerLod * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_biggerLod * tintCols[_LD_LodIdx_1 % TINT_COUNT];
+				o.debugtint = wt_smallerLod * tintCols[_LD_SliceIndex % TINT_COUNT] + wt_biggerLod * tintCols[(_LD_SliceIndex + 1) % TINT_COUNT];
 				#endif
 
 				// view-projection

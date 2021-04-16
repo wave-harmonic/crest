@@ -13,7 +13,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 {
     public bool _trackCamera = true;
 
-    [Range(0f, 32f)]
+    [Crest.Range(0f, 32f)]
     public float _minGridSize = 0f;
 
     GameObject[] _markerObjects = new GameObject[3];

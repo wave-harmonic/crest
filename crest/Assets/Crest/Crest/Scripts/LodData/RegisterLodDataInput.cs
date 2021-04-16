@@ -276,9 +276,9 @@ namespace Crest
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField]
         float _radius = 20f;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedDelayedField]
+        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
         int _subdivisions = 1;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedDelayedField]
+        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
         int _smoothingIterations = 0;
 
         protected Material _splineMaterial;

@@ -11,13 +11,13 @@ namespace Crest
     using UnityEditor;
 #endif
 
-    public class DecoratedEmbeddedFieldAttribute : DecoratedPropertyAttribute
+    public class EmbeddedAttribute : DecoratedPropertyAttribute
     {
 #if UNITY_EDITOR
         internal EmbeddedAssetEditor editor;
 #endif
 
-        public DecoratedEmbeddedFieldAttribute()
+        public EmbeddedAttribute()
         {
 #if UNITY_EDITOR
             editor = new EmbeddedAssetEditor();
@@ -27,7 +27,7 @@ namespace Crest
 #if UNITY_EDITOR
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
-            DecoratedEmbeddedFieldAttribute embeddedAttribute = this;
+            EmbeddedAttribute embeddedAttribute = this;
             embeddedAttribute.editor.DrawEditorCombo(label, drawer, property, "asset");
         }
 

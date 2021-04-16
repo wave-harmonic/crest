@@ -75,7 +75,7 @@ namespace Crest
     /// <summary>
     /// Renders the property using EditorGUI.Delayed*.
     /// </summary>
-    public class DecoratedDelayedFieldAttribute : DecoratedPropertyAttribute
+    public class DelayedAttribute : DecoratedPropertyAttribute
     {
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
@@ -91,7 +91,7 @@ namespace Crest
                     EditorGUI.DelayedTextField(position, property, label);
                     break;
                 default:
-                    EditorGUI.LabelField(position, label.text, "DecoratedDelayed: must be float, integer, or string.");
+                    EditorGUI.LabelField(position, label.text, "Delayed: must be float, integer, or string.");
                     break;
             }
         }
@@ -100,12 +100,12 @@ namespace Crest
     /// <summary>
     /// Renders the property using EditorGUI.Slider.
     /// </summary>
-    public class DecoratedRangeFieldAttribute : DecoratedPropertyAttribute
+    public class RangeAttribute : DecoratedPropertyAttribute
     {
         readonly float minimum;
         readonly float maximum;
 
-        public DecoratedRangeFieldAttribute(float minimum, float maximum)
+        public RangeAttribute(float minimum, float maximum)
         {
             this.minimum = minimum;
             this.maximum = maximum;
@@ -122,7 +122,7 @@ namespace Crest
                     EditorGUI.IntSlider(position, property, (int)minimum, (int)maximum, label);
                     break;
                 default:
-                    EditorGUI.LabelField(position, label.text, "DecoratedRange: must be float or integer.");
+                    EditorGUI.LabelField(position, label.text, "Range: must be float or integer.");
                     break;
             }
         }

@@ -18,7 +18,7 @@ public class BoatAlignNormal : FloatingObjectBase
     float _buoyancyCoeff = 1.5f;
     [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
     float _boyancyTorque = 8f;
-    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Range(0, 1)]
+    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Crest.Range(0, 1)]
     float _accelerateDownhill = 0f;
 
     [Header("Engine Power")]

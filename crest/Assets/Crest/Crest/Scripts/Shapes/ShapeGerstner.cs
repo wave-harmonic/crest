@@ -26,7 +26,7 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
-        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), DecoratedEmbeddedField]
+        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
         OceanWaveSpectrum _activeSpectrum = null;
 
@@ -63,9 +63,9 @@ namespace Crest
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 20f;
-        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedDelayedField]
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
-        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedDelayedField]
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
         int _smoothingIterations = 0;
 
         [SerializeField]

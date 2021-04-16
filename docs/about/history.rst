@@ -60,6 +60,7 @@ Documentation
 .. bullet_list::
 
    -  Add :ref:`detecting_above_or_below_water` and have Q&A question refer to it.
+   -  Add :ref:`known-issues` page.
 
    .. only:: hdrp
 

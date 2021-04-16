@@ -34,6 +34,7 @@ Crest Ocean System
    :caption: About
 
    about/introduction
+   about/known-issues
    about/history
 
 .. toctree::

@@ -181,6 +181,7 @@ rst_prolog = rst_prolog + """
 .. set:: UnityMinVersionShort 2019.4
 .. set:: UnityMinVersion {UnityMinVersionShort}.9
 .. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
+.. set:: UnityIssueLink https://issuetracker.unity3d.com/product/unity/issues/guid
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
 .. set:: DocLinkBase https://crest.readthedocs.io/en
 .. set:: GitHubLink \https://github.com/wave-harmonic/crest

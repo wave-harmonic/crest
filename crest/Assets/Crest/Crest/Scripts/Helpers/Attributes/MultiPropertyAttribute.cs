@@ -119,7 +119,7 @@ namespace Crest
                     EditorGUI.Slider(position, property, minimum, maximum, label);
                     break;
                 case SerializedPropertyType.Integer:
-                    EditorGUI.Slider(position, property, minimum, maximum, label);
+                    EditorGUI.IntSlider(position, property, (int)minimum, (int)maximum, label);
                     break;
                 default:
                     EditorGUI.LabelField(position, label.text, "DecoratedRange: must be float or integer.");

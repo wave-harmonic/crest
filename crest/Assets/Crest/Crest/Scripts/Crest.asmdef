@@ -1,3 +1,21 @@
-﻿{
-	"name": "Crest"
+{
+    "name": "Crest",
+    "references": [
+        "Unity.Postprocessing.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.postprocessing",
+            "expression": "",
+            "define": "UNITY_POSTPROCESSING_ENABLED"
+        }
+    ],
+    "noEngineReferences": false
 }

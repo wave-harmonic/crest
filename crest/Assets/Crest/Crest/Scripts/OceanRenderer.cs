@@ -1260,6 +1260,55 @@ namespace Crest
                 );
             }
 
+            // Validate scene view effects options.
+            if (SceneView.lastActiveSceneView != null)
+            {
+                var sceneView = SceneView.lastActiveSceneView;
+
+                // Validate "Animated Materials".
+                if (!ocean._showOceanProxyPlane && !sceneView.sceneViewState.showMaterialUpdate)
+                {
+                    showMessage
+                    (
+                        "<i>Animated Materials</i> is not enabled on the scene view. The ocean's framerate will appear low as updates are not real-time.",
+                        "Enable <i>Animated Materials</i> on the scene view.",
+                        ValidatedHelper.MessageType.Info, ocean,
+                        _ =>
+                        {
+                            SceneView.lastActiveSceneView.sceneViewState.showMaterialUpdate = true;
+                            // Required after changing sceneViewState according to:
+                            // https://docs.unity3d.com/ScriptReference/SceneView.SceneViewState.html
+                            SceneView.RepaintAll();
+                        }
+                    );
+                }
+
+#if UNITY_POSTPROCESSING_ENABLED
+                // Validate "Post-Processing".
+                // Only check built-in renderer and Camera.main with enabled PostProcessLayer component.
+                if (GraphicsSettings.currentRenderPipeline == null && Camera.main != null &&
+                    Camera.main.TryGetComponent<UnityEngine.Rendering.PostProcessing.PostProcessLayer>(out var ppLayer)
+                    && ppLayer.enabled && sceneView.sceneViewState.showImageEffects)
+                {
+                    showMessage
+                    (
+                        "<i>Post Processing</i> is enabled on the scene view. " +
+                        "There is a Unity bug where gizmos and grid lines will render over opaque objects. " +
+                        "Please see <i>Known Issues</i> in the documentation for a link to vote on having this issue resolved.",
+                        "Disable <i>Post Processing</i> on the scene view.",
+                        ValidatedHelper.MessageType.Warning, ocean,
+                        _ =>
+                        {
+                            sceneView.sceneViewState.showImageEffects = false;
+                            // Required after changing sceneViewState according to:
+                            // https://docs.unity3d.com/ScriptReference/SceneView.SceneViewState.html
+                            SceneView.RepaintAll();
+                        }
+                    );
+                }
+#endif
+            }
+
             // SimSettingsAnimatedWaves
             if (_simSettingsAnimatedWaves)
             {

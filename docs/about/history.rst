@@ -31,6 +31,7 @@ Changed
    -  Rename *Set Water Height To Geometry* to *Set Water Height Using Geometry*.
    -  Improved spline gizmo line drawing to highlight selected spline point.
    -  Add version and render pipeline to help button documentation links.
+   -  Validate scene view effects toggle options.
 
    .. only:: hdrp or urp
 

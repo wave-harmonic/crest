@@ -118,9 +118,9 @@ namespace Crest
 
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
         bool _directTowardsPoint = false;
-        [SerializeField, Tooltip("Target point XZ to converge to.")]
+        [SerializeField, Tooltip("Target point XZ to converge to."), Predicated("_directTowardsPoint"), DecoratedField]
         Vector2 _pointPositionXZ = Vector2.zero;
-        [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius.")]
+        [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius."), Predicated("_directTowardsPoint"), DecoratedField]
         Vector2 _pointRadii = new Vector2(100f, 200f);
 
         const string DIRECT_TOWARDS_POINT_KEYWORD = "CREST_DIRECT_TOWARDS_POINT_INTERNAL";

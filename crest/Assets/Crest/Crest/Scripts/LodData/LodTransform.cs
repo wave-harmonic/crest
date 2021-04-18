@@ -14,7 +14,6 @@ namespace Crest
     {
         protected int[] _transformUpdateFrame;
 
-        [System.Serializable]
         public struct RenderData
         {
             public float _texelWidth;
@@ -28,6 +27,7 @@ namespace Crest
                 // ignore first frame - this patches errors when using edit & continue in editor
                 if (_frame > 0 && _frame != OceanRenderer.FrameCount + frameOffset)
                 {
+                    // Causing problems when entering play mode from prefab.
                     Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
                 }
                 return this;

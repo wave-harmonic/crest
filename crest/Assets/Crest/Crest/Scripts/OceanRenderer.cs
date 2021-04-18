@@ -298,7 +298,22 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-        public static OceanRenderer Instance { get; private set; }
+        static int s_InstanceCount = 0;
+        static OceanRenderer s_Instance;
+        public static OceanRenderer Instance
+        {
+            get
+            {
+                // For when we exit prefab mode. We need to find and rebind.
+                if (s_Instance == null)
+                {
+                    s_Instance = FindObjectOfType<OceanRenderer>();
+                    s_Instance.Bind();
+                }
+
+                return s_Instance;
+            }
+        }
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -325,6 +340,7 @@ namespace Crest
 #endif
 
         BuildCommandBuffer _commandbufferBuilder;
+        public BuildCommandBuffer CommandBufferBuilder => _commandbufferBuilder;
 
         // This must exactly match struct with same name in HLSL
         // :CascadeParams
@@ -364,16 +380,25 @@ namespace Crest
 
         PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
 
+        void Awake()
+        {
+            s_Instance = this;
+            s_InstanceCount++;
+        }
+
+        void OnDestroy()
+        {
+            s_Instance = null;
+            s_InstanceCount--;
+        }
+
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-#if UNITY_EDITOR
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            if (s_Instance == null)
             {
-                return;
+                OnReLoadScripts();
             }
-#endif
 
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
             {
@@ -394,7 +419,6 @@ namespace Crest
             }
 #endif
 
-            Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
             _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
@@ -444,17 +468,15 @@ namespace Crest
 
         private void OnDisable()
         {
-#if UNITY_EDITOR
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                return;
-            }
-#endif
-
             CleanUp();
+        }
 
-            Instance = null;
+        void Bind()
+        {
+            // Rebind next item on the stack as OnEnable/OnDisable will not be called again.
+            Shader.SetGlobalBuffer("_CrestPerCascadeInstanceData", s_Instance._bufPerCascadeInstanceData);
+            Shader.SetGlobalBuffer(sp_cascadeData, s_Instance._bufCascadeDataTgt);
+            foreach (var lodData in s_Instance._lodDatas) lodData.Bind();
         }
 
 #if UNITY_EDITOR
@@ -682,9 +704,6 @@ namespace Crest
 #endif
         static void InitStatics()
         {
-            // Init here from 2019.3 onwards
-            Instance = null;
-
             sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
             sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
             sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
@@ -1039,7 +1058,10 @@ namespace Crest
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnReLoadScripts()
         {
-            Instance = FindObjectOfType<OceanRenderer>();
+            if (s_Instance == null)
+            {
+                s_Instance = FindObjectOfType<OceanRenderer>();
+            }
         }
 
         private void OnDrawGizmos()

@@ -32,6 +32,7 @@ Changed
    -  Improved spline gizmo line drawing to highlight selected spline point.
    -  Add version and render pipeline to help button documentation links.
    -  Validate scene view effects toggle options.
+   -  Add various fix buttons for depth cache issues.
 
    .. only:: hdrp or urp
 

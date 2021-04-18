@@ -66,10 +66,12 @@ namespace Crest
     /// </summary>
     public class DecoratedFieldAttribute : DecoratedPropertyAttribute
     {
+#if UNITY_EDITOR
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
             EditorGUI.PropertyField(position, property, label);
         }
+#endif
     }
 
     /// <summary>
@@ -77,6 +79,7 @@ namespace Crest
     /// </summary>
     public class DelayedAttribute : DecoratedPropertyAttribute
     {
+#if UNITY_EDITOR
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
             switch (property.propertyType)
@@ -95,6 +98,7 @@ namespace Crest
                     break;
             }
         }
+#endif
     }
 
     /// <summary>
@@ -111,6 +115,7 @@ namespace Crest
             this.maximum = maximum;
         }
 
+#if UNITY_EDITOR
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
             switch (property.propertyType)
@@ -126,5 +131,6 @@ namespace Crest
                     break;
             }
         }
+#endif
     }
 }

@@ -1261,7 +1261,7 @@ namespace Crest
             }
 
             // Validate scene view effects options.
-            if (SceneView.lastActiveSceneView != null)
+            if (SceneView.lastActiveSceneView != null && !EditorApplication.isPlaying)
             {
                 var sceneView = SceneView.lastActiveSceneView;
 

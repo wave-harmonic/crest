@@ -425,6 +425,94 @@ namespace Crest
                 IsCacheTextureOutdated(_cacheTexture);
         }
 
+        void FixPopulateCache(SerializedObject depthCache)
+        {
+            var dc = depthCache.targetObject as OceanDepthCache;
+            dc.PopulateCache(true);
+        }
+
+        void FixDisableAlwaysUpdate(SerializedObject depthCache)
+        {
+            depthCache.FindProperty("_forceAlwaysUpdateDebug").boolValue = false;
+        }
+
+        void FixScale(SerializedObject depthCache)
+        {
+            // Slightly tricky to set scale as you can't assign world space scale.
+            // This function assumes no rotation on cache object or parents, and
+            // computes the current world scale, and uses that to compute multipliers
+            // to apply to the local scale
+            var dc = depthCache.targetObject as OceanDepthCache;
+
+            Undo.RecordObject(dc.transform, "Fix depth cache scale");
+            EditorUtility.SetDirty(dc.transform);
+
+            // Compute scale multipliers to make uniform in world
+            var worldScale = dc.transform.lossyScale;
+
+            // Safety limits
+            worldScale.x = Mathf.Max(worldScale.x, 1f);
+            worldScale.y = Mathf.Max(worldScale.y, 0.0001f);
+            worldScale.z = Mathf.Max(worldScale.z, 1f);
+
+            // Compute multipliers needed for correction
+            var largerScale = Mathf.Max(worldScale.x, worldScale.z);
+            var xmul = largerScale / worldScale.x;
+            var ymul = 1f / worldScale.y;
+            var zmul = largerScale / worldScale.z;
+
+            // Multiply local scale to make uniform / correct
+            var localScale = dc.transform.localScale;
+            localScale.x *= xmul;
+            localScale.y *= ymul;
+            localScale.z *= zmul;
+
+            // Try to recover from 0 scale
+            if (localScale.x == 0f) localScale.x = localScale.z;
+            if (localScale.z == 0f) localScale.z = localScale.x;
+
+            dc.transform.localScale = localScale;
+
+            if (dc.Type == OceanDepthCacheType.Realtime)
+            {
+                dc.PopulateCache(true);
+            }
+        }
+
+        void FixHeight(SerializedObject depthCache)
+        {
+            var dc = depthCache.targetObject as OceanDepthCache;
+
+            Undo.RecordObject(dc.transform, "Fix depth cache scale");
+            EditorUtility.SetDirty(dc.transform);
+
+            var pos = dc.transform.position;
+            pos.y = OceanRenderer.Instance.transform.position.y;
+            dc.transform.position = pos;
+
+            if (dc.Type == OceanDepthCacheType.Realtime)
+            {
+                dc.PopulateCache(true);
+            }
+        }
+
+        void FixRotation(SerializedObject depthCache)
+        {
+            var dc = depthCache.targetObject as OceanDepthCache;
+
+            Undo.RecordObject(dc.transform, "Fix depth cache rotation");
+            EditorUtility.SetDirty(dc.transform);
+
+            var ea = dc.transform.eulerAngles;
+            ea.x = ea.z = 0f;
+            dc.transform.eulerAngles = ea;
+
+            if (dc.Type == OceanDepthCacheType.Realtime)
+            {
+                dc.PopulateCache(true);
+            }
+        }
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
@@ -439,7 +527,8 @@ namespace Crest
                     (
                         "Depth cache is outdated.",
                         "Click <i>Populate Cache</i> or re-bake the cache to bring the cache up-to-date with component changes.",
-                        ValidatedHelper.MessageType.Warning, this
+                        ValidatedHelper.MessageType.Warning, this,
+                        FixPopulateCache
                     );
                 }
             }
@@ -477,8 +566,9 @@ namespace Crest
                     showMessage
                     (
                         $"<i>Force Always Update Debug</i> option is enabled on depth cache <i>{gameObject.name}</i>, which means it will render every frame instead of running from the cache.",
-                        "Disable the Force Always Update Debug option.",
-                        ValidatedHelper.MessageType.Warning, this
+                        "Disable the <i>Force Always Update Debug</i> option.",
+                        ValidatedHelper.MessageType.Warning, this,
+                        FixDisableAlwaysUpdate
                     );
 
                     isValid = false;
@@ -489,7 +579,7 @@ namespace Crest
                     showMessage
                     (
                         $"Cache resolution {_resolution} is very low, which may not be intentional.",
-                        "Increase the resolution.",
+                        "Increase the cache resolution.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -525,7 +615,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (transform.lossyScale.y < 0.001f || transform.localScale.y < 0.01f)
+            if (!Mathf.Approximately(transform.lossyScale.y, 1f))
             {
                 showMessage
                 (
@@ -537,13 +627,27 @@ namespace Crest
                 isValid = false;
             }
 
-            if (ocean != null && ocean.Root != null && Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
+            if (ocean != null && ocean.Root != null && !Mathf.Approximately(transform.position.y, ocean.Root.position.y))
             {
                 showMessage
                 (
                     "It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level.",
                     "Set the Y position to the same height as the ocean object.",
-                    ValidatedHelper.MessageType.Warning, this
+                    ValidatedHelper.MessageType.Warning, this,
+                    FixHeight
+                );
+
+                isValid = false;
+            }
+
+            if (!Mathf.Approximately(transform.eulerAngles.x, 0f) || !Mathf.Approximately(transform.eulerAngles.z, 0f))
+            {
+                showMessage
+                (
+                    "The depth cache should have 0 rotation around X and Z (but rotation around Y is allowed).",
+                    "Adjust the rotation on this transform and parents in the hierarchy to eliminate X and Z rotation.",
+                    ValidatedHelper.MessageType.Error, this,
+                    FixRotation
                 );
 
                 isValid = false;
@@ -570,6 +674,19 @@ namespace Crest
                     // Reporting only one renderer at a time will be enough to avoid overwhelming user and UI.
                     break;
                 }
+
+                isValid = false;
+            }
+
+            if (!ocean.CreateSeaFloorDepthData)
+            {
+                showMessage
+                (
+                    $"<i>{LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_LABEL}</i> must be enabled on the <i>OceanRenderer</i> component.",
+                    $"Enable the <i>{LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_LABEL}</i> option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, ocean,
+                    (so) => OceanRenderer.FixSetFeatureEnabled(so, LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_NAME, true)
+                );
 
                 isValid = false;
             }

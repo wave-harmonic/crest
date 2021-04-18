@@ -594,8 +594,7 @@ namespace Crest
                         "These values currently do not match. " +
                         $"Its current scale in the hierarchy is: X = {transform.lossyScale.x} Z = {transform.lossyScale.z}.",
                         "Ensure the X & Z scale values are equal on this object and all parents in the hierarchy.",
-                        ValidatedHelper.MessageType.Error, this,
-                        FixScale
+                        ValidatedHelper.MessageType.Error, this
                     );
 
                     isValid = false;
@@ -622,8 +621,7 @@ namespace Crest
                 (
                     $"Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.",
                     "Set the Y scale to 1.0.",
-                    ValidatedHelper.MessageType.Error, this,
-                    FixScale
+                    ValidatedHelper.MessageType.Error, this
                 );
 
                 isValid = false;
@@ -692,7 +690,7 @@ namespace Crest
 
                 isValid = false;
             }
-            
+
             return isValid;
         }
 

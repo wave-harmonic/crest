@@ -18,7 +18,7 @@ public class BoatAlignNormal : FloatingObjectBase
     float _buoyancyCoeff = 1.5f;
     [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
     float _boyancyTorque = 8f;
-    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Range(0, 1)]
+    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Crest.Range(0, 1)]
     float _accelerateDownhill = 0f;
 
     [Header("Engine Power")]
@@ -34,7 +34,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
-    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField, PredicatedField("_useBoatLength")]
+    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField, Predicated("_useBoatLength"), DecoratedField]
     float _boatLength = 3f;
 
     [Header("Drag")]

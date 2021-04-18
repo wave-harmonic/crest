@@ -240,15 +240,15 @@ namespace Crest
             var angle_radians = Mathf.PI * angle / 180f;
             var kx = Mathf.Cos(angle_radians) * wavenumber;
             var kz = Mathf.Sin(angle_radians) * wavenumber;
-            
+
             var k2 = kx * kx + kz * kz;
-            
+
             var windSpeed2 = windSpeed * windSpeed;
             var wx = windDir.x;
             var wz = windDir.y;
-            
+
             var kdotw = (wx * kx + wz * kz);
-            
+
             var a = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
             var L = windSpeed2 / gravity;
 

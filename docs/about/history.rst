@@ -22,6 +22,7 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Set minimum Unity version to 2019.4.24.
    -  Spline can now be used with any ocean input type, so can be used to set water level, add flow, and more.
    -  System for tweaking data on spline points such as flow speed.
    -  *RegisterHeightInput* component added for a clearer way to change water height (can be used instead of *RegisterAnimWavesInput*).
@@ -36,7 +37,7 @@ Changed
 
    .. only:: hdrp or urp
 
-      -  Set minimum render pipeline package version to 7.5 which is correct for 2019.4. `[HDRP] [URP]`
+      -  Set minimum render pipeline package version to 7.6 which is correct for 2019.4. `[HDRP] [URP]`
 
    .. only:: hdrp
 

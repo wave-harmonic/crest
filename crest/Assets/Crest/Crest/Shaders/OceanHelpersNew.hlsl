@@ -121,7 +121,10 @@ void PosToSliceIndices
 	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
 	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
 	const float radius0 = oceanScale0;
-	const float sliceNumber = clamp(log2(max(taxicab / radius0, 1.0)), minSlice, _SliceCount - 1.0);
+	float sliceNumber = log2( max( taxicab / radius0, 1.0 ) );
+	// Don't use last slice - this is a 'transition' slice used to cross fade waves between
+	// LOD resolutions to avoid pops.
+	sliceNumber = clamp( sliceNumber, minSlice, _SliceCount - 2.0 );
 
 	lodAlpha = frac(sliceNumber);
 	slice0 = floor(sliceNumber);

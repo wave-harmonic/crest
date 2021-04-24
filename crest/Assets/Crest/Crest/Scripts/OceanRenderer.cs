@@ -135,6 +135,9 @@ namespace Crest
         [SerializeField, Predicated("_primaryLight", true), DecoratedField]
         bool _searchForPrimaryLightOnStartup = true;
 
+        [Range(0, 50f)]
+        public float _globalWindSpeed = 50f;
+
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]

@@ -87,7 +87,7 @@ namespace Crest
             return (int)(wl_pow2 - SMALLEST_WL_POW_2);
         }
 
-        public float GetAmplitude(float wavelength, float componentsPerOctave, out float power)
+        public float GetAmplitude(float wavelength, float componentsPerOctave, float windSpeed, out float power)
         {
             Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.", this);
 
@@ -122,10 +122,12 @@ namespace Crest
             // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
             var wl_lo = Mathf.Pow(2f, Mathf.Floor(wl_pow2));
             var k_lo = 2f * Mathf.PI / wl_lo;
-            var omega_lo = k_lo * ComputeWaveSpeed(wl_lo);
+            var c_lo = ComputeWaveSpeed(wl_lo);
+            var omega_lo = k_lo * c_lo;
             var wl_hi = 2f * wl_lo;
             var k_hi = 2f * Mathf.PI / wl_hi;
-            var omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
+            var c_hi = ComputeWaveSpeed(wl_hi);
+            var omega_hi = k_hi * c_hi;
 
             var domega = (omega_lo - omega_hi) / componentsPerOctave;
 
@@ -135,6 +137,9 @@ namespace Crest
             // Power
             power = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
             power = Mathf.Pow(10f, power);
+
+            var c = ComputeWaveSpeed(wavelength);
+            power *= Mathf.Clamp01(Mathf.InverseLerp(windSpeed, windSpeed * 0.95f, c));
 
             var a_2 = 2f * power * domega;
 

@@ -78,6 +78,8 @@ namespace Crest
 
         Mesh _meshForDrawingWaves;
 
+        float _windSpeedWhenGenerated = -1f;
+
         public class GerstnerBatch : ILodDataInput
         {
             ShapeGerstner _gerstner;
@@ -238,13 +240,19 @@ namespace Crest
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
-            if (_firstUpdate || updateDataEachFrame)
+
+            // Calc wind speed in m/s
+            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
+            windSpeed /= 3.6f;
+
+            if (_firstUpdate || updateDataEachFrame || windSpeed != _windSpeedWhenGenerated)
             {
-                UpdateWaveData();
+                UpdateWaveData(windSpeed);
 
                 InitBatches();
 
                 _firstUpdate = false;
+                _windSpeedWhenGenerated = windSpeed;
             }
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
@@ -287,7 +295,7 @@ namespace Crest
         }
 #endif
 
-        void SliceUpWaves()
+        void SliceUpWaves(float windSpeed)
         {
             _firstCascade = _lastCascade = -1;
 
@@ -432,10 +440,6 @@ namespace Crest
 
             _lastCascade = CASCADE_COUNT - 1;
 
-            // Calc wind speed in m/s
-            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
-            windSpeed /= 3.6f;
-
             // Compute a measure of variance, cumulative from low cascades to high
             for (int i = 0; i < CASCADE_COUNT; i++)
             {
@@ -487,7 +491,11 @@ namespace Crest
             }
         }
 
-        public void UpdateWaveData()
+        /// <summary>
+        /// Resamples wave spectrum
+        /// </summary>
+        /// <param name="windSpeed">Wind speed in m/s</param>
+        public void UpdateWaveData(float windSpeed)
         {
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
@@ -505,7 +513,7 @@ namespace Crest
 
             Random.state = randomStateBkp;
 
-            SliceUpWaves();
+            SliceUpWaves(windSpeed);
         }
 
         void UpdateAmplitudes()

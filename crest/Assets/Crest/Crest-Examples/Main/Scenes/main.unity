@@ -146,7 +146,7 @@ PrefabInstance:
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _globalWindSpeed
-      value: 50
+      value: 80.1
       objectReference: {fileID: 0}
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
@@ -230,7 +230,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ddf71bfb72c45407fb8cea42d3aaeac4, type: 3}
---- !u!84 &1570672091
+--- !u!84 &1251804946
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: d1b06eb211ca87a428c0faca8c7cd381, type: 2}
-  _spectrumFixedAtRuntime: 0
+  _spectrumFixedAtRuntime: 1
   _waveDirectionHeadingAngle: 180
   _overrideGlobalWindSpeed: 0
   _windSpeed: 10.5
@@ -310,13 +310,13 @@ MonoBehaviour:
   _componentsPerOctave: 16
   _randomSeed: 0
   _resolution: 32
-  _debugDrawSlicesInEditor: 1
+  _debugDrawSlicesInEditor: 0
   _overrideSplineSettings: 0
   _radius: 20
   _subdivisions: 1
   _smoothingIterations: 0
   _featherWaveStart: 0.1
-  _waveBuffers: {fileID: 1570672091}
+  _waveBuffers: {fileID: 1251804946}
 --- !u!4 &2121736208
 Transform:
   m_ObjectHideFlags: 0

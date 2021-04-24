@@ -146,7 +146,7 @@ PrefabInstance:
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _globalWindSpeed
-      value: 80.1
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
@@ -230,7 +230,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ddf71bfb72c45407fb8cea42d3aaeac4, type: 3}
---- !u!84 &1251804946
+--- !u!108 &1766157503 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+    type: 3}
+  m_PrefabInstance: {fileID: 1030721467}
+  m_PrefabAsset: {fileID: 0}
+--- !u!84 &1867387792
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -265,12 +271,6 @@ RenderTexture:
     m_WrapW: 1
   m_Dimension: 5
   m_VolumeDepth: 16
---- !u!108 &1766157503 stripped
-Light:
-  m_CorrespondingSourceObject: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
-    type: 3}
-  m_PrefabInstance: {fileID: 1030721467}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2121736206
 GameObject:
   m_ObjectHideFlags: 0
@@ -316,7 +316,7 @@ MonoBehaviour:
   _subdivisions: 1
   _smoothingIterations: 0
   _featherWaveStart: 0.1
-  _waveBuffers: {fileID: 1251804946}
+  _waveBuffers: {fileID: 1867387792}
 --- !u!4 &2121736208
 Transform:
   m_ObjectHideFlags: 0

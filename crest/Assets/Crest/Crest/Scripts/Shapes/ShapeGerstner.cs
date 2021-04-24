@@ -127,6 +127,7 @@ namespace Crest
         // Data for all components
         float[] _wavelengths;
         float[] _amplitudes;
+        float[] _amplitudes2;
         float[] _powers;
         float[] _angleDegs;
         float[] _phases;
@@ -159,6 +160,8 @@ namespace Crest
             public Vector4 _omega;
             public Vector4 _phase;
             public Vector4 _chopAmp;
+            public Vector4 _amp2;
+            public Vector4 _chopAmp2;
         }
         ComputeBuffer _bufWaveData;
         GerstnerWaveComponent4[] _waveData = new GerstnerWaveComponent4[MAX_WAVE_COMPONENTS / 4];
@@ -323,6 +326,8 @@ namespace Crest
                         _waveData[vi]._omega[ei] = 0f;
                         _waveData[vi]._phase[ei] = 0f;
                         _waveData[vi]._chopAmp[ei] = 0f;
+                        _waveData[vi]._amp2[ei] = 0f;
+                        _waveData[vi]._chopAmp2[ei] = 0f;
                         ei = (ei + 1) % 4;
                         outputIdx++;
                     }
@@ -343,9 +348,11 @@ namespace Crest
                     int ei = outputIdx - vi * 4;
 
                     _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
+                    _waveData[vi]._amp2[ei] = _amplitudes2[componentIdx];
 
                     float chopScale = _activeSpectrum._chopScales[componentIdx / _componentsPerOctave];
                     _waveData[vi]._chopAmp[ei] = -chopScale * _activeSpectrum._chop * _amplitudes[componentIdx];
+                    _waveData[vi]._chopAmp2[ei] = -chopScale * _activeSpectrum._chop * _amplitudes2[componentIdx];
 
                     float angle = Mathf.Deg2Rad * _angleDegs[componentIdx];
                     float dx = Mathf.Cos(angle);
@@ -403,6 +410,8 @@ namespace Crest
                     _waveData[vi]._omega[ei] = 0f;
                     _waveData[vi]._phase[ei] = 0f;
                     _waveData[vi]._chopAmp[ei] = 0f;
+                    _waveData[vi]._amp2[ei] = 0f;
+                    _waveData[vi]._chopAmp2[ei] = 0f;
                     ei = (ei + 1) % 4;
                     outputIdx++;
                 }
@@ -496,6 +505,10 @@ namespace Crest
             {
                 _amplitudes = new float[_wavelengths.Length];
             }
+            if (_amplitudes2 == null || _amplitudes2.Length != _wavelengths.Length)
+            {
+                _amplitudes2 = new float[_wavelengths.Length];
+            }
             if (_powers == null || _powers.Length != _wavelengths.Length)
             {
                 _powers = new float[_wavelengths.Length];
@@ -503,7 +516,9 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = Random.value * _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
+                var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
+                _amplitudes[i] = Random.value * amp;
+                _amplitudes2[i] = Random.value * amp * 0.5f;
             }
         }
 

@@ -27,6 +27,9 @@ namespace Crest
     [HelpURL(Constants.HELP_URL_GENERAL)]
     public partial class OceanRenderer : MonoBehaviour
     {
+        [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f)]
+        public float _globalWindSpeed = 150f;
+
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint
@@ -134,9 +137,6 @@ namespace Crest
         [Tooltip("If Primary Light is not set, search the scene for all directional lights and pick the brightest to use as the sun light.")]
         [SerializeField, Predicated("_primaryLight", true), DecoratedField]
         bool _searchForPrimaryLightOnStartup = true;
-
-        [Range(0, 50f)]
-        public float _globalWindSpeed = 50f;
 
         [Header("Ocean Params")]
 

@@ -37,9 +37,10 @@ namespace Crest
         public float _waveDirectionHeadingAngle = 0f;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
 
+        [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
         public bool _overrideGlobalWindSpeed = false;
-        [Range(0, 50f), Predicated("_overrideGlobalWindSpeed")]
-        public float _windSpeed = 10f;
+        [Tooltip("Wind speed in km/h. Controls wave conditions."), Range(0, 150f), Predicated("_overrideGlobalWindSpeed")]
+        public float _windSpeed = 20f;
 
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
@@ -431,6 +432,10 @@ namespace Crest
 
             _lastCascade = CASCADE_COUNT - 1;
 
+            // Calc wind speed in m/s
+            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
+            windSpeed /= 3.6f;
+
             // Compute a measure of variance, cumulative from low cascades to high
             for (int i = 0; i < CASCADE_COUNT; i++)
             {
@@ -442,8 +447,7 @@ namespace Crest
                 octaveIndex = Mathf.Min(octaveIndex, _activeSpectrum._chopScales.Length - 1);
 
                 // Heuristic - horiz disp is roughly amp*chop, divide by wavelength to normalize
-                var ws = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
-                var amp = _activeSpectrum.GetAmplitude(wl, 1f, ws, out _);
+                var amp = _activeSpectrum.GetAmplitude(wl, 1f, windSpeed, out _);
                 var chop = _activeSpectrum._chopScales[octaveIndex];
                 float amp_over_wl = chop * amp / wl;
                 _cascadeParams[i]._cumulativeVariance += amp_over_wl;
@@ -519,10 +523,13 @@ namespace Crest
                 _powers = new float[_wavelengths.Length];
             }
 
+            // Calc wind speed in m/s
+            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
+            windSpeed /= 3.6f;
+
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                var ws = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
-                var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, ws, out _powers[i]);
+                var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _powers[i]);
                 _amplitudes[i] = Random.value * amp;
                 _amplitudes2[i] = Random.value * amp * 0.5f;
             }

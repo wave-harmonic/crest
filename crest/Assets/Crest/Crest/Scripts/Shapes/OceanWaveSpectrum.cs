@@ -87,6 +87,14 @@ namespace Crest
             return (int)(wl_pow2 - SMALLEST_WL_POW_2);
         }
 
+        /// <summary>
+        /// Returns the amplitude of a wave described by wavelength.
+        /// </summary>
+        /// <param name="wavelength">Wavelength in m</param>
+        /// <param name="componentsPerOctave">How many waves we're sampling, used to conserve energy for different sampling rates</param>
+        /// <param name="windSpeed">Wind speed in m/s</param>
+        /// <param name="power">The energy of the wave in J</param>
+        /// <returns>The amplitude of the wave in m</returns>
         public float GetAmplitude(float wavelength, float componentsPerOctave, float windSpeed, out float power)
         {
             Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.", this);

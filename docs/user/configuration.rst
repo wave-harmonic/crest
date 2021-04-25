@@ -44,10 +44,10 @@ Normals
 .. line_block::
 
    |  **Overall Normal Strength** Strength of the final surface normal (includes both wave normal and normal map)
-   
+
    .. only:: birp or urp
 
-      |  **Enable** Whether to add normal detail from a texture. Can be used to add visual detail to the water surface `[BIRP] [URP]`
+      |  **Use Normal Map** Whether to add normal detail from a texture. Can be used to add visual detail to the water surface `[BIRP] [URP]`
 
    |  **Normal Map** Normal map and caustics distortion texture (should be set to Normals type in the properties)
    |  **Normal Map Scale** Scale of normal map texture

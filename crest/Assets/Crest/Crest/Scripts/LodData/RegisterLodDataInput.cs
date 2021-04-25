@@ -411,7 +411,7 @@ namespace Crest
                 isValid = ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, ShaderPrefix, gameObject, showMessage) && isValid;
             }
 
-            if (!FeatureEnabled(ocean))
+            if (ocean != null && !FeatureEnabled(ocean))
             {
                 showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the <i>OceanRenderer</i> component.",
                     $"Enable the <i>{FeatureToggleLabel}</i> option on the <i>OceanRenderer</i> component.",
@@ -421,7 +421,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (!string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
+            if (ocean != null && !string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
             {
                 showMessage(MaterialFeatureDisabledError, MaterialFeatureDisabledFix,
                     ValidatedHelper.MessageType.Error, ocean.OceanMaterial,

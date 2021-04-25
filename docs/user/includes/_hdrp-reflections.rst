@@ -1,15 +1,23 @@
 `Crest` makes full use of the flexible lighting options in `HDRP` (it is lit the same as a shadergraph shader would be).
 
 `HDRP` comes with a *Planar Reflection Probe* feature which enables dynamic reflection of the environment at run-time, with a corresponding cost.
-See Unity's documentation on :link:`Planar Reflection Probes <{HDRPDocLink}/Planar-Reflection-Probe.html>`, but it is a little spares.
-
-We could get it working by:
+See Unity's documentation on :link:`Planar Reflection Probes <{HDRPDocLink}/Planar-Reflection-Probe.html>`. At time of writing we used the following steps:
 
 -  Create new GameObject
--  Set the height of the GameObject to the sea level
+-  Set the height of the GameObject to the sea level.
 -  Add the component from the Unity Editor menu using *Component/Rendering/Planar Reflection Probe*
--  Set the extents of the probe to be large enough to cover everything that needs to be reflected
+-  Set the extents of the probe to be large enough to cover everything that needs to be reflected. We recommend starting large (1000m or more as a starting point).
+-  Ensure water is not included in the reflection by deselecting *Water* on the *Culling Mask* field
 -  Check the documentation linked above for details on individual parameters
+
+`HDRP`'s planar reflection probe is very sensitive to surface normals and often 'leaks' reflections, for example showing the reflection of a boat on the water above the boat.
+If you see these issues we recommend reducing the Normal Strength on the material.
+Unfortunately this currently only affects the normal map normals, not the normals from the wave.
+In a future update we will expose control over the final water normal (including both normal maps and wave normals).
+
+The planar reflection probe assumes the reflecting surface is a flat plane.
+This is not the case for for a wavey water surface and this can also produce 'leaky' reflections.
+In such cases it can help to lower the reflection probe below sea level slightly.
 
 .. tip::
 

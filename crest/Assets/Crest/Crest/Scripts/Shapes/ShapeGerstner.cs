@@ -138,6 +138,7 @@ namespace Crest
         float[] _powers;
         float[] _angleDegs;
         float[] _phases;
+        float[] _phases2;
 
         [HideInInspector]
         public RenderTexture _waveBuffers;
@@ -169,6 +170,7 @@ namespace Crest
             public Vector4 _chopAmp;
             public Vector4 _amp2;
             public Vector4 _chopAmp2;
+            public Vector4 _phase2;
         }
         ComputeBuffer _bufWaveData;
         GerstnerWaveComponent4[] _waveData = new GerstnerWaveComponent4[MAX_WAVE_COMPONENTS / 4];
@@ -338,6 +340,7 @@ namespace Crest
                         _waveData[vi]._waveDirZ[ei] = 0f;
                         _waveData[vi]._omega[ei] = 0f;
                         _waveData[vi]._phase[ei] = 0f;
+                        _waveData[vi]._phase2[ei] = 0f;
                         _waveData[vi]._chopAmp[ei] = 0f;
                         _waveData[vi]._amp2[ei] = 0f;
                         _waveData[vi]._chopAmp2[ei] = 0f;
@@ -402,6 +405,7 @@ namespace Crest
                     // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
                     _waveData[vi]._omega[ei] = k * C;
                     _waveData[vi]._phase[ei] = Mathf.Repeat(_phases[componentIdx], Mathf.PI * 2f);
+                    _waveData[vi]._phase2[ei] = Mathf.Repeat(_phases2[componentIdx], Mathf.PI * 2f);
 
                     outputIdx++;
                 }
@@ -422,6 +426,7 @@ namespace Crest
                     _waveData[vi]._waveDirZ[ei] = 0f;
                     _waveData[vi]._omega[ei] = 0f;
                     _waveData[vi]._phase[ei] = 0f;
+                    _waveData[vi]._phase2[ei] = 0f;
                     _waveData[vi]._chopAmp[ei] = 0f;
                     _waveData[vi]._amp2[ei] = 0f;
                     _waveData[vi]._chopAmp2[ei] = 0f;
@@ -476,7 +481,7 @@ namespace Crest
 
         public void SetOrigin(Vector3 newOrigin)
         {
-            if (_phases == null) return;
+            if (_phases == null || _phases2 == null) return;
 
             var windAngle = _waveDirectionHeadingAngle;
             for (int i = 0; i < _phases.Length; i++)
@@ -488,6 +493,7 @@ namespace Crest
                 var k = 2f * Mathf.PI / _wavelengths[i];
 
                 _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
+                _phases2[i] = Mathf.Repeat(_phases2[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
             }
         }
 
@@ -506,7 +512,7 @@ namespace Crest
             UpdateAmplitudes();
 
             // Won't run every time so put last in the random sequence
-            if (_phases == null || _phases.Length != _wavelengths.Length)
+            if (_phases == null || _phases.Length != _wavelengths.Length || _phases2 == null || _phases2.Length != _wavelengths.Length)
             {
                 InitPhases();
             }
@@ -551,6 +557,7 @@ namespace Crest
 
             var totalComps = _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES;
             _phases = new float[totalComps];
+            _phases2 = new float[totalComps];
             for (var octave = 0; octave < OceanWaveSpectrum.NUM_OCTAVES; octave++)
             {
                 for (var i = 0; i < _componentsPerOctave; i++)
@@ -558,6 +565,9 @@ namespace Crest
                     var index = octave * _componentsPerOctave + i;
                     var rnd = (i + Random.value) / _componentsPerOctave;
                     _phases[index] = 2f * Mathf.PI * rnd;
+
+                    var rnd2 = (i + Random.value) / _componentsPerOctave;
+                    _phases2[index] = 2f * Mathf.PI * rnd2;
                 }
             }
 

@@ -33,6 +33,7 @@ struct GerstnerWaveComponent4
 	float4 _chopAmp;
 	float4 _amp2;
 	float4 _chopAmp2;
+	float4 _phase2;
 };
 StructuredBuffer<GerstnerWaveComponent4> _GerstnerWaveData;
 
@@ -72,7 +73,7 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 	}
 
 	{
-		half4 angle = x + data._phase + data._omega * _CrestTime;
+		half4 angle = x + data._phase2 + data._omega * _CrestTime;
 
 		half4 sinangle, cosangle;
 		sincos( angle, sinangle, cosangle );

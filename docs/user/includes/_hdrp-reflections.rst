@@ -11,9 +11,7 @@ See Unity's documentation on :link:`Planar Reflection Probes <{HDRPDocLink}/Plan
 -  Check the documentation linked above for details on individual parameters
 
 `HDRP`'s planar reflection probe is very sensitive to surface normals and often 'leaks' reflections, for example showing the reflection of a boat on the water above the boat.
-If you see these issues we recommend reducing the Normal Strength on the material.
-Unfortunately this currently only affects the normal map normals, not the normals from the wave.
-In a future update we will expose control over the final water normal (including both normal maps and wave normals).
+If you see these issues we recommend reducing the *Overall Normal Strength* parameter on the ocean material.
 
 The planar reflection probe assumes the reflecting surface is a flat plane.
 This is not the case for for a wavey water surface and this can also produce 'leaky' reflections.

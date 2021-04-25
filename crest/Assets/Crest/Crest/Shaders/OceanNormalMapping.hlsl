@@ -57,7 +57,6 @@ void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAl
 	half2 io_n_2 = SampleNormalMaps(worldXZUndisplaced - (flow * sample2_offset), lodAlpha, cascadeData, instanceData);
 	io_n.xz += sample1_weight * io_n_1;
 	io_n.xz += sample2_weight * io_n_2;
-	io_n = normalize(io_n);
 }
 
 #endif // _APPLYNORMALMAPPING_ON

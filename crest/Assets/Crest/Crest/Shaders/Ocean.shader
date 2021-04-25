@@ -6,15 +6,17 @@ Shader "Crest/Ocean"
 {
 	Properties
 	{
-		[Header(Normal Mapping)]
+		[Header(Normals)]
+		// Strength of the final surface normal (includes both wave normal and normal map)
+		_NormalsStrengthOverall( "Overall Normal Strength", Range( 0.0, 1.0 ) ) = 1.0
 		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
 		// Normal map texture (should be set to Normals type in the properties)
-		[NoScaleOffset] _Normals("Normals", 2D) = "bump" {}
+		[NoScaleOffset] _Normals("Normal Map", 2D) = "bump" {}
 		// Scale of normal map texture
-		_NormalsScale("Normal Scale", Range(0.01, 200.0)) = 40.0
+		_NormalsScale("Normal Map Scale", Range(0.01, 200.0)) = 40.0
 		// Strength of normal map influence
-		_NormalsStrength("Normal Strength", Range(0.01, 2.0)) = 0.36
+		_NormalsStrength("Normal Map Strength", Range(0.01, 2.0)) = 0.36
 
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]
@@ -518,31 +520,31 @@ Shader "Crest/Ocean"
 
 				// Normal - geom + normal mapping. Subsurface scattering.
 				float3 dummy = 0.;
-				half3 n_geom = half3(0.0, 1.0, 0.0);
+				half3 n_pixel = half3(0.0, 1.0, 0.0);
 				half sss = 0.;
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_geom.xz, sss);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_pixel.xz, sss);
 				}
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_geom.xz, sss);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_pixel.xz, sss);
 				}
-				n_geom = normalize(n_geom);
 
-				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
 				n_pixel.xz += SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
-				n_pixel = normalize(n_pixel);
 				#endif
 				#endif
-				// We do not flip n_geom because we do not use it.
+
+				// Finalise normal
+				n_pixel.xz *= _NormalsStrengthOverall;
+				n_pixel = normalize( n_pixel );
 				if (underwater) n_pixel = -n_pixel;
 
 				// Foam - underwater bubbles and whitefoam

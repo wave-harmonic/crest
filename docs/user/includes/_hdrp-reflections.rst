@@ -7,7 +7,7 @@ See Unity's documentation on :link:`Planar Reflection Probes <{HDRPDocLink}/Plan
 -  Set the height of the GameObject to the sea level.
 -  Add the component from the Unity Editor menu using *Component/Rendering/Planar Reflection Probe*
 -  Set the extents of the probe to be large enough to cover everything that needs to be reflected. We recommend starting large (1000m or more as a starting point).
--  Ensure water is not included in the reflection by deselecting *Water* on the *Culling Mask" field
+-  Ensure water is not included in the reflection by deselecting *Water* on the *Culling Mask* field
 -  Check the documentation linked above for details on individual parameters
 
 `HDRP`'s planar reflection probe is very sensitive to surface normals and often 'leaks' reflections, for example showing the reflection of a boat on the water above the boat.

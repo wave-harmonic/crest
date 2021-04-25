@@ -27,7 +27,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (ocean._simSettingsAnimatedWaves != null && ocean._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
+            if (ocean != null && ocean._simSettingsAnimatedWaves != null && ocean._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
             {
                 showMessage
                 (

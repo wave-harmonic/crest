@@ -1266,7 +1266,7 @@ namespace Crest
                 var sceneView = SceneView.lastActiveSceneView;
 
                 // Validate "Animated Materials".
-                if (!ocean._showOceanProxyPlane && !sceneView.sceneViewState.showMaterialUpdate)
+                if (ocean != null && !ocean._showOceanProxyPlane && !sceneView.sceneViewState.showMaterialUpdate)
                 {
                     showMessage
                     (

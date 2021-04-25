@@ -678,7 +678,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (!ocean.CreateSeaFloorDepthData)
+            if (ocean != null && !ocean.CreateSeaFloorDepthData)
             {
                 showMessage
                 (

@@ -587,6 +587,12 @@ namespace Crest
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
         }
 
+        public float CompensateLatency(float i_height, float i_velocity, float i_frameTime)
+        {
+            // +1 to account for current frame which has not been sent as a request yet
+            return i_height + (RequestCount + 1f) * i_velocity * i_frameTime;
+        }
+
         public int ResultGuidCount => _resultSegments != null ? _resultSegments.Count : 0;
 
         public int RequestCount => _requests != null ? _requests.Count : 0;

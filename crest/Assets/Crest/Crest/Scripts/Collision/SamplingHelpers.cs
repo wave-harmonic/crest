@@ -70,6 +70,33 @@ namespace Crest
             return true;
         }
 
+        /// <summary>
+        /// Call this to do the query. Can be called only once after Init(). This variant compensates for
+        /// latency in the query system if present.
+        /// </summary>
+        public bool SampleWithLantencyCompensation(out float o_height)
+        {
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null)
+            {
+                o_height = 0f;
+                return false;
+            }
+
+            var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, _queryResultVel);
+
+            if (!collProvider.RetrieveSucceeded(status))
+            {
+                o_height = OceanRenderer.Instance.SeaLevel;
+                return false;
+            }
+
+            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_height = collProvider.CompensateLatency(o_height, _queryResultVel[0].y, Time.deltaTime);
+
+            return true;
+        }
+
         public bool Sample(out float o_height, out Vector3 o_normal)
         {
             var collProvider = OceanRenderer.Instance?.CollisionProvider;

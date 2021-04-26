@@ -11,6 +11,9 @@ using UnityEngine;
 [AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ocean Sample Height Demo")]
 public class OceanSampleHeightDemo : MonoBehaviour
 {
+    [Tooltip("Some query systems return results with latency. This applies a correction to compensate.")]
+    public bool _compensateLatency = true;
+
     SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
     void Update()
@@ -19,7 +22,10 @@ public class OceanSampleHeightDemo : MonoBehaviour
         var r = transform.lossyScale.magnitude;
         _sampleHeightHelper.Init(transform.position, 2f * r);
 
-        if (_sampleHeightHelper.Sample(out var height))
+        float height;
+        bool result = _compensateLatency ? _sampleHeightHelper.SampleWithLantencyCompensation(out height) : _sampleHeightHelper.Sample(out height);
+
+        if (result)
         {
             var pos = transform.position;
             pos.y = height;

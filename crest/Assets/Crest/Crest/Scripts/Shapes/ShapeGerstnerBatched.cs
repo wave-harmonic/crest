@@ -824,6 +824,11 @@ namespace Crest
         public void CleanUp()
         {
         }
+
+        public float CompensateLatency(float i_height, float i_velocity, float i_frameTime)
+        {
+            return i_height;
+        }
     }
 
 #if UNITY_EDITOR

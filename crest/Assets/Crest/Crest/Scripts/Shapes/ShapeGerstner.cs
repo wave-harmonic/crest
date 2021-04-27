@@ -159,6 +159,8 @@ namespace Crest
         // Used to populate data on first frame
         bool _firstUpdate = true;
 
+        // Caution - order here impact performance. Rearranging these to match order
+        // they're read in the compute shader made it 50% slower..
         struct GerstnerWaveComponent4
         {
             public Vector4 _twoPiOverWavelength;

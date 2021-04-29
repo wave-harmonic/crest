@@ -276,6 +276,13 @@ namespace Crest
                 return;
             }
 
+            if (Application.isBatchMode)
+            {
+                // Don't bake in headless mode
+                Debug.LogWarning("Depth cache will not be populated at runtime when in batched/headless mode. Please pre-bake the cache in the Editor.")
+                return;
+            }
+
             // Make sure we have required objects.
             if (!InitObjects(updateComponents))
             {

@@ -650,17 +650,17 @@ namespace Crest
                 return false;
             }
 #endif
-            if (SystemInfo.graphicsShaderLevel < 45)
+            if (SystemInfo.graphicsShaderLevel < 45 && !Application.isBatchMode)
             {
                 Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
                 return false;
             }
-            if (!SystemInfo.supportsComputeShaders)
+            if (!SystemInfo.supportsComputeShaders && !Application.isBatchMode)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
                 return false;
             }
-            if (!SystemInfo.supports2DArrayTextures)
+            if (!SystemInfo.supports2DArrayTextures && !Application.isBatchMode)
             {
                 Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
                 return false;
@@ -1030,9 +1030,9 @@ namespace Crest
 
             _oceanChunkRenderers.Clear();
 
-            _bufPerCascadeInstanceData.Dispose();
-            _bufCascadeDataTgt.Dispose();
-            _bufCascadeDataSrc.Dispose();
+            _bufPerCascadeInstanceData?.Dispose();
+            _bufCascadeDataTgt?.Dispose();
+            _bufCascadeDataSrc?.Dispose();
         }
 
 #if UNITY_EDITOR

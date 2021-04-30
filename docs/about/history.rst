@@ -22,7 +22,7 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
-   - Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).
+   -  Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).
 
 
 4.10

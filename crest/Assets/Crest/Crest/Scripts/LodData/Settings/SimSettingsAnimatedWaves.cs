@@ -50,7 +50,7 @@ namespace Crest
                     result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
-                    if (!Application.isBatchMode)
+                    if (!OceanRenderer.Headless)
                     {
                         result = new QueryDisplacements();
                     }

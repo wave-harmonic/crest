@@ -276,10 +276,10 @@ namespace Crest
                 return;
             }
 
-            if (Application.isBatchMode)
+            if (OceanRenderer.Headless)
             {
                 // Don't bake in headless mode
-                Debug.LogWarning("Depth cache will not be populated at runtime when in batched/headless mode. Please pre-bake the cache in the Editor.")
+                Debug.LogWarning("Crest: Depth cache will not be populated at runtime when in batched/headless mode. Please pre-bake the cache in the Editor.");
                 return;
             }
 

@@ -1,5 +1,5 @@
 
-<img src="https://raw.githubusercontent.com/wave-harmonic/crest/master/logo/crest-oceanrender-logomark128.png" width="214">
+<img src="https://raw.githubusercontent.com/wave-harmonic/crest/master/logo/crest-oceanrender-logomark128.png" width="107">
 
 &nbsp;
 

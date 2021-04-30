@@ -120,7 +120,7 @@ Material:
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 40
-    - _NormalsStrength: 0.01
+    - _NormalsStrength: 0.36
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
     - _PlanarReflectionIntensity: 1

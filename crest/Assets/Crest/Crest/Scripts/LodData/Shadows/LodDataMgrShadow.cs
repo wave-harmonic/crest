@@ -262,6 +262,7 @@ namespace Crest
                         1);
                 }
 
+#if ENABLE_VR && ENABLE_VR_MODULE
                 // Disable single pass double-wide stereo rendering for these commands since we are rendering to
                 // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
                 // appears to be a Unity bug only for the legacy VR system.
@@ -270,6 +271,7 @@ namespace Crest
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
                     BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
                 }
+#endif
 
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
@@ -278,12 +280,14 @@ namespace Crest
                     SubmitDraws(lodIdx, BufCopyShadowMap);
                 }
 
+#if ENABLE_VR && ENABLE_VR_MODULE
                 // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
                 if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
                     BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
                 }
+#endif
             }
 
             // Set the target texture as to make sure we catch the 'pong' each frame

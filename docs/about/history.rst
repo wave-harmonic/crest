@@ -24,6 +24,12 @@ Changed
 
    -  Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).
 
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix build errors for platforms that do not support XR/VR.
+
 
 4.10
 ----

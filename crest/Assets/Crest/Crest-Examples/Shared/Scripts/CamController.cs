@@ -39,6 +39,7 @@ public class CamController : MonoBehaviour
     {
         _targetTransform = transform;
 
+#if ENABLE_VR && ENABLE_VR_MODULE
         // We cannot change the Camera's transform when XR is enabled. This is not an issue with the new XR plugin.
         if (XRSettings.enabled)
         {
@@ -63,6 +64,7 @@ public class CamController : MonoBehaviour
             XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
             XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
+#endif
     }
 
     void Update()
@@ -73,6 +75,7 @@ public class CamController : MonoBehaviour
 
         UpdateMovement(dt);
 
+#if ENABLE_VR && ENABLE_VR_MODULE
         // These aren't useful and can break for XR hardware.
         if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
         {
@@ -90,6 +93,7 @@ public class CamController : MonoBehaviour
 
             XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
+#endif
     }
 
     void UpdateMovement(float dt)

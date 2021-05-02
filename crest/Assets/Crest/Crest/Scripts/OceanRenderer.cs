@@ -243,6 +243,10 @@ namespace Crest
         bool _followSceneCamera = true;
 #pragma warning restore 414
 
+        [Header("Server Settings")]
+        [SerializeField]
+        bool _forceNoGPU = false;
+
         [Header("Debug Params")]
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
@@ -303,7 +307,7 @@ namespace Crest
         /// <summary>
         /// Is runtime environment without graphics card
         /// </summary>
-        public static bool Headless => SystemInfo.graphicsDeviceID == 0;
+        public static bool RunningWithoutGPU => SystemInfo.graphicsDeviceID == 0 || (Instance != null ? Instance._forceNoGPU : false);
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -500,7 +504,7 @@ namespace Crest
 
         void CreateDestroySubSystems()
         {
-            if (!Headless)
+            if (!RunningWithoutGPU)
             {
                 {
                     if (_lodDataAnimWaves == null)
@@ -649,7 +653,7 @@ namespace Crest
 
         bool VerifyRequirements()
         {
-            if (!Headless)
+            if (!RunningWithoutGPU)
             {
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {

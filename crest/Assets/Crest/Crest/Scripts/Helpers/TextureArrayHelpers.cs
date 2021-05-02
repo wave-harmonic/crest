@@ -88,7 +88,7 @@ namespace Crest
 #endif
         static void InitStatics()
         {
-            if (OceanRenderer.Headless)
+            if (OceanRenderer.RunningWithoutGPU)
             {
                 // No texture arrays when no graphics card..
                 return;

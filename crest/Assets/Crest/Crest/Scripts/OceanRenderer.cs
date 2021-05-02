@@ -244,9 +244,9 @@ namespace Crest
 #pragma warning restore 414
 
         [Header("Server Settings")]
-        [SerializeField]
+        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument. Press Rebuild button below to apply."), SerializeField]
         bool _forceBatchMode = false;
-        [SerializeField]
+        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument. Press Rebuild button below to apply."), SerializeField]
         bool _forceNoGPU = false;
 
         [Header("Debug Params")]

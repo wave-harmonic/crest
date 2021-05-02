@@ -245,6 +245,8 @@ namespace Crest
 
         [Header("Server Settings")]
         [SerializeField]
+        bool _forceBatchMode = false;
+        [SerializeField]
         bool _forceNoGPU = false;
 
         [Header("Debug Params")]
@@ -308,6 +310,11 @@ namespace Crest
         /// Is runtime environment without graphics card
         /// </summary>
         public static bool RunningWithoutGPU => SystemInfo.graphicsDeviceID == 0 || (Instance != null ? Instance._forceNoGPU : false);
+
+        /// <summary>
+        /// Is runtime environment without graphics card
+        /// </summary>
+        public static bool RunningHeadless => Application.isBatchMode || (Instance != null ? Instance._forceBatchMode : false);
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -514,7 +521,7 @@ namespace Crest
                     }
                 }
 
-                if (CreateClipSurfaceData)
+                if (CreateClipSurfaceData && !RunningHeadless)
                 {
                     if (_lodDataClipSurface == null)
                     {
@@ -584,7 +591,7 @@ namespace Crest
                     FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
                 }
 
-                if (CreateFoamSim)
+                if (CreateFoamSim && !RunningHeadless)
                 {
                     if (_lodDataFoam == null)
                     {
@@ -620,7 +627,7 @@ namespace Crest
                     }
                 }
 
-                if (CreateShadowData)
+                if (CreateShadowData && !RunningHeadless)
                 {
                     if (_lodDataShadow == null)
                     {

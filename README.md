@@ -1,15 +1,14 @@
 
 <img src="https://raw.githubusercontent.com/wave-harmonic/crest/master/logo/crest-oceanrender-logomark128.png" width="107">
 
-&nbsp;
-
-
 # Intro
 
 *Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
 The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
+
+**Supporting us:** Asset Store sales partially cover our dev costs, for the rest we are looking for sponsorship. Please see our [sponsorship page](https://github.com/sponsors/wave-harmonic) for more detals.
 
 **Discord for news/updates/discussions:** https://discord.gg/g7GpjDC
 
@@ -73,3 +72,10 @@ There are a few issues worth calling out here:
 * Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/wave-harmonic/crest/wiki) for examples.
 * *Crest* does not support OpenGL or WebGL backends
 * Unity 2018 support - There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.
+
+# Donations
+
+With your support we aim to increase our development bandwidth significantly. Please see our sponsor page for sponsor tiers and rewards:
+
+https://github.com/sponsors/wave-harmonic
+

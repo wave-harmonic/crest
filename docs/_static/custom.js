@@ -117,6 +117,7 @@ if (typeof isPage404 !== 'undefined' && isPage404 && isVersion) {
 if (window.matchMedia) {
     function applyLightOrDarkMode(isDarkMode) {
         const iframes = $("iframe.asset-store")
+        if (iframes.length == 0) return
         // NOTE: Not robust. Will break if we remove the question mark.
         const dark = "/widget-wide?"
         const light = "/widget-wide-light?"

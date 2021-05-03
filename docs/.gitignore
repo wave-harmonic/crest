@@ -1,7 +1,7 @@
 # Sphinx
 _build
 # _static
-_templates
+# _templates
 
 # Docs build venv
 build-venv

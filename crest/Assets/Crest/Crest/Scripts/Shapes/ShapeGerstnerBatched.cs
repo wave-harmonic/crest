@@ -272,9 +272,12 @@ namespace Crest
                 _amplitudes = new float[_wavelengths.Length];
             }
 
+            // Calc wind speed in m/s
+            var windSpeed = OceanRenderer.Instance._globalWindSpeed / 3.6f;
+            
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = Random.value * _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, OceanRenderer.Instance._globalWindSpeed, out _);
+                _amplitudes[i] = Random.value * _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _);
             }
         }
 

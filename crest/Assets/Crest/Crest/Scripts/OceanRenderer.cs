@@ -309,7 +309,15 @@ namespace Crest
         /// <summary>
         /// Is runtime environment without graphics card
         /// </summary>
-        public static bool RunningWithoutGPU => SystemInfo.graphicsDeviceID == 0 || (Instance != null ? Instance._forceNoGPU : false);
+        public static bool RunningWithoutGPU
+        {
+            get
+            {
+                var noGPU = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
+                var emulateNoGPU = (Instance != null ? Instance._forceNoGPU : false);
+                return noGPU || emulateNoGPU;
+            }
+        }
 
         /// <summary>
         /// Is runtime environment without graphics card

@@ -82,6 +82,11 @@ namespace Crest
                     Time.timeScale = freeze ? 0f : 1f;
                 }
 
+                if (OceanRenderer.Instance)
+                {
+                    OceanRenderer.Instance._globalWindSpeed = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._globalWindSpeed, 0f, 150f); y += h;
+                }
+
                 OnGUIGerstnerSection(x, ref y, w, h);
 
                 _showOceanData = GUI.Toggle(new Rect(x, y, w, h), _showOceanData, "Show sim data"); y += h;

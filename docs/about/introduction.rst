@@ -65,6 +65,17 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
 
       <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/141674/widget-wide-light?aid=1011lic2K" style="width:600px; height:130px; border:0px;"></iframe>
 
+
+Sponsorship
+-----------
+
+.. sponsor::
+
+   Sponsor Wave Harmonic on :link:`GitHub Sponsors <{SponsorLink}?o=esb>` to increase development time on Crest.
+
+   Throughout the documentation, you will see sponsor admonitions like this one for features where only expanded funding can help cover development costs.
+
+
 Social
 ------
 

@@ -49,6 +49,10 @@ Managing these lists at run-time is left to the user.
 
    Surface details like foam and normals can pop on teleports.
 
+.. sponsor::
+
+   Sponsoring us will help increase our development bandwidth which could work towards improving this feature.
+
 Buoyancy
 --------
 

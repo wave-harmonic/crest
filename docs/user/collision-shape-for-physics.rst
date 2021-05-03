@@ -22,6 +22,12 @@ Use of these is demonstrated in the example content.
 Compute Shape Queries
 ---------------------
 
+.. sponsor::
+
+   Sponsoring us will help increase our development bandwidth which could work towards using Burst/Jobs for this feature.
+
+   .. trello:: https://trello.com/c/qUvB1aSO
+
 This is the default and recommended choice.
 Query positions are uploaded to a compute shader which then samples the ocean data and returns the
 desired results.

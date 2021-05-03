@@ -19,11 +19,13 @@ sys.path.insert(0, os.path.abspath('./extensions'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Crest"
-author = "Wave Harmonic & Contributors"
+organization = "Wave Harmonic"
+author = f"{organization} & Contributors"
 copyright = f"2021, {author}"
 version = "4.11"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
+sponsor_link = "https://github.com/sponsors/wave-harmonic"
 
 # -- General configuration ---------------------------------------------------
 
@@ -44,6 +46,8 @@ extensions = [
 
     # Local packages.
     "youtube",
+    "sponsor",
+    "trello",
     "variables",
     "tags",
     "links",
@@ -111,6 +115,11 @@ html_theme_options = {
     # "announcement": "<em>Important</em> announcement!",
 }
 
+html_context = {
+    "sponsor_link": sponsor_link,
+    "organization": organization,
+}
+
 html_show_sphinx = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -126,6 +135,7 @@ html_css_files = [
 
 html_js_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js',
+    'https://p.trellocdn.com/embed.min.js',
     'custom.js?v1.2.0',
 ]
 
@@ -174,6 +184,7 @@ default_role = "get"
 rst_prolog = f"""
 .. tags::
 .. set:: AssetVersion {version}
+.. set:: SponsorLink {sponsor_link}
 """
 rst_prolog = rst_prolog + """
 .. set:: RPMinVersion 7.6
@@ -186,6 +197,7 @@ rst_prolog = rst_prolog + """
 .. set:: DocLinkBase https://crest.readthedocs.io/en
 .. set:: GitHubLink \https://github.com/wave-harmonic/crest
 .. set:: WikiLink \{GitHubLink}/wiki
+.. set:: RoadmapLink \https://trello.com/b/L7iejCPI
 
 .. set:: [BIRP] :guilabel:`BIRP`
 .. set:: BIRPNameLong Built-in

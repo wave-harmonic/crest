@@ -29,6 +29,7 @@ Fixed
 .. bullet_list::
 
    -  Fix build errors for platforms that do not support XR/VR.
+   -  Potential fix for bugs where a large boat may stop moving when camera is close.
 
 
 4.10

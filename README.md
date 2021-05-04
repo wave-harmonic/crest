@@ -79,3 +79,12 @@ With your support we aim to increase our development bandwidth significantly. Pl
 
 https://github.com/sponsors/wave-harmonic
 
+## Sponsors
+
+### Gold
+
+[@celeronpm](https://github.com/celeronpm)
+
+### Other
+
+[@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason)

@@ -33,6 +33,7 @@ Fixed
 
    -  Fix build errors for platforms that do not support XR/VR.
    -  Potential fix for bugs where a large boat may stop moving when camera is close.
+   -  Fix "black square" bug on Oculus Quest.
 
 
 4.10

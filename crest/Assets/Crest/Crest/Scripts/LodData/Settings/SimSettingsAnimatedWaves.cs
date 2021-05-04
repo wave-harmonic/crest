@@ -50,7 +50,14 @@ namespace Crest
                     result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
-                    result = new QueryDisplacements();
+                    if (!OceanRenderer.RunningWithoutGPU)
+                    {
+                        result = new QueryDisplacements();
+                    }
+                    else
+                    {
+                        Debug.LogError("Crest: Compute shader queries not supported in headless/batch mode. To resolve, assign an Animated Wave Settings asset to the OceanRenderer component and set the Collision Source to be a CPU option.");
+                    }
                     break;
             }
 

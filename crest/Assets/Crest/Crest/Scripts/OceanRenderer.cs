@@ -243,6 +243,12 @@ namespace Crest
         bool _followSceneCamera = true;
 #pragma warning restore 414
 
+        [Header("Server Settings")]
+        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument. Press Rebuild button below to apply."), SerializeField]
+        bool _forceBatchMode = false;
+        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument. Press Rebuild button below to apply."), SerializeField]
+        bool _forceNoGPU = false;
+
         [Header("Debug Params")]
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
@@ -299,6 +305,24 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
+
+        /// <summary>
+        /// Is runtime environment without graphics card
+        /// </summary>
+        public static bool RunningWithoutGPU
+        {
+            get
+            {
+                var noGPU = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
+                var emulateNoGPU = (Instance != null ? Instance._forceNoGPU : false);
+                return noGPU || emulateNoGPU;
+            }
+        }
+
+        /// <summary>
+        /// Is runtime environment without graphics card
+        /// </summary>
+        public static bool RunningHeadless => Application.isBatchMode || (Instance != null ? Instance._forceBatchMode : false);
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -495,175 +519,186 @@ namespace Crest
 
         void CreateDestroySubSystems()
         {
+            if (!RunningWithoutGPU)
             {
-                if (_lodDataAnimWaves == null)
                 {
-                    _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
-                    _lodDatas.Add(_lodDataAnimWaves);
-                }
-            }
-
-            if (CreateClipSurfaceData)
-            {
-                if (_lodDataClipSurface == null)
-                {
-                    _lodDataClipSurface = new LodDataMgrClipSurface(this);
-                    _lodDatas.Add(_lodDataClipSurface);
-                }
-            }
-            else
-            {
-                if (_lodDataClipSurface != null)
-                {
-                    _lodDataClipSurface.OnDisable();
-                    _lodDatas.Remove(_lodDataClipSurface);
-                    _lodDataClipSurface = null;
-                }
-            }
-
-            if (CreateDynamicWaveSim)
-            {
-                if (_lodDataDynWaves == null)
-                {
-                    _lodDataDynWaves = new LodDataMgrDynWaves(this);
-                    _lodDatas.Add(_lodDataDynWaves);
-                }
-            }
-            else
-            {
-                if (_lodDataDynWaves != null)
-                {
-                    _lodDataDynWaves.OnDisable();
-                    _lodDatas.Remove(_lodDataDynWaves);
-                    _lodDataDynWaves = null;
-                }
-            }
-
-            if (CreateFlowSim)
-            {
-                if (_lodDataFlow == null)
-                {
-                    _lodDataFlow = new LodDataMgrFlow(this);
-                    _lodDatas.Add(_lodDataFlow);
+                    if (_lodDataAnimWaves == null)
+                    {
+                        _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
+                        _lodDatas.Add(_lodDataAnimWaves);
+                    }
                 }
 
-                if (FlowProvider != null && !(FlowProvider is QueryFlow))
+                if (CreateClipSurfaceData && !RunningHeadless)
                 {
-                    FlowProvider.CleanUp();
-                    FlowProvider = null;
+                    if (_lodDataClipSurface == null)
+                    {
+                        _lodDataClipSurface = new LodDataMgrClipSurface(this);
+                        _lodDatas.Add(_lodDataClipSurface);
+                    }
                 }
-            }
-            else
-            {
-                if (_lodDataFlow != null)
+                else
                 {
-                    _lodDataFlow.OnDisable();
-                    _lodDatas.Remove(_lodDataFlow);
-                    _lodDataFlow = null;
+                    if (_lodDataClipSurface != null)
+                    {
+                        _lodDataClipSurface.OnDisable();
+                        _lodDatas.Remove(_lodDataClipSurface);
+                        _lodDataClipSurface = null;
+                    }
                 }
 
-                if (FlowProvider != null && FlowProvider is QueryFlow)
+                if (CreateDynamicWaveSim)
                 {
-                    FlowProvider.CleanUp();
-                    FlowProvider = null;
+                    if (_lodDataDynWaves == null)
+                    {
+                        _lodDataDynWaves = new LodDataMgrDynWaves(this);
+                        _lodDatas.Add(_lodDataDynWaves);
+                    }
                 }
-            }
-            if (FlowProvider == null)
-            {
-                FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
-            }
+                else
+                {
+                    if (_lodDataDynWaves != null)
+                    {
+                        _lodDataDynWaves.OnDisable();
+                        _lodDatas.Remove(_lodDataDynWaves);
+                        _lodDataDynWaves = null;
+                    }
+                }
 
-            if (CreateFoamSim)
-            {
-                if (_lodDataFoam == null)
+                if (CreateFlowSim)
                 {
-                    _lodDataFoam = new LodDataMgrFoam(this);
-                    _lodDatas.Add(_lodDataFoam);
-                }
-            }
-            else
-            {
-                if (_lodDataFoam != null)
-                {
-                    _lodDataFoam.OnDisable();
-                    _lodDatas.Remove(_lodDataFoam);
-                    _lodDataFoam = null;
-                }
-            }
+                    if (_lodDataFlow == null)
+                    {
+                        _lodDataFlow = new LodDataMgrFlow(this);
+                        _lodDatas.Add(_lodDataFlow);
+                    }
 
-            if (CreateSeaFloorDepthData)
-            {
-                if (_lodDataSeaDepths == null)
-                {
-                    _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
-                    _lodDatas.Add(_lodDataSeaDepths);
+                    if (FlowProvider != null && !(FlowProvider is QueryFlow))
+                    {
+                        FlowProvider.CleanUp();
+                        FlowProvider = null;
+                    }
                 }
-            }
-            else
-            {
-                if (_lodDataSeaDepths != null)
+                else
                 {
-                    _lodDataSeaDepths.OnDisable();
-                    _lodDatas.Remove(_lodDataSeaDepths);
-                    _lodDataSeaDepths = null;
-                }
-            }
+                    if (_lodDataFlow != null)
+                    {
+                        _lodDataFlow.OnDisable();
+                        _lodDatas.Remove(_lodDataFlow);
+                        _lodDataFlow = null;
+                    }
 
-            if (CreateShadowData)
-            {
-                if (_lodDataShadow == null)
-                {
-                    _lodDataShadow = new LodDataMgrShadow(this);
-                    _lodDatas.Add(_lodDataShadow);
+                    if (FlowProvider != null && FlowProvider is QueryFlow)
+                    {
+                        FlowProvider.CleanUp();
+                        FlowProvider = null;
+                    }
                 }
-            }
-            else
-            {
-                if (_lodDataShadow != null)
+                if (FlowProvider == null)
                 {
-                    _lodDataShadow.OnDisable();
-                    _lodDatas.Remove(_lodDataShadow);
-                    _lodDataShadow = null;
+                    FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
+                }
+
+                if (CreateFoamSim && !RunningHeadless)
+                {
+                    if (_lodDataFoam == null)
+                    {
+                        _lodDataFoam = new LodDataMgrFoam(this);
+                        _lodDatas.Add(_lodDataFoam);
+                    }
+                }
+                else
+                {
+                    if (_lodDataFoam != null)
+                    {
+                        _lodDataFoam.OnDisable();
+                        _lodDatas.Remove(_lodDataFoam);
+                        _lodDataFoam = null;
+                    }
+                }
+
+                if (CreateSeaFloorDepthData)
+                {
+                    if (_lodDataSeaDepths == null)
+                    {
+                        _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
+                        _lodDatas.Add(_lodDataSeaDepths);
+                    }
+                }
+                else
+                {
+                    if (_lodDataSeaDepths != null)
+                    {
+                        _lodDataSeaDepths.OnDisable();
+                        _lodDatas.Remove(_lodDataSeaDepths);
+                        _lodDataSeaDepths = null;
+                    }
+                }
+
+                if (CreateShadowData && !RunningHeadless)
+                {
+                    if (_lodDataShadow == null)
+                    {
+                        _lodDataShadow = new LodDataMgrShadow(this);
+                        _lodDatas.Add(_lodDataShadow);
+                    }
+                }
+                else
+                {
+                    if (_lodDataShadow != null)
+                    {
+                        _lodDataShadow.OnDisable();
+                        _lodDatas.Remove(_lodDataShadow);
+                        _lodDataShadow = null;
+                    }
                 }
             }
 
             // Potential extension - add 'type' field to collprovider and change provider if settings have changed - this would support runtime changes.
             if (CollisionProvider == null)
             {
-                CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
+                var settings = _lodDataAnimWaves != null ? _lodDataAnimWaves.Settings : _simSettingsAnimatedWaves;
+
+                if (settings != null)
+                {
+                    CollisionProvider = settings.CreateCollisionProvider();
+                }
             }
         }
 
         bool VerifyRequirements()
         {
-            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            if (!RunningWithoutGPU)
             {
-                Debug.LogError("Crest does not support WebGL backends.", this);
-                return false;
-            }
+                if (Application.platform == RuntimePlatform.WebGLPlayer)
+                {
+                    Debug.LogError("Crest does not support WebGL backends.", this);
+                    return false;
+                }
 #if UNITY_EDITOR
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
-            {
-                Debug.LogError("Crest does not support OpenGL backends.", this);
-                return false;
-            }
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+                {
+                    Debug.LogError("Crest does not support OpenGL backends.", this);
+                    return false;
+                }
 #endif
-            if (SystemInfo.graphicsShaderLevel < 45)
-            {
-                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
-                return false;
-            }
-            if (!SystemInfo.supportsComputeShaders)
-            {
-                Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
-                return false;
-            }
-            if (!SystemInfo.supports2DArrayTextures)
-            {
-                Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
-                return false;
+                if (SystemInfo.graphicsShaderLevel < 45)
+                {
+                    Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                    return false;
+                }
+                if (!SystemInfo.supportsComputeShaders)
+                {
+                    Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
+                    return false;
+                }
+                if (!SystemInfo.supports2DArrayTextures)
+                {
+                    Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
+                    return false;
+                }
             }
 
             return true;
@@ -713,8 +748,8 @@ namespace Crest
             if (EditorApplication.isPlaying)
 #endif
             {
-                CollisionProvider.UpdateQueries();
-                FlowProvider.UpdateQueries();
+                CollisionProvider?.UpdateQueries();
+                FlowProvider?.UpdateQueries();
             }
 
             // set global shader params
@@ -1030,9 +1065,9 @@ namespace Crest
 
             _oceanChunkRenderers.Clear();
 
-            _bufPerCascadeInstanceData.Dispose();
-            _bufCascadeDataTgt.Dispose();
-            _bufCascadeDataSrc.Dispose();
+            _bufPerCascadeInstanceData?.Dispose();
+            _bufCascadeDataTgt?.Dispose();
+            _bufCascadeDataSrc?.Dispose();
         }
 
 #if UNITY_EDITOR

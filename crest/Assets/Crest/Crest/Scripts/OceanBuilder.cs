@@ -147,16 +147,6 @@ namespace Crest
             sw.Start();
 #endif
 
-            // create mesh data
-            Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
-            Bounds[] meshBounds = new Bounds[(int)PatchType.Count];
-            // 4 tiles across a LOD, and support lowering density by a factor
-            var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
-            for (int i = 0; i < (int)PatchType.Count; i++)
-            {
-                meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
-            }
-
             ClearOutTiles(ocean, tiles);
 
             var root = new GameObject("Root");
@@ -168,9 +158,22 @@ namespace Crest
             root.transform.localRotation = Quaternion.identity;
             root.transform.localScale = Vector3.one;
 
-            for (int i = 0; i < lodCount; i++)
+            if (!OceanRenderer.RunningHeadless && !OceanRenderer.RunningWithoutGPU)
             {
-                CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                // create mesh data
+                Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
+                Bounds[] meshBounds = new Bounds[(int)PatchType.Count];
+                // 4 tiles across a LOD, and support lowering density by a factor
+                var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
+                for (int i = 0; i < (int)PatchType.Count; i++)
+                {
+                    meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
+                }
+
+                for (int i = 0; i < lodCount; i++)
+                {
+                    CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                }
             }
 
 #if PROFILE_CONSTRUCTION

@@ -29,8 +29,6 @@ namespace Crest
         readonly static float _leftPanelWidth = 180f;
         readonly static float _bottomPanelHeight = 25f;
         readonly static Color _guiColor = Color.black * 0.7f;
-        ShapeGerstnerBatched[] _gerstnerBatches;
-        ShapeGerstner[] _gerstners;
 
         static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
@@ -136,14 +134,8 @@ namespace Crest
         void OnGUIGerstnerSection(float x, ref float y, float w, float h)
         {
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
-            if (_gerstnerBatches == null)
-            {
-                _gerstnerBatches = FindObjectsOfType<ShapeGerstnerBatched>();
-                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-                // which helps if the Gerstners are on sibling GOs.
-                System.Array.Sort(_gerstnerBatches, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
-            }
-            foreach (var gerstner in _gerstnerBatches)
+
+            foreach (var gerstner in ShapeGerstnerBatched.Instances)
             {
                 var specW = 75f;
                 gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
@@ -158,14 +150,8 @@ namespace Crest
 #endif
                 y += h;
             }
-            if (_gerstners == null)
-            {
-                _gerstners = FindObjectsOfType<ShapeGerstner>();
-                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-                // which helps if the Gerstners are on sibling GOs.
-                System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
-            }
-            foreach (var gerstner in _gerstners)
+
+            foreach (var gerstner in ShapeGerstner.Instances)
             {
                 var specW = 75f;
                 gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);

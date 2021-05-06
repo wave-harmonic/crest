@@ -183,7 +183,7 @@ namespace Crest
         readonly float _twoPi = 2f * Mathf.PI;
         readonly float _recipTwoPi = 1f / (2f * Mathf.PI);
 
-        internal static readonly List<ShapeGerstner> Instances = new List<ShapeGerstner>();
+        internal static readonly CrestSortedList<int, ShapeGerstner> Instances = new CrestSortedList<int, ShapeGerstner>(new SiblingIndexComparer());
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()
@@ -597,7 +597,7 @@ namespace Crest
 
         private void OnEnable()
         {
-            Instances.Add(this);
+            Instances.Add(transform.GetSiblingIndex(), this);
 
             _firstUpdate = true;
 

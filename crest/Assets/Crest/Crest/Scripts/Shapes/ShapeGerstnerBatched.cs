@@ -152,7 +152,7 @@ namespace Crest
             public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
-        internal static readonly List<ShapeGerstnerBatched> Instances = new List<ShapeGerstnerBatched>();
+        internal static readonly CrestSortedList<int, ShapeGerstnerBatched> Instances = new CrestSortedList<int, ShapeGerstnerBatched>(new SiblingIndexComparer());
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()
@@ -172,7 +172,7 @@ namespace Crest
 
         private void OnEnable()
         {
-            Instances.Add(this);
+            Instances.Add(transform.GetSiblingIndex(), this);
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))

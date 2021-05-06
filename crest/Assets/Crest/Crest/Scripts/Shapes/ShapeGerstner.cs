@@ -170,6 +170,7 @@ namespace Crest
             public Vector4 _omega;
             public Vector4 _phase;
             public Vector4 _chopAmp;
+            // Waves are generated in pairs, these values are for the second in the pair
             public Vector4 _amp2;
             public Vector4 _chopAmp2;
             public Vector4 _phase2;

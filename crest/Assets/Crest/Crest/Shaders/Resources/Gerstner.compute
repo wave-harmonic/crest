@@ -31,6 +31,7 @@ struct GerstnerWaveComponent4
 	float4 _omega;
 	float4 _phase;
 	float4 _chopAmp;
+	// Waves are generated in pairs, these values are for the second in the pair
 	float4 _amp2;
 	float4 _chopAmp2;
 	float4 _phase2;

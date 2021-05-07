@@ -27,13 +27,20 @@ Changed
    -  Headless support - add support for running without display, with new toggle on OceanRenderer to emulate it in Editor.
    -  No GPU support - add support for running without GPU, with new toggle on OceanRenderer to emulate it in Editor.
 
+   .. only:: hdrp
+
+      -  *Copy Ocean Material Params Each Frame* is now enabled by default for *Underwater Post Process*. `[HDRP]`
+
 Fixed
 ^^^^^
 .. bullet_list::
 
    -  Fix build errors for platforms that do not support XR/VR.
-   -  Potential fix for bugs where a large boat may stop moving when camera is close.
+   -  Fix for bugs where a large boat may stop moving when camera is close.
 
+   .. only:: hdrp
+
+      -  Fix shadow data for XR/VR `SPI` from working and breaking builds. `[HDRP]`
 
 4.10
 ----

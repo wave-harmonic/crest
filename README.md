@@ -81,10 +81,10 @@ https://github.com/sponsors/wave-harmonic
 
 ## Sponsors
 
-### Gold
+### Gold 🥇
 
 [@celeronpm](https://github.com/celeronpm)
 
-### Other
+### Board members 🚀
 
 [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason)

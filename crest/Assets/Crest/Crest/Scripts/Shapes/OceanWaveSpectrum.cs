@@ -20,9 +20,6 @@ namespace Crest
         public static readonly float SMALLEST_WL_POW_2 = -4f;
 
         [HideInInspector]
-        public float _windSpeed = 10f;
-
-        [HideInInspector]
         public float _fetch = 500000f;
 
         public static readonly float MIN_POWER_LOG = -7f;
@@ -37,7 +34,7 @@ namespace Crest
         [HideInInspector]
         public float _smallWavelengthMultiplier = 1f;
 
-        [Tooltip("Multiplier"), Range(0f, 10f), SerializeField]
+        [Tooltip("Multiplier which scales waves"), Range(0f, 10f), SerializeField]
         float _multiplier = 1f;
 
         [HideInInspector, SerializeField]
@@ -340,7 +337,7 @@ namespace Crest
             "Fetch limited sea where waves continue to grow.",
         };
 
-        static GUIContent s_labelSWM = new GUIContent("Small wavelength multiplier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
+        static GUIContent s_labelSWM = new GUIContent("Small Wavelength Modifier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
         static GUIContent s_labelFetch = new GUIContent("Fetch", "Length of area that wind excites waves. Applies only to JONSWAP");
 
         public static void UpgradeSpectrum(SerializedProperty prop, float defaultValue)
@@ -486,22 +483,23 @@ namespace Crest
                 Undo.RecordObject(spec, $"Apply {ObjectNames.NicifyVariableName(spectrumModel.ToString())} Spectrum");
 
                 var labelWidth = 170f;
-                EditorGUILayout.BeginHorizontal();
-                float spd_kmh = spec._windSpeed * 3.6f;
-                EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(labelWidth));
-                spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 120f);
-                spec._windSpeed = spd_kmh / 3.6f;
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(s_labelSWM, GUILayout.Width(labelWidth));
-                spec._smallWavelengthMultiplier = EditorGUILayout.Slider(spec._smallWavelengthMultiplier, 0f, 10f);
-                EditorGUILayout.EndHorizontal();
 
                 if (spectrumModel == OceanWaveSpectrum.SpectrumModel.JONSWAP)
                 {
-                    spec._fetch = EditorGUILayout.Slider(s_labelFetch, spec._fetch, 0f, 1000000f);
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(s_labelSWM, GUILayout.Width(labelWidth));
+                    spec._smallWavelengthMultiplier = EditorGUILayout.Slider(spec._smallWavelengthMultiplier, 0f, 2f);
+                    EditorGUILayout.EndHorizontal();
+
+                    var exponent = 4f;
+                    var fetchNonLin = Mathf.Pow(spec._fetch, 1f / exponent);
+                    var max = Mathf.Pow(4000f, 1f / exponent);
+                    s_labelFetch.text = $"Fetch ({string.Format("{0:0.00}", spec._fetch)}m)";
+                    spec._fetch = Mathf.Pow(EditorGUILayout.Slider(s_labelFetch, fetchNonLin, 0f, max), exponent);
                 }
+
+                // Wind speed is taken into account during wave generation, not for the spectrum
+                var windSpeed = 10000f;
 
                 // Descriptions from this very useful paper:
                 // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
@@ -509,13 +507,13 @@ namespace Crest
                 switch (spectrumModel)
                 {
                     case OceanWaveSpectrum.SpectrumModel.Phillips:
-                        spec.ApplyPhillipsSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
+                        spec.ApplyPhillipsSpectrum(windSpeed, 1f);
                         break;
                     case OceanWaveSpectrum.SpectrumModel.PiersonMoskowitz:
-                        spec.ApplyPiersonMoskowitzSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
+                        spec.ApplyPiersonMoskowitzSpectrum(windSpeed, 0.42f);
                         break;
                     case OceanWaveSpectrum.SpectrumModel.JONSWAP:
-                        spec.ApplyJONSWAPSpectrum(spec._windSpeed, spec._fetch, spec._smallWavelengthMultiplier);
+                        spec.ApplyJONSWAPSpectrum(windSpeed, spec._fetch, spec._smallWavelengthMultiplier * 0.0419265f);
                         break;
                 }
             }

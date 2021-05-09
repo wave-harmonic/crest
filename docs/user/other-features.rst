@@ -23,6 +23,21 @@ Decals
 
         .. include:: includes/_render-alpha-surface.rst
 
+Time Providers
+--------------
+
+By default *Crest* generates waves at the current default Unity time.
+This behaviour can be overridden and an arbitrary time can be used.
+
+This can be useful for ensuring waves are synchronised over a network. TODO add link to the gist, which is probably linked from the FAQ.
+If using *Mirror*, you may create a component that inherits from their *NetworkBehaviour* component and implements the ITimeProvider interface, and then assign this component to the *OceanRenderer.Instance.TimeProvider* field at runtime.
+
+Another use case for this is for cutscenes/timelines when the waves conditions must be known in advance and repeatable.
+For this case you may create a 
+
+The world time that *Crest* uses for the wave state
+
+
 Floating origin
 ---------------
 

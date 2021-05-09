@@ -337,7 +337,7 @@ namespace Crest
             "Fetch limited sea where waves continue to grow.",
         };
 
-        static GUIContent s_labelSWM = new GUIContent("Small Wavelength Modifier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
+        static GUIContent s_labelSWM = new GUIContent("Small wavelength modifier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
         static GUIContent s_labelFetch = new GUIContent("Fetch", "Length of area that wind excites waves. Applies only to JONSWAP");
 
         public static void UpgradeSpectrum(SerializedProperty prop, float defaultValue)
@@ -510,10 +510,14 @@ namespace Crest
                         spec.ApplyPhillipsSpectrum(windSpeed, 1f);
                         break;
                     case OceanWaveSpectrum.SpectrumModel.PiersonMoskowitz:
-                        spec.ApplyPiersonMoskowitzSpectrum(windSpeed, 0.42f);
+                        // Magic number that seems to work well
+                        var swm = 0.42f;
+                        spec.ApplyPiersonMoskowitzSpectrum(windSpeed, swm);
                         break;
                     case OceanWaveSpectrum.SpectrumModel.JONSWAP:
-                        spec.ApplyJONSWAPSpectrum(windSpeed, spec._fetch, spec._smallWavelengthMultiplier * 0.0419265f);
+                        // Magic number that seems to work well when user has it set to 1
+                        var smallWavelengthMul = 0.0419265f * spec._smallWavelengthMultiplier;
+                        spec.ApplyJONSWAPSpectrum(windSpeed, spec._fetch, smallWavelengthMul);
                         break;
                 }
             }

@@ -14,6 +14,7 @@ namespace Crest
 #if UNITY_EDITOR
     using Crest.EditorHelpers;
     using UnityEditor;
+    using System.Reflection;
 #endif
 
     /// <summary>
@@ -108,16 +109,60 @@ namespace Crest
     {
         readonly float minimum;
         readonly float maximum;
+        readonly float power;
 
-        public RangeAttribute(float minimum, float maximum)
+        public RangeAttribute(float minimum, float maximum, float power = 1f)
         {
             this.minimum = minimum;
             this.maximum = maximum;
+            this.power = power;
         }
 
 #if UNITY_EDITOR
+        static MethodInfo _powerSliderMethod;
+
+        static void PowerSlider(Rect position, SerializedProperty property, float minimum, float maximum, float power, GUIContent label)
+        {
+            if (_powerSliderMethod == null)
+            {
+                // Grab the internal PowerSlider method.
+                _powerSliderMethod = typeof(EditorGUI).GetMethod
+                (
+                    name: "PowerSlider",
+                    bindingAttr: BindingFlags.NonPublic | BindingFlags.Static,
+                    binder: null,
+                    types: new[] { typeof(Rect), typeof(GUIContent), typeof(float), typeof(float), typeof(float), typeof(float) },
+                    modifiers: null
+                );
+            }
+
+            // Render slider and apply value to SerializedProperty.
+            label = EditorGUI.BeginProperty(position, label, property);
+            EditorGUI.BeginChangeCheck();
+            float newValue = (float)_powerSliderMethod.Invoke(null, new object[] { position, label, property.floatValue, minimum, maximum, power });
+            if (EditorGUI.EndChangeCheck())
+            {
+                property.floatValue = newValue;
+            }
+            EditorGUI.EndProperty();
+        }
+
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
+            // Power provided so use PowerSlider.
+            if (power != 1f)
+            {
+                if (property.propertyType != SerializedPropertyType.Float)
+                {
+                    // We could fallback to Slider, but better to raise an issue.
+                    EditorGUI.LabelField(position, label.text, "Range: must be float if power is provided.");
+                    return;
+                }
+
+                PowerSlider(position, property, minimum, maximum, power, label);
+                return;
+            }
+
             switch (property.propertyType)
             {
                 case SerializedPropertyType.Float:

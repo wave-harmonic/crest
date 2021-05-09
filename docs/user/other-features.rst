@@ -26,17 +26,18 @@ Decals
 Time Providers
 --------------
 
-By default *Crest* generates waves at the current default Unity time.
-This behaviour can be overridden and an arbitrary time can be used.
+By default *Crest* generates waves at the current Unity time (what *Time.time* would return in C#).
+This behaviour can be overridden and a different time can be used instead.
 
-This can be useful for ensuring waves are synchronised over a network. TODO add link to the gist, which is probably linked from the FAQ.
-If using *Mirror*, you may create a component that inherits from their *NetworkBehaviour* component and implements the ITimeProvider interface, and then assign this component to the *OceanRenderer.Instance.TimeProvider* field at runtime.
+One use case for this is for cutscenes/timelines when the waves conditions must be known in advance and repeatable.
+For this case you may attach a *Cutscene Time Provider* component to a GameObject and assign it to the *Ocean Renderer* component.
+This component will take the time from a *Playable Director* component which plays a cutscene *Timeline*.
+Alternatively, a *Time Provider Custom* component can be used to feed any time into the system, and this time value can be keyframed, giving complete control over timing.
 
-Another use case for this is for cutscenes/timelines when the waves conditions must be known in advance and repeatable.
-For this case you may create a 
-
-The world time that *Crest* uses for the wave state
-
+Another common use case is to ensure waves are synchronised over a network.
+For this case attach a *Networked Time Provider* component to a GameObject and assign it to the *Ocean Renderer* component.
+Then at run-time set the *TimeOffsetToServer* property of this component to the delta from this client's time to the shared server time.
+If using the *Mirror* network system, set this property to the :link:`network time offset <https://mirror-networking.com/docs/api/Mirror.NetworkTime.html#Mirror_NetworkTime_offset>`.
 
 Floating origin
 ---------------

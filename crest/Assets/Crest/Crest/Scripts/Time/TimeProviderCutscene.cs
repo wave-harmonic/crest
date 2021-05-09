@@ -12,6 +12,8 @@ namespace Crest
     /// This time provider feeds a Timeline time to the ocean system, using a Playable Director
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Cutscene Time Provider")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "other-features.html" + Internal.Constants.HELP_URL_RP + "#time-providers")]
     public class TimeProviderCutscene : TimeProviderBase
     {
         [Tooltip("Playable Director to take time from"), SerializeField]

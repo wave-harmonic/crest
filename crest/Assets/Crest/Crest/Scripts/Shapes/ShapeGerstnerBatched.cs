@@ -483,9 +483,6 @@ namespace Crest
                 mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
 
-                LodDataMgrAnimWaves.Bind(mat);
-                LodDataMgrSeaFloorDepth.Bind(mat);
-
                 if (_directTowardsPoint)
                 {
                     mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));

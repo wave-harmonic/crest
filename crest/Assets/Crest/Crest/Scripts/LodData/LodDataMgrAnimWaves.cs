@@ -292,14 +292,10 @@ namespace Crest
                 }
 
                 // Dynamic waves
-                LodDataMgrDynWaves.Bind(_combineMaterial[lodIdx]);
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                 }
-
-                // Flow
-                LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 

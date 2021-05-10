@@ -21,12 +21,12 @@ namespace Crest
         public bool _paused = false;
 
         [Tooltip("Override time used for ocean simulation to value below.")]
-        public bool _overrideTime = false;
+        public bool _overrideTime = true;
         [Predicated("_overrideTime"), DecoratedField]
         public float _time = 0f;
 
         [Tooltip("Override delta time used for ocean simulation to value below.")]
-        public bool _overrideDeltaTime = false;
+        public bool _overrideDeltaTime = true;
         [Predicated("_overrideDeltaTime"), DecoratedField]
         public float _deltaTime = 0f;
 

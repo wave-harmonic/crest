@@ -27,6 +27,7 @@ namespace Crest
         // We want the null colour to be the depth where wave attenuation begins (1000 metres)
         readonly static Color s_nullColor = Color.red * 1000f;
         static Texture2DArray s_nullTexture2DArray;
+        protected override Texture2DArray NullTexture => s_nullTexture2DArray;
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {
@@ -81,6 +82,8 @@ namespace Crest
                 properties.SetTexture(ParamIdSampler(), s_nullTexture2DArray);
             }
         }
+
+        public static void BindNull() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture2DArray);
 
         static void InitNullTexture()
         {

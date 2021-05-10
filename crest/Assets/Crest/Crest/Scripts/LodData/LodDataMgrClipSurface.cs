@@ -78,10 +78,20 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties)
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataClipSurface != null)
+            {
+                properties.SetTexture(ParamIdSampler(), OceanRenderer.Instance._lodDataClipSurface.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            }
         }
+
+        public static void BindNull() => Shader.SetGlobalTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

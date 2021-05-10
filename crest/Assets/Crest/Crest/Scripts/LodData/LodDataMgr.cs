@@ -41,6 +41,8 @@ namespace Crest
 
         public RenderTexture DataTexture { get { return _targets; } }
 
+        protected virtual Texture2DArray NullTexture => TextureArrayHelpers.BlackTextureArray;
+
         public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
         protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
 
@@ -213,7 +215,7 @@ namespace Crest
         internal virtual void OnDisable()
         {
             // Unbind from all graphics shaders (not compute)
-            Shader.SetGlobalTexture(GetParamIdSampler(), null);
+            Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);
         }
 
 #if UNITY_2019_3_OR_NEWER

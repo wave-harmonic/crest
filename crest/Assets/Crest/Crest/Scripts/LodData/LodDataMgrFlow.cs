@@ -124,6 +124,8 @@ namespace Crest
             }
         }
 
+        public static void BindNull() => Shader.SetGlobalTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 #endif

@@ -446,7 +446,7 @@ namespace Crest
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
-            CreateDestroySubSystems();
+            CreateDestroySubSystems(isFirst: true);
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
@@ -520,7 +520,7 @@ namespace Crest
             }
         }
 
-        void CreateDestroySubSystems()
+        void CreateDestroySubSystems(bool isFirst = false)
         {
             if (!RunningWithoutGPU)
             {
@@ -548,6 +548,10 @@ namespace Crest
                         _lodDatas.Remove(_lodDataClipSurface);
                         _lodDataClipSurface = null;
                     }
+                    else if (isFirst)
+                    {
+                        LodDataMgrClipSurface.BindNull();
+                    }
                 }
 
                 if (CreateDynamicWaveSim)
@@ -565,6 +569,10 @@ namespace Crest
                         _lodDataDynWaves.OnDisable();
                         _lodDatas.Remove(_lodDataDynWaves);
                         _lodDataDynWaves = null;
+                    }
+                    else if (isFirst)
+                    {
+                        LodDataMgrDynWaves.BindNull();
                     }
                 }
 
@@ -589,6 +597,10 @@ namespace Crest
                         _lodDataFlow.OnDisable();
                         _lodDatas.Remove(_lodDataFlow);
                         _lodDataFlow = null;
+                    }
+                    else if (isFirst)
+                    {
+                        LodDataMgrFlow.BindNull();
                     }
 
                     if (FlowProvider != null && FlowProvider is QueryFlow)
@@ -618,6 +630,10 @@ namespace Crest
                         _lodDatas.Remove(_lodDataFoam);
                         _lodDataFoam = null;
                     }
+                    else if (isFirst)
+                    {
+                        LodDataMgrFoam.BindNull();
+                    }
                 }
 
                 if (CreateSeaFloorDepthData)
@@ -636,6 +652,10 @@ namespace Crest
                         _lodDatas.Remove(_lodDataSeaDepths);
                         _lodDataSeaDepths = null;
                     }
+                    else if (isFirst)
+                    {
+                        LodDataMgrSeaFloorDepth.BindNull();
+                    }
                 }
 
                 if (CreateShadowData && !RunningHeadless)
@@ -653,6 +673,10 @@ namespace Crest
                         _lodDataShadow.OnDisable();
                         _lodDatas.Remove(_lodDataShadow);
                         _lodDataShadow = null;
+                    }
+                    else if (isFirst)
+                    {
+                        LodDataMgrShadow.BindNull();
                     }
                 }
             }

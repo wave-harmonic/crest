@@ -31,7 +31,7 @@ namespace Crest
         [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
         public float _gravityScale = 1f;
 
-        [HideInInspector]
+        [Range(0f, 2f), HideInInspector]
         public float _smallWavelengthMultiplier = 1f;
 
         [Tooltip("Multiplier which scales waves"), Range(0f, 10f), SerializeField]
@@ -481,20 +481,19 @@ namespace Crest
                 // It doesn't seem to matter where this is called.
                 Undo.RecordObject(spec, $"Apply {ObjectNames.NicifyVariableName(spectrumModel.ToString())} Spectrum");
 
-                var labelWidth = 170f;
-
                 if (spectrumModel == OceanWaveSpectrum.SpectrumModel.JONSWAP)
                 {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(s_labelSWM, GUILayout.Width(labelWidth));
-                    spec._smallWavelengthMultiplier = EditorGUILayout.Slider(spec._smallWavelengthMultiplier, 0f, 2f);
-                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_smallWavelengthMultiplier"));
 
                     var exponent = 4f;
                     var fetchNonLin = Mathf.Pow(spec._fetch, 1f / exponent);
                     var max = Mathf.Pow(4000f, 1f / exponent);
                     s_labelFetch.text = $"Fetch ({string.Format("{0:0.00}", spec._fetch)}m)";
                     spec._fetch = Mathf.Pow(EditorGUILayout.Slider(s_labelFetch, fetchNonLin, 0f, max), exponent);
+
+                    // Would be nice but quantizes very badly at low end for this range and is useless
+                    //var rect = EditorGUILayout.GetControlRect(true);
+                    //RangeAttribute.PowerSlider(rect, serializedObject.FindProperty("_fetch"), 0f, 4000f, 4f, s_labelFetch);
                 }
 
                 // Wind speed is taken into account during wave generation, not for the spectrum

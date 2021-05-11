@@ -121,7 +121,7 @@ namespace Crest
 #if UNITY_EDITOR
         static MethodInfo _powerSliderMethod;
 
-        static void PowerSlider(Rect position, SerializedProperty property, float minimum, float maximum, float power, GUIContent label)
+        static internal void PowerSlider(Rect position, SerializedProperty property, float minimum, float maximum, float power, GUIContent label)
         {
             if (_powerSliderMethod == null)
             {

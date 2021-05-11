@@ -148,10 +148,9 @@ namespace Crest
 
             var c = ComputeWaveSpeed(wavelength);
 
-            // Dampen based on wind. Waves travelling faster than wind get dampened. 0.95
+            // Dampen based on wind. Waves travelling faster than wind get dampened. 0.75
             // is arbitrary value to give some 'ramp' in the multiplier.
-            power *= Mathf.Clamp01(Mathf.InverseLerp(windSpeed, windSpeed * 0.95f, c));
-
+            power *= Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(windSpeed, windSpeed * 0.75f, c));
             var a_2 = 2f * power * domega;
 
             // Amplitude

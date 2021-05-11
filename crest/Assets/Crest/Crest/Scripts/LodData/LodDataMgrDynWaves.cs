@@ -19,6 +19,8 @@ namespace Crest
 
         public override string SimName { get { return "DynamicWaves"; } }
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
+        static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
+        protected override Texture2DArray NullTexture => s_nullTexture;
 
         public bool _rotateLaplacian = true;
 
@@ -142,11 +144,11 @@ namespace Crest
             }
             else
             {
-                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
             }
         }
 
-        public static void BindNull() => Shader.SetGlobalTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+        public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

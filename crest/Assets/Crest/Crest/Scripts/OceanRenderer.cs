@@ -550,7 +550,7 @@ namespace Crest
                     }
                     else if (isFirst)
                     {
-                        LodDataMgrClipSurface.BindNull();
+                        LodDataMgrClipSurface.BindNullToGraphicsShaders();
                     }
                 }
 
@@ -572,7 +572,7 @@ namespace Crest
                     }
                     else if (isFirst)
                     {
-                        LodDataMgrDynWaves.BindNull();
+                        LodDataMgrDynWaves.BindNullToGraphicsShaders();
                     }
                 }
 
@@ -600,7 +600,7 @@ namespace Crest
                     }
                     else if (isFirst)
                     {
-                        LodDataMgrFlow.BindNull();
+                        LodDataMgrFlow.BindNullToGraphicsShaders();
                     }
 
                     if (FlowProvider != null && FlowProvider is QueryFlow)
@@ -632,7 +632,7 @@ namespace Crest
                     }
                     else if (isFirst)
                     {
-                        LodDataMgrFoam.BindNull();
+                        LodDataMgrFoam.BindNullToGraphicsShaders();
                     }
                 }
 
@@ -654,7 +654,7 @@ namespace Crest
                     }
                     else if (isFirst)
                     {
-                        LodDataMgrSeaFloorDepth.BindNull();
+                        LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
                     }
                 }
 
@@ -676,7 +676,7 @@ namespace Crest
                     }
                     else if (isFirst)
                     {
-                        LodDataMgrShadow.BindNull();
+                        LodDataMgrShadow.BindNullToGraphicsShaders();
                     }
                 }
             }

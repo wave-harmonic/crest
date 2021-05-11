@@ -488,12 +488,8 @@ namespace Crest
                     var exponent = 4f;
                     var fetchNonLin = Mathf.Pow(spec._fetch, 1f / exponent);
                     var max = Mathf.Pow(4000f, 1f / exponent);
-                    s_labelFetch.text = $"Fetch ({string.Format("{0:0.00}", spec._fetch)}m)";
-                    spec._fetch = Mathf.Pow(EditorGUILayout.Slider(s_labelFetch, fetchNonLin, 0f, max), exponent);
-
-                    // Would be nice but quantizes very badly at low end for this range and is useless
-                    //var rect = EditorGUILayout.GetControlRect(true);
-                    //RangeAttribute.PowerSlider(rect, serializedObject.FindProperty("_fetch"), 0f, 4000f, 4f, s_labelFetch);
+                    spec._fetch = EditorGUILayout.FloatField(s_labelFetch, spec._fetch);
+                    spec._fetch = Mathf.Pow(GUI.HorizontalSlider(EditorGUILayout.GetControlRect(false), fetchNonLin, 0, max), exponent);
                 }
 
                 // Wind speed is taken into account during wave generation, not for the spectrum

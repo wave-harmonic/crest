@@ -485,11 +485,12 @@ namespace Crest
                 {
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("_smallWavelengthMultiplier"));
 
+                    var maxLin = 4000f;
                     var exponent = 4f;
+                    var maxExp = Mathf.Pow(maxLin, 1f / exponent);
+                    spec._fetch = Mathf.Clamp(EditorGUILayout.FloatField(s_labelFetch, spec._fetch), 0f, maxLin);
                     var fetchNonLin = Mathf.Pow(spec._fetch, 1f / exponent);
-                    var max = Mathf.Pow(4000f, 1f / exponent);
-                    spec._fetch = EditorGUILayout.FloatField(s_labelFetch, spec._fetch);
-                    spec._fetch = Mathf.Pow(GUI.HorizontalSlider(EditorGUILayout.GetControlRect(false), fetchNonLin, 0, max), exponent);
+                    spec._fetch = Mathf.Pow(GUI.HorizontalSlider(EditorGUILayout.GetControlRect(false), fetchNonLin, 0, maxExp), exponent);
                 }
 
                 // Wind speed is taken into account during wave generation, not for the spectrum

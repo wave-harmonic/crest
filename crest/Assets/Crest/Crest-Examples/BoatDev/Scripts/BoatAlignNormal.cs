@@ -4,6 +4,9 @@
 
 using Crest;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
@@ -136,15 +139,24 @@ public class BoatAlignNormal : FloatingObjectBase
         _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = _throttleBias;
+#if ENABLE_INPUT_SYSTEM
+        float rawForward = (Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0);
+#else
         float rawForward = Input.GetAxis("Vertical");
+#endif
         if (_playerControlled) forward += rawForward;
         _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
         float reverseMultiplier = (rawForward < 0f ? -1f : 1f);
         float sideways = _steerBias;
         if (_playerControlled) sideways +=
+#if ENABLE_INPUT_SYSTEM
+                (Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
+                (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f);
+#else
                 (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
+#endif
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
         FixedUpdateOrientation(normal);

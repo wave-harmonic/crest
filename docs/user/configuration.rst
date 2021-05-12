@@ -301,51 +301,65 @@ Flow
    'Create Flow Sim' must be enabled on the OceanRenderer to generate flow data.
 
 
+Lighting
+--------
+
+General
+^^^^^^^
+
+.. only:: birp
+
+   .. tab:: `BIRP`
+
+      .. include:: includes/_birp-lighting.rst
+
+.. only:: hdrp
+
+   .. tab:: `HDRP`
+
+      .. include:: includes/_hdrp-lighting.rst
+
+.. only:: urp
+
+   .. tab:: `URP`
+
+      .. include:: includes/_urp-lighting.rst
+
+
 Reflections
------------
+^^^^^^^^^^^
 
 Reflections contribute hugely to the appearance of the ocean.
 The look of the ocean will dramatically changed based on the reflection environment.
 
-.. only:: birp
-
-      .. tab:: `BIRP`
-
-            .. include:: includes/_birp-reflections.rst
-
-.. only:: hdrp
-
-      .. tab:: `HDRP`
-
-            .. include:: includes/_hdrp-reflections.rst
-
-.. only:: urp
-
-      .. tab:: `URP`
-
-            .. include:: includes/_urp-reflections.rst
-
-
-Lighting
---------
+The Index of Refraction setting controls how much reflection contributes for different view angles.
 
 .. only:: birp
 
-      .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-            .. include:: includes/_birp-lighting.rst
+      .. include:: includes/_birp-reflections.rst
 
 .. only:: hdrp
 
-      .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-            .. include:: includes/_hdrp-lighting.rst
+      .. include:: includes/_hdrp-reflections.rst
 
 .. only:: urp
 
-      .. tab:: `URP`
+   .. tab:: `URP`
 
-            .. include:: includes/_urp-lighting.rst
+      .. include:: includes/_urp-reflections.rst
+
+
+Refractions
+^^^^^^^^^^^
+
+Refractions sample from the camera's colour texture.
+Anything rendered in the transparent pass or higher will not be included in refractions.
+
+See :ref:`transparent-object-before-ocean-surface` for issues with Crest and other refractive materials.
 
 
 .. _orthographic_projection:

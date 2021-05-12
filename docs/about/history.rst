@@ -44,6 +44,11 @@ Fixed
 
       -  Fix shadow data for XR/VR `SPI` from working and breaking builds. `[HDRP]`
 
+   .. only:: urp
+
+      -  Fix ocean tiles disappearing when far from zero. `[URP]`
+
+
 4.10
 ----
 

@@ -43,8 +43,7 @@ namespace Crest
         OceanRenderer _ocean;
         PropertyWrapperMPB _mpb;
         Renderer _rend;
-
-        [SerializeField] Camera _camera;
+        Camera _camera;
 
         readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
@@ -61,7 +60,7 @@ namespace Crest
 #endif
             _rend = GetComponent<Renderer>();
 
-            _camera = transform.parent.gameObject.GetComponent<Camera>();
+            _camera = GetComponentInParent<Camera>();
 
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;

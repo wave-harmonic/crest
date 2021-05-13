@@ -138,11 +138,6 @@ namespace Crest
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, 0);
-
-                LodDataMgrAnimWaves.Bind(_mpb);
-                LodDataMgrSeaFloorDepth.Bind(_mpb);
-                LodDataMgrShadow.Bind(_mpb);
-
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);

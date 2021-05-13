@@ -44,6 +44,8 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
+        [SerializeField] Camera _camera;
+
         readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
         SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
@@ -59,12 +61,13 @@ namespace Crest
 #endif
             _rend = GetComponent<Renderer>();
 
+            _camera = transform.parent.gameObject.GetComponent<Camera>();
+
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
-            // TODO - how to connect camera/underwater effect with ocean?
-            _ocean = OceanRenderer.AnyInstance;
+            _ocean = OceanRenderer.GetInstance(_camera);
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(_ocean, ValidatedHelper.DebugLog))

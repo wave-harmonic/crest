@@ -44,6 +44,15 @@ Fixed
 
       -  Fix shadow data for XR/VR `SPI` from working and breaking builds. `[HDRP]`
 
+
+Documentation
+^^^^^^^^^^^^^
+.. bullet_list::
+
+   -  Document issues with transparency in new :ref:`rendering` page.
+   -  Improve :ref:`lighting` section.
+
+
 4.10
 ----
 

@@ -300,6 +300,7 @@ Flow
 |  **Enable** Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene.
    'Create Flow Sim' must be enabled on the OceanRenderer to generate flow data.
 
+.. _lighting:
 
 Lighting
 --------

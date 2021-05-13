@@ -1,3 +1,5 @@
+.. _rendering:
+
 Rendering
 =========
 

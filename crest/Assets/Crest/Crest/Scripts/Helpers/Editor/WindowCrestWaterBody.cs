@@ -38,6 +38,8 @@ namespace Crest
         bool _createClipArea = false;
         Material _clipMaterial = null;
 
+        PrimitiveType _shape;
+
         private void OnGUI()
         {
             if (EditorApplication.isPlaying == true)
@@ -88,6 +90,8 @@ namespace Crest
             _sizeX = EditorGUILayout.FloatField("Size X", _sizeX);
             _sizeZ = EditorGUILayout.FloatField("Size Z", _sizeZ);
             _rotation = EditorGUILayout.FloatField("Rotation", _rotation);
+
+            _shape = (PrimitiveType)EditorGUILayout.EnumPopup("Primitive", _shape);
 
             EditorGUILayout.Space();
 
@@ -233,6 +237,13 @@ namespace Crest
 
             waterBodyGO.AddComponent<WaterBody>();
 
+            var scale = Vector3.one;
+            switch (_shape)
+            {
+                case PrimitiveType.Capsule: scale = new Vector3(1f, 0.5f, 1f); break;
+                case PrimitiveType.Cylinder: scale = new Vector3(1f, 0.5f, 1f); break;
+            }
+
             if (_createDepthCache)
             {
                 var depthCacheGO = new GameObject("DepthCache");
@@ -251,12 +262,12 @@ namespace Crest
 
             if (_createGerstnerWaves)
             {
-                var gerstnerGO = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                var gerstnerGO = GameObject.CreatePrimitive(_shape);
                 gerstnerGO.name = "GerstnerWaves";
                 DestroyImmediate(gerstnerGO.GetComponent<Collider>());
                 gerstnerGO.transform.parent = waterBodyGO.transform;
                 gerstnerGO.transform.localEulerAngles = 90f * Vector3.right;
-                gerstnerGO.transform.localScale = Vector3.one;
+                gerstnerGO.transform.localScale = scale;
                 gerstnerGO.transform.localPosition = Vector3.zero;
 
                 var gerstner = gerstnerGO.AddComponent<ShapeGerstnerBatched>();
@@ -270,12 +281,12 @@ namespace Crest
 
             if (_createClipArea)
             {
-                var clipGO = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                var clipGO = GameObject.CreatePrimitive(_shape);
                 clipGO.name = "SurfaceClip";
                 DestroyImmediate(clipGO.GetComponent<Collider>());
                 clipGO.transform.parent = waterBodyGO.transform;
                 clipGO.transform.localEulerAngles = 90f * Vector3.right;
-                clipGO.transform.localScale = Vector3.one;
+                clipGO.transform.localScale = scale;
                 clipGO.transform.localPosition = Vector3.zero;
 
                 clipGO.AddComponent<RegisterClipSurfaceInput>();

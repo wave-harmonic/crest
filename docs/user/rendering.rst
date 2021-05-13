@@ -4,8 +4,10 @@ Rendering
 Transparency
 ------------
 
-`Crest` is rendered in the transparent pass and its transparency is implemented by sampling the camera's colour texture.
-This makes `Crest` mostly incompatible with other transparent objects.
+`Crest` is rendered in a standard way for water shaders - in the transparent pass and refracts the scene.
+The refraction is implemented by sampling the camera's colour texture which has opaque surfaces only.
+It writes to the depth buffer during rendering to ensure overlapping waves are sorted correctly to the camera.
+The rendering of other transparent objects depends on the case, see headings below.
 Knowledge of render pipeline features, rendering order and shaders is required to solving incompatibilities.
 
 .. _transparent-object-before-ocean-surface:
@@ -13,8 +15,9 @@ Knowledge of render pipeline features, rendering order and shaders is required t
 Transparent Object In Front Of Ocean Surface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This will work correctly except for refractive objects.
-`Crest` will not be available in the camera's colour texture when other refractive objects sample from it.
+Normal transparent shaders should blend correctly in front of the water surface.
+However this will not work correctly for refractive objects.
+`Crest` will not be available in the camera's colour texture when other refractive objects sample from it, as the camera colour texture will only contain opaque surfaces.
 The end result is `Crest` not being visible behind the refractive object.
 
 .. _transparent-object-after-ocean-surface:
@@ -22,9 +25,11 @@ The end result is `Crest` not being visible behind the refractive object.
 Transparent Object Behind The Ocean Surface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This will not work.
+Alpha blend and refractive shaders will not render behind the water surface.
 Other transparent objects will not be part of the camera's colour texture when `Crest` samples from it.
 The end result is transparent objects not being visible behind `Crest`.
+
+On the other hand, alpha test / alpha cutout shaders are effectively opaque from a rendering point of view and may be usable in some scenarios.
 
 .. _transparent-object-underwater:
 

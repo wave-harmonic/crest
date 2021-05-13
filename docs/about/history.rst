@@ -37,6 +37,7 @@ Fixed
 
    -  Fix build errors for platforms that do not support XR/VR.
    -  Fix for bugs where a large boat may stop moving when camera is close.
+   -  Fix bad data being sampled from simulations when they're not enabled.
 
    .. only:: hdrp
 

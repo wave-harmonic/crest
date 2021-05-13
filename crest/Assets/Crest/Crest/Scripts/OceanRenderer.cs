@@ -1099,16 +1099,6 @@ namespace Crest
                 isValid = false;
             }
 
-            // OceanRenderer
-            if (FindObjectsOfType<OceanRenderer>().Length > 1)
-            {
-                showMessage
-                (
-                    "Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
-                    ValidatedHelper.MessageType.Warning, ocean
-                );
-            }
-
             // ShapeGerstnerBatched
             var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
             if (gerstners.Length == 0)

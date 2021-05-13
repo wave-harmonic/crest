@@ -394,6 +394,11 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            Camera.onPreRender -= OnPreRenderCallback;
+            Camera.onPreRender += OnPreRenderCallback;
+            Camera.onPostRender -= OnPostRenderCallback;
+            Camera.onPostRender += OnPostRenderCallback;
+
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -471,6 +476,9 @@ namespace Crest
 
         private void OnDisable()
         {
+            Camera.onPreRender -= OnPreRenderCallback;
+            Camera.onPostRender -= OnPostRenderCallback;
+
 #if UNITY_EDITOR
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -482,6 +490,18 @@ namespace Crest
             CleanUp();
 
             Instance = null;
+        }
+
+        void OnPreRenderCallback(Camera camera)
+        {
+            if (camera != ViewCamera) return;
+            OceanMaterial.EnableKeyword("_ISNOTPREVIEW");
+        }
+
+        void OnPostRenderCallback(Camera camera)
+        {
+            if (camera != ViewCamera) return;
+            OceanMaterial.DisableKeyword("_ISNOTPREVIEW");
         }
 
 #if UNITY_EDITOR

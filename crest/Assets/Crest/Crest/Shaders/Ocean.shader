@@ -211,6 +211,7 @@ Shader "Crest/Ocean"
 			"IgnoreProjector"="True"
 			"RenderType"="Opaque"
 			"DisableBatching"="True"
+			// "PreviewType"="Plane"
 		}
 
 		GrabPass
@@ -258,6 +259,15 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _DEBUGDISABLESMOOTHLOD_ON
 			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
+			#pragma shader_feature_local _ISNOTPREVIEW
+
+// TODO: Maybe there is a keyword we can target that is only available when not in preview?
+#if !defined(_ISNOTPREVIEW)
+			#define _ISPREVIEW
+			#undef _TRANSPARENCY_ON
+			#define _DEBUGDISABLESHAPETEXTURES_ON
+#endif
+
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
 			#endif
@@ -297,6 +307,10 @@ Shader "Crest/Ocean"
 				#endif
 				half4 grabPos : TEXCOORD9;
 
+#if defined(_ISPREVIEW)
+				float3 customView : TEXCOORD10;
+#endif
+
 				UNITY_FOG_COORDS(3)
 
 				UNITY_VERTEX_OUTPUT_STEREO
@@ -323,6 +337,12 @@ Shader "Crest/Ocean"
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
 				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
+
+#if defined(_ISPREVIEW)
+				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
+				o.customView = ObjSpaceViewDir(v.vertex);
+				lodAlpha = 0.0;
+#endif
 
 				{
 					// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
@@ -359,7 +379,7 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
 
-					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					#if !defined(_DEBUGDISABLESHAPETEXTURES_ON)
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
 					#endif
 
@@ -375,7 +395,7 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
 
-					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					#if !defined(_DEBUGDISABLESHAPETEXTURES_ON)
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
 					#endif
 
@@ -546,6 +566,11 @@ Shader "Crest/Ocean"
 				n_pixel.xz *= _NormalsStrengthOverall;
 				n_pixel = normalize( n_pixel );
 				if (underwater) n_pixel = -n_pixel;
+
+				#if defined(_ISPREVIEW)
+				// view = mul(n_geom, input.customView);
+				// view = float3(0,0,1);
+				#endif
 
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;

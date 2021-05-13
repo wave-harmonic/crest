@@ -50,6 +50,7 @@ Crest Ocean System
    user/shallows-and-shorelines
    user/water-bodies
    user/collision-shape-for-physics
+   user/rendering
    user/underwater
    user/other-features
    user/performance

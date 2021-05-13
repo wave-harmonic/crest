@@ -49,6 +49,13 @@ Fixed
 
       -  Fix ocean tiles disappearing when far from zero. `[URP]`
 
+Documentation
+^^^^^^^^^^^^^
+.. bullet_list::
+
+   -  Document issues with transparency in new :ref:`rendering` page.
+   -  Improve :ref:`lighting` section.
+
 
 4.10
 ----

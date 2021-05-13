@@ -446,6 +446,14 @@ namespace Crest
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
+            // Make sure we have correct defaults in case simulations are not enabled.
+            LodDataMgrClipSurface.BindNullToGraphicsShaders();
+            LodDataMgrDynWaves.BindNullToGraphicsShaders();
+            LodDataMgrFlow.BindNullToGraphicsShaders();
+            LodDataMgrFoam.BindNullToGraphicsShaders();
+            LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
+            LodDataMgrShadow.BindNullToGraphicsShaders();
+
             CreateDestroySubSystems();
 
             _commandbufferBuilder = new BuildCommandBuffer();

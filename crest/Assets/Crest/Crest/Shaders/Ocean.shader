@@ -316,7 +316,7 @@ Shader "Crest/Ocean"
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
 				// Move to world space
-				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
+				o.worldPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz, 1.0));
 
 				// Vertex snapping and lod transition
 				float lodAlpha;

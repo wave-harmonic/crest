@@ -292,14 +292,10 @@ namespace Crest
                 }
 
                 // Dynamic waves
-                LodDataMgrDynWaves.Bind(_combineMaterial[lodIdx]);
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                 }
-
-                // Flow
-                LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
@@ -434,11 +430,8 @@ namespace Crest
         }
 
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
-        {
-            return ParamIdSampler(sourceLod);
-        }
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
 
         public static void Bind(IPropertyWrapper properties)
         {

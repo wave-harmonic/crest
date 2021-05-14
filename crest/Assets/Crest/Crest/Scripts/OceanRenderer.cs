@@ -288,6 +288,21 @@ namespace Crest
             return result;
         }
 
+        public static OceanRenderer GetInstance(Camera camera)
+        {
+            if (_instances.Count == 0) return null;
+
+            for (int i = 0; i < _instances.Count; i++)
+            {
+                if (_instances[i].Viewpoint == camera.transform)
+                {
+                    return _instances[i];
+                }
+            }
+
+            return null;
+        }
+
         static List<OceanRenderer> _instances = new List<OceanRenderer>();
 
         // We are computing these values to be optimal based on the base mesh vertex density.
@@ -1082,16 +1097,6 @@ namespace Crest
                 );
 
                 isValid = false;
-            }
-
-            // OceanRenderer
-            if (FindObjectsOfType<OceanRenderer>().Length > 1)
-            {
-                showMessage
-                (
-                    "Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
-                    ValidatedHelper.MessageType.Warning, ocean
-                );
             }
 
             // ShapeGerstnerBatched

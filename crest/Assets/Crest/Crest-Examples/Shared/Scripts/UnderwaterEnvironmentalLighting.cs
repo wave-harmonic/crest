@@ -17,6 +17,10 @@ namespace Crest
     /// </summary>
     public class UnderwaterEnvironmentalLighting : MonoBehaviour
     {
+        [Tooltip("Higher precision is higher quality and performance cost. Set to -1 to use full precision.")]
+        [SerializeField, Range(-1, 10)]
+        int _precision;
+
         Light _primaryLight;
         float _lightIntensity;
         float _ambientIntensity;
@@ -76,8 +80,15 @@ namespace Crest
                 return;
             }
 
+            // Either below sea level or below ocean height
+            var viewerHeightAboveWater = OceanRenderer.Instance.ViewerHeightAboveWater;
+            if (_precision > -1)
+            {
+                viewerHeightAboveWater = (float)System.Math.Round(viewerHeightAboveWater, _precision);
+            }
+
             float depthMultiplier = Mathf.Exp(_averageDensity *
-                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
+                Mathf.Min(viewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
 
             // Darken environmental lighting when viewer underwater
             if (_primaryLight)

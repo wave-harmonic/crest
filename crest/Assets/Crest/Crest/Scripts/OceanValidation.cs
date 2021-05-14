@@ -74,7 +74,10 @@ namespace Crest
         internal static void FixAttachComponent<ComponentType>(SerializedObject lodInputComponent)
             where ComponentType : Component
         {
-            var gameObject = lodInputComponent.targetObject as GameObject;
+            // We will either get the component or the GameObject it is attached to.
+            var gameObject = lodInputComponent.targetObject is GameObject
+                ? lodInputComponent.targetObject as GameObject
+                : (lodInputComponent.targetObject as Component).gameObject;
             Undo.AddComponent<ComponentType>(gameObject);
         }
 
@@ -95,7 +98,10 @@ namespace Crest
 
         static void FixRemoveRenderer(SerializedObject lodInputComponent)
         {
-            var gameObject = lodInputComponent.targetObject as GameObject;
+            // We will either get the component or the GameObject it is attached to.
+            var gameObject = lodInputComponent.targetObject is GameObject
+                ? lodInputComponent.targetObject as GameObject
+                : (lodInputComponent.targetObject as Component).gameObject;
             var renderer = gameObject.GetComponent<MeshRenderer>();
             Undo.DestroyObjectImmediate(renderer);
             EditorUtility.SetDirty(gameObject);
@@ -144,11 +150,6 @@ namespace Crest
 
         public static bool ValidateInputMesh(bool rendererRequired, GameObject gameObject, ShowMessage showMessage)
         {
-            if (gameObject.TryGetComponent<Spline.Spline>(out _))
-            {
-                return true;
-            }
-
             gameObject.TryGetComponent<MeshRenderer>(out var renderer);
 
             if (!rendererRequired)

@@ -144,7 +144,7 @@ namespace Crest
         internal Material _material = null;
         public Material OceanMaterial { get { return _material; } }
 
-        [SerializeField]
+        [SerializeField, Delayed]
         string _layerName = "Water";
         public string LayerName { get { return _layerName; } }
 
@@ -764,6 +764,8 @@ namespace Crest
             Hashy.Add(_lodCount, ref settingsHash);
             Hashy.Add(_forceBatchMode, ref settingsHash);
             Hashy.Add(_forceNoGPU, ref settingsHash);
+            Hashy.Add(_hideOceanTileGameObjects, ref settingsHash);
+            Hashy.Add(_layerName, ref settingsHash);
 
             return settingsHash;
         }

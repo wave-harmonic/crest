@@ -4,6 +4,9 @@
 
 namespace Crest
 {
+    /// <summary>
+    /// Puts together a hash from given data values
+    /// </summary>
     public static class Hashy
     {
         public static int CreateHash() => 0x19384567;

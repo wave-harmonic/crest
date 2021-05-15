@@ -169,14 +169,14 @@ namespace Crest
         [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
         float _dropDetailHeightBasedOnWaves = 0.2f;
 
-        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256. Press 'Rebuild Ocean' button below to apply.")]
+        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
 
-        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4... Press 'Rebuild Ocean' button below to apply.")]
+        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
         int _geometryDownSampleFactor = 2;
 
-        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate. Press 'Rebuild Ocean' button below to apply."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
+        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
 
@@ -247,9 +247,9 @@ namespace Crest
 #pragma warning restore 414
 
         [Header("Server Settings")]
-        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument. Press Rebuild button below to apply."), SerializeField]
+        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument."), SerializeField]
         bool _forceBatchMode = false;
-        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument. Press Rebuild button below to apply."), SerializeField]
+        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument."), SerializeField]
         bool _forceNoGPU = false;
 
         [Header("Debug Params")]
@@ -308,6 +308,9 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
+
+        // A hash of the settings used to generate the ocean, used to regenerate when necessary
+        int _generatedSettingsHash = 0;
 
         /// <summary>
         /// Is runtime environment without graphics card
@@ -445,6 +448,7 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            _generatedSettingsHash = CalculateSettingsHash();
 
             // Make sure we have correct defaults in case simulations are not enabled.
             LodDataMgrClipSurface.BindNullToGraphicsShaders();
@@ -750,8 +754,31 @@ namespace Crest
             RunUpdate();
         }
 
+        int CalculateSettingsHash()
+        {
+            var settingsHash = Hashy.CreateHash();
+
+            // Add all the settings that require rebuilding..
+            Hashy.Add(_lodDataResolution, ref settingsHash);
+            Hashy.Add(_geometryDownSampleFactor, ref settingsHash);
+            Hashy.Add(_lodCount, ref settingsHash);
+            Hashy.Add(_forceBatchMode, ref settingsHash);
+            Hashy.Add(_forceNoGPU, ref settingsHash);
+
+            return settingsHash;
+        }
+
         void RunUpdate()
         {
+            // Rebuild if needed. Editor-only i suppose?
+#if UNITY_EDITOR
+            if (CalculateSettingsHash() != _generatedSettingsHash)
+            {
+                enabled = false;
+                enabled = true;
+            }
+#endif
+
             // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
 #if UNITY_EDITOR
             // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
@@ -1511,12 +1538,6 @@ namespace Crest
             base.OnInspectorGUI();
 
             var target = this.target as OceanRenderer;
-
-            if (GUILayout.Button("Rebuild Ocean"))
-            {
-                target.enabled = false;
-                target.enabled = true;
-            }
 
             if (GUILayout.Button("Validate Setup"))
             {

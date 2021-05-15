@@ -71,13 +71,13 @@ namespace Crest
         {
         }
 
-        internal static void FixAttachComponent<ComponentType>(SerializedObject lodInputComponent)
+        internal static void FixAttachComponent<ComponentType>(SerializedObject componentOrGameObject)
             where ComponentType : Component
         {
             // We will either get the component or the GameObject it is attached to.
-            var gameObject = lodInputComponent.targetObject is GameObject
-                ? lodInputComponent.targetObject as GameObject
-                : (lodInputComponent.targetObject as Component).gameObject;
+            var gameObject = componentOrGameObject.targetObject is GameObject
+                ? componentOrGameObject.targetObject as GameObject
+                : (componentOrGameObject.targetObject as Component).gameObject;
             Undo.AddComponent<ComponentType>(gameObject);
         }
 
@@ -96,12 +96,12 @@ namespace Crest
             mat.SetFloat(floatParam, enabled ? 1f : 0f);
         }
 
-        static void FixRemoveRenderer(SerializedObject lodInputComponent)
+        static void FixRemoveRenderer(SerializedObject componentOrGameObject)
         {
             // We will either get the component or the GameObject it is attached to.
-            var gameObject = lodInputComponent.targetObject is GameObject
-                ? lodInputComponent.targetObject as GameObject
-                : (lodInputComponent.targetObject as Component).gameObject;
+            var gameObject = componentOrGameObject.targetObject is GameObject
+                ? componentOrGameObject.targetObject as GameObject
+                : (componentOrGameObject.targetObject as Component).gameObject;
             var renderer = gameObject.GetComponent<MeshRenderer>();
             Undo.DestroyObjectImmediate(renderer);
             EditorUtility.SetDirty(gameObject);

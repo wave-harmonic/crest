@@ -39,7 +39,7 @@ Fixed
 
    -  Fix build errors for platforms that do not support XR/VR.
    -  Fix for bugs where a large boat may stop moving when camera is close.
-   -  Fix bad data being sampled from simulations when they're not enabled.
+   -  Fix bad data being sampled from simulations when they're not enabled like the entire ocean being shadowed when shadow data was disabled.
    -  Fix null exception for attach renderer help box fix button.
    -  Fix "remove renderer" help box not showing when it should.
 

@@ -38,7 +38,7 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha, in const Casca
 	return _NormalsStrength * norm;
 }
 
-void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAlpha, in const CascadeParams cascadeData, in const PerCascadeInstanceData instanceData, inout half3 io_n)
+void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAlpha, in const CascadeParams cascadeData, in const PerCascadeInstanceData instanceData, inout float3 io_n)
 {
 	const float half_period = 1;
 	const float period = half_period * 2;

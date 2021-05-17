@@ -520,7 +520,7 @@ Shader "Crest/Ocean"
 
 				// Normal - geom + normal mapping. Subsurface scattering.
 				float3 dummy = 0.;
-				half3 n_pixel = half3(0.0, 1.0, 0.0);
+				float3 n_pixel = float3(0.0, 1.0, 0.0);
 				half sss = 0.;
 				if (wt_smallerLod > 0.001)
 				{

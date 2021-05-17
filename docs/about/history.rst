@@ -39,6 +39,7 @@ Fixed
 .. bullet_list::
 
    -  Fix build errors for platforms that do not support XR/VR.
+   -  Fix "black square" bug on Oculus Quest.
    -  Fix for bugs where a large boat may stop moving when camera is close.
    -  Fix bad data being sampled from simulations when they're not enabled like the entire ocean being shadowed when shadow data was disabled.
    -  Fix null exception for attach renderer help box fix button.

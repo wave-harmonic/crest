@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -151,6 +152,14 @@ namespace Crest
             public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
+        internal static readonly CrestSortedList<int, ShapeGerstnerBatched> Instances = new CrestSortedList<int, ShapeGerstnerBatched>(new SiblingIndexComparer());
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void InitStatics()
+        {
+            Instances.Clear();
+        }
+
 #if UNITY_EDITOR
         void Reset()
         {
@@ -163,6 +172,8 @@ namespace Crest
 
         private void OnEnable()
         {
+            Instances.Add(transform.GetSiblingIndex(), this);
+
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
@@ -541,6 +552,8 @@ namespace Crest
 
         void OnDisable()
         {
+            Instances.Remove(this);
+
             if (_batches != null)
             {
                 var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));

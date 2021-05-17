@@ -142,7 +142,7 @@ namespace Crest
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         internal Material _material = null;
-        public Material OceanMaterial { get { return _material; } }
+        public Material OceanMaterial { get { return _material; } set { _material = value; } }
 
         [SerializeField, Delayed]
         string _layerName = "Water";

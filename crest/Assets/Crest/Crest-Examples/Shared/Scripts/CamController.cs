@@ -78,11 +78,13 @@ public class CamController : MonoBehaviour
 #if ENABLE_VR && ENABLE_VR_MODULE
         // These aren't useful and can break for XR hardware.
         if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
+#endif
         {
             UpdateDragging(dt);
             UpdateKillRoll();
         }
 
+#if ENABLE_VR && ENABLE_VR_MODULE
         if (XRSettings.enabled)
         {
             // Check if property has changed.

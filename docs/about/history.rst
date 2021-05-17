@@ -23,17 +23,42 @@ Changed
 .. bullet_list::
 
    -  Sponsorship page launched! Asset Store sales only cover fixes and basic support. To support new feature development and give us financial stability please consider sponsoring us, no amount is too small! https://github.com/sponsors/wave-harmonic
+   -  Wind speed added to OceanRenderer component so that wave conditions change naturally for different wind conditions
+   -  Empirical spectra retweaked and use the aforementioned wind speed
    -  Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).
    -  Headless support - add support for running without display, with new toggle on OceanRenderer to emulate it in Editor.
    -  No GPU support - add support for running without GPU, with new toggle on OceanRenderer to emulate it in Editor.
+   -  OceanRenderer usability - system automatically rebuilds when changing settings on the component, 'Rebuild' button removed.
+
+   .. only:: hdrp
+
+      -  *Copy Ocean Material Params Each Frame* is now enabled by default for *Underwater Post Process*. `[HDRP]`
 
 Fixed
 ^^^^^
 .. bullet_list::
 
    -  Fix build errors for platforms that do not support XR/VR.
-   -  Potential fix for bugs where a large boat may stop moving when camera is close.
    -  Fix "black square" bug on Oculus Quest.
+   -  Fix for bugs where a large boat may stop moving when camera is close.
+   -  Fix bad data being sampled from simulations when they're not enabled like the entire ocean being shadowed when shadow data was disabled.
+   -  Fix null exception for attach renderer help box fix button.
+   -  Fix "remove renderer" help box not showing when it should.
+
+   .. only:: hdrp
+
+      -  Fix shadow data for XR/VR `SPI` from working and breaking builds. `[HDRP]`
+
+   .. only:: urp
+
+      -  Fix ocean tiles disappearing when far from zero. `[URP]`
+
+Documentation
+^^^^^^^^^^^^^
+.. bullet_list::
+
+   -  Document issues with transparency in new :ref:`rendering` page.
+   -  Improve :ref:`lighting` section.
 
 
 4.10

@@ -1,5 +1,3 @@
-The Index of Refraction settings control how much reflection contributes for different view angles.
-
 The base reflection comes from a one of these sources:
 
 -  Unity's specular cubemap.

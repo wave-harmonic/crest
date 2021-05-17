@@ -59,7 +59,7 @@ Buoyancy
 .. note::
 
    Buoyancy physics for boats is not a core focus of `Crest`.
-   For a professional physics solution we recommend the :link:`{DWP2} <https://assetstore.unity.com/packages/tools/physics/dynamic-water-physics-2-147990>` asset which is compatible with `Crest`.
+   For a professional physics solution we recommend the :link:`{DWP2} <https://assetstore.unity.com/packages/tools/physics/dynamic-water-physics-2-147990?aid=1011lic2K>` asset which is compatible with `Crest`.
 
    With that said, we do provide rudimentary physics scripts.
 

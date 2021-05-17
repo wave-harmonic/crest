@@ -25,7 +25,7 @@ namespace Crest
         [Range(0f, 5f), Tooltip("Scales intensity of foam generated from waves. This setting should be balanced with the Foam Fade Rate setting.")]
         public float _waveFoamStrength = 1f;
         [Range(0f, 1f), Tooltip("How much of the waves generate foam. Higher values will lower the threshold for foam generation, giving a larger area.")]
-        public float _waveFoamCoverage = 0.8f;
+        public float _waveFoamCoverage = 0.55f;
 
         [Header("Shoreline")]
         [Range(0.01f, 3f), Tooltip("Foam will be generated in water shallower than this depth. Controls how wide the band of foam at the shoreline will be.")]

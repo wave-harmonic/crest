@@ -33,7 +33,7 @@ There are some Unity issues that affect `Crest`.
 If you could vote on these issues, that would be greatly appreciated:
 
 -  :link:`Gizmos render over opaque objects with Post-Processing stack. <{UnityIssueLink}/1124862>` `[[BIRP]]`
--  :link:`Opaque texture is black in right eye if both depth and opaque texture enabled for multi-pass rendering mode. <{UnityIssueLink}/1256604` `[[URP]]`
+-  :link:`Opaque texture is black in right eye if both depth and opaque texture enabled for multi-pass rendering mode. <{UnityIssueLink}/1256604>` `[[URP]]`
 
 
 Unity Features

@@ -155,7 +155,15 @@ Reflection Environment
       |  **Fresnel Power** Controls harshness of Fresnel behaviour. `[BIRP] [URP]`
       |  **Refractive Index of Air** Index of refraction of air.
          Can be increased to almost 1.333 to increase visibility up through water surface. `[BIRP] [URP]`
-      |  **Refractive Index of Water** Index of refraction of water. Typically left at 1.333. `[BIRP] [URP]`
+
+      .. admonition:: Deprecated
+
+         The *Refractive Index of Air* property will be removed in a future version.
+
+   |  **Refractive Index of Water** Index of refraction of water. Typically left at 1.333.
+
+   .. only:: birp or urp
+
       |  **Planar Reflections** Dynamically rendered 'reflection plane' style reflections.
          Requires OceanPlanarReflection script added to main camera. `[BIRP] [URP]`
       |  **Planar Reflections Distortion** How much the water normal affects the planar reflection. `[BIRP] [URP]`

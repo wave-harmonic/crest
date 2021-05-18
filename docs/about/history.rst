@@ -29,6 +29,7 @@ Changed
    -  Headless support - add support for running without display, with new toggle on OceanRenderer to emulate it in Editor.
    -  No GPU support - add support for running without GPU, with new toggle on OceanRenderer to emulate it in Editor.
    -  OceanRenderer usability - system automatically rebuilds when changing settings on the component, 'Rebuild' button removed.
+   -  Ocean material can now be set with scripting.
 
    .. only:: hdrp
 

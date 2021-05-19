@@ -144,9 +144,9 @@ namespace Crest
         internal Material _material = null;
         public Material OceanMaterial { get { return _material; } set { _material = value; } }
 
-        [System.Obsolete("Layer Name (string _layerName) is deprecated. Use Layer (int _layer) instead."), HideInInspector, SerializeField]
+        [System.Obsolete("Use the _layer field instead."), HideInInspector, SerializeField]
         string _layerName = "";
-        [System.Obsolete("Layer Name (string LayerName) is deprecated. Use Layer (int Layer) instead.")]
+        [System.Obsolete("Use the Layer property instead.")]
         public string LayerName { get { return _layerName; } }
 
         [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]

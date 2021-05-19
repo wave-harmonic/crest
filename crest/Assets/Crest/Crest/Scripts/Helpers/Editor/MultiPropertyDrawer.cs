@@ -37,9 +37,8 @@ namespace Crest.EditorHelpers
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            float height = base.GetPropertyHeight(property, label);
-            // NOTE: We could add an additive height here from decorators if it makes sense to do so.
-            return ((DecoratedPropertyAttribute)attribute).GetPropertyHeight(property, label) ?? height;
+            // Make original control rectangle be invisible because we always create our own.
+            return 0;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -55,7 +54,7 @@ namespace Crest.EditorHelpers
             }
 
             var a = (DecoratedPropertyAttribute) attribute;
-            a.OnGUI(position, property, a.BuildLabel(label), this);
+            a.OnGUI(a.NeedsControlRectangle ? EditorGUILayout.GetControlRect(true) : position, property, a.BuildLabel(label), this);
 
             // Handle resetting the GUI state.
             GUI.color = originalColor;

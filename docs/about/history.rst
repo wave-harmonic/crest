@@ -34,6 +34,7 @@ Changed
    .. only:: hdrp
 
       -  *Copy Ocean Material Params Each Frame* is now enabled by default for *Underwater Post Process*. `[HDRP]`
+      -  Add *Refractive Index of Water* property to ocean material. `[HDRP]`
 
 Fixed
 ^^^^^
@@ -53,6 +54,12 @@ Fixed
    .. only:: urp
 
       -  Fix ocean tiles disappearing when far from zero. `[URP]`
+
+.. only:: birp or urp
+
+   Deprecated
+   ^^^^^^^^^^
+   -  The *Refractive Index of Air* on the ocean material will be removed in a future version. `[BIRP] [URP]`
 
 Documentation
 ^^^^^^^^^^^^^

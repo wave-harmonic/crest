@@ -149,7 +149,7 @@ namespace Crest
         [System.Obsolete("Layer Name (string LayerName) is deprecated. Use Layer (int Layer) instead.")]
         public string LayerName { get { return _layerName; } }
 
-        [HelpBox("The <i>Layer</i> property needs to be migrated for it to be used. Please see the bottom of this component for a fix button.", MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
+        [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
         [Tooltip("The ocean tile renderers will have this layer.")]
         [SerializeField, Predicated("_layerName", inverted: true), Layer]
         int _layer = 4; // Water
@@ -1530,9 +1530,9 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>Layer Name</i> on the <i>Ocean Renderer</i> is obsolete and is no longer used. " +
+                    "<i>Layer Name</i> on the <i>Ocean Renderer</i> is deprecated and will be removed. " +
                     "Use <i>Layer</i> instead.",
-                    "Set layer using the layer name to complete the migration.",
+                    "Set <i>Layer</i> using the <i>Layer Name</i> to complete the migration.",
                     ValidatedHelper.MessageType.Warning, this,
                     (SerializedObject serializedObject) =>
                     {

@@ -60,6 +60,7 @@ Fixed
    Deprecated
    ^^^^^^^^^^
    -  The *Refractive Index of Air* on the ocean material will be removed in a future version. `[BIRP] [URP]`
+   -  *Layer Name* on the *Ocean Renderer* has been deprecated. Use *Layer* instead.
 
 Documentation
 ^^^^^^^^^^^^^

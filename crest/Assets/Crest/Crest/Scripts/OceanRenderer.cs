@@ -1532,7 +1532,7 @@ namespace Crest
                 (
                     "<i>Layer Name</i> on the <i>Ocean Renderer</i> is deprecated and will be removed. " +
                     "Use <i>Layer</i> instead.",
-                    "Set <i>Layer</i> using the <i>Layer Name</i> to complete the migration.",
+                    $"Set <i>Layer</i> to <i>{_layerName}</i> using the <i>Layer Name</i> to complete the migration.",
                     ValidatedHelper.MessageType.Warning, this,
                     (SerializedObject serializedObject) =>
                     {

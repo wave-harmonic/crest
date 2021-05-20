@@ -1,0 +1,12 @@
+Page Not Found
+--------------
+
+.. raw:: html
+
+    <script id="404-page-script">
+        const isPage404 = true
+    </script>
+
+Sorry, we couldn't find that page.
+
+Try using the search box or go to the homepage.

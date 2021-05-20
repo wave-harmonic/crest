@@ -8,11 +8,14 @@
 #if UNITY_EDITOR
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
 namespace Crest
 {
+    using ValidationFixFunc = System.Action<SerializedObject>;
+
     public interface IValidated
     {
         bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage);
@@ -28,20 +31,28 @@ namespace Crest
             Info,
         }
 
+        public struct HelpBoxMessage
+        {
+            public string _message;
+            public string _fixDescription;
+            public Object _object;
+            public ValidationFixFunc _action;
+        }
+
         // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we
         // want to group them by severity (MessageType). Make sure length matches MessageType length.
-        public static readonly List<string>[] messages = new[]
+        public static readonly List<HelpBoxMessage>[] messages = new[]
         {
-            new List<string>(),
-            new List<string>(),
-            new List<string>(),
+            new List<HelpBoxMessage>(),
+            new List<HelpBoxMessage>(),
+            new List<HelpBoxMessage>(),
         };
 
-        public delegate void ShowMessage(string message, MessageType type, Object @object = null);
+        public delegate void ShowMessage(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null);
 
-        public static void DebugLog(string message, MessageType type, Object @object = null)
+        public static void DebugLog(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
-            message = $"Validation: {message} Click this message to highlight the problem object.";
+            message = $"Validation: {message} {fixDescription} Click this message to highlight the problem object.";
 
             switch (type)
             {
@@ -51,9 +62,49 @@ namespace Crest
             }
         }
 
-        public static void HelpBox(string message, MessageType type, Object @object = null)
+        public static void HelpBox(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
-            messages[(int)type].Add(message);
+            messages[(int)type].Add(new HelpBoxMessage { _message = message, _fixDescription = fixDescription, _object = @object, _action = action });
+        }
+
+        public static void Suppressed(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
+        {
+        }
+
+        internal static void FixAttachComponent<ComponentType>(SerializedObject componentOrGameObject)
+            where ComponentType : Component
+        {
+            // We will either get the component or the GameObject it is attached to.
+            var gameObject = componentOrGameObject.targetObject is GameObject
+                ? componentOrGameObject.targetObject as GameObject
+                : (componentOrGameObject.targetObject as Component).gameObject;
+            Undo.AddComponent<ComponentType>(gameObject);
+        }
+
+        internal static void FixSetMaterialOptionEnabled(SerializedObject material, string keyword, string floatParam, bool enabled)
+        {
+            var mat = material.targetObject as Material;
+            Undo.RecordObject(mat, $"Enable keyword {keyword}");
+            if (enabled)
+            {
+                mat.EnableKeyword(keyword);
+            }
+            else
+            {
+                mat.DisableKeyword(keyword);
+            }
+            mat.SetFloat(floatParam, enabled ? 1f : 0f);
+        }
+
+        static void FixRemoveRenderer(SerializedObject componentOrGameObject)
+        {
+            // We will either get the component or the GameObject it is attached to.
+            var gameObject = componentOrGameObject.targetObject is GameObject
+                ? componentOrGameObject.targetObject as GameObject
+                : (componentOrGameObject.targetObject as Component).gameObject;
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+            Undo.DestroyObjectImmediate(renderer);
+            EditorUtility.SetDirty(gameObject);
         }
 
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
@@ -63,32 +114,68 @@ namespace Crest
             {
                 showMessage
                 (
-                    "No renderer has been attached to ocean input. A renderer is required.",
-                    MessageType.Error, gameObject
+                    "A MeshRenderer component is required but none is attached to ocean input.",
+                    "Attach a <i>MeshRenderer</i> component.",
+                    MessageType.Error, gameObject,
+                    FixAttachComponent<MeshRenderer>
                 );
                 return false;
             }
 
-            // TODO:UnderwaterPostProcessValidation
-            // How to get this to work?
-            // var underwaters = FindObjectsOfType<UnderwaterPostProcess>();
-            // foreach (var underwater in underwaters)
-            // {
-            //     if (underwater.GetComponent<Camera>() == null)
-            //     {
-            //         showMessage("Validation: UnderwaterPostProcess script must be attached to a GameObject with a Camera component. Click this message to see the GameObject in question.", MessageType.Error, underwater.gameObject);
-            //         return false;
-            //     }
-            // }
+            if (!ValidateMaterial(renderer.sharedMaterial, shaderPrefix, gameObject, showMessage))
+            {
+                return false;
+            }
 
-            if (!renderer.sharedMaterial || renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
+            return true;
+        }
+
+        public static bool ValidateMaterial(Material material, string shaderPrefix, GameObject gameObject, ShowMessage showMessage)
+        {
+            if (!material || material.shader && !material.shader.name.StartsWith(shaderPrefix))
             {
                 showMessage
                 (
                     $"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.",
+                    "Assign a material that uses a shader of this type.",
                     MessageType.Error, gameObject
                 );
 
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool ValidateInputMesh(bool rendererRequired, GameObject gameObject, ShowMessage showMessage)
+        {
+            gameObject.TryGetComponent<MeshRenderer>(out var renderer);
+
+            if (!rendererRequired)
+            {
+                if (renderer)
+                {
+                    showMessage
+                    (
+                        "A <i>MeshRenderer</i> is present but is unused and should be removed.",
+                        "Remove the <i>MeshRenderer</i> component.",
+                        MessageType.Warning, gameObject,
+                        FixRemoveRenderer
+                    );
+                    return false;
+                }
+                return true;
+            }
+
+            if (!renderer)
+            {
+                showMessage
+                (
+                    "A <i>Crest Spline</i> component is required to drive this data. Alternatively a <i>MeshRenderer</i> can be added. Neither is currently attached to ocean input.",
+                    "Attach a <i>Crest Spline</i> component.",
+                    MessageType.Error, gameObject,
+                    FixAttachComponent<Spline.Spline>
+                );
                 return false;
             }
 
@@ -99,6 +186,8 @@ namespace Crest
     public abstract class ValidatedEditor : Editor
     {
         static readonly bool _groupMessages = false;
+        static GUIContent s_jumpButtonContent = null;
+        static GUIContent s_fixButtonContent = null;
 
         public void ShowValidationMessages()
         {
@@ -146,7 +235,7 @@ namespace Crest
                     if (_groupMessages)
                     {
                         // We join the messages together to reduce vertical space since HelpBox has padding, borders etc.
-                        var joinedMessage = messages[0];
+                        var joinedMessage = messages[0]._message;
                         // Format as list if we have more than one message.
                         if (messages.Count > 1) joinedMessage = $"- {joinedMessage}";
 
@@ -161,7 +250,63 @@ namespace Crest
                     {
                         foreach (var message in messages)
                         {
-                            EditorGUILayout.HelpBox(message, messageType);
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.HelpBox(message._message + " " + message._fixDescription, messageType);
+
+                            // Jump to object button.
+                            if (message._object != null)
+                            {
+                                // Selection.activeObject can be message._object.gameObject instead of the component
+                                // itself. We soft cast to MonoBehaviour to get the gameObject for comparison.
+                                // Alternatively, we could always pass gameObject instead of "this".
+                                var casted = message._object as MonoBehaviour;
+
+                                if (Selection.activeObject != message._object && (casted == null || casted.gameObject != Selection.activeObject))
+                                {
+                                    if (s_jumpButtonContent == null)
+                                    {
+                                        s_jumpButtonContent = new GUIContent(EditorGUIUtility.FindTexture("scenepicking_pickable_hover@2x"), "Jump to object to resolve issue");
+                                    }
+
+                                    if (GUILayout.Button(s_jumpButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
+                                    {
+                                        Selection.activeObject = message._object;
+                                    }
+                                }
+                            }
+
+                            // Fix the issue button.
+                            if (message._action != null)
+                            {
+                                if (s_fixButtonContent == null)
+                                {
+                                    s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"));
+                                }
+
+                                if (message._fixDescription != null)
+                                {
+                                    var sanitisedFixDescr = Regex.Replace(message._fixDescription, @"<[^<>]*>", "'");
+                                    s_fixButtonContent.tooltip = $"Apply fix: {sanitisedFixDescr}";
+                                }
+                                else
+                                {
+                                    s_fixButtonContent.tooltip = "Fix issue";
+                                }
+
+                                if (GUILayout.Button(s_fixButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
+                                {
+                                    // Run fix function
+                                    var serializedObject = new SerializedObject(message._object);
+                                    message._action.Invoke(serializedObject);
+                                    if (serializedObject.ApplyModifiedProperties())
+                                    {
+                                        // SerializedObject does this for us, but gives the history item a nicer label.
+                                        Undo.RecordObject(message._object, s_fixButtonContent.tooltip);
+                                    }
+                                }
+                            }
+
+                            EditorGUILayout.EndHorizontal();
                         }
                     }
                 }

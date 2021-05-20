@@ -147,28 +147,33 @@ namespace Crest
             sw.Start();
 #endif
 
-            // create mesh data
-            Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
-            Bounds[] meshBounds = new Bounds[(int)PatchType.Count];
-            // 4 tiles across a LOD, and support lowering density by a factor
-            var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
-            for (int i = 0; i < (int)PatchType.Count; i++)
-            {
-                meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
-            }
-
             ClearOutTiles(ocean, tiles);
 
             var root = new GameObject("Root");
+            Debug.Assert(root != null, "The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
+
             root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
             root.transform.parent = ocean.transform;
             root.transform.localPosition = Vector3.zero;
             root.transform.localRotation = Quaternion.identity;
             root.transform.localScale = Vector3.one;
 
-            for (int i = 0; i < lodCount; i++)
+            if (!OceanRenderer.RunningHeadless && !OceanRenderer.RunningWithoutGPU)
             {
-                CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                // create mesh data
+                Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
+                Bounds[] meshBounds = new Bounds[(int)PatchType.Count];
+                // 4 tiles across a LOD, and support lowering density by a factor
+                var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
+                for (int i = 0; i < (int)PatchType.Count; i++)
+                {
+                    meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
+                }
+
+                for (int i = 0; i < lodCount; i++)
+                {
+                    CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                }
             }
 
 #if PROFILE_CONSTRUCTION
@@ -453,7 +458,7 @@ namespace Crest
                     var oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();
                     oceanChunkRenderer._boundsLocal = meshBounds[(int)patchTypes[i]];
                     patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
-                    oceanChunkRenderer.SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
+                    oceanChunkRenderer.SetInstanceData(lodIndex);
                     tiles.Add(oceanChunkRenderer);
                 }
 

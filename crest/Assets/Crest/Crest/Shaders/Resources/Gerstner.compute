@@ -31,6 +31,10 @@ struct GerstnerWaveComponent4
 	float4 _omega;
 	float4 _phase;
 	float4 _chopAmp;
+	// Waves are generated in pairs, these values are for the second in the pair
+	float4 _amp2;
+	float4 _chopAmp2;
+	float4 _phase2;
 };
 StructuredBuffer<GerstnerWaveComponent4> _GerstnerWaveData;
 
@@ -50,15 +54,37 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 
 	// spatial location
 	float4 x = kx * worldPosXZ.x + kz * worldPosXZ.y;
-	half4 angle = data._phase - data._omega * _CrestTime;
-	angle += x;
 
-	// dx and dz could be baked into _ChopAmp
-	half4 disp = data._chopAmp * sin( angle );
-	half4 resultx = disp * Dx;
-	half4 resultz = disp * Dz;
+	// Compute a pair of waves, travelling in opposite directions (see
+	// sign in front of data._omega). This matches how FFT wave gen works
+	// and produces waves that have a time varying amplitude, resulting in
+	// a more dynamic surface appearance.
+	half4 resultx, resulty, resultz;
+	{
+		half4 angle = x + data._phase - data._omega * _CrestTime;
 
-	half4 resulty = data._amp * cos( angle );
+		half4 sinangle, cosangle;
+		sincos( angle, sinangle, cosangle );
+
+		half4 disp = data._chopAmp * sinangle;
+		resultx = disp * Dx;
+		resultz = disp * Dz;
+
+		resulty = data._amp * cosangle;
+	}
+
+	{
+		half4 angle = x + data._phase2 + data._omega * _CrestTime;
+
+		half4 sinangle, cosangle;
+		sincos( angle, sinangle, cosangle );
+
+		half4 disp = data._chopAmp2 * sinangle;
+		resultx += disp * Dx;
+		resultz += disp * Dz;
+
+		resulty += data._amp2 * cosangle;
+	}
 
 	// sum the vector results
 	result.x += dot( resultx, 1.0 );

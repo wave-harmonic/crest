@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -22,12 +23,16 @@ namespace Crest
 
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
-        public CollisionSources CollisionSource { get { return _collisionSource; } }
+        public CollisionSources CollisionSource { get { return _collisionSource; } set { _collisionSource = value; } }
 
         [Tooltip("Maximum number of wave queries that can be performed when using ComputeShaderQueries.")]
-        [PredicatedField("_collisionSource", true, (int)CollisionSources.ComputeShaderQueries), SerializeField]
+        [Predicated("_collisionSource", true, (int)CollisionSources.ComputeShaderQueries), SerializeField, DecoratedField]
         int _maxQueryCount = QueryBase.MAX_QUERY_COUNT_DEFAULT;
         public int MaxQueryCount { get { return _maxQueryCount; } }
+
+        [Tooltip("Whether to use a graphics shader for combining the wave cascades together. Disabling this uses a compute shader instead which doesn't need to copy back and forth between targets, but it may not work on some GPUs, in particular pre-DX11.3 hardware, which do not support typed UAV loads. The fail behaviour is a flat ocean."), SerializeField]
+        bool _pingPongCombinePass = true;
+        public bool PingPongCombinePass => _pingPongCombinePass;
 
         /// <summary>
         /// Provides ocean shape to CPU.
@@ -45,7 +50,14 @@ namespace Crest
                     result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
-                    result = new QueryDisplacements();
+                    if (!OceanRenderer.RunningWithoutGPU)
+                    {
+                        result = new QueryDisplacements();
+                    }
+                    else
+                    {
+                        Debug.LogError("Crest: Compute shader queries not supported in headless/batch mode. To resolve, assign an Animated Wave Settings asset to the OceanRenderer component and set the Collision Source to be a CPU option.");
+                    }
                     break;
             }
 
@@ -87,6 +99,7 @@ namespace Crest
                     "<i>Gerstner Waves CPU</i> has significant drawbacks. It does not include wave attenuation from " +
                     "water depth or any custom rendered shape. It does not support multiple " +
                     "<i>GerstnerWavesBatched</i> components including cross blending. Please read the user guide for more information.",
+                    "Set collision source to ComputeShaderQueries",
                     ValidatedHelper.MessageType.Info, this
                 );
             }
@@ -95,11 +108,23 @@ namespace Crest
                 showMessage
                 (
                     "Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.",
-                    ValidatedHelper.MessageType.Warning, this
+                    "Set collision source to ComputeShaderQueries.",
+                    ValidatedHelper.MessageType.Warning, this,
+                    FixSetCollisionSourceToCompute
                 );
             }
 
             return isValid;
+        }
+
+        internal static void FixSetCollisionSourceToCompute(SerializedObject settingsObject)
+        {
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance._simSettingsAnimatedWaves != null)
+            {
+                Undo.RecordObject(OceanRenderer.Instance._simSettingsAnimatedWaves, "Set collision source to compute");
+                OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource = CollisionSources.ComputeShaderQueries;
+                EditorUtility.SetDirty(OceanRenderer.Instance._simSettingsAnimatedWaves);
+            }
         }
     }
 #endif

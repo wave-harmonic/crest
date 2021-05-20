@@ -99,9 +99,9 @@ Shader "Crest/Underwater/Ocean Mask"
 				return output;
 			}
 
-			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
+			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 			{
-				if (IsUnderwater(facing, _ForceUnderwater))
+				if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 				{
 					return (half4)UNDERWATER_MASK_WATER_SURFACE_BELOW;
 				}

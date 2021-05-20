@@ -27,12 +27,14 @@ namespace Crest
         {
             var isValid = true;
 
-            if (ocean._simSettingsAnimatedWaves != null && ocean._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
+            if (ocean != null && ocean._simSettingsAnimatedWaves != null && ocean._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
             {
                 showMessage
                 (
                     "<i>Collision Source</i> in <i>Animated Waves Settings</i> is set to <i>None</i>. The floating objects in the scene will use a flat horizontal plane.",
-                    ValidatedHelper.MessageType.Warning, ocean
+                    "Set the <i>Collision Source</i> to <i>ComputeShaderQueries</i> to incorporate waves into physics.",
+                    ValidatedHelper.MessageType.Warning, ocean,
+                    SimSettingsAnimatedWaves.FixSetCollisionSourceToCompute
                 );
 
                 isValid = false;
@@ -44,6 +46,7 @@ namespace Crest
                 showMessage
                 (
                     $"Expected to have one rigidbody on floating object, currently has {rbs.Length} object(s).",
+                    "Remove additional <i>Rigidbody</i> components.",
                     ValidatedHelper.MessageType.Error, this
                 );
             }

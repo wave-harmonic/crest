@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
+using Crest.Spline;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,18 +19,29 @@ namespace Crest
     /// Gerstner ocean waves.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstner-preview")]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
+        , ISplinePointCustomDataSetup
+#if UNITY_EDITOR
+        , IReceiveSplinePointOnDrawGizmosSelectedMessages
+#endif
     {
-        [Header("Wave Settings")]
-        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
+        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
+        OceanWaveSpectrum _activeSpectrum = null;
 
         [Tooltip("When true, the wave spectrum is evaluated once on startup in editor play mode and standalone builds, rather than every frame. This is less flexible but reduces the performance cost significantly."), SerializeField]
         bool _spectrumFixedAtRuntime = true;
 
-        [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
-        public float _windDirectionAngle = 0f;
-        public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
+        [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
+        public float _waveDirectionHeadingAngle = 0f;
+        public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
+
+        [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
+        public bool _overrideGlobalWindSpeed = false;
+        [Tooltip("Wind speed in km/h. Controls wave conditions."), Range(0, 150f, power: 2f), Predicated("_overrideGlobalWindSpeed")]
+        public float _windSpeed = 20f;
 
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
@@ -51,7 +64,22 @@ namespace Crest
         bool _debugDrawSlicesInEditor = false;
 #pragma warning restore 414
 
+        [Header("Spline settings")]
+        [SerializeField]
+        bool _overrideSplineSettings = false;
+        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
+        float _radius = 20f;
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
+        int _subdivisions = 1;
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
+        int _smoothingIterations = 0;
+
+        [SerializeField]
+        float _featherWaveStart = 0.1f;
+
         Mesh _meshForDrawingWaves;
+
+        float _windSpeedWhenGenerated = -1f;
 
         public class GerstnerBatch : ILodDataInput
         {
@@ -107,9 +135,11 @@ namespace Crest
         // Data for all components
         float[] _wavelengths;
         float[] _amplitudes;
+        float[] _amplitudes2;
         float[] _powers;
         float[] _angleDegs;
         float[] _phases;
+        float[] _phases2;
 
         [HideInInspector]
         public RenderTexture _waveBuffers;
@@ -130,6 +160,8 @@ namespace Crest
         // Used to populate data on first frame
         bool _firstUpdate = true;
 
+        // Caution - order here impact performance. Rearranging these to match order
+        // they're read in the compute shader made it 50% slower..
         struct GerstnerWaveComponent4
         {
             public Vector4 _twoPiOverWavelength;
@@ -139,6 +171,10 @@ namespace Crest
             public Vector4 _omega;
             public Vector4 _phase;
             public Vector4 _chopAmp;
+            // Waves are generated in pairs, these values are for the second in the pair
+            public Vector4 _amp2;
+            public Vector4 _chopAmp2;
+            public Vector4 _phase2;
         }
         ComputeBuffer _bufWaveData;
         GerstnerWaveComponent4[] _waveData = new GerstnerWaveComponent4[MAX_WAVE_COMPONENTS / 4];
@@ -156,10 +192,19 @@ namespace Crest
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
+        static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         readonly float _twoPi = 2f * Mathf.PI;
         readonly float _recipTwoPi = 1f / (2f * Mathf.PI);
+
+        internal static readonly CrestSortedList<int, ShapeGerstner> Instances = new CrestSortedList<int, ShapeGerstner>(new SiblingIndexComparer());
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void InitStatics()
+        {
+            Instances.Clear();
+        }
 
         void InitData()
         {
@@ -209,16 +254,25 @@ namespace Crest
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
-            if (_firstUpdate || updateDataEachFrame)
+
+            // Calc wind speed in m/s
+            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
+            windSpeed /= 3.6f;
+
+            if (_firstUpdate || updateDataEachFrame || windSpeed != _windSpeedWhenGenerated)
             {
-                UpdateWaveData();
+                UpdateWaveData(windSpeed);
 
                 InitBatches();
 
                 _firstUpdate = false;
+                _windSpeedWhenGenerated = windSpeed;
             }
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
+            _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
+            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
             ReportMaxDisplacement();
 
@@ -228,7 +282,7 @@ namespace Crest
                 UpdateGenerateWaves(buf);
             }
 
-            buf.SetGlobalVector(sp_AxisX, WindDir);
+            buf.SetGlobalVector(sp_AxisX, PrimaryWaveDirection);
             // Seems to come unbound when editing shaders at runtime, so rebinding here.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }
@@ -236,15 +290,26 @@ namespace Crest
 #if UNITY_EDITOR
         void UpdateEditorOnly()
         {
-            if (_spectrum == null)
+            if (_spectrum != null)
             {
-                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _spectrum.name = "Default Waves (auto)";
+                _activeSpectrum = _spectrum;
+            }
+
+            if (_activeSpectrum == null)
+            {
+                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                _activeSpectrum.name = "Default Waves (auto)";
+            }
+
+            // Unassign mesh
+            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _))
+            {
+                _meshForDrawingWaves = null;
             }
         }
 #endif
 
-        void SliceUpWaves()
+        void SliceUpWaves(float windSpeed)
         {
             _firstCascade = _lastCascade = -1;
 
@@ -287,7 +352,10 @@ namespace Crest
                         _waveData[vi]._waveDirZ[ei] = 0f;
                         _waveData[vi]._omega[ei] = 0f;
                         _waveData[vi]._phase[ei] = 0f;
+                        _waveData[vi]._phase2[ei] = 0f;
                         _waveData[vi]._chopAmp[ei] = 0f;
+                        _waveData[vi]._amp2[ei] = 0f;
+                        _waveData[vi]._chopAmp2[ei] = 0f;
                         ei = (ei + 1) % 4;
                         outputIdx++;
                     }
@@ -308,16 +376,18 @@ namespace Crest
                     int ei = outputIdx - vi * 4;
 
                     _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
+                    _waveData[vi]._amp2[ei] = _amplitudes2[componentIdx];
 
-                    float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
-                    _waveData[vi]._chopAmp[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
+                    float chopScale = _activeSpectrum._chopScales[componentIdx / _componentsPerOctave];
+                    _waveData[vi]._chopAmp[ei] = -chopScale * _activeSpectrum._chop * _amplitudes[componentIdx];
+                    _waveData[vi]._chopAmp2[ei] = -chopScale * _activeSpectrum._chop * _amplitudes2[componentIdx];
 
                     float angle = Mathf.Deg2Rad * _angleDegs[componentIdx];
                     float dx = Mathf.Cos(angle);
                     float dz = Mathf.Sin(angle);
 
-                    float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
-                    float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
+                    float gravityScale = _activeSpectrum._gravityScales[(componentIdx) / _componentsPerOctave];
+                    float gravity = OceanRenderer.Instance.Gravity * _activeSpectrum._gravityScale;
                     float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * _recipTwoPi);
                     float k = _twoPi / _wavelengths[componentIdx];
 
@@ -347,6 +417,7 @@ namespace Crest
                     // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
                     _waveData[vi]._omega[ei] = k * C;
                     _waveData[vi]._phase[ei] = Mathf.Repeat(_phases[componentIdx], Mathf.PI * 2f);
+                    _waveData[vi]._phase2[ei] = Mathf.Repeat(_phases2[componentIdx], Mathf.PI * 2f);
 
                     outputIdx++;
                 }
@@ -367,7 +438,10 @@ namespace Crest
                     _waveData[vi]._waveDirZ[ei] = 0f;
                     _waveData[vi]._omega[ei] = 0f;
                     _waveData[vi]._phase[ei] = 0f;
+                    _waveData[vi]._phase2[ei] = 0f;
                     _waveData[vi]._chopAmp[ei] = 0f;
+                    _waveData[vi]._amp2[ei] = 0f;
+                    _waveData[vi]._chopAmp2[ei] = 0f;
                     ei = (ei + 1) % 4;
                     outputIdx++;
                 }
@@ -391,11 +465,11 @@ namespace Crest
 
                 var wl = MinWavelength(i) * 1.5f;
                 var octaveIndex = OceanWaveSpectrum.GetOctaveIndex(wl);
-                octaveIndex = Mathf.Min(octaveIndex, _spectrum._chopScales.Length - 1);
+                octaveIndex = Mathf.Min(octaveIndex, _activeSpectrum._chopScales.Length - 1);
 
                 // Heuristic - horiz disp is roughly amp*chop, divide by wavelength to normalize
-                var amp = _spectrum.GetAmplitude(wl, 1f, out _);
-                var chop = _spectrum._chopScales[octaveIndex];
+                var amp = _activeSpectrum.GetAmplitude(wl, 1f, windSpeed, out _);
+                var chop = _activeSpectrum._chopScales[octaveIndex];
                 float amp_over_wl = chop * amp / wl;
                 _cascadeParams[i]._cumulativeVariance += amp_over_wl;
             }
@@ -419,9 +493,9 @@ namespace Crest
 
         public void SetOrigin(Vector3 newOrigin)
         {
-            if (_phases == null) return;
+            if (_phases == null || _phases2 == null) return;
 
-            var windAngle = _windDirectionAngle;
+            var windAngle = _waveDirectionHeadingAngle;
             for (int i = 0; i < _phases.Length; i++)
             {
                 var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
@@ -431,28 +505,33 @@ namespace Crest
                 var k = 2f * Mathf.PI / _wavelengths[i];
 
                 _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
+                _phases2[i] = Mathf.Repeat(_phases2[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
             }
         }
 
-        public void UpdateWaveData()
+        /// <summary>
+        /// Resamples wave spectrum
+        /// </summary>
+        /// <param name="windSpeed">Wind speed in m/s</param>
+        public void UpdateWaveData(float windSpeed)
         {
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
 
-            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
+            _activeSpectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
 
             UpdateAmplitudes();
 
             // Won't run every time so put last in the random sequence
-            if (_phases == null || _phases.Length != _wavelengths.Length)
+            if (_phases == null || _phases.Length != _wavelengths.Length || _phases2 == null || _phases2.Length != _wavelengths.Length)
             {
                 InitPhases();
             }
 
             Random.state = randomStateBkp;
 
-            SliceUpWaves();
+            SliceUpWaves(windSpeed);
         }
 
         void UpdateAmplitudes()
@@ -461,14 +540,24 @@ namespace Crest
             {
                 _amplitudes = new float[_wavelengths.Length];
             }
+            if (_amplitudes2 == null || _amplitudes2.Length != _wavelengths.Length)
+            {
+                _amplitudes2 = new float[_wavelengths.Length];
+            }
             if (_powers == null || _powers.Length != _wavelengths.Length)
             {
                 _powers = new float[_wavelengths.Length];
             }
 
+            // Calc wind speed in m/s
+            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
+            windSpeed /= 3.6f;
+
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = Random.value * _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
+                var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _powers[i]);
+                _amplitudes[i] = Random.value * amp;
+                _amplitudes2[i] = Random.value * amp * 0.5f;
             }
         }
 
@@ -480,6 +569,7 @@ namespace Crest
 
             var totalComps = _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES;
             _phases = new float[totalComps];
+            _phases2 = new float[totalComps];
             for (var octave = 0; octave < OceanWaveSpectrum.NUM_OCTAVES; octave++)
             {
                 for (var i = 0; i < _componentsPerOctave; i++)
@@ -487,6 +577,9 @@ namespace Crest
                     var index = octave * _componentsPerOctave + i;
                     var rnd = (i + Random.value) / _componentsPerOctave;
                     _phases[index] = 2f * Mathf.PI * rnd;
+
+                    var rnd2 = (i + Random.value) / _componentsPerOctave;
+                    _phases2[index] = 2f * Mathf.PI * rnd2;
                 }
             }
 
@@ -495,17 +588,17 @@ namespace Crest
 
         private void ReportMaxDisplacement()
         {
-            if (_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
+            if (_activeSpectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
             {
-                Debug.LogError($"OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
+                Debug.LogError($"OceanWaveSpectrum {_activeSpectrum.name} is out of date, please open this asset and resave in editor.", _activeSpectrum);
             }
 
             float ampSum = 0f;
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                ampSum += _amplitudes[i] * _spectrum._chopScales[i / _componentsPerOctave];
+                ampSum += _amplitudes[i] * _activeSpectrum._chopScales[i / _componentsPerOctave];
             }
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum, ampSum);
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _activeSpectrum._chop, ampSum, ampSum);
         }
 
         void InitBatches()
@@ -517,6 +610,18 @@ namespace Crest
                 foreach (var batch in _batches)
                 {
                     registered.Remove(batch);
+                }
+            }
+
+            if (TryGetComponent<Spline.Spline>(out var splineForWaves))
+            {
+                var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
+                var smooth = _overrideSplineSettings ? _smoothingIterations : splineForWaves.SmoothingIterations;
+
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, smooth, Vector2.one, ref _meshForDrawingWaves))
+                {
+                    _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
             }
 
@@ -541,14 +646,20 @@ namespace Crest
 
         private void OnEnable()
         {
+            Instances.Add(transform.GetSiblingIndex(), this);
+
             _firstUpdate = true;
 
-#if UNITY_EDITOR
             // Initialise with spectrum
-            if (_spectrum == null)
+            if (_spectrum != null)
             {
-                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _spectrum.name = "Default Waves (auto)";
+                _activeSpectrum = _spectrum;
+            }
+#if UNITY_EDITOR
+            if (_activeSpectrum == null)
+            {
+                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                _activeSpectrum.name = "Default Waves (auto)";
             }
 
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
@@ -557,7 +668,7 @@ namespace Crest
                 return;
             }
 
-            _spectrum.Upgrade();
+            _activeSpectrum.Upgrade();
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
@@ -565,6 +676,8 @@ namespace Crest
 
         void OnDisable()
         {
+            Instances.Remove(this);
+
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
 
             if (_batches != null)
@@ -612,7 +725,24 @@ namespace Crest
                 OceanDebugGUI.DrawTextureArray(_waveBuffers, 8);
             }
         }
+
+        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        {
+            DrawMesh();
+        }
 #endif
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (splinePoint.TryGetComponent(out SplinePointDataGerstner _))
+            {
+                // Already existing, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointDataGerstner>();
+            return true;
+        }
     }
 
 #if UNITY_EDITOR
@@ -622,15 +752,14 @@ namespace Crest
         {
             var isValid = true;
 
-            if (_componentsPerOctave == 0)
+            if (TryGetComponent<Spline.Spline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
             {
                 showMessage
                 (
-                    "Components Per Octave set to 0 meaning this Gerstner component won't generate any waves.",
-                    ValidatedHelper.MessageType.Warning, this
+                    "A <i>Spline</i> component is attached but it has validation errors.",
+                    "Check this component in the Inspector for issues.",
+                    ValidatedHelper.MessageType.Error, this
                 );
-
-                isValid = false;
             }
 
             return isValid;
@@ -639,8 +768,6 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeGerstner))]
-    public class ShapeGerstnerEditor : ValidatedEditor
-    {
-    }
+    public class ShapeGerstnerEditor : ValidatedEditor { }
 #endif
 }

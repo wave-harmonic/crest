@@ -10,6 +10,8 @@ namespace Crest
     /// Registers a custom input to the clip surface simulation. Attach this to GameObjects that you want to use to
     /// clip the surface of the ocean.
     /// </summary>
+    [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         bool _enabled = true;
@@ -39,7 +41,7 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.Instance == null || _renderer == null)
             {
                 return;
             }
@@ -80,5 +82,16 @@ namespace Crest
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
+
+#if UNITY_EDITOR
+        protected override string FeatureToggleName => "_createClipSurfaceData";
+        protected override string FeatureToggleLabel => "Create Clip Surface Data";
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
+        protected override string RequiredShaderKeywordProperty => LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY;
+        protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
+
+        protected override string MaterialFeatureDisabledError => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;
+        protected override string MaterialFeatureDisabledFix => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+#endif
     }
 }

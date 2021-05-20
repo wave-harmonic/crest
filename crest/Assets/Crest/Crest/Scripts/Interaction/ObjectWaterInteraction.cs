@@ -56,6 +56,13 @@ namespace Crest
             }
 #endif
 
+            if (OceanRenderer.Instance._lodDataDynWaves == null)
+            {
+                // Don't run without a dyn wave sim
+                enabled = false;
+                return;
+            }
+
             _localOffset = transform.localPosition;
             _renderer = GetComponent<Renderer>();
             _mpb = new MaterialPropertyBlock();
@@ -164,13 +171,13 @@ namespace Crest
         {
             var isValid = true;
 
-            if (!ocean.CreateDynamicWaveSim)
+            if (!ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
             {
                 showMessage
                 (
                     "<i>ObjectWaterInteraction</i> requires dynamic wave simulation to be enabled.",
                     $"Enable the <i>{LodDataMgrDynWaves.FEATURE_TOGGLE_LABEL}</i> option on the <i>OceanRenderer</i> component.",
-                    ValidatedHelper.MessageType.Error, ocean,
+                    ValidatedHelper.MessageType.Warning, ocean,
                     (so) => OceanRenderer.FixSetFeatureEnabled(so, LodDataMgrDynWaves.FEATURE_TOGGLE_NAME, true)
                 );
 

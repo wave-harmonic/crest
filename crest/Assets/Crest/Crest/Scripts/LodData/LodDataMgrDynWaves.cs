@@ -19,6 +19,8 @@ namespace Crest
 
         public override string SimName { get { return "DynamicWaves"; } }
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
+        static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
+        protected override Texture2DArray NullTexture => s_nullTexture;
 
         public bool _rotateLaplacian = true;
 
@@ -126,17 +128,13 @@ namespace Crest
         protected override void GetSimSubstepData(float timeToSimulate, out int numSubsteps, out float substepDt)
         {
             numSubsteps = Mathf.FloorToInt(timeToSimulate * Settings._simulationFrequency);
-            
             substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_DynamicWaves";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
-        {
-            return ParamIdSampler(sourceLod);
-        }
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
 
         public static void Bind(IPropertyWrapper properties)
         {
@@ -146,9 +144,11 @@ namespace Crest
             }
             else
             {
-                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
             }
         }
+
+        public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

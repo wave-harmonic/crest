@@ -155,7 +155,15 @@ Reflection Environment
       |  **Fresnel Power** Controls harshness of Fresnel behaviour. `[BIRP] [URP]`
       |  **Refractive Index of Air** Index of refraction of air.
          Can be increased to almost 1.333 to increase visibility up through water surface. `[BIRP] [URP]`
-      |  **Refractive Index of Water** Index of refraction of water. Typically left at 1.333. `[BIRP] [URP]`
+
+      .. admonition:: Deprecated
+
+         The *Refractive Index of Air* property will be removed in a future version.
+
+   |  **Refractive Index of Water** Index of refraction of water. Typically left at 1.333.
+
+   .. only:: birp or urp
+
       |  **Planar Reflections** Dynamically rendered 'reflection plane' style reflections.
          Requires OceanPlanarReflection script added to main camera. `[BIRP] [URP]`
       |  **Planar Reflections Distortion** How much the water normal affects the planar reflection. `[BIRP] [URP]`
@@ -300,52 +308,67 @@ Flow
 |  **Enable** Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene.
    'Create Flow Sim' must be enabled on the OceanRenderer to generate flow data.
 
-
-Reflections
------------
-
-Reflections contribute hugely to the appearance of the ocean.
-The look of the ocean will dramatically changed based on the reflection environment.
-
-.. only:: birp
-
-      .. tab:: `BIRP`
-
-            .. include:: includes/_birp-reflections.rst
-
-.. only:: hdrp
-
-      .. tab:: `HDRP`
-
-            .. include:: includes/_hdrp-reflections.rst
-
-.. only:: urp
-
-      .. tab:: `URP`
-
-            .. include:: includes/_urp-reflections.rst
-
+.. _lighting:
 
 Lighting
 --------
 
+General
+^^^^^^^
+
 .. only:: birp
 
-      .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-            .. include:: includes/_birp-lighting.rst
+      .. include:: includes/_birp-lighting.rst
 
 .. only:: hdrp
 
-      .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-            .. include:: includes/_hdrp-lighting.rst
+      .. include:: includes/_hdrp-lighting.rst
 
 .. only:: urp
 
-      .. tab:: `URP`
+   .. tab:: `URP`
 
-            .. include:: includes/_urp-lighting.rst
+      .. include:: includes/_urp-lighting.rst
+
+
+Reflections
+^^^^^^^^^^^
+
+Reflections contribute hugely to the appearance of the ocean.
+The look of the ocean will dramatically changed based on the reflection environment.
+
+The Index of Refraction setting controls how much reflection contributes for different view angles.
+
+.. only:: birp
+
+   .. tab:: `BIRP`
+
+      .. include:: includes/_birp-reflections.rst
+
+.. only:: hdrp
+
+   .. tab:: `HDRP`
+
+      .. include:: includes/_hdrp-reflections.rst
+
+.. only:: urp
+
+   .. tab:: `URP`
+
+      .. include:: includes/_urp-reflections.rst
+
+
+Refractions
+^^^^^^^^^^^
+
+Refractions sample from the camera's colour texture.
+Anything rendered in the transparent pass or higher will not be included in refractions.
+
+See :ref:`transparent-object-before-ocean-surface` for issues with Crest and other refractive materials.
 
 
 .. _orthographic_projection:

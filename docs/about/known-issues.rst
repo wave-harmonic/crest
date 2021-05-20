@@ -30,10 +30,12 @@ Unity Bugs
 ----------
 
 There are some Unity issues that affect `Crest`.
+Some of these may even be blocking new features from being developed.
 If you could vote on these issues, that would be greatly appreciated:
 
 -  :link:`Gizmos render over opaque objects with Post-Processing stack. <{UnityIssueLink}/1124862>` `[[BIRP]]`
--  :link:`Opaque texture is black in right eye if both depth and opaque texture enabled for multi-pass rendering mode. <{UnityIssueLink}/1256604` `[[URP]]`
+-  :link:`Opaque texture is black in right eye if both depth and opaque texture enabled for multi-pass rendering mode. <{UnityIssueLink}/1256604>` `[[URP]]`
+-  :link:`Game view is rendered grey for left eye and black for right eye when using XR {SPI} and render feature. <{UnityIssueLink}/1335524>` `[[URP]]`
 
 
 Unity Features

@@ -113,30 +113,17 @@ As far as we know, existing character controller assets which support swimming d
 We have an efficient API to provide water heights, which the character controller could use instead of a physics volume.
 Please request support for custom water height providers to your favourite character controller asset dev.
 
-Can I render transparent shaders/materials underwater?
-------------------------------------------------------
-This is tricky because the underwater effect uses the opaque scene depths in order to render the water fog, which will not include transparents.
+Can I render transparent objects underwater?
+--------------------------------------------
 
-.. only:: birp
+See :ref:`transparent-object-underwater`.
 
-   .. tab:: `BIRP`
+Can I render transparent objects in front of water?
+---------------------------------------------------
 
-      .. include:: includes/_underwater-curtain-transparents.rst
+See :ref:`transparent-object-before-ocean-surface`.
 
-.. only:: hdrp
+Can I render transparent objects behind the ocean surface?
+----------------------------------------------------------
 
-   .. tab:: `HDRP`
-
-      The Submarine example scene demonstrates an underwater transparent effect - the bubbles from the propellors when the submarine is in motion.
-      This effect is from the *Bubbles Propellor* GameObject, which is assigned a specific layer *TransparentFX*.
-      To drive the rendering, the *CustomPassForUnderwaterParticles* GameObject has a *Custom Pass Volume* component attached which is configured to render the *TransparentFX* layer in the *After Post Process* injection point, i.e. after the underwater postprocess has rendered.
-      Transparents rendered after the underwater postprocess will not have the underwater water fog shading applied to them.
-      The effect of the fog either needs to be faked by simply ramping the opacity down to 0 based on distance from the camera, or the water fog shader code needs included and called from teh transparent shader.
-      The shader *UnderwaterPostProcessHDRP.shader* is a good reference for calculating the underwater effect.
-      This will require various parameters on the shader like fog density and others.
-
-.. only:: urp
-
-   .. tab:: `URP`
-
-      .. include:: includes/_underwater-curtain-transparents.rst
+See :ref:`transparent-object-after-ocean-surface`.

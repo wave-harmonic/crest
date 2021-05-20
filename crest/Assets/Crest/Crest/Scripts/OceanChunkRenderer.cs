@@ -25,11 +25,7 @@ namespace Crest
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
-        // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
-        int _totalLodCount = -1;
-        int _lodDataResolution = 256;
-        int _geoDownSampleFactor = 1;
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
 
@@ -148,9 +144,9 @@ namespace Crest
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
         }
 
-        public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
+        public void SetInstanceData(int lodIndex)
         {
-            _lodIndex = lodIndex; _totalLodCount = totalLodCount; _lodDataResolution = lodDataResolution; _geoDownSampleFactor = geoDownSampleFactor;
+            _lodIndex = lodIndex;
         }
 
 #if UNITY_2019_3_OR_NEWER

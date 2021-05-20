@@ -18,6 +18,8 @@ namespace Crest
         public override string SimName { get { return "Flow"; } }
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
+        static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
+        protected override Texture2DArray NullTexture => s_nullTexture;
 
         internal const string MATERIAL_KEYWORD_PROPERTY = "_Flow";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FLOW_ON";
@@ -106,11 +108,8 @@ namespace Crest
 
         readonly static string s_textureArrayName = "_LD_TexArray_Flow";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
-        {
-            return ParamIdSampler(sourceLod);
-        }
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
 
         public static void Bind(IPropertyWrapper properties)
         {
@@ -120,9 +119,11 @@ namespace Crest
             }
             else
             {
-                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
             }
         }
+
+        public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

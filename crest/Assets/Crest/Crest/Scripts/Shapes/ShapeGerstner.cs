@@ -7,6 +7,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using Crest.Spline;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -39,7 +40,7 @@ namespace Crest
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
         public bool _overrideGlobalWindSpeed = false;
-        [Tooltip("Wind speed in km/h. Controls wave conditions."), Range(0, 150f), Predicated("_overrideGlobalWindSpeed")]
+        [Tooltip("Wind speed in km/h. Controls wave conditions."), Range(0, 150f, power: 2f), Predicated("_overrideGlobalWindSpeed")]
         public float _windSpeed = 20f;
 
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
@@ -196,6 +197,14 @@ namespace Crest
 
         readonly float _twoPi = 2f * Mathf.PI;
         readonly float _recipTwoPi = 1f / (2f * Mathf.PI);
+
+        internal static readonly CrestSortedList<int, ShapeGerstner> Instances = new CrestSortedList<int, ShapeGerstner>(new SiblingIndexComparer());
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void InitStatics()
+        {
+            Instances.Clear();
+        }
 
         void InitData()
         {
@@ -637,6 +646,8 @@ namespace Crest
 
         private void OnEnable()
         {
+            Instances.Add(transform.GetSiblingIndex(), this);
+
             _firstUpdate = true;
 
             // Initialise with spectrum
@@ -665,6 +676,8 @@ namespace Crest
 
         void OnDisable()
         {
+            Instances.Remove(this);
+
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
 
             if (_batches != null)

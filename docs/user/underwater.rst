@@ -18,6 +18,7 @@ Only the camera rendering the ocean surface will be used.
 
    Use opaque or alpha test materials for underwater surfaces.
    Transparent materials may not render correctly underwater.
+   See :ref:`transparent-object-underwater` for possible workarounds.
 
 .. admonition:: Bug
 

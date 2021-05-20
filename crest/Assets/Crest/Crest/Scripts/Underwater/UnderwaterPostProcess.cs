@@ -47,6 +47,8 @@ namespace Crest
 
         private Plane[] _cameraFrustumPlanes;
 
+        Mesh _fullScreenTriangleMesh;
+
         private Material _oceanMaskMaterial = null;
 
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
@@ -127,6 +129,30 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
         }
 
+        void Awake()
+        {
+            _mainCamera = GetComponent<Camera>();
+            if (_postProcessCommandBuffer == null)
+            {
+                _postProcessCommandBuffer = new CommandBuffer()
+                {
+                    name = "Underwater Post Process",
+                };
+            }
+
+            _fullScreenTriangleMesh = new Mesh
+            {
+                name = "Full-Screen Triangle Mesh",
+                vertices = new Vector3[] {
+                new Vector3(-1f, -1f, 0f),
+                new Vector3(-1f,  3f, 0f),
+                new Vector3( 3f, -1f, 0f),
+            },
+                triangles = new int[] { 0, 1, 2 },
+            };
+            _fullScreenTriangleMesh.UploadMeshData(true);
+        }
+
         private void OnDestroy()
         {
             if (OceanRenderer.Instance && _eventsRegistered)
@@ -141,11 +167,13 @@ namespace Crest
         void OnEnable()
         {
             Instance = this;
+            _mainCamera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
         }
 
         void OnDisable()
         {
             Instance = null;
+            _mainCamera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
         }
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
@@ -189,13 +217,9 @@ namespace Crest
                 _disableOceanMask
             );
 
-        }
-
-        void OnRenderImage(RenderTexture source, RenderTexture target)
-        {
             if (OceanRenderer.Instance == null)
             {
-                Graphics.Blit(source, target);
+                // Graphics.Blit(source, target);
                 _eventsRegistered = false;
                 return;
             }
@@ -208,20 +232,16 @@ namespace Crest
                 _eventsRegistered = true;
             }
 
-            if (_postProcessCommandBuffer == null)
-            {
-                _postProcessCommandBuffer = new CommandBuffer();
-                _postProcessCommandBuffer.name = "Underwater Post Process";
-            }
+
 
             if (GL.wireframe)
             {
-                Graphics.Blit(source, target);
+                // Graphics.Blit(source, target);
                 return;
             }
 
             UpdatePostProcessMaterial(
-                source,
+                _mainCamera.targetTexture,
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
                 _sphericalHarmonicsData,
@@ -232,14 +252,14 @@ namespace Crest
                 _filterOceanData
             );
 
-            _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
-
-            Graphics.ExecuteCommandBuffer(_postProcessCommandBuffer);
             _postProcessCommandBuffer.Clear();
+            _postProcessCommandBuffer.SetRenderTarget(
+                BuiltinRenderTextureType.CameraTarget,
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+            );
 
-            // Need this to prevent Unity from giving the following warning:
-            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
-            Graphics.SetRenderTarget(target);
+            _postProcessCommandBuffer.SetGlobalTexture("_MainTex", BuiltinRenderTextureType.CameraTarget);
+            _postProcessCommandBuffer.DrawMesh(_fullScreenTriangleMesh, Matrix4x4.identity, _underwaterPostProcessMaterial);
 
             _firstRender = false;
         }

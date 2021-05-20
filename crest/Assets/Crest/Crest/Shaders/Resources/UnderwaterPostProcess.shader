@@ -76,12 +76,17 @@ Shader "Crest/Underwater/Post Process"
 			Varyings Vert (Attributes input)
 			{
 				Varyings output;
-				output.positionCS = UnityObjectToClipPos(input.positionOS);
-				output.uv = input.uv;
+				output.positionCS = float4(input.positionOS.xy, 0.0, 1.0);
+				output.uv = input.positionOS.xy * 0.5 + 0.5;
+				// Check if flipped.
+				if (_ProjectionParams.x < 0.0)
+				{
+					output.uv.y = 1.0 - output.uv.y;
+				}
 
 				// Compute world space view vector
 				{
-					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+					const float2 pixelCS = output.uv * 2 - float2(1.0, 1.0);
 #if CREST_HANDLE_XR
 					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
 #else

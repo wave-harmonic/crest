@@ -100,32 +100,39 @@ namespace Crest
 
         public Transform Root { get; private set; }
 
-        [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time.")]
-        public TimeProviderBase _timeProvider = null;
-        ITimeProvider _timeProviderActive = null;
+        // does not respond to _timeProvider changing in inspector
+
+        // Loosely a stack for time providers. The last TP in the list is the active one. When a TP gets
+        // added to the stack, it is bumped to the top of the list. When a TP is removed, all instances
+        // of it are removed from the stack. This is less rigid than a real stack which would be harder
+        // to use as users have to keep a close eye on the order that things are pushed/popped.
+        public List<ITimeProvider> _timeProviderStack = new List<ITimeProvider>();
+
+        [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
+        TimeProviderBase _timeProvider = null;
         public ITimeProvider TimeProvider
         {
-            get
-            {
-                // Specified by user on component - always prefer this
-                if (_timeProvider != null)
-                {
-                    return _timeProvider;
-                }
+            get => _timeProviderStack[_timeProviderStack.Count - 1];
+        }
 
-                if (_timeProviderActive == null)
-                {
-                    _timeProviderActive = new TimeProviderDefault();
-                }
+        // Put a time provider at the top of the stack
+        public void PushTimeProvider(ITimeProvider tp)
+        {
+            Debug.Assert(tp != null, "Null time provider pushed");
 
-                return _timeProviderActive;
-            }
+            // Remove any instances of it already in the stack
+            PopTimeProvider(tp);
 
-            set
-            {
-                Debug.Assert(_timeProvider == null, "Setting time provider will take no effect because a time provider has been specified in the Inspector which will take priority.");
-                _timeProviderActive = value;
-            }
+            // Add it to the top
+            _timeProviderStack.Add(tp);
+        }
+
+        // Remove a time provider from the stack
+        public void PopTimeProvider(ITimeProvider tp)
+        {
+            Debug.Assert(tp != null, "Null time provider popped");
+
+            _timeProviderStack.RemoveAll(candidate => candidate == tp);
         }
 
         public float CurrentTime => TimeProvider.CurrentTime;
@@ -394,6 +401,18 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // Setup a default time provider, and add the override one (from the inspector)
+            _timeProviderStack.Clear();
+
+            // Put a base TP that should always be available as a fallback
+            PushTimeProvider(new TimeProviderDefault());
+
+            // Add the TP from the inspector
+            if (_timeProvider != null)
+            {
+                PushTimeProvider(_timeProvider);
+            }
+
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -1500,9 +1519,25 @@ namespace Crest
 
         public override void OnInspectorGUI()
         {
+            var currentAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
+
             base.OnInspectorGUI();
 
             var target = this.target as OceanRenderer;
+
+            // Detect if user changed TP, if so update stack
+            var newlyAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
+            if (currentAssignedTP != newlyAssignedTP)
+            {
+                if (currentAssignedTP != null)
+                {
+                    target.PopTimeProvider(currentAssignedTP as TimeProviderBase);
+                }
+                if (newlyAssignedTP != null)
+                {
+                    target.PushTimeProvider(newlyAssignedTP as TimeProviderBase);
+                }
+            }
 
             if (GUILayout.Button("Rebuild Ocean"))
             {

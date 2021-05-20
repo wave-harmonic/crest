@@ -30,9 +30,6 @@ namespace Crest
 
         TimeProviderDefault _fallbackTP = new TimeProviderDefault();
 
-        TimeProviderBase _previousTimeProviderComponent;
-        ITimeProvider _previousTimeProvider;
-
         bool _initialised = false;
 
         private void OnStart()
@@ -68,14 +65,7 @@ namespace Crest
 
             if (_assignToOceanComponentOnEnable)
             {
-                // Back up both TP refs
-                _previousTimeProviderComponent = OceanRenderer.Instance._timeProvider;
-                _previousTimeProvider = OceanRenderer.Instance.TimeProvider;
-
-                // Clear the 'override' TP before assigning this TP, to avoid error
-                OceanRenderer.Instance._timeProvider = null;
-
-                OceanRenderer.Instance.TimeProvider = this;
+                OceanRenderer.Instance.PushTimeProvider(this);
             }
 
             _initialised = true;
@@ -85,11 +75,7 @@ namespace Crest
         {
             if (_restorePreviousTimeProviderOnDisable && OceanRenderer.Instance != null && _initialised)
             {
-                // Clear the 'override' TP before assigning this TP, to avoid error
-                OceanRenderer.Instance._timeProvider = null;
-                // Restore TPs, first the base TP then the override
-                OceanRenderer.Instance.TimeProvider = _previousTimeProvider;
-                OceanRenderer.Instance._timeProvider = _previousTimeProviderComponent;
+                OceanRenderer.Instance.PopTimeProvider(this);
             }
 
             _initialised = false;
@@ -120,18 +106,6 @@ namespace Crest
                     && (!EditorApplication.isPlaying || _playableDirector.state == PlayState.Playing))
                 {
                     return (float)_playableDirector.time + _timeOffset;
-                }
-
-                // Use the previously assigned override TP
-                if (_previousTimeProviderComponent != null)
-                {
-                    return _previousTimeProviderComponent.CurrentTime;
-                }
-
-                // Use the previously assigned base TP
-                if (_previousTimeProvider != null)
-                {
-                    return _previousTimeProvider.CurrentTime;
                 }
 
                 // Use a fallback TP

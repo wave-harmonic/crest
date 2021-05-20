@@ -400,6 +400,8 @@ namespace Crest
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
 
+            var time = OceanRenderer.Instance.CurrentTime;
+
             // register any nonzero components
             for (int i = 0; i < numComponents; i++)
             {
@@ -432,7 +434,7 @@ namespace Crest
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
                         float k = twopi / wl;
                         // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * time, Mathf.PI * 2f);
 
                         numInBatch++;
                     }

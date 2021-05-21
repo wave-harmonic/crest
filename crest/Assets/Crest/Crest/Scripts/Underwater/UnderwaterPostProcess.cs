@@ -226,7 +226,6 @@ namespace Crest
 
             if (OceanRenderer.Instance == null)
             {
-                // Graphics.Blit(source, target);
                 _eventsRegistered = false;
                 return;
             }
@@ -243,7 +242,6 @@ namespace Crest
 
             if (GL.wireframe)
             {
-                // Graphics.Blit(source, target);
                 return;
             }
 
@@ -260,12 +258,6 @@ namespace Crest
             );
 
             _postProcessCommandBuffer.Clear();
-            _postProcessCommandBuffer.SetRenderTarget(
-                BuiltinRenderTextureType.CameraTarget,
-                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-            );
-
-            _postProcessCommandBuffer.SetGlobalTexture("_MainTex", BuiltinRenderTextureType.CameraTarget);
             _postProcessCommandBuffer.DrawMesh(_fullScreenTriangleMesh, Matrix4x4.identity, _underwaterPostProcessMaterial);
 
             _firstRender = false;

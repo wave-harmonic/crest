@@ -14,6 +14,11 @@ Shader "Crest/Underwater/Post Process"
 		// No culling or depth
 		Cull Off ZWrite Off ZTest Always
 
+		GrabPass
+		{
+			"_CrestGrabPassTexture"
+		}
+
 		Pass
 		{
 			CGPROGRAM
@@ -75,6 +80,7 @@ Shader "Crest/Underwater/Post Process"
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
 				float3 viewWS : TEXCOORD1;
+				float4 grabPosition: TEXCOORD2;
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -108,10 +114,12 @@ Shader "Crest/Underwater/Post Process"
 					output.viewWS = _WorldSpaceCameraPos - pixelWS;
 				}
 
+				output.grabPosition = ComputeGrabScreenPos(output.positionCS);
+
 				return output;
 			}
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestGrabPassTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
 
@@ -173,7 +181,7 @@ Shader "Crest/Underwater/Post Process"
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
 
-				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, uvScreenSpace).rgb;
+				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestGrabPassTexture, input.grabPosition).rgb;
 
 				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
 

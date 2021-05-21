@@ -15,6 +15,7 @@ namespace Crest
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_INTERNAL + "Ocean Chunk Renderer")]
     public class OceanChunkRenderer : MonoBehaviour
     {
         public bool _drawRenderBounds = false;
@@ -24,23 +25,16 @@ namespace Crest
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
+
         // We need to ensure that all ocean data has been bound for the mask to
         // render properly - this is something that needs to happen irrespective
         // of occlusion culling because we need the mask to render as a
         // contiguous surface.
         internal bool _oceanDataHasBeenBound = true;
 
-        // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
-        int _totalLodCount = -1;
-        int _lodDataResolution = 256;
-        int _geoDownSampleFactor = 1;
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-        static int sp_GeomData = Shader.PropertyToID("_GeomData");
-        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-        // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-        public static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         void Start()
         {
@@ -58,6 +52,22 @@ namespace Crest
             }
 
             UpdateMeshBounds();
+
+            SetOneTimeMPBParams();
+        }
+
+        void SetOneTimeMPBParams()
+        {
+            if (_mpb == null)
+            {
+                _mpb = new PropertyWrapperMPB();
+            }
+
+            Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+
+            _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
+
+            Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
         }
 
         private void Update()
@@ -78,6 +88,9 @@ namespace Crest
 
         private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
+            // Camera.current is only supported in the built-in pipeline. This provides the current camera for
+            // OnWillRenderObject for SRPs. BeginCameraRendering is called for each active camera in every frame.
+            // OnWillRenderObject is called after BeginCameraRendering for the current camera so this works.
             _currentCamera = camera;
         }
 
@@ -91,7 +104,7 @@ namespace Crest
                 return;
             }
 
-            // check if built-in pipeline being used
+            // Camera.current is only supported in built-in pipeline.
             if (Camera.current != null)
             {
                 _currentCamera = Camera.current;
@@ -113,44 +126,9 @@ namespace Crest
             }
             Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
-            // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-            var needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
-            var meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-
-            // blend furthest normals scale in/out to avoid pop, if scale could reduce
-            var needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
-            var farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            _mpb.SetVector(sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, _lodIndex));
-
-            // geometry data
-            // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
-            // and not inherit any of the lossy-ness from lossyScale.
-            var scale_pow_2 = OceanRenderer.Instance.CalcLodScale(_lodIndex);
-            var gridSizeGeo = scale_pow_2 / (0.25f * _lodDataResolution / _geoDownSampleFactor);
-            var gridSizeLodData = gridSizeGeo / _geoDownSampleFactor;
-            var mul = 1.875f; // fudge 1
-            var pow = 1.4f; // fudge 2
-            var normalScrollSpeed0 = Mathf.Pow(Mathf.Log(1f + 2f * gridSizeLodData) * mul, pow);
-            var normalScrollSpeed1 = Mathf.Pow(Mathf.Log(1f + 4f * gridSizeLodData) * mul, pow);
-            _mpb.SetVector(sp_GeomData, new Vector4(gridSizeLodData, gridSizeGeo, normalScrollSpeed0, normalScrollSpeed1));
-
-            // Assign LOD data to ocean shader
-            var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-            var ldsds = OceanRenderer.Instance._lodDataSeaDepths;
-            var ldclip = OceanRenderer.Instance._lodDataClipSurface;
-            var ldfoam = OceanRenderer.Instance._lodDataFoam;
-            var ldflow = OceanRenderer.Instance._lodDataFlow;
-            var ldshadows = OceanRenderer.Instance._lodDataShadow;
-
-            _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
-            if (ldaws != null) ldaws.BindResultData(_mpb);
-            if (ldflow != null) ldflow.BindResultData(_mpb); else LodDataMgrFlow.BindNull(_mpb);
-            if (ldfoam != null) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
-            if (ldsds != null) ldsds.BindResultData(_mpb); else LodDataMgrSeaFloorDepth.BindNull(_mpb);
-            if (ldclip != null) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);
-            if (ldshadows != null) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
-
-            var reflTex = PreparedReflections.GetRenderTexture(camera.GetHashCode());
+            // Only done here because current camera is defined. This could be done just once, probably on the OnRender function
+            // or similar on the OceanPlanarReflection script?
+            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);
@@ -160,15 +138,9 @@ namespace Crest
                 _mpb.SetTexture(sp_ReflectionTex, Texture2D.blackTexture);
             }
 
-            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
-            // add a param here that forces ocean to be in underwater state. I think the root
-            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
-            // i'm not sure why cracks are not visible in this case.
-            var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
-            _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
-
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
         }
+
 
         // Called when visible to a camera
         void OnWillRenderObject()
@@ -202,9 +174,9 @@ namespace Crest
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
         }
 
-        public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
+        public void SetInstanceData(int lodIndex)
         {
-            _lodIndex = lodIndex; _totalLodCount = totalLodCount; _lodDataResolution = lodDataResolution; _geoDownSampleFactor = geoDownSampleFactor;
+            _lodIndex = lodIndex;
         }
 
 #if UNITY_2019_3_OR_NEWER
@@ -214,9 +186,6 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-            sp_GeomData = Shader.PropertyToID("_GeomData");
-            sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-            sp_InstanceData = Shader.PropertyToID("_InstanceData");
             _currentCamera = null;
         }
 

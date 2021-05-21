@@ -28,7 +28,7 @@ namespace Crest
         float _rotation = 0f;
 
         bool _createDepthCache = true;
-        string _depthCacheLayerName = "Default";
+        LayerMask _depthCacheLayers = 1; // Default
 
         bool _createGerstnerWaves = false;
         float _gerstnerWindDirection = 0f;
@@ -92,7 +92,7 @@ namespace Crest
             EditorGUILayout.Space();
 
             _createDepthCache = EditorGUILayout.BeginToggleGroup("Create Depth Cache", _createDepthCache);
-            _depthCacheLayerName = EditorGUILayout.TextField("Layer for cache", _depthCacheLayerName);
+            _depthCacheLayers = EditorHelpers.EditorHelpers.LayerMaskField("Layers for cache", _depthCacheLayers);
             EditorGUILayout.EndToggleGroup();
 
             EditorGUILayout.Space();
@@ -226,6 +226,7 @@ namespace Crest
         void CreateWaterBody()
         {
             var waterBodyGO = new GameObject("WaterBody");
+            Undo.RegisterCreatedObjectUndo(waterBodyGO, "Add Crest WaterBody");
             waterBodyGO.transform.position = _position;
             waterBodyGO.transform.rotation = Quaternion.AngleAxis(_rotation, Vector3.up);
             waterBodyGO.transform.localScale = new Vector3(_sizeX, 1f, _sizeZ);
@@ -245,7 +246,7 @@ namespace Crest
                 // I think multiple-of-4 is typical requirement for texture compression
                 if (res % 4 > 0) res += 4 - (res % 4);
                 depthCache._resolution = Mathf.Clamp(res, 16, 512);
-                depthCache._layerNames = new string[] { _depthCacheLayerName };
+                depthCache._layers = _depthCacheLayers;
             }
 
             if (_createGerstnerWaves)

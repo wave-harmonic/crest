@@ -14,11 +14,6 @@ namespace Crest
     {
         protected int[] _transformUpdateFrame;
 
-        static int s_paramsPosScale = Shader.PropertyToID("_LD_Pos_Scale");
-        static int s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
-        static int s_paramsOcean = Shader.PropertyToID("_LD_Params");
-        static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
-
         [System.Serializable]
         public struct RenderData
         {
@@ -26,6 +21,7 @@ namespace Crest
             public float _textureRes;
             public Vector3 _posSnapped;
             public int _frame;
+            public float _maxWavelength;
 
             public RenderData Validate(int frameOffset, string context)
             {
@@ -95,12 +91,15 @@ namespace Crest
 
                 _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
 
+                _renderData[lodIdx]._maxWavelength = MaxWavelength(lodIdx);
+
                 // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
                 if (_renderDataSource[lodIdx]._textureRes == 0f)
                 {
                     _renderDataSource[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
                     _renderDataSource[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
                     _renderDataSource[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                    _renderDataSource[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
                 }
 
                 _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
@@ -128,30 +127,6 @@ namespace Crest
             return 2f * maxTexelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
 
-        public static int ParamIdPosScale(bool sourceLod = false)
-        {
-            if (sourceLod)
-            {
-                return s_paramsPosScaleSource;
-            }
-            else
-            {
-                return s_paramsPosScale;
-            }
-        }
-
-        public static int ParamIdOcean(bool sourceLod = false)
-        {
-            if (sourceLod)
-            {
-                return s_paramsOceanSource;
-            }
-            else
-            {
-                return s_paramsOcean;
-            }
-        }
-
         public void SetOrigin(Vector3 newOrigin)
         {
             for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
@@ -161,16 +136,36 @@ namespace Crest
             }
         }
 
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
+        public void WriteCascadeParams(OceanRenderer.CascadeParams[] cascadeParamsTgt, OceanRenderer.CascadeParams[] cascadeParamsSrc)
         {
-            // Init here from 2019.3 onwards
-            s_paramsPosScale = Shader.PropertyToID("_LD_Pos_Scale");
-            s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
-            s_paramsOcean = Shader.PropertyToID("_LD_Params");
-            s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                cascadeParamsTgt[lodIdx]._posSnapped[0] = _renderData[lodIdx]._posSnapped[0];
+                cascadeParamsTgt[lodIdx]._posSnapped[1] = _renderData[lodIdx]._posSnapped[2];
+                cascadeParamsSrc[lodIdx]._posSnapped[0] = _renderDataSource[lodIdx]._posSnapped[0];
+                cascadeParamsSrc[lodIdx]._posSnapped[1] = _renderDataSource[lodIdx]._posSnapped[2];
+
+                cascadeParamsTgt[lodIdx]._scale = cascadeParamsSrc[lodIdx]._scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+
+                cascadeParamsTgt[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                cascadeParamsSrc[lodIdx]._textureRes = _renderDataSource[lodIdx]._textureRes;
+
+                cascadeParamsTgt[lodIdx]._oneOverTextureRes = 1f / cascadeParamsTgt[lodIdx]._textureRes;
+                cascadeParamsSrc[lodIdx]._oneOverTextureRes = 1f / cascadeParamsSrc[lodIdx]._textureRes;
+
+                cascadeParamsTgt[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
+                cascadeParamsSrc[lodIdx]._texelWidth = _renderDataSource[lodIdx]._texelWidth;
+
+                cascadeParamsTgt[lodIdx]._weight = cascadeParamsSrc[lodIdx]._weight = 1f;
+
+                cascadeParamsTgt[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
+                cascadeParamsSrc[lodIdx]._maxWavelength = _renderDataSource[lodIdx]._maxWavelength;
+            }
+
+            // Duplicate last element so that things can safely read off the end of the cascades
+            cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount - 1];
+            cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount - 1];
+            cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount]._weight = cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount]._weight = 0f;
         }
     }
 }

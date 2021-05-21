@@ -26,6 +26,7 @@ namespace Crest
 
         internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
         internal const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
+        internal const string tooltipMeniscus = "Add a meniscus to the boundary between water and air.";
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
@@ -128,7 +129,7 @@ namespace Crest
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
-            SampleHeightHelper sampleHeightHelper,
+            bool isMeniscusEnabled,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
@@ -140,6 +141,16 @@ namespace Crest
             {
                 // Measured this at approx 0.05ms on dell laptop
                 underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            }
+
+            // Enable/Disable meniscus.
+            if (isMeniscusEnabled)
+            {
+                underwaterPostProcessMaterial.EnableKeyword("CREST_MENISCUS");
+            }
+            else
+            {
+                underwaterPostProcessMaterial.DisableKeyword("CREST_MENISCUS");
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
@@ -155,24 +166,9 @@ namespace Crest
             underwaterPostProcessMaterial.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
             underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(underwaterPostProcessMaterialWrapper);
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
-            {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(underwaterPostProcessMaterialWrapper);
-            }
-
-            if (OceanRenderer.Instance._lodDataShadow != null)
-            {
-                OceanRenderer.Instance._lodDataShadow.BindResultData(underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrShadow.BindNull(underwaterPostProcessMaterialWrapper);
-            }
+            LodDataMgrAnimWaves.Bind(underwaterPostProcessMaterialWrapper);
+            LodDataMgrSeaFloorDepth.Bind(underwaterPostProcessMaterialWrapper);
+            LodDataMgrShadow.Bind(underwaterPostProcessMaterialWrapper);
 
             float seaLevel = OceanRenderer.Instance.SeaLevel;
             {
@@ -181,15 +177,7 @@ namespace Crest
                 // relative to the sea-level are the same. This ensures that in incredibly turbulent
                 // water - if in doubt - use the neutral horizon.
                 float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
-                float waterHeightLevelDifference = seaLevelHeightDifference;
-                {
-                    sampleHeightHelper.Init(camera.transform.position, 0f);
-                    if (sampleHeightHelper.Sample(out var waterHeight))
-                    {
-                        waterHeightLevelDifference = camera.transform.position.y - waterHeight;
-                    }
-                }
-                if (seaLevelHeightDifference >= 0.0f ^ waterHeightLevelDifference >= 0.0f)
+                if (seaLevelHeightDifference >= 0.0f ^ OceanRenderer.Instance.ViewerHeightAboveWater >= 0.0f)
                 {
                     horizonSafetyMarginMultiplier = 0.0f;
                 }
@@ -293,7 +281,7 @@ namespace Crest
 
                 UnityEngine.Profiling.Profiler.BeginSample("Underwater sample spherical harmonics");
 
-                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
+                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.ViewCamera.transform.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
                 sphericalHarmonicsL2.Evaluate(sphericalHarmonicsData._shDirections, sphericalHarmonicsData._ambientLighting);
                 underwaterPostProcessMaterial.SetVector(sp_AmbientLighting, sphericalHarmonicsData._ambientLighting[0]);
 

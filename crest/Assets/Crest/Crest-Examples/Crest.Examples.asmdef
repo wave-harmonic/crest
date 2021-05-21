@@ -3,12 +3,24 @@
     "references": [
         "Crest"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.vr",
+            "expression": "1.0.0",
+            "define": "ENABLE_VR_MODULE"
+        },
+        {
+            "name": "com.unity.modules.xr",
+            "expression": "1.0.0",
+            "define": "ENABLE_XR_MODULE"
+        }
+    ],
+    "noEngineReferences": false
 }

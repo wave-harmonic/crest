@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Crest
 {
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_EXAMPLE + "Whirlpool")]
     public class Whirlpool : MonoBehaviour
     {
         [Range(0, 1000), SerializeField]

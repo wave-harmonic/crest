@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -15,8 +16,17 @@ namespace Crest
         public override string SimName { get { return "ClipSurface"; } }
 
         // The clip values only really need 8bits
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
+        static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
+        protected override Texture2DArray NullTexture => s_nullTexture;
+
+        internal const string MATERIAL_KEYWORD_PROPERTY = "_ClipSurface";
+        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_CLIPSURFACE_ON";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Clipping must be enabled on the ocean material to enable clipping holes in the water surface.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Clip Surface</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The clipping feature is disabled on this component but is enabled on the ocean material.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Clip Surface Data</i> option on this component to turn it on, or disable the <i>Clipping</i> feature on the ocean material to save performance.";
 
         bool _targetsClear = false;
 
@@ -30,9 +40,11 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
+            if (OceanRenderer.Instance.OceanMaterial != null
+                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning("Clip Surface is not enabled on the current ocean material, so the surface clipping will not work. Please enable it on the material.", _ocean);
+                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }
@@ -63,15 +75,22 @@ namespace Crest
 
         readonly static string s_textureArrayName = "_LD_TexArray_ClipSurface";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            return ParamIdSampler(sourceLod);
+            if (OceanRenderer.Instance._lodDataClipSurface != null)
+            {
+                properties.SetTexture(ParamIdSampler(), OceanRenderer.Instance._lodDataClipSurface.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
+            }
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
-        {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
-        }
+
+        public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -29,6 +29,9 @@ namespace Crest
         [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData), Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue)]
         public int _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
 
+        [SerializeField, Tooltip(tooltipMeniscus)]
+        bool _meniscus = true;
+
         [Header("Debug Options")]
         [SerializeField] bool _viewPostProcessMask = false;
         [SerializeField] bool _disableOceanMask = false;
@@ -41,7 +44,6 @@ namespace Crest
         private RenderTexture _depthBuffer;
         private CommandBuffer _maskCommandBuffer;
         private CommandBuffer _postProcessCommandBuffer;
-        private readonly SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         private Plane[] _cameraFrustumPlanes;
 
@@ -56,6 +58,9 @@ namespace Crest
 
         bool _eventsRegistered = false;
         bool _firstRender = true;
+
+        // Only one camera is supported.
+        public static UnderwaterPostProcess Instance { get; private set; }
 
         private bool InitialisedCorrectly()
         {
@@ -131,6 +136,16 @@ namespace Crest
             }
 
             _eventsRegistered = false;
+        }
+
+        void OnEnable()
+        {
+            Instance = this;
+        }
+
+        void OnDisable()
+        {
+            Instance = null;
         }
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
@@ -222,7 +237,7 @@ namespace Crest
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
                 _sphericalHarmonicsData,
-                _sampleHeightHelper,
+                _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
                 _horizonSafetyMarginMultiplier,

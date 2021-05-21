@@ -6,27 +6,6 @@ Shader "Crest/Underwater/Post Process"
 {
 	Properties
 	{
-		// These mirror the same toggles on the ocean material
-
-		[Header(Scattering)]
-		[Toggle] _Shadows("Shadowing", Float) = 0
-
-		[Header(Subsurface Scattering)]
-		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
-
-		[Header(Shallow Scattering)]
-		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
-
-		[Header(Transparency)]
-		[Toggle] _Transparency("Enable", Float) = 1
-
-		[Header(Caustics)]
-		[Toggle] _Caustics("Enable", Float) = 1
-
-		[Header(Underwater)]
-		// Add a meniscus to the boundary between water and air
-		[Toggle] _Meniscus("Meniscus", float) = 1
-
 		[Header(Debug Options)]
 		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
@@ -43,13 +22,18 @@ Shader "Crest/Underwater/Post Process"
 
 			#pragma multi_compile_instancing
 
-			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
-			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature_local _TRANSPARENCY_ON
-			#pragma shader_feature_local _CAUSTICS_ON
-			#pragma shader_feature_local _SHADOWS_ON
-			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma shader_feature_local _MENISCUS_ON
+			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
+			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
+			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
+			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma multi_compile_local __ _TRANSPARENCY_ON
+			#pragma multi_compile_local __ _CAUSTICS_ON
+			#pragma multi_compile_local __ _SHADOWS_ON
+			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
+
+			#pragma multi_compile_local __ CREST_MENISCUS
+
+			#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
@@ -61,16 +45,13 @@ Shader "Crest/Underwater/Post Process"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
-			#include "../OceanConstants.hlsl"
-			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanShaderData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanShaderHelpers.hlsl"
 
 			half3 _AmbientLighting;
-
-			// In-built Unity textures
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
-			sampler2D _Normals;
 
 			#include "../OceanEmission.hlsl"
 
@@ -131,29 +112,32 @@ Shader "Crest/Underwater/Post Process"
 
 			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
 			{
-				const float sceneZ = LinearEyeDepth(sceneZ01);
+				const float sceneZ = CrestLinearEyeDepth(sceneZ01);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 				half3 scatterCol = 0.0;
+				int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
 				{
 					float3 dummy;
 					half sss = 0.0;
 					// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
-					int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
-					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _LD_Pos_Scale[sliceIndex], _LD_Params[sliceIndex], sliceIndex);
+					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[sliceIndex], sliceIndex);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 					// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
 					const float depth = 0.0;
 					const half shadow = 1.0;
-
-					scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
+					{
+						const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
+						const float baseCascadeScale = _CrestCascadeData[0]._scale;
+						scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
+					}
 				}
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0 && !isOceanSurface)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
 				}
 #endif // _CAUSTICS_ON
 
@@ -196,9 +180,9 @@ Shader "Crest/Underwater/Post Process"
 
 				float wt = 1.0;
 
-#if _MENISCUS_ON
+#if CREST_MENISCUS
 				// Detect water to no water transitions which happen if mask values on below pixels are less than this mask
-				//if (mask <= 1.0)
+				if (mask <= 1.0)
 				{
 					// Looks at pixels below this pixel and if there is a transition from above to below, darken the pixel
 					// to emulate a meniscus effect. It does a few to get a thicker line than 1 pixel. The line it produces is
@@ -210,7 +194,7 @@ Shader "Crest/Underwater/Post Process"
 					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
 					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
 				}
-#endif // _MENISCUS_ON
+#endif // CREST_MENISCUS
 
 #if _DEBUG_VIEW_OCEAN_MASK
 				if (!isOceanSurface)

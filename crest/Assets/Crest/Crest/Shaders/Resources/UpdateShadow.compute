@@ -29,7 +29,6 @@ uniform float4 _LightShadowData;
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
-#include "../OceanHelpers.hlsl"
 
 struct ShadowCoords
 {
@@ -43,7 +42,9 @@ struct ShadowCoords
 	float4 MainCameraCoords;
 };
 
+StructuredBuffer<CascadeParams> _CascadeDataSrc;
 uniform uint _LD_SliceIndex_Source;
+
 uniform float3 _CenterPos;
 uniform float3 _Scale;
 uniform float3 _CamPos;
@@ -128,11 +129,12 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		shadowCoords.MainCameraCoords = mul(_MainCameraProjectionMatrix, wpos);
 	}
 
+	const CascadeParams cascadeDataSrc = _CascadeDataSrc[_LD_SliceIndex_Source];
 	half2 shadow = 0.0;
-	const half r_max = 0.5 - _LD_Params_Source[_LD_SliceIndex_Source].w;
+	const half r_max = 0.5 - cascadeDataSrc._oneOverTextureRes;
 
 	// Shadow from last frame - manually implement black border
-	const float3 uv_source = WorldToUV(shadowCoords._WorldPosViewZ.xz, _LD_Pos_Scale_Source[_LD_SliceIndex_Source], _LD_Params_Source[_LD_SliceIndex_Source], _LD_SliceIndex_Source);
+	const float3 uv_source = WorldToUV(shadowCoords._WorldPosViewZ.xz, cascadeDataSrc, _LD_SliceIndex_Source);
 	const half2 r = abs(uv_source.xy - 0.5);
 	if (max(r.x, r.y) <= r_max)
 	{
@@ -140,7 +142,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	}
 	else if (_LD_SliceIndex_Source + 1.0 < depth)
 	{
-		const float3 uv_source_nextlod = WorldToUV(shadowCoords._WorldPosViewZ.xz, _LD_Pos_Scale_Source[_LD_SliceIndex_Source + 1], _LD_Params_Source[_LD_SliceIndex_Source + 1], _LD_SliceIndex_Source + 1);
+		const float3 uv_source_nextlod = WorldToUV(shadowCoords._WorldPosViewZ.xz, _CascadeDataSrc[_LD_SliceIndex_Source + 1], _LD_SliceIndex_Source + 1);
 		const half2 r2 = abs(uv_source_nextlod.xy - 0.5);
 		if (max(r2.x, r2.y) < r_max)
 		{
@@ -164,8 +166,23 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		half shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
 
 		fixed2 shadowThisFrame;
-		shadowThisFrame.x = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
-		shadowThisFrame.y = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
+
+		// Add soft shadowing data.
+		shadowThisFrame[CREST_SHADOW_INDEX_SOFT] = ComputeShadow
+		(
+			shadowCoords,
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_SOFT],
+			cascadeWeights
+		);
+
+		// Add hard shadowing data.
+		shadowThisFrame[CREST_SHADOW_INDEX_HARD] = ComputeShadow
+		(
+			shadowCoords,
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_HARD],
+			cascadeWeights
+		);
+
 		shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);
 
 		shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.0);

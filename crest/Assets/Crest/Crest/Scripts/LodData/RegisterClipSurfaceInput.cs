@@ -10,6 +10,8 @@ namespace Crest
     /// Registers a custom input to the clip surface simulation. Attach this to GameObjects that you want to use to
     /// clip the surface of the ocean.
     /// </summary>
+    [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         bool _enabled = true;
@@ -39,7 +41,7 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.Instance == null || _renderer == null)
             {
                 return;
             }
@@ -74,23 +76,22 @@ namespace Crest
 
                 _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
 
-                var lodCount = OceanRenderer.Instance.CurrentLodCount;
-                var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
-                lodDataAnimWaves.BindResultData(_mpb);
-
-                // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-                bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
-                float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-
-                // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
-                float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, lodIdx));
 
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
+
+#if UNITY_EDITOR
+        protected override string FeatureToggleName => "_createClipSurfaceData";
+        protected override string FeatureToggleLabel => "Create Clip Surface Data";
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
+        protected override string RequiredShaderKeywordProperty => LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY;
+        protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
+
+        protected override string MaterialFeatureDisabledError => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;
+        protected override string MaterialFeatureDisabledFix => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+#endif
     }
 }

@@ -25,7 +25,8 @@ namespace Crest
         protected abstract string QueryShaderName { get; }
         protected abstract string QueryKernelName { get; }
 
-        const int s_maxRequests = 4;
+        // 4 was enough for a long time, but Linux setups seems to demand 7
+        const int s_maxRequests = 7;
         const int s_maxGuids = 1024;
 
         protected virtual ComputeShader ShaderProcessQueries => _shaderProcessQueries;
@@ -587,5 +588,7 @@ namespace Crest
         }
 
         public int ResultGuidCount => _resultSegments != null ? _resultSegments.Count : 0;
+
+        public int RequestCount => _requests != null ? _requests.Count : 0;
     }
 }

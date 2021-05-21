@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Crest.Spline;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -31,8 +32,21 @@ namespace Crest
 
     public interface ILodDataInput
     {
+        /// <summary>
+        /// Draw the input (the render target will be bound)
+        /// </summary>
         void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
+
+        /// <summary>
+        /// The wavelength of the input - used to choose which level of detail to apply the input to.
+        /// This is primarily used for displacement/surface shape inputs which support rendering to
+        /// specific LODs (which are then combined later). Specify 0 for no preference / render to all LODs.
+        /// </summary>
         float Wavelength { get; }
+
+        /// <summary>
+        /// Whether to apply this input.
+        /// </summary>
         bool Enabled { get; }
     }
 
@@ -44,8 +58,11 @@ namespace Crest
     {
 #if UNITY_EDITOR
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
+        [Predicated(typeof(MeshRenderer)), DecoratedField]
         bool _checkShaderName = true;
 #endif
+
+        public const string MENU_PREFIX = Internal.Constants.MENU_SCRIPTS + "LOD Inputs/Crest Register ";
 
         public abstract float Wavelength { get; }
 
@@ -87,7 +104,12 @@ namespace Crest
 #if UNITY_EDITOR
                 if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
-                    ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
+                    ValidatedHelper.ValidateInputMesh(RendererRequired, gameObject, ValidatedHelper.DebugLog);
+
+                    if (TryGetComponent<MeshRenderer>(out var meshRenderer))
+                    {
+                        ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, ShaderPrefix, gameObject, ValidatedHelper.DebugLog);
+                    }
                 }
 #endif
 
@@ -110,7 +132,7 @@ namespace Crest
 #endif
         }
 
-        public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public virtual void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && _material && weight > 0f)
             {
@@ -122,11 +144,11 @@ namespace Crest
                     // This can be called multiple times per frame - one for each LOD potentially
                     _sampleHelper.Init(transform.position, 0f, true, this);
                     _sampleHelper.Sample(out Vector3 displacement, out _, out _);
-                    _material.SetVector(sp_DisplacementAtInputPosition, displacement);
+                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, displacement);
                 }
                 else
                 {
-                    _material.SetVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
                 }
 
                 buf.DrawRenderer(_renderer, _material);
@@ -151,7 +173,10 @@ namespace Crest
     public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {
-        [SerializeField] bool _disableRenderer = true;
+        protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
+
+        [SerializeField, Predicated(typeof(MeshRenderer)), DecoratedField]
+        bool _disableRenderer = true;
 
         protected abstract Color GizmoColor { get; }
 
@@ -219,7 +244,7 @@ namespace Crest
 #endif
         }
 
-        private void OnDrawGizmosSelected()
+        protected void OnDrawGizmosSelected()
         {
             var mf = GetComponent<MeshFilter>();
             if (mf)
@@ -230,22 +255,181 @@ namespace Crest
         }
     }
 
-    [ExecuteAlways]
-    public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
+    public abstract class RegisterLodDataInputWithSplineSupport<LodDataType>
+        : RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointDataNone>
         where LodDataType : LodDataMgr
     {
-        [SerializeField, Tooltip("Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.")]
-        bool _followHorizontalMotion = false;
+    }
 
-        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+    [ExecuteAlways]
+    public abstract class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
+        : RegisterLodDataInput<LodDataType>
+        , ISplinePointCustomDataSetup
+#if UNITY_EDITOR
+        , IReceiveSplinePointOnDrawGizmosSelectedMessages
+#endif
+        where LodDataType : LodDataMgr
+        where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
+    {
+        [Header("Spline settings")]
+        [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField]
+        bool _overrideSplineSettings = false;
+        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField]
+        float _radius = 20f;
+        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
+        int _subdivisions = 1;
+        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
+        int _smoothingIterations = 0;
+
+        protected Material _splineMaterial;
+        Spline.Spline _spline;
+        Mesh _splineMesh;
+
+        protected abstract string SplineShaderName { get; }
+        protected abstract Vector2 DefaultCustomData { get; }
+
+        void Awake()
+        {
+            if (TryGetComponent<Spline.Spline>(out _spline))
+            {
+                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
+
+                if (_splineMaterial == null)
+                {
+                    _splineMaterial = new Material(Shader.Find(SplineShaderName));
+                }
+            }
+        }
+
+        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        {
+            if (weight <= 0f) return;
+
+            if (_splineMesh != null && _splineMaterial != null)
+            {
+                buf.SetGlobalFloat(sp_Weight, weight);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
+            }
+            else
+            {
+                base.Draw(buf, weight, isTransition, lodIdx);
+            }
+        }
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (typeof(SplinePointCustomData) == typeof(SplinePointDataNone))
+            {
+                // No custom data required
+                return false;
+            }
+
+            if (splinePoint.TryGetComponent(out SplinePointCustomData _))
+            {
+                // Already existing, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointCustomData>();
+            return true;
+        }
+
+#if UNITY_EDITOR
+        protected override bool RendererRequired => _spline == null;
+
+        protected override void Update()
+        {
+            base.Update();
+
+            // Check for spline and rebuild spline mesh each frame in edit mode
+            if (!EditorApplication.isPlaying)
+            {
+                if (_spline == null)
+                {
+                    TryGetComponent<Spline.Spline>(out _spline);
+                }
+
+                if (_spline != null)
+                {
+                    var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                    var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                    var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
+
+                    if (_splineMaterial == null)
+                    {
+                        _splineMaterial = new Material(Shader.Find(SplineShaderName));
+                    }
+                }
+                else
+                {
+                    _splineMesh = null;
+                }
+            }
+        }
+
+        protected new void OnDrawGizmosSelected()
+        {
+            Gizmos.color = GizmoColor;
+            Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+        }
+
+        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        {
+            OnDrawGizmosSelected();
+        }
+#endif // UNITY_EDITOR
     }
 
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
+        protected virtual bool RendererRequired => true;
+
+        protected virtual string FeatureToggleLabel => null;
+        protected virtual string FeatureToggleName => null;
+        protected virtual bool FeatureEnabled(OceanRenderer ocean) => true;
+
+        protected virtual string RequiredShaderKeyword => null;
+        // NOTE: Temporary until shader keywords are the same across pipelines.
+        protected virtual string RequiredShaderKeywordProperty => null;
+
+        protected virtual string MaterialFeatureDisabledError => null;
+        protected virtual string MaterialFeatureDisabledFix => null;
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            return ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+            var isValid = ValidatedHelper.ValidateInputMesh(RendererRequired, gameObject, showMessage);
+
+            if (TryGetComponent<MeshRenderer>(out var meshRenderer))
+            {
+                isValid = ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, ShaderPrefix, gameObject, showMessage) && isValid;
+            }
+
+            if (ocean != null && !FeatureEnabled(ocean))
+            {
+                showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the <i>OceanRenderer</i> component.",
+                    $"Enable the <i>{FeatureToggleLabel}</i> option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, ocean,
+                    (so) => OceanRenderer.FixSetFeatureEnabled(so, FeatureToggleName, true)
+                    );
+                isValid = false;
+            }
+
+            if (ocean != null && !string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
+            {
+                showMessage(MaterialFeatureDisabledError, MaterialFeatureDisabledFix,
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                    (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, RequiredShaderKeyword, RequiredShaderKeywordProperty, true));
+                isValid = false;
+            }
+
+            return isValid;
         }
     }
 

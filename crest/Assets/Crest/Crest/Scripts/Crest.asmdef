@@ -1,6 +1,8 @@
 {
     "name": "Crest",
-    "references": [],
+    "references": [
+        "Unity.Postprocessing.Runtime"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -9,6 +11,11 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
+        {
+            "name": "com.unity.postprocessing",
+            "expression": "",
+            "define": "UNITY_POSTPROCESSING_ENABLED"
+        },
         {
             "name": "com.unity.modules.vr",
             "expression": "1.0.0",

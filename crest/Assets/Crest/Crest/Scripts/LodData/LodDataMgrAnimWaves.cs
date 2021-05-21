@@ -62,9 +62,10 @@ namespace Crest
         public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
-        static List<ShapeGerstner> _gerstners = new List<ShapeGerstner>();
-        public static void RegisterUpdatable(ShapeGerstner updatable) => _gerstners.Add(updatable);
-        public static void DeregisterUpdatable(ShapeGerstner updatable) => _gerstners.RemoveAll(candidate => candidate == updatable);
+        public interface IShapeUpdatable { void CrestUpdate(CommandBuffer buf); }
+        static List<IShapeUpdatable> _updatables = new List<IShapeUpdatable>();
+        public static void RegisterUpdatable(IShapeUpdatable updatable) => _updatables.Add(updatable);
+        public static void DeregisterUpdatable(IShapeUpdatable updatable) => _updatables.RemoveAll(candidate => candidate == updatable);
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -228,7 +229,7 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
             }
 
-            foreach (var gerstner in _gerstners)
+            foreach (var gerstner in _updatables)
             {
                 gerstner.CrestUpdate(buf);
             }
@@ -454,7 +455,7 @@ namespace Crest
             sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
             sp_LODChange = Shader.PropertyToID("_LODChange");
             s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-            _gerstners.Clear();
+            _updatables.Clear();
         }
     }
 }

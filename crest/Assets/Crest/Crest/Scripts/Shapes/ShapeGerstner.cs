@@ -21,7 +21,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstner-preview")]
-    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
+    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin, LodDataMgrAnimWaves.IShapeUpdatable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -236,7 +236,8 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            return texelSize * OceanRenderer.Instance.MinTexelsPerWave;
+            // Nyquist rate
+            return texelSize * 2f;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -700,6 +701,21 @@ namespace Crest
             {
                 _bufWaveData.Dispose();
                 _bufWaveData = null;
+            }
+
+            if (_waveBuffers != null)
+            {
+#if UNITY_EDITOR
+                if (!EditorApplication.isPlaying)
+                {
+                    DestroyImmediate(_waveBuffers);
+                }
+                else
+#endif
+                {
+                    Destroy(_waveBuffers);
+                }
+                _waveBuffers = null;
             }
         }
 

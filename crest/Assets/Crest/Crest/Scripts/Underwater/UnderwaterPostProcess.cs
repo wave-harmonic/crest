@@ -160,14 +160,22 @@ namespace Crest
 
         void OnPreRender()
         {
+            XRHelpers.Update(_mainCamera);
+
             // Allocate planes only once
             if (_cameraFrustumPlanes == null)
             {
                 _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_mainCamera);
                 _maskCommandBuffer = new CommandBuffer();
                 _maskCommandBuffer.name = "Ocean Mask Command Buffer";
+                // @FixMe: BeforeForwardAlpha breaks XR SPI right eye completely for MockHMD (not tested on XR
+                // hardware). This could either be a Unity bug or we have to restore something after the command buffer
+                // is executed. BeforeForwardAlpha is necessary for features that rely on the ocean shader using the
+                // mask.
                 _mainCamera.AddCommandBuffer(
-                    CameraEvent.BeforeForwardAlpha,
+                    XRHelpers.IsSinglePass && !XRHelpers.IsDoubleWide
+                        ? CameraEvent.AfterForwardAlpha
+                        : CameraEvent.BeforeForwardAlpha,
                     _maskCommandBuffer
                 );
             }
@@ -178,17 +186,21 @@ namespace Crest
             }
 
             {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                RenderTextureDescriptor descriptor = XRHelpers.IsRunning
+                    ? XRHelpers.EyeRenderTextureDescriptor
+                    : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
                 InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             }
 
-            PopulateOceanMask(
-                _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
-                _textureMask, _depthBuffer,
-                _oceanMaskMaterial,
-                _disableOceanMask
-            );
-
+            for (var depthSlice = 0; depthSlice < _textureMask.volumeDepth; depthSlice++)
+            {
+                PopulateOceanMask(
+                    _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
+                    _textureMask, _depthBuffer,
+                    _oceanMaskMaterial, depthSlice, 0,
+                    _disableOceanMask
+                );
+            }
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)

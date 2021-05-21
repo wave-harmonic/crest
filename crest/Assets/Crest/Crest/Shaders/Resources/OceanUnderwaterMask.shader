@@ -36,6 +36,8 @@ Shader "Crest/Underwater/Ocean Mask"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
+			// For some reason the command buffer would not accept matrix changes. Probably being overwritten.
+			float4x4 _ViewProjectionMatrix;
 
 			#include "../OceanConstants.hlsl"
 			#include "../OceanInputsDriven.hlsl"
@@ -95,7 +97,12 @@ Shader "Crest/Underwater/Ocean Mask"
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos, sss);
 				}
 
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+				output.positionCS = mul(_ViewProjectionMatrix, float4(worldPos, 1.0));
+#else
 				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+#endif
+				
 				return output;
 			}
 

@@ -19,7 +19,6 @@ Shader "Crest/Underwater/Ocean Mask"
 			#pragma target 3.0
 
 			#include "UnityCG.cginc"
-			#include "Lighting.cginc"
 
 			struct Attributes
 			{
@@ -64,7 +63,7 @@ Shader "Crest/Underwater/Ocean Mask"
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
-				float3 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
+				float3 worldPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz, 1.0));
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
@@ -97,6 +96,7 @@ Shader "Crest/Underwater/Ocean Mask"
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos, sss);
 				}
 
+				// We have our own matrix here because the UNITY_MATRIX_VP for XR SPI couldn't be overriden.
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
 				output.positionCS = mul(_ViewProjectionMatrix, float4(worldPos, 1.0));
 #else

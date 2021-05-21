@@ -131,10 +131,11 @@ namespace Crest
                 var eye = (Camera.StereoscopicEye)(IsSinglePass ? viewIndex : passIndex);
                 // It appears that the command buffer matrix changes were being overwritten so we just pass it as a
                 // property instead. According to documentation, GetGPUProjectionMatrix is correct way to get the final
-                // matrix similar to how Unity would do it.
+                // matrix similar to how Unity would do it. Only XR SPI uses this matrix.
                 commandBuffer.SetGlobalMatrix("_ViewProjectionMatrix",
                     GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true) *
                     camera.GetStereoViewMatrix(eye));
+                // Since XR SPI will use the above matrix, we can just set this one normally for everything else.
                 commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
             else if (IsNewSDKRunning)

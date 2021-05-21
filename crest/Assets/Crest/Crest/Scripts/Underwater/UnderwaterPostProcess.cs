@@ -186,15 +186,12 @@ namespace Crest
                 InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             }
 
-            for (var depthSlice = 0; depthSlice < _textureMask.volumeDepth; depthSlice++)
-            {
-                PopulateOceanMask(
-                    _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
-                    _textureMask, _depthBuffer,
-                    _oceanMaskMaterial, depthSlice, 0,
-                    _disableOceanMask
-                );
-            }
+            PopulateOceanMask(
+                _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
+                _textureMask, _depthBuffer,
+                _oceanMaskMaterial,
+                _disableOceanMask
+            );
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)

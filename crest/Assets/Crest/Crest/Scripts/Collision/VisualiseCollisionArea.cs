@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// Debug draw crosses in an area around the GameObject on the water surface.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Visualise Collision Area")]
     public class VisualiseCollisionArea : MonoBehaviour
     {
         [SerializeField]

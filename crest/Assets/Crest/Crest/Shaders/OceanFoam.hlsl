@@ -38,8 +38,10 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 {
 	half foamAmount = i_foam;
 
+#if _TRANSPARENCY_ON
 	// feather foam very close to shore
 	foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
+#endif
 
 	// Additive underwater foam - use same foam texture but add mip bias to blur for free
 	half bubbleFoamTexValue = BubbleFoamTexture(i_worldXZ, i_worldXZUndisplaced, i_n, i_view, lodVal, cascadeData0, cascadeData1);

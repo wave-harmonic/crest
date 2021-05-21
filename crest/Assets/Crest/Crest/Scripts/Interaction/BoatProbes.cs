@@ -13,6 +13,7 @@ namespace Crest
     /// <summary>
     /// Boat physics by sampling at multiple probe points.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Boat Probes")]
     public class BoatProbes : FloatingObjectBase
     {
         [Header("Forces")]

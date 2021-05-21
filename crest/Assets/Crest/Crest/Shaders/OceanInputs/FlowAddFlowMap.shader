@@ -8,6 +8,8 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 	{
 		_FlowMap("Flow Map", 2D) = "white" {}
 		_Strength( "Strength", float ) = 1
+		[Toggle] _FlipX("Flip X", Float) = 0
+		[Toggle] _FlipZ("Flip Z", Float) = 0
 	}
 
 	SubShader
@@ -20,6 +22,9 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+
+			#pragma shader_feature_local _FLIPX_ON
+			#pragma shader_feature_local _FLIPZ_ON
 
 			#include "UnityCG.cginc"
 
@@ -58,7 +63,16 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				return float4((tex2D(_FlowMap, input.uv).xy - 0.5) * _Strength, 0.0, 0.0);
+				float2 flow = tex2D(_FlowMap, input.uv).xy - 0.5;
+
+#if _FLIPX_ON
+				flow.x *= -1.0;
+#endif
+#if _FLIPZ_ON
+				flow.y *= -1.0;
+#endif
+
+				return float4(flow * _Strength, 0.0, 0.0);
 			}
 
 			ENDCG

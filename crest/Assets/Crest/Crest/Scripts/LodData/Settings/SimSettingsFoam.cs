@@ -15,7 +15,7 @@ namespace Crest
     [HelpURL(HELP_URL)]
     public class SimSettingsFoam : SimSettingsBase
     {
-        public const string HELP_URL = "https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#foam";
+        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#id5";
 
         [Header("General settings")]
         [Range(0f, 20f), Tooltip("Speed at which foam fades/dissipates.")]
@@ -25,7 +25,7 @@ namespace Crest
         [Range(0f, 5f), Tooltip("Scales intensity of foam generated from waves. This setting should be balanced with the Foam Fade Rate setting.")]
         public float _waveFoamStrength = 1f;
         [Range(0f, 1f), Tooltip("How much of the waves generate foam. Higher values will lower the threshold for foam generation, giving a larger area.")]
-        public float _waveFoamCoverage = 0.8f;
+        public float _waveFoamCoverage = 0.55f;
 
         [Header("Shoreline")]
         [Range(0.01f, 3f), Tooltip("Foam will be generated in water shallower than this depth. Controls how wide the band of foam at the shoreline will be.")]
@@ -36,6 +36,8 @@ namespace Crest
         [Header("Developer settings")]
         [Tooltip("The render texture format to use for the foam simulation. This is mostly for debugging and should be left at its default.")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16_SFloat;
+        [Range(15f, 200f), Tooltip("Frequency to run the foam sim, in updates per second. Lower frequencies can be more efficient but may lead to visible jitter. Default is 30 updates per second.")]
+        public float _simulationFrequency = 30f;
     }
 
 #if UNITY_EDITOR

@@ -39,12 +39,6 @@ namespace Crest
         /// </summary>
         public static bool _shapeCombinePass = true;
 
-        /// <summary>
-        /// Ping pong between render targets to do the combine. Disabling this uses a compute shader instead which doesn't need
-        /// to copy back and forth between targets, but has dodgy historical support as pre-DX11.3 hardware may not support typed UAV loads.
-        /// </summary>
-        public static bool _shapeCombinePassPingPong = true;
-
         RenderTexture _waveBuffers;
         RenderTexture _combineBuffer;
 
@@ -234,7 +228,7 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
             }
 
-            foreach(var gerstner in _gerstners)
+            foreach (var gerstner in _gerstners)
             {
                 gerstner.CrestUpdate(buf);
             }
@@ -255,7 +249,7 @@ namespace Crest
             }
 
             // Combine the LODs - copy results from biggest LOD down to LOD 0
-            if (_shapeCombinePassPingPong)
+            if (Settings.PingPongCombinePass)
             {
                 CombinePassPingPong(buf);
             }
@@ -298,14 +292,10 @@ namespace Crest
                 }
 
                 // Dynamic waves
-                LodDataMgrDynWaves.Bind(_combineMaterial[lodIdx]);
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                 }
-
-                // Flow
-                LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
@@ -440,11 +430,8 @@ namespace Crest
         }
 
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
-        {
-            return ParamIdSampler(sourceLod);
-        }
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
 
         public static void Bind(IPropertyWrapper properties)
         {

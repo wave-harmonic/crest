@@ -19,7 +19,6 @@ Shader "Crest/Underwater/Ocean Mask"
 			#pragma target 3.0
 
 			#include "UnityCG.cginc"
-			#include "Lighting.cginc"
 
 			struct Attributes
 			{
@@ -35,7 +34,6 @@ Shader "Crest/Underwater/Ocean Mask"
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
-
 
 			#include "../OceanConstants.hlsl"
 			#include "../OceanInputsDriven.hlsl"
@@ -62,7 +60,7 @@ Shader "Crest/Underwater/Ocean Mask"
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
-				float3 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
+				float3 worldPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz, 1.0));
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
@@ -96,12 +94,13 @@ Shader "Crest/Underwater/Ocean Mask"
 				}
 
 				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+
 				return output;
 			}
 
-			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
+			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 			{
-				if (IsUnderwater(facing, _ForceUnderwater))
+				if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 				{
 					return (half4)UNDERWATER_MASK_WATER_SURFACE_BELOW;
 				}

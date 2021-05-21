@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.XR;
 
 namespace Crest
 {
@@ -88,8 +87,9 @@ namespace Crest
             bool debugDisableOceanMask
         )
         {
-            // Get all ocean chunks and render them using cmd buffer, but with mask shader
-            commandBuffer.SetRenderTarget(colorBuffer.colorBuffer, depthBuffer.depthBuffer);
+            // Get all ocean chunks and render them using cmd buffer, but with mask shader.
+            // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
+            commandBuffer.SetRenderTarget(colorBuffer.colorBuffer, depthBuffer.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
@@ -218,27 +218,18 @@ namespace Crest
             }
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
-            if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
+            if (XRHelpers.IsSinglePass)
             {
+                XRHelpers.SetViewProjectionMatrices(camera);
 
-                var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
-                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
-
-                {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
-                }
-            }
-            else
-            {
                 // Store projection matrix to restore later.
                 var projectionMatrix = camera.projectionMatrix;
 
                 // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
-                camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
+                camera.projectionMatrix = XRHelpers.LeftEyeProjectionMatrix;
 
-                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left)).inverse;
-                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+                var inverseViewProjectionMatrix = (XRHelpers.LeftEyeProjectionMatrix * XRHelpers.LeftEyeViewMatrix).inverse;
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
@@ -246,10 +237,10 @@ namespace Crest
                 }
 
                 // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
-                camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right);
+                camera.projectionMatrix = XRHelpers.RightEyeProjectionMatrix;
 
-                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Right)).inverse;
-                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
+                var inverseViewProjectionMatrixRightEye = (XRHelpers.RightEyeProjectionMatrix * XRHelpers.RightEyeViewMatrix).inverse;
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
@@ -258,6 +249,18 @@ namespace Crest
 
                 // Restore projection matrix.
                 camera.projectionMatrix = projectionMatrix;
+            }
+            else
+            {
+                XRHelpers.SetViewProjectionMatrices(camera);
+
+                var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+
+                {
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
+                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                }
             }
 
             // Not sure why we need to do this - blit should set it...?

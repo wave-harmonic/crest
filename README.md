@@ -1,8 +1,5 @@
 
-<img src="https://raw.githubusercontent.com/wave-harmonic/crest/master/logo/crest-oceanrender-logotype1.png" width="214">
-
-&nbsp;
-
+<img src="https://raw.githubusercontent.com/wave-harmonic/crest/master/logo/crest-oceanrender-logomark128.png" width="107">
 
 # Intro
 
@@ -11,15 +8,17 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 ![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
 
+**Supporting us:** Asset Store sales partially cover our dev costs, for the rest we are looking for sponsorship. Please see our [sponsorship page](https://github.com/sponsors/wave-harmonic) for more detals.
+
 **Discord for news/updates/discussions:** https://discord.gg/g7GpjDC
 
 **YouTube for tutorials and showcases:** [Crest Ocean System](https://www.youtube.com/channel/UC7_ZKKCXZmH64rRZqe-C0WA)
 
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
-**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674)
-
-**HDRP asset:** [Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158)
+|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/ae4a1e07-c6f1-4b2e-b1c3-9f2065d43515.jpg" alt="Crest Ocean System URP Asset" width="240" height="180"/></a>|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/68d1442e-488d-4ae9-8ec4-a7e3ff913788.jpg" alt="Crest Ocean System HDRP Asset" width="240" height="180"/></a>|
+:-:|:-:|
+[Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K)|[Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K)
 
 # Showcase Gallery
 
@@ -38,9 +37,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 # Documentation
 
-Refer to [USERGUIDE.md](https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
-
-There is also a getting started video here: https://www.youtube.com/watch?v=qsgeG4sSLFw&t=142s .
+[Full documentation is available online](https://crest.readthedocs.io/en/latest), including *initial setup steps*.
 
 # Prerequisites
 
@@ -48,7 +45,6 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
   * The SRP assets on the Asset Store specify the minimum version required.
   * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.4.8 or later is the minimum version. See further down for 2018.4 support.
 * *Crest* example content:
-  * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime
 * [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above
@@ -64,19 +60,10 @@ The files that should be copied into an existing project are under *crest/Assets
 
 Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
-## Legacy
+**Releases**: Currently we do not prepare release packages. However, we do tag each asset store version, so the zip corresponding to each version can be downloaded by clicking the desired version on the [Releases page](https://github.com/wave-harmonic/crest/releases). Once the zip is downloaded, the steps are as above.
 
-The following options are no longer maintained or supported.
 
-### Releases
-
-*Crest* releases are no longer published or supported.
-
-### 2018.4
-
-There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.
-
-# Issues
+# Notes and Issues
 
 If you encounter an issue, please search the [Issues page](https://github.com/wave-harmonic/crest/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
 
@@ -84,5 +71,20 @@ There are a few issues worth calling out here:
 
 * Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/wave-harmonic/crest/wiki) for examples.
 * *Crest* does not support OpenGL or WebGL backends
+* Unity 2018 support - There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 
-[legacy branch]: https://github.com/wave-harmonic/crest/tree/legacy/unity-2018
+# Donations
+
+With your support we aim to increase our development bandwidth significantly. Please see our sponsor page for sponsor tiers and rewards:
+
+https://github.com/sponsors/wave-harmonic
+
+## Sponsors
+
+### Gold 🥇
+
+[@celeronpm](https://github.com/celeronpm) [@ipthgil](https://github.com/ipthgil)
+
+### Board Members 🚀
+
+[@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)

@@ -188,6 +188,8 @@ namespace Crest
 
         void OnPreRender()
         {
+            XRHelpers.Update(_mainCamera);
+
             // Allocate planes only once
             if (_cameraFrustumPlanes == null)
             {
@@ -206,16 +208,21 @@ namespace Crest
             }
 
             {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                RenderTextureDescriptor descriptor = XRHelpers.IsRunning
+                    ? XRHelpers.EyeRenderTextureDescriptor
+                    : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
                 InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             }
 
-            PopulateOceanMask(
-                _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
-                _textureMask, _depthBuffer,
-                _oceanMaskMaterial,
-                _disableOceanMask
-            );
+            for (var depthSlice = 0; depthSlice < _textureMask.volumeDepth; depthSlice++)
+            {
+                PopulateOceanMask(
+                    _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
+                    _textureMask, _depthBuffer,
+                    _oceanMaskMaterial, depthSlice, 0,
+                    _disableOceanMask
+                );
+            }
 
             if (OceanRenderer.Instance == null)
             {

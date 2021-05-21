@@ -103,7 +103,7 @@ namespace Crest
             {
                 if (_playableDirector != null
                     && _playableDirector.isActiveAndEnabled
-                    && (!EditorApplication.isPlaying || _playableDirector.state == PlayState.Playing))
+                    && (!Application.isPlaying || _playableDirector.state == PlayState.Playing))
                 {
                     return (float)_playableDirector.time + _timeOffset;
                 }

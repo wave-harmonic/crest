@@ -83,22 +83,15 @@ namespace Crest
         internal static void PopulateOceanMask(
             CommandBuffer commandBuffer, Camera camera, List<OceanChunkRenderer> chunksToRender, Plane[] frustumPlanes,
             RenderTexture colorBuffer, RenderTexture depthBuffer,
-            Material oceanMaskMaterial, int depthSlice, int passIndex,
+            Material oceanMaskMaterial,
             bool debugDisableOceanMask
         )
         {
-            // Get all ocean chunks and render them using cmd buffer, but with mask shader
-            commandBuffer.SetRenderTarget(colorBuffer.colorBuffer, depthBuffer.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: depthSlice);
+            // Get all ocean chunks and render them using cmd buffer, but with mask shader.
+            // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
+            commandBuffer.SetRenderTarget(colorBuffer.colorBuffer, depthBuffer.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
-
-            if (XRHelpers.IsRunning)
-            {
-                XRHelpers.SetViewProjectionMatrices(camera, depthSlice, passIndex, commandBuffer);
-            }
-            else
-            {
-                commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-            }
+            commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             if (!debugDisableOceanMask)
             {

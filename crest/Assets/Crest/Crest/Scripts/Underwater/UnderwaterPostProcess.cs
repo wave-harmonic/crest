@@ -47,12 +47,9 @@ namespace Crest
 
         private Plane[] _cameraFrustumPlanes;
 
-        Mesh _fullScreenTriangleMesh;
-
         private Material _oceanMaskMaterial = null;
 
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
-
 
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
@@ -139,18 +136,6 @@ namespace Crest
                     name = "Underwater Post Process",
                 };
             }
-
-            _fullScreenTriangleMesh = new Mesh
-            {
-                name = "Full-Screen Triangle Mesh",
-                vertices = new Vector3[] {
-                new Vector3(-1f, -1f, 0f),
-                new Vector3(-1f,  3f, 0f),
-                new Vector3( 3f, -1f, 0f),
-            },
-                triangles = new int[] { 0, 1, 2 },
-            };
-            _fullScreenTriangleMesh.UploadMeshData(true);
         }
 
         private void OnDestroy()
@@ -207,12 +192,11 @@ namespace Crest
                 _maskCommandBuffer.Clear();
             }
 
-            {
-                RenderTextureDescriptor descriptor = XRHelpers.IsRunning
+            RenderTextureDescriptor descriptor = XRHelpers.IsRunning
                     ? XRHelpers.EyeRenderTextureDescriptor
                     : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
-                InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
-            }
+
+            InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
 
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
@@ -235,15 +219,19 @@ namespace Crest
                 _eventsRegistered = true;
             }
 
-
-
             if (GL.wireframe)
             {
                 return;
             }
 
+            descriptor.useDynamicScale = _mainCamera.allowDynamicResolution;
+            // Format must be correct for CopyTexture to work. Hopefully this is good enough.
+            if (_mainCamera.allowHDR) descriptor.colorFormat = RenderTextureFormat.DefaultHDR;
+
+            var temporaryColorBuffer = RenderTexture.GetTemporary(descriptor);
+
             UpdatePostProcessMaterial(
-                _mainCamera.targetTexture,
+                temporaryColorBuffer,
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
                 _sphericalHarmonicsData,
@@ -255,7 +243,23 @@ namespace Crest
             );
 
             _postProcessCommandBuffer.Clear();
-            _postProcessCommandBuffer.DrawMesh(_fullScreenTriangleMesh, Matrix4x4.identity, _underwaterPostProcessMaterial);
+
+            if (_mainCamera.allowMSAA)
+            {
+                // Use blit if MSAA is active because transparents were not included with CopyTexture.
+                // Not sure if we need an MSAA resolve? Not sure how to do that...
+                _postProcessCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+            }
+            else
+            {
+                // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
+                _postProcessCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+            }
+
+            _postProcessCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+            _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, -1, MeshTopology.Triangles, 3, 1);
+
+            RenderTexture.ReleaseTemporary(temporaryColorBuffer);
 
             _firstRender = false;
         }

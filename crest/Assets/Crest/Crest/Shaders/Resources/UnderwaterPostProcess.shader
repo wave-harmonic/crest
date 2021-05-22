@@ -14,11 +14,6 @@ Shader "Crest/Underwater/Post Process"
 		// No culling or depth
 		Cull Off ZWrite Off ZTest Always
 
-		GrabPass
-		{
-			"_CrestGrabPassTexture"
-		}
-
 		Pass
 		{
 			CGPROGRAM
@@ -69,8 +64,7 @@ Shader "Crest/Underwater/Post Process"
 
 			struct Attributes
 			{
-				float4 positionOS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint id : SV_VertexID;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -80,7 +74,6 @@ Shader "Crest/Underwater/Post Process"
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
 				float3 viewWS : TEXCOORD1;
-				float4 grabPosition: TEXCOORD2;
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -93,13 +86,13 @@ Shader "Crest/Underwater/Post Process"
 				UNITY_INITIALIZE_OUTPUT(Varyings, output);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-				output.positionCS = float4(input.positionOS.xy, 0.0, 1.0);
-				output.uv = input.positionOS.xy * 0.5 + 0.5;
-				// Check if flipped.
-				if (_ProjectionParams.x < 0.0)
-				{
-					output.uv.y = 1.0 - output.uv.y;
-				}
+				// Procedural fullscreen triangle: https://git.io/JsH97
+				output.positionCS = float4(float2((input.id << 1) & 2, input.id & 2) * 2.0 - 1.0, UNITY_NEAR_CLIP_VALUE, 1.0);;
+#if UNITY_UV_STARTS_AT_TOP
+				output.uv = float2((input.id << 1) & 2, 1.0 - (input.id & 2));
+#else
+				output.uv = float2((input.id << 1) & 2, input.id & 2);
+#endif
 
 				// Compute world space view vector
 				{
@@ -114,12 +107,10 @@ Shader "Crest/Underwater/Post Process"
 					output.viewWS = _WorldSpaceCameraPos - pixelWS;
 				}
 
-				output.grabPosition = ComputeGrabScreenPos(output.positionCS);
-
 				return output;
 			}
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestGrabPassTexture);
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
 
@@ -181,7 +172,7 @@ Shader "Crest/Underwater/Post Process"
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
 
-				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestGrabPassTexture, input.grabPosition).rgb;
+				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, uvScreenSpace).rgb;
 
 				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
 

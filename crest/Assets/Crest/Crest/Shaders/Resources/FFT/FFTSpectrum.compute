@@ -15,6 +15,10 @@
 #define PI2		6.28318530717f
 #define HSQRT2	0.70710678118f
 
+// These must match corresponding constants in OceanWaveSpectrum.cs
+#define SPECTRUM_OCTAVE_COUNT		14.0
+#define SPECTRUM_SMALLEST_WL_POW_2	-4.0
+
 uint _Size;
 float _WindSpeed;
 float _Turbulence;
@@ -133,16 +137,12 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	float w; float dwdk;
 	DeepDispersion(kMag, w, dwdk);
 
-	// Spectrum
-	float spectrum = PiersonMoskowitzSpectrum( w );
-
-	float wl = PI2 / kMag;
-	float SMALLEST_WL_POW_2 = -4.0;
-	uint NUM_OCTAVES = 14;
-	float index = log2( wl ) - SMALLEST_WL_POW_2;
-	spectrum = _SpectrumControls.SampleLevel( linear_clamp_sampler, float2((index + 0.5) / NUM_OCTAVES, 0.5), 0.0 )
-		* PiersonMoskowitzWindTerm( w )
-		;
+	// Spectrum - use power values from users spectrum, but borrow wind term from PM
+	const float wavelength = PI2 / kMag;
+	const float octaveIndex = log2( wavelength ) - SPECTRUM_SMALLEST_WL_POW_2;
+	const float spectrumUV = float2((octaveIndex + 0.5) / SPECTRUM_OCTAVE_COUNT, 0.5);
+	const float spectrum = _SpectrumControls.SampleLevel( linear_clamp_sampler, spectrumUV, 0.0 ) *
+		PiersonMoskowitzWindTerm( w );
 
 	float deltaSPos = spectrum;
 	float deltaSNeg = spectrum;

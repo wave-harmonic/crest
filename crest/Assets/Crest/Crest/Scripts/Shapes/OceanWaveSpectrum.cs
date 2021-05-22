@@ -23,6 +23,7 @@ namespace Crest
         [SerializeField, HideInInspector]
         int _version = 0;
 
+        // These must match corresponding constants in FFTSpectrum.compute
         public const int NUM_OCTAVES = 14;
         public static readonly float SMALLEST_WL_POW_2 = -4f;
 
@@ -44,6 +45,7 @@ namespace Crest
         [Tooltip("Multiplier which scales waves"), Range(0f, 10f), SerializeField]
         float _multiplier = 1f;
 
+        // TODO divide these by log10(25)
         [HideInInspector, SerializeField]
         internal float[] _powerLog = new float[NUM_OCTAVES]
             { -5.710145f, -5.841546f, -5.17913f, -4.4710717f, -3.480769f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };

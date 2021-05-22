@@ -23,13 +23,16 @@ Changed
 .. bullet_list::
 
    -  Sponsorship page launched! Asset Store sales only cover fixes and basic support. To support new feature development and give us financial stability please consider sponsoring us, no amount is too small! https://github.com/sponsors/wave-harmonic
-   -  Wind speed added to OceanRenderer component so that wave conditions change naturally for different wind conditions
-   -  Empirical spectra retweaked and use the aforementioned wind speed
+   -  Wind speed added to OceanRenderer component so that wave conditions change naturally for different wind conditions.
+   -  Empirical spectra retweaked and use the aforementioned wind speed.
    -  Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).
    -  Headless support - add support for running without display, with new toggle on OceanRenderer to emulate it in Editor.
    -  No GPU support - add support for running without GPU, with new toggle on OceanRenderer to emulate it in Editor.
    -  OceanRenderer usability - system automatically rebuilds when changing settings on the component, 'Rebuild' button removed.
    -  Ocean material can now be set with scripting.
+   -  Custom Time Provider has pause toggle, for easy pausing functionality.
+   -  Network Time Provider added to easily sync water simulation to server time.
+   -  Cutscene Time Provider added to drive water simulation time from Timelines
 
    .. only:: hdrp
 

@@ -85,10 +85,10 @@ float PiersonMoskowitzWindTerm( float w )
 
 float PosCosSquaredDirectionalSpreading(float w, float theta, float kMag, float dTheta)
 {
-	if (theta > -HPI && theta < HPI)
+	if( abs( theta ) < HPI )
 	{
 		float ct = cos(theta);
-		return INVPI2 * (ct * ct) * (1 - _Turbulence) + PI4 * _Turbulence;
+		return lerp( INVPI2 * (ct * ct), PI4, _Turbulence );
 	}
 	else
 	{

@@ -51,6 +51,7 @@ Fixed
    -  Fix null exception for attach renderer help box fix button.
    -  Fix "remove renderer" help box not showing when it should.
    -  Fix bug where wind direction could not be set per ShapeGerstner component.
+   -  Fix compilation errors when only Unity's new *Input System* backend is available.
 
    .. only:: hdrp
 

@@ -45,10 +45,9 @@ namespace Crest
         [Tooltip("Multiplier which scales waves"), Range(0f, 10f), SerializeField]
         float _multiplier = 1f;
 
-        // TODO divide these by log10(25)
         [HideInInspector, SerializeField]
         internal float[] _powerLog = new float[NUM_OCTAVES]
-            { -5.710145f, -5.841546f, -5.17913f, -4.4710717f, -3.480769f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
+            { -5.71f, -5.03f, -4.54f, -3.88f, -3.28f, -2.32f, -1.78f, -1.21f, -0.54f, 0.28f, 0.54f, 1.03f, 1.44f, -8f };
 
         [HideInInspector, SerializeField]
         internal bool[] _powerDisabled = new bool[NUM_OCTAVES];
@@ -64,6 +63,21 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
 
+        void Reset()
+        {
+            // Auto-upgrade any new data objects directly to v1. This is in lieu of simply
+            // giving _version a default value of 1 to distuingish new data, which we can't do
+            // because _version is not present in the old data at all.
+            // TODO: after a few releases, we can be sure _version will be present in the data.
+            // At this point we can bump _version to a default value of 1 and from that point
+            // onwards know that version is correct, and this auto upgrade path can go away.
+            for (int i = 0; i < _powerLog.Length; i++)
+            {
+                // This is equivalent to power /= 25, in log10 space
+                _powerLog[i] -= 1.39794f;
+            }
+            _version = 1;
+        }
 
 #if UNITY_EDITOR
 #pragma warning disable 414
@@ -162,7 +176,7 @@ namespace Crest
             // Amplitude
             var a = Mathf.Sqrt(a_2);
 
-            // Gerstner fudge - one hack to get Gerstners looking on par with FFT
+            // Gerstner fudge -one hack to get Gerstners looking on par with FFT
             if (_version > 0)
             {
                 a *= 5f;

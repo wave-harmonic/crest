@@ -778,13 +778,13 @@ namespace Crest
             var settingsHash = Hashy.CreateHash();
 
             // Add all the settings that require rebuilding..
-            Hashy.Add(_lodDataResolution, ref settingsHash);
-            Hashy.Add(_geometryDownSampleFactor, ref settingsHash);
-            Hashy.Add(_lodCount, ref settingsHash);
-            Hashy.Add(_forceBatchMode, ref settingsHash);
-            Hashy.Add(_forceNoGPU, ref settingsHash);
-            Hashy.Add(_hideOceanTileGameObjects, ref settingsHash);
-            Hashy.Add(_layerName, ref settingsHash);
+            Hashy.AddInt(_lodDataResolution, ref settingsHash);
+            Hashy.AddInt(_geometryDownSampleFactor, ref settingsHash);
+            Hashy.AddInt(_lodCount, ref settingsHash);
+            Hashy.AddBool(_forceBatchMode, ref settingsHash);
+            Hashy.AddBool(_forceNoGPU, ref settingsHash);
+            Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);
+            Hashy.AddObject(_layerName, ref settingsHash);
 
             return settingsHash;
         }

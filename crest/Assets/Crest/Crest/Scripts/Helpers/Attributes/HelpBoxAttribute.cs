@@ -4,12 +4,22 @@
 
 namespace Crest
 {
+#if UNITY_EDITOR
     using Crest.EditorHelpers;
     using UnityEditor;
+#endif
     using UnityEngine;
 
     public class HelpBoxAttribute : DecoratorAttribute
     {
+        // Define our own as Unity's won't be available in builds.
+        public enum MessageType
+        {
+            Info,
+            Warning,
+            Error,
+        }
+
         public string message;
         public MessageType messageType;
         public Visibility visibility;
@@ -35,6 +45,7 @@ namespace Crest
 #endif
         }
 
+#if UNITY_EDITOR
         internal override void Decorate(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
             if (visibility == Visibility.PropertyEnabled && !GUI.enabled || visibility == Visibility.PropertyDisabled && GUI.enabled)
@@ -56,10 +67,12 @@ namespace Crest
 
             // Always get a new control rect so we don't have to deal with positions and offsets.
             position = EditorGUILayout.GetControlRect(true, height, style);
-            EditorGUI.HelpBox(position, message, messageType);
+            // + 1 maps our MessageType to Unity's.
+            EditorGUI.HelpBox(position, message, (UnityEditor.MessageType)messageType + 1);
 
             // Revert skin since it persists.
             style.richText = styleRichText;
         }
+#endif
     }
 }

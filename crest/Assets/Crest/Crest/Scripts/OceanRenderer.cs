@@ -156,7 +156,7 @@ namespace Crest
         [System.Obsolete("Use the Layer property instead.")]
         public string LayerName { get { return _layerName; } }
 
-        [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
+        [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", HelpBoxAttribute.MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
         [Tooltip("The ocean tile renderers will have this layer.")]
         [SerializeField, Predicated("_layerName", inverted: true), Layer]
         int _layer = 4; // Water

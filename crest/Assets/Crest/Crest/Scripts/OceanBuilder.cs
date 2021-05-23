@@ -135,12 +135,19 @@ namespace Crest
                 return null;
             }
 
-            int oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
-            if (oceanLayer == -1)
+            int oceanLayer = ocean.Layer;
+
+#pragma warning disable 0618
+            if (ocean.LayerName != "")
             {
-                Debug.LogError("Invalid ocean layer: " + ocean.LayerName + " please add this layer.", ocean);
-                oceanLayer = 0;
+                oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
+                if (oceanLayer == -1)
+                {
+                    Debug.LogError("Invalid ocean layer: " + ocean.LayerName + " please add this layer.", ocean);
+                    oceanLayer = 0;
+                }
             }
+#pragma warning restore 0618
 
 #if PROFILE_CONSTRUCTION
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();

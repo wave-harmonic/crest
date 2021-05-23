@@ -17,7 +17,7 @@ namespace Crest
         public readonly string _propertyName;
         public readonly Type _requiredComponentType;
         public readonly bool _inverted;
-        public readonly int _disableIfValueIs;
+        public readonly object _disableIfValueIs;
 
         /// <summary>
         /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
@@ -38,7 +38,7 @@ namespace Crest
         /// <param name="propertyName">The name of the other property whose value dictates whether this field is enabled or not.</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
         /// <param name="disableIfValueIs">If the field has this value, disable the GUI (or enable if inverted is true).</param>
-        public PredicatedAttribute(string propertyName, bool inverted = false, int disableIfValueIs = 0)
+        public PredicatedAttribute(string propertyName, bool inverted = false, object disableIfValueIs = null)
         {
             _propertyName = propertyName;
             _inverted = inverted;
@@ -53,7 +53,7 @@ namespace Crest
         /// <param name="requiredComponentType">If a component of this type is not attached to this GameObject, disable the GUI (or enable if inverted is true).</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
         /// <param name="disableIfValueIs">If the field has this value, disable the GUI (or enable if inverted is true).</param>
-        public PredicatedAttribute(string propertyName, Type requiredComponentType, bool inverted = false, int disableIfValueIs = 0)
+        public PredicatedAttribute(string propertyName, Type requiredComponentType, bool inverted = false, object disableIfValueIs = null)
         {
             _propertyName = propertyName;
             _requiredComponentType = requiredComponentType;
@@ -69,20 +69,25 @@ namespace Crest
             if (prop.type == "int")
             {
                 // Enable GUI if int value of field is not equal to 0, or whatever the disable-value is set to
-                result = prop.intValue != _disableIfValueIs;
+                result = prop.intValue != ((int?)_disableIfValueIs ?? 0);
             }
             else if (prop.type == "bool")
             {
                 // Enable GUI if disable-value is 0 and field is true, or disable-value is not 0 and field is false
-                result = prop.boolValue ^ (_disableIfValueIs != 0);
+                result = prop.boolValue ^ (((int?)_disableIfValueIs ?? 0) != 0);
             }
             else if (prop.type == "float")
             {
-                result = prop.floatValue != _disableIfValueIs;
+                result = prop.floatValue != ((float?)_disableIfValueIs ?? 0);
+            }
+            else if (prop.type == "string")
+            {
+                // It appears that a string value cannot be null.
+                result = prop.stringValue != ((string)_disableIfValueIs ?? "");
             }
             else if (prop.type == "Enum")
             {
-                result = prop.enumValueIndex != _disableIfValueIs;
+                result = prop.enumValueIndex != ((int?)_disableIfValueIs ?? 0);
             }
             else if (prop.type.StartsWith("PPtr"))
             {

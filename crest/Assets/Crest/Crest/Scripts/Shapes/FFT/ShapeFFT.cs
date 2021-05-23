@@ -192,7 +192,7 @@ namespace Crest
             UpdateEditorOnly();
 #endif
 
-            if (_compute == null || _waveBuffers == null)
+            if (_compute == null || _waveBuffers == null || _resolution != _waveBuffers.width)
             {
                 InitData();
             }
@@ -202,7 +202,7 @@ namespace Crest
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame || (_waveBuffers != null && _resolution != _waveBuffers.width))
+            if (_firstUpdate || updateDataEachFrame || (_waveBuffers != null))
             {
                 InitBatches();
 

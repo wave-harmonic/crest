@@ -7,7 +7,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using Crest.Spline;
-using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;

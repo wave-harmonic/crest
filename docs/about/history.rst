@@ -28,6 +28,7 @@ Changed
    -  Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).
    -  Headless support - add support for running without display, with new toggle on OceanRenderer to emulate it in Editor.
    -  No GPU support - add support for running without GPU, with new toggle on OceanRenderer to emulate it in Editor.
+   -  Made many fields scriptable (public) on *BoatProbes*, *BoatAlignNormal* and *SimpleFloatingObject*.
 
    .. only:: hdrp
 

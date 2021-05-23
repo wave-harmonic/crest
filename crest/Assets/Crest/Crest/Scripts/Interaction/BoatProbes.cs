@@ -21,35 +21,29 @@ namespace Crest
         Vector3 _centerOfMass = Vector3.zero;
         [SerializeField, FormerlySerializedAs("ForcePoints")]
         FloaterForcePoints[] _forcePoints = new FloaterForcePoints[] { };
-
-        [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
-        float _forceHeightOffset = 0f;
-        [SerializeField]
-        float _forceMultiplier = 10f;
-        [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
-        float _minSpatialLength = 12f;
-        [SerializeField, Range(0, 1)]
-        float _turningHeel = 0.35f;
+        [Tooltip("Vertical offset for where engine force should be applied.")]
+        public float _forceHeightOffset = 0f;
+        public float _forceMultiplier = 10f;
+        [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be.")]
+        public float _minSpatialLength = 12f;
+        [Range(0, 1)]
+        public float _turningHeel = 0.35f;
 
         [Header("Drag")]
-        [SerializeField]
-        float _dragInWaterUp = 3f;
-        [SerializeField]
-        float _dragInWaterRight = 2f;
-        [SerializeField]
-        float _dragInWaterForward = 1f;
+        public float _dragInWaterUp = 3f;
+        public float _dragInWaterRight = 2f;
+        public float _dragInWaterForward = 1f;
 
         [Header("Control")]
-        [SerializeField, FormerlySerializedAs("EnginePower")]
-        float _enginePower = 7;
-        [SerializeField, FormerlySerializedAs("TurnPower")]
-        float _turnPower = 0.5f;
-        [SerializeField]
-        bool _playerControlled = true;
-        [Tooltip("Used to automatically add throttle input"), SerializeField]
-        float _engineBias = 0f;
-        [Tooltip("Used to automatically add turning input"), SerializeField]
-        float _turnBias = 0f;
+        [FormerlySerializedAs("EnginePower")]
+        public float _enginePower = 7;
+        [FormerlySerializedAs("TurnPower")]
+        public float _turnPower = 0.5f;
+        public bool _playerControlled = true;
+        [Tooltip("Used to automatically add throttle input")]
+        public float _engineBias = 0f;
+        [Tooltip("Used to automatically add turning input")]
+        public float _turnBias = 0f;
 
         private const float WATER_DENSITY = 1000;
 

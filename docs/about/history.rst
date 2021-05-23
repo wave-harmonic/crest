@@ -35,7 +35,6 @@ Changed
    -  Network Time Provider added to easily sync water simulation to server time.
    -  Cutscene Time Provider added to drive water simulation time from Timelines.
    -  Made many fields scriptable (public) on *BoatProbes*, *BoatAlignNormal* and *SimpleFloatingObject*.
-   -  Fix bug where wind direction could not be set per ShapeGerstner component.
 
    .. only:: hdrp
 

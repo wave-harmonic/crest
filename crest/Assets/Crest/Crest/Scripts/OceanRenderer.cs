@@ -151,9 +151,16 @@ namespace Crest
         internal Material _material = null;
         public Material OceanMaterial { get { return _material; } set { _material = value; } }
 
-        [SerializeField, Delayed]
-        string _layerName = "Water";
+        [System.Obsolete("Use the _layer field instead."), HideInInspector, SerializeField]
+        string _layerName = "";
+        [System.Obsolete("Use the Layer property instead.")]
         public string LayerName { get { return _layerName; } }
+
+        [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
+        [Tooltip("The ocean tile renderers will have this layer.")]
+        [SerializeField, Predicated("_layerName", inverted: true), Layer]
+        int _layer = 4; // Water
+        public int Layer => _layer;
 
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
@@ -778,13 +785,17 @@ namespace Crest
             var settingsHash = Hashy.CreateHash();
 
             // Add all the settings that require rebuilding..
+            Hashy.AddInt(_layer, ref settingsHash);
             Hashy.AddInt(_lodDataResolution, ref settingsHash);
             Hashy.AddInt(_geometryDownSampleFactor, ref settingsHash);
             Hashy.AddInt(_lodCount, ref settingsHash);
             Hashy.AddBool(_forceBatchMode, ref settingsHash);
             Hashy.AddBool(_forceNoGPU, ref settingsHash);
             Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);
+
+#pragma warning disable 0618
             Hashy.AddObject(_layerName, ref settingsHash);
+#pragma warning restore 0618
 
             return settingsHash;
         }
@@ -1232,6 +1243,8 @@ namespace Crest
         {
             var isValid = true;
 
+            isValid = ValidateObsolete(ocean, showMessage);
+
             if (_material == null)
             {
                 showMessage
@@ -1526,6 +1539,31 @@ namespace Crest
         {
             oceanSO.FindProperty(paramName).boolValue = enabled;
         }
+
+#pragma warning disable 0618
+        public bool ValidateObsolete(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (_layerName != "")
+            {
+                showMessage
+                (
+                    "<i>Layer Name</i> on the <i>Ocean Renderer</i> is deprecated and will be removed. " +
+                    "Use <i>Layer</i> instead.",
+                    $"Set <i>Layer</i> to <i>{_layerName}</i> using the <i>Layer Name</i> to complete the migration.",
+                    ValidatedHelper.MessageType.Warning, this,
+                    (SerializedObject serializedObject) =>
+                    {
+                        serializedObject.FindProperty("_layer").intValue = LayerMask.NameToLayer(_layerName);
+                        serializedObject.FindProperty("_layerName").stringValue = "";
+                    }
+                );
+            }
+
+            return isValid;
+        }
+#pragma warning restore 0618
     }
 
     [CustomEditor(typeof(OceanRenderer))]

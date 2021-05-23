@@ -228,7 +228,8 @@ MonoBehaviour:
   _primaryLight: {fileID: 0}
   _searchForPrimaryLightOnStartup: 1
   _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
-  _layerName: Water
+  _layerName: 
+  _layer: 4
   _gravityMultiplier: 1
   _minTexelsPerWave: 3
   _minScale: 8

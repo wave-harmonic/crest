@@ -23,6 +23,22 @@ Decals
 
         .. include:: includes/_render-alpha-surface.rst
 
+Time Providers
+--------------
+
+By default *Crest* generates waves at the current Unity time (what *Time.time* would return in C#).
+This behaviour can be overridden and a different time can be used instead.
+
+One use case for this is for cutscenes/timelines when the waves conditions must be known in advance and repeatable.
+For this case you may attach a *Cutscene Time Provider* component to a GameObject and assign it to the *Ocean Renderer* component.
+This component will take the time from a *Playable Director* component which plays a cutscene *Timeline*.
+Alternatively, a *Time Provider Custom* component can be used to feed any time into the system, and this time value can be keyframed, giving complete control over timing.
+
+Another common use case is to ensure waves are synchronised over a network.
+For this case attach a *Networked Time Provider* component to a GameObject and assign it to the *Ocean Renderer* component.
+Then at run-time set the *TimeOffsetToServer* property of this component to the delta from this client's time to the shared server time.
+If using the *Mirror* network system, set this property to the :link:`network time offset <https://mirror-networking.com/docs/api/Mirror.NetworkTime.html#Mirror_NetworkTime_offset>`.
+
 Floating origin
 ---------------
 

@@ -100,32 +100,39 @@ namespace Crest
 
         public Transform Root { get; private set; }
 
+        // does not respond to _timeProvider changing in inspector
+
+        // Loosely a stack for time providers. The last TP in the list is the active one. When a TP gets
+        // added to the stack, it is bumped to the top of the list. When a TP is removed, all instances
+        // of it are removed from the stack. This is less rigid than a real stack which would be harder
+        // to use as users have to keep a close eye on the order that things are pushed/popped.
+        public List<ITimeProvider> _timeProviderStack = new List<ITimeProvider>();
+
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;
-        ITimeProvider _timeProviderActive = null;
         public ITimeProvider TimeProvider
         {
-            get
-            {
-                // Specified by user on component - always prefer this
-                if (_timeProvider != null)
-                {
-                    return _timeProvider;
-                }
+            get => _timeProviderStack[_timeProviderStack.Count - 1];
+        }
 
-                if (_timeProviderActive == null)
-                {
-                    _timeProviderActive = new TimeProviderDefault();
-                }
+        // Put a time provider at the top of the stack
+        public void PushTimeProvider(ITimeProvider tp)
+        {
+            Debug.Assert(tp != null, "Null time provider pushed");
 
-                return _timeProviderActive;
-            }
+            // Remove any instances of it already in the stack
+            PopTimeProvider(tp);
 
-            set
-            {
-                Debug.Assert(_timeProvider == null, "Setting time provider will take no effect because a time provider has been specified in the Inspector which will take priority.");
-                _timeProviderActive = value;
-            }
+            // Add it to the top
+            _timeProviderStack.Add(tp);
+        }
+
+        // Remove a time provider from the stack
+        public void PopTimeProvider(ITimeProvider tp)
+        {
+            Debug.Assert(tp != null, "Null time provider popped");
+
+            _timeProviderStack.RemoveAll(candidate => candidate == tp);
         }
 
         public float CurrentTime => TimeProvider.CurrentTime;
@@ -142,11 +149,18 @@ namespace Crest
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         internal Material _material = null;
-        public Material OceanMaterial { get { return _material; } }
+        public Material OceanMaterial { get { return _material; } set { _material = value; } }
 
-        [SerializeField]
-        string _layerName = "Water";
+        [System.Obsolete("Use the _layer field instead."), HideInInspector, SerializeField]
+        string _layerName = "";
+        [System.Obsolete("Use the Layer property instead.")]
         public string LayerName { get { return _layerName; } }
+
+        [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
+        [Tooltip("The ocean tile renderers will have this layer.")]
+        [SerializeField, Predicated("_layerName", inverted: true), Layer]
+        int _layer = 4; // Water
+        public int Layer => _layer;
 
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
@@ -169,14 +183,14 @@ namespace Crest
         [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
         float _dropDetailHeightBasedOnWaves = 0.2f;
 
-        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256. Press 'Rebuild Ocean' button below to apply.")]
+        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
 
-        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4... Press 'Rebuild Ocean' button below to apply.")]
+        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
         int _geometryDownSampleFactor = 2;
 
-        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate. Press 'Rebuild Ocean' button below to apply."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
+        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
 
@@ -247,9 +261,9 @@ namespace Crest
 #pragma warning restore 414
 
         [Header("Server Settings")]
-        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument. Press Rebuild button below to apply."), SerializeField]
+        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument."), SerializeField]
         bool _forceBatchMode = false;
-        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument. Press Rebuild button below to apply."), SerializeField]
+        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument."), SerializeField]
         bool _forceNoGPU = false;
 
         [Header("Debug Params")]
@@ -308,6 +322,9 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
+
+        // A hash of the settings used to generate the ocean, used to regenerate when necessary
+        int _generatedSettingsHash = 0;
 
         /// <summary>
         /// Is runtime environment without graphics card
@@ -394,6 +411,18 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // Setup a default time provider, and add the override one (from the inspector)
+            _timeProviderStack.Clear();
+
+            // Put a base TP that should always be available as a fallback
+            PushTimeProvider(new TimeProviderDefault());
+
+            // Add the TP from the inspector
+            if (_timeProvider != null)
+            {
+                PushTimeProvider(_timeProvider);
+            }
+
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -445,6 +474,7 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            _generatedSettingsHash = CalculateSettingsHash();
 
             // Make sure we have correct defaults in case simulations are not enabled.
             LodDataMgrClipSurface.BindNullToGraphicsShaders();
@@ -750,8 +780,37 @@ namespace Crest
             RunUpdate();
         }
 
+        int CalculateSettingsHash()
+        {
+            var settingsHash = Hashy.CreateHash();
+
+            // Add all the settings that require rebuilding..
+            Hashy.AddInt(_layer, ref settingsHash);
+            Hashy.AddInt(_lodDataResolution, ref settingsHash);
+            Hashy.AddInt(_geometryDownSampleFactor, ref settingsHash);
+            Hashy.AddInt(_lodCount, ref settingsHash);
+            Hashy.AddBool(_forceBatchMode, ref settingsHash);
+            Hashy.AddBool(_forceNoGPU, ref settingsHash);
+            Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);
+
+#pragma warning disable 0618
+            Hashy.AddObject(_layerName, ref settingsHash);
+#pragma warning restore 0618
+
+            return settingsHash;
+        }
+
         void RunUpdate()
         {
+            // Rebuild if needed. Editor-only i suppose?
+#if UNITY_EDITOR
+            if (CalculateSettingsHash() != _generatedSettingsHash)
+            {
+                enabled = false;
+                enabled = true;
+            }
+#endif
+
             // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
 #if UNITY_EDITOR
             // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
@@ -1184,6 +1243,8 @@ namespace Crest
         {
             var isValid = true;
 
+            isValid = ValidateObsolete(ocean, showMessage);
+
             if (_material == null)
             {
                 showMessage
@@ -1478,6 +1539,31 @@ namespace Crest
         {
             oceanSO.FindProperty(paramName).boolValue = enabled;
         }
+
+#pragma warning disable 0618
+        public bool ValidateObsolete(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (_layerName != "")
+            {
+                showMessage
+                (
+                    "<i>Layer Name</i> on the <i>Ocean Renderer</i> is deprecated and will be removed. " +
+                    "Use <i>Layer</i> instead.",
+                    $"Set <i>Layer</i> to <i>{_layerName}</i> using the <i>Layer Name</i> to complete the migration.",
+                    ValidatedHelper.MessageType.Warning, this,
+                    (SerializedObject serializedObject) =>
+                    {
+                        serializedObject.FindProperty("_layer").intValue = LayerMask.NameToLayer(_layerName);
+                        serializedObject.FindProperty("_layerName").stringValue = "";
+                    }
+                );
+            }
+
+            return isValid;
+        }
+#pragma warning restore 0618
     }
 
     [CustomEditor(typeof(OceanRenderer))]
@@ -1508,14 +1594,24 @@ namespace Crest
 
         public override void OnInspectorGUI()
         {
+            var currentAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
+
             base.OnInspectorGUI();
 
             var target = this.target as OceanRenderer;
 
-            if (GUILayout.Button("Rebuild Ocean"))
+            // Detect if user changed TP, if so update stack
+            var newlyAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
+            if (currentAssignedTP != newlyAssignedTP)
             {
-                target.enabled = false;
-                target.enabled = true;
+                if (currentAssignedTP != null)
+                {
+                    target.PopTimeProvider(currentAssignedTP as TimeProviderBase);
+                }
+                if (newlyAssignedTP != null)
+                {
+                    target.PushTimeProvider(newlyAssignedTP as TimeProviderBase);
+                }
             }
 
             if (GUILayout.Button("Validate Setup"))

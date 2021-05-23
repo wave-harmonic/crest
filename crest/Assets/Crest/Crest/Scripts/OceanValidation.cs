@@ -252,7 +252,12 @@ namespace Crest
                         foreach (var message in messages)
                         {
                             EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.HelpBox(message._message + " " + message._fixDescription, messageType);
+                            var fixDescription = message._fixDescription;
+                            if (message._action != null)
+                            {
+                                fixDescription += " Click the fix/repair button on the right to fix.";
+                            }
+                            EditorGUILayout.HelpBox($"{message._message} {fixDescription}", messageType);
 
                             // Jump to object button.
                             if (message._object != null)

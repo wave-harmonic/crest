@@ -26,8 +26,8 @@ namespace Crest
                 {
                     foreach (var property in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
                     {
-                        if (property.GetCustomAttribute<DecoratorAttribute>() == null) continue;
-                        if (property.GetCustomAttribute<DecoratedPropertyAttribute>() != null) continue;
+                        if (property.GetCustomAttributes<DecoratorAttribute>().ToList().Count == 0) continue;
+                        if (property.GetCustomAttributes<DecoratedPropertyAttribute>().ToList().Count > 0) continue;
                         Debug.LogError($"A decorator attribute on {type}.{property.Name} has no attribute which inherits from DecoratedPropertyAttribute. The decorator will be ignored.");
                     }
                 }

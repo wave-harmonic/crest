@@ -272,6 +272,7 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
@@ -283,7 +284,6 @@ namespace Crest
                 UpdateGenerateWaves(buf);
             }
 
-            buf.SetGlobalVector(sp_AxisX, PrimaryWaveDirection);
             // Seems to come unbound when editing shaders at runtime, so rebinding here.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }

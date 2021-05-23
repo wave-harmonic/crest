@@ -31,8 +31,7 @@ namespace Crest
             embeddedAttribute.editor.DrawEditorCombo(label, drawer, property, "asset");
         }
 
-        // Removes space above embedded editor so the embedded editor replaces this drawer.
-        internal override float? GetPropertyHeight(SerializedProperty property, GUIContent label) => 0f;
+        internal override bool NeedsControlRectangle => false;
 #endif
     }
 }

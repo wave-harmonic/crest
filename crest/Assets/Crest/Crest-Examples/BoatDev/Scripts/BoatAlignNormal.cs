@@ -12,43 +12,42 @@ using UnityEngine;
 public class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]
-    [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
-    float _bottomH = 0f;
-    [Tooltip("Strength of buoyancy force per meter of submersion in water."), SerializeField]
-    float _buoyancyCoeff = 1.5f;
-    [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
-    float _boyancyTorque = 8f;
-    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Crest.Range(0, 1)]
-    float _accelerateDownhill = 0f;
+    [Tooltip("Height offset from transform center to bottom of boat (if any).")]
+    public float _bottomH = 0f;
+    [Tooltip("Strength of buoyancy force per meter of submersion in water.")]
+    public float _buoyancyCoeff = 1.5f;
+    [Tooltip("Strength of torque applied to match boat orientation to water normal.")]
+    public float _boyancyTorque = 8f;
+    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), Crest.Range(0, 1)]
+    public float _accelerateDownhill = 0f;
 
     [Header("Engine Power")]
-    [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
-    float _forceHeightOffset = -0.3f;
-    [SerializeField] float _enginePower = 11f;
-    [SerializeField] float _turnPower = 1.3f;
+    [Tooltip("Vertical offset for where engine force should be applied.")]
+    public float _forceHeightOffset = -0.3f;
+    public float _enginePower = 11f;
+    public float _turnPower = 1.3f;
 
     [Header("Wave Response")]
-    [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
-    float _boatWidth = 3f;
+    [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be.")]
+    public float _boatWidth = 3f;
     public override float ObjectWidth { get { return _boatWidth; } }
 
-    [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
-    bool _useBoatLength = false;
-    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField, Predicated("_useBoatLength"), DecoratedField]
-    float _boatLength = 3f;
+    [Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
+    public bool _useBoatLength = false;
+    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), Predicated("_useBoatLength"), DecoratedField]
+    public float _boatLength = 3f;
 
     [Header("Drag")]
-    [SerializeField] float _dragInWaterUp = 3f;
-    [SerializeField] float _dragInWaterRight = 2f;
-    [SerializeField] float _dragInWaterForward = 1f;
+    public float _dragInWaterUp = 3f;
+    public float _dragInWaterRight = 2f;
+    public float _dragInWaterForward = 1f;
 
     [Header("Controls")]
-    [SerializeField]
-    bool _playerControlled = true;
-    [Tooltip("Used to automatically add throttle input"), SerializeField]
-    float _throttleBias = 0f;
-    [Tooltip("Used to automatically add turning input"), SerializeField]
-    float _steerBias = 0f;
+    public bool _playerControlled = true;
+    [Tooltip("Used to automatically add throttle input")]
+    public float _throttleBias = 0f;
+    [Tooltip("Used to automatically add turning input")]
+    public float _steerBias = 0f;
 
     [Header("Debug")]
     [SerializeField]

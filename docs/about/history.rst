@@ -32,8 +32,8 @@ Changed
    -  Ocean material can now be set with scripting.
    -  Custom Time Provider has pause toggle, for easy pausing functionality.
    -  Network Time Provider added to easily sync water simulation to server time.
-   -  Cutscene Time Provider added to drive water simulation time from Timelines
-   -  Fix bug where wind direction could not be set per ShapeGerstner component
+   -  Cutscene Time Provider added to drive water simulation time from Timelines.
+   -  Made many fields scriptable (public) on *BoatProbes*, *BoatAlignNormal* and *SimpleFloatingObject*.
 
    .. only:: hdrp
 
@@ -50,6 +50,7 @@ Fixed
    -  Fix bad data being sampled from simulations when they're not enabled like the entire ocean being shadowed when shadow data was disabled.
    -  Fix null exception for attach renderer help box fix button.
    -  Fix "remove renderer" help box not showing when it should.
+   -  Fix bug where wind direction could not be set per ShapeGerstner component.
 
    .. only:: hdrp
 

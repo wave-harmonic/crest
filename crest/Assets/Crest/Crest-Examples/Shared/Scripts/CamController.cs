@@ -32,7 +32,7 @@ public class CamController : MonoBehaviour
         [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
         public bool disableOcclusionMesh = false;
 
-        [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), Range(1f, 2f)]
+        [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), UnityEngine.Range(1f, 2f)]
         public float occlusionMeshScale = 1f;
     }
 

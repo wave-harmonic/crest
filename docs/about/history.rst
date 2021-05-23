@@ -33,6 +33,7 @@ Changed
    -  Custom Time Provider has pause toggle, for easy pausing functionality.
    -  Network Time Provider added to easily sync water simulation to server time.
    -  Cutscene Time Provider added to drive water simulation time from Timelines
+   -  Fix bug where wind direction could not be set per ShapeGerstner component
 
    .. only:: hdrp
 

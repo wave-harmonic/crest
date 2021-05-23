@@ -33,7 +33,7 @@ namespace Crest
         public static readonly float MIN_POWER_LOG = -8f;
         public static readonly float MAX_POWER_LOG = 5f;
 
-        [Tooltip("Variance of wave directions, in degrees"), Range(0f, 180f)]
+        [Tooltip("Variance of wave directions, in degrees. Gerstner-only - use the Turbulence param on the ShapeFFT component for FFT."), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
 
         [Tooltip("More gravity means faster waves."), Range(0f, 25f)]

@@ -3,6 +3,9 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.XR;
 
 /// <summary>
@@ -100,9 +103,14 @@ public class CamController : MonoBehaviour
 
     void UpdateMovement(float dt)
     {
-        if (!Input.GetMouseButton(0) && _requireLMBToMove) return;
 
+#if ENABLE_INPUT_SYSTEM
+        if(!Mouse.current.leftButton.isPressed && _requireLMBToMove) return;
+        float forward = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0);
+#else
+        if (!Input.GetMouseButton(0) && _requireLMBToMove) return;
         float forward = (Input.GetKey(KeyCode.W) ? 1 : 0) - (Input.GetKey(KeyCode.S) ? 1 : 0);
+#endif
         if (simForwardInput)
         {
             forward = 1f;
@@ -110,13 +118,28 @@ public class CamController : MonoBehaviour
 
         _targetTransform.position += linSpeed * _targetTransform.forward * forward * dt;
         var speed = linSpeed;
+
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current.leftShiftKey.isPressed)
+#else
         if (Input.GetKey(KeyCode.LeftShift))
+#endif
         {
             speed *= 3f;
         }
 
         _targetTransform.position += speed * _targetTransform.forward * forward * dt;
         //_transform.position += linSpeed * _transform.right * Input.GetAxis( "Horizontal" ) * dt;
+#if ENABLE_INPUT_SYSTEM
+        _targetTransform.position += linSpeed * _targetTransform.up * (Keyboard.current.eKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= linSpeed * _targetTransform.up * (Keyboard.current.qKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= linSpeed * _targetTransform.right * (Keyboard.current.aKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position += linSpeed * _targetTransform.right * (Keyboard.current.dKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position += speed * _targetTransform.up * (Keyboard.current.eKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= speed * _targetTransform.up * (Keyboard.current.qKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= speed * _targetTransform.right * (Keyboard.current.aKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position += speed * _targetTransform.right * (Keyboard.current.dKey.isPressed ? 1 : 0) * dt;
+#else
         _targetTransform.position += linSpeed * _targetTransform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * dt;
         _targetTransform.position -= linSpeed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
         _targetTransform.position -= linSpeed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
@@ -125,11 +148,17 @@ public class CamController : MonoBehaviour
         _targetTransform.position -= speed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
         _targetTransform.position -= speed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
         _targetTransform.position += speed * _targetTransform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
-
+#endif
         {
             float rotate = 0f;
+#if ENABLE_INPUT_SYSTEM
+            rotate += (Keyboard.current.rightArrowKey.isPressed ? 1 : 0);
+            rotate -= (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
+#else
             rotate += (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
             rotate -= (Input.GetKey(KeyCode.LeftArrow) ? 1 : 0);
+#endif
+
             rotate *= 5f;
             Vector3 ea = _targetTransform.eulerAngles;
             ea.y += 0.1f * rotSpeed * rotate * dt;
@@ -140,15 +169,29 @@ public class CamController : MonoBehaviour
     void UpdateDragging(float dt)
     {
         Vector2 mousePos;
+
+#if ENABLE_INPUT_SYSTEM
+        mousePos.x = Mouse.current.position.x.ReadValue();
+        mousePos.y = Mouse.current.position.y.ReadValue();
+#else
         mousePos.x = Input.mousePosition.x;
         mousePos.y = Input.mousePosition.y;
+#endif
 
+#if ENABLE_INPUT_SYSTEM
+        if (!_dragging && Mouse.current.leftButton.isPressed && !Crest.OceanDebugGUI.OverGUI(mousePos))
+#else
         if (!_dragging && Input.GetMouseButtonDown(0) && !Crest.OceanDebugGUI.OverGUI(mousePos))
+#endif
         {
             _dragging = true;
             _lastMousePos = mousePos;
         }
+#if ENABLE_INPUT_SYSTEM
+        if (_dragging && !Mouse.current.leftButton.isPressed)
+#else
         if (_dragging && Input.GetMouseButtonUp(0))
+#endif
         {
             _dragging = false;
             _lastMousePos = -Vector2.one;

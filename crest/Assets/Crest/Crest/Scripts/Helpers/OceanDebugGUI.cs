@@ -4,6 +4,9 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.SceneManagement;
 
 namespace Crest
@@ -41,15 +44,27 @@ namespace Crest
 
         private void Update()
         {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current.gKey.wasPressedThisFrame)
+#else
             if (Input.GetKeyDown(KeyCode.G))
+#endif
             {
                 ToggleGUI();
             }
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current.fKey.wasPressedThisFrame)
+#else
             if (Input.GetKeyDown(KeyCode.F))
+#endif
             {
                 Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
             }
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current.rKey.wasPressedThisFrame)
+#else
             if (Input.GetKeyDown(KeyCode.R))
+#endif
             {
                 SceneManager.LoadScene(SceneManager.GetSceneAt(0).buildIndex);
             }

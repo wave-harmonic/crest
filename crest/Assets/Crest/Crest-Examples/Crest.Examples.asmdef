@@ -1,7 +1,8 @@
 {
     "name": "Crest.Examples",
     "references": [
-        "Crest"
+        "Crest",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

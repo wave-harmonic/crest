@@ -84,13 +84,8 @@ namespace Crest
                 return false;
             }
 
-            if (OceanRenderer.Instance && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
-            {
-                Debug.LogError("Underwater must be enabled on the ocean material for UnderwaterPostProcess to work", this);
-                return false;
-            }
-
-            return CheckMaterial();
+            // TODO: Use run-time materials only.
+            return true;
         }
 
         bool CheckMaterial()
@@ -113,7 +108,7 @@ namespace Crest
             return success;
         }
 
-        void Start()
+        void Awake()
         {
             if (!InitialisedCorrectly())
             {
@@ -121,21 +116,17 @@ namespace Crest
                 return;
             }
 
-            // Stop the material from being saved on-edits at runtime
-            _underwaterPostProcessMaterial = new Material(_underwaterPostProcessMaterial);
-            _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
-        }
-
-        void Awake()
-        {
-            _mainCamera = GetComponent<Camera>();
             if (_postProcessCommandBuffer == null)
             {
                 _postProcessCommandBuffer = new CommandBuffer()
                 {
-                    name = "Underwater Post Process",
+                    name = "Underwater Pass",
                 };
             }
+
+            // Stop the material from being saved on-edits at runtime
+            _underwaterPostProcessMaterial = new Material(_underwaterPostProcessMaterial);
+            _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
         }
 
         private void OnDestroy()

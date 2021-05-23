@@ -23,8 +23,6 @@
 // Must match CASCADE_COUNT in FFTCompute.cs
 #define CASCADE_COUNT 16
 
-float _Chop;
-
 Texture2DArray<float2> _InputH;
 Texture2DArray<float2> _InputX;
 Texture2DArray<float2> _InputZ;
@@ -169,6 +167,6 @@ void ComputeFFT(uint3 id : SV_DispatchThreadID)
 #else
 	const float sign = ((id.x + id.y) % 2) == 1 ? -1.0 : 1.0;
 	const float3 res = float3(sign * resultX.x, sign * resultH.x, sign * resultZ.x);
-	_Output[id] = float3(sign * resultX.x * _Chop, sign * resultH.x, sign * resultZ.x * _Chop);
+	_Output[id] = float3(sign * resultX.x, sign * resultH.x, sign * resultZ.x);
 #endif
 }

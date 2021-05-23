@@ -172,6 +172,7 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 }
 
 float _Time;
+float _Chop;
 
 Texture2DArray<float4> _Init0;
 RWTexture2DArray<float2> _ResultHeight;
@@ -212,6 +213,6 @@ void SpectrumUpdate(uint3 id : SV_DispatchThreadID)
 	const float2 h = cmul(h0.xy, fwd) + cmul(h0.zw, bkwd);
 
 	_ResultHeight[id] = h;
-	_ResultDisplaceX[id] = float2(-h.y * k.x, h.x * k.x) / (kMag + 0.00001f);
-	_ResultDisplaceZ[id] = float2(-h.y * k.y, h.x * k.y) / (kMag + 0.00001f);
+	_ResultDisplaceX[id] = _Chop * float2(-h.y * k.x, h.x * k.x) / (kMag + 0.00001f);
+	_ResultDisplaceZ[id] = _Chop * float2(-h.y * k.y, h.x * k.y) / (kMag + 0.00001f);
 }

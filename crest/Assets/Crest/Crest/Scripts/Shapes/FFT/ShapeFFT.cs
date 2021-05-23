@@ -28,9 +28,6 @@ namespace Crest
         [Tooltip("Impacts how aligned waves are with wind.")]
         [Range(0, 1)]
         public float _windTurbulence = 0.145f;
-        [Tooltip("Choppiness of waves.")]
-        [Range(0, 2.5f)]
-        public float _chop = 1f;
 
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
@@ -220,7 +217,7 @@ namespace Crest
             ReportMaxDisplacement();
 
             var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _chop, _activeSpectrum, updateDataEachFrame, _waveBuffers);
+            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame, _waveBuffers);
 
             buf.SetGlobalVector(sp_AxisX, PrimaryWaveDirection);
             // Seems to come unbound when editing shaders at runtime, so rebinding here.

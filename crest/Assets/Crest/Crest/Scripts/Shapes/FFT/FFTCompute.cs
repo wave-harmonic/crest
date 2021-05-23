@@ -116,7 +116,7 @@ namespace Crest
         /// <summary>
         /// Computes water surface displacement, with wave components split across slices of the output texture array
         /// </summary>
-        public void GenerateDisplacements(CommandBuffer buf, float windTurbulence, float windSpeed, float time, float chop, OceanWaveSpectrum spectrum, bool updateSpectrum, RenderTexture _outputTextureArray)
+        public void GenerateDisplacements(CommandBuffer buf, float windTurbulence, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum, RenderTexture _outputTextureArray)
         {
             Debug.Assert(_outputTextureArray != null, "FFT: No output texture provided.");
 
@@ -144,9 +144,9 @@ namespace Crest
                 InitializeSpectrum(buf, resolution, windSpeed, windTurbulence, spectrum._gravityScale * Mathf.Abs(Physics.gravity.magnitude));
             }
 
-            UpdateSpectrum(buf, resolution, time);
+            UpdateSpectrum(buf, resolution, time, spectrum._chop);
 
-            DispatchFFT(buf, resolution, chop, _outputTextureArray);
+            DispatchFFT(buf, resolution, _outputTextureArray);
         }
 
         /// <summary>
@@ -193,6 +193,7 @@ namespace Crest
             for (var i = 0; i < OceanWaveSpectrum.NUM_OCTAVES; i++)
             {
                 float pow = spectrum._powerDisabled[i] ? 0f : Mathf.Pow(10f, spectrum._powerLog[i]);
+                pow *= spectrum._multiplier * spectrum._multiplier;
                 _spectrumDataScratch[i] = pow * Color.white;
             }
 
@@ -219,9 +220,10 @@ namespace Crest
         /// <summary>
         /// Computes a spectrum for the current time which can be FFT'd into the final surface
         /// </summary>
-        void UpdateSpectrum(CommandBuffer buf, int size, float time)
+        void UpdateSpectrum(CommandBuffer buf, int size, float time, float chop)
         {
             buf.SetComputeFloatParam(_shaderSpectrum, "_Time", time);
+            buf.SetComputeFloatParam(_shaderSpectrum, "_Chop", chop);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_Init0", _spectrumInit);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_ResultHeight", _spectrumHeight);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_ResultDisplaceX", _spectrumDisplaceX);
@@ -232,11 +234,9 @@ namespace Crest
         /// <summary>
         /// FFT the spectrum into surface displacements
         /// </summary>
-        void DispatchFFT(CommandBuffer buf, int resolution, float chop, RenderTexture output)
+        void DispatchFFT(CommandBuffer buf, int resolution, RenderTexture output)
         {
             var kernelOffset = 2 * Mathf.RoundToInt(Mathf.Log(resolution / FFT_KERNEL_0_RESOLUTION, 2f));
-
-            buf.SetComputeFloatParam(_shaderFFT, "_Chop", chop);
 
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputH", _spectrumHeight);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputX", _spectrumDisplaceX);

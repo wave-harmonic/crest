@@ -171,7 +171,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (!ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
+            if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
             {
                 showMessage
                 (

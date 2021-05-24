@@ -152,6 +152,11 @@ namespace Crest
             _targets = new BufferedData<RenderTexture>(BufferCount, () => CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData));
 
             // Bind globally once here on init, which will bind to all graphics shaders (not compute)
+            Bind();
+        }
+
+        internal void Bind()
+        {
             Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
         }
 

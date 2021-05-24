@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -16,6 +17,8 @@ namespace Crest
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner Batched")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstnerbatched")]
     public partial class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
         public enum GerstnerMode
@@ -27,7 +30,7 @@ namespace Crest
         [Tooltip("If set to 'Global', waves will render everywhere. If set to 'Geometry', the geometry on this GameObject will be rendered from a top down perspective to generate the waves. This allows having local wave conditions by placing Quad geometry where desired. The geometry must have one of the Gerstner shaders on it such as 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'.")]
         public GerstnerMode _mode = GerstnerMode.Global;
 
-        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
+        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
 
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
@@ -105,20 +108,20 @@ namespace Crest
         // Data for all components
         [Header("Wave data (usually populated at runtime)")]
         public bool _evaluateSpectrumAtRuntime = true;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _wavelengths;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _amplitudes;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _angleDegs;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        [Predicated("_evaluateSpectrumAtRuntime", true), DecoratedField]
         public float[] _phases;
 
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
         bool _directTowardsPoint = false;
-        [SerializeField, Tooltip("Target point XZ to converge to.")]
+        [SerializeField, Tooltip("Target point XZ to converge to."), Predicated("_directTowardsPoint"), DecoratedField]
         Vector2 _pointPositionXZ = Vector2.zero;
-        [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius.")]
+        [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius."), Predicated("_directTowardsPoint"), DecoratedField]
         Vector2 _pointRadii = new Vector2(100f, 200f);
 
         const string DIRECT_TOWARDS_POINT_KEYWORD = "CREST_DIRECT_TOWARDS_POINT_INTERNAL";
@@ -149,23 +152,39 @@ namespace Crest
             public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
+        internal static readonly CrestSortedList<int, ShapeGerstnerBatched> Instances = new CrestSortedList<int, ShapeGerstnerBatched>(new SiblingIndexComparer());
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void InitStatics()
+        {
+            Instances.Clear();
+        }
+
+#if UNITY_EDITOR
+        void Reset()
+        {
+            // Initialise with spectrum.
+            _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+            _spectrum.name = "Default Waves (auto)";
+            _spectrum.Upgrade();
+        }
+#endif
+
         private void OnEnable()
         {
-#if UNITY_EDITOR
-            // Initialise with spectrum
-            if (_spectrum == null)
-            {
-                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _spectrum.name = "Default Waves (auto)";
-            }
+            Instances.Add(transform.GetSiblingIndex(), this);
 
+#if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
             }
 
-            _spectrum.Upgrade();
+            if (_spectrum != null)
+            {
+                _spectrum.Upgrade();
+            }
 #endif
 
             InitBatches();
@@ -264,9 +283,12 @@ namespace Crest
                 _amplitudes = new float[_wavelengths.Length];
             }
 
+            // Calc wind speed in m/s
+            var windSpeed = OceanRenderer.Instance._globalWindSpeed / 3.6f;
+
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
+                _amplitudes[i] = Random.value * _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _);
             }
         }
 
@@ -289,7 +311,7 @@ namespace Crest
         {
             // Get the wave
             MeshRenderer rend = GetComponent<MeshRenderer>();
-            if (_mode == GerstnerMode.Geometry)
+            if (_mode == GerstnerMode.Geometry && rend != null)
             {
                 rend.enabled = false;
 #if UNITY_EDITOR
@@ -345,6 +367,8 @@ namespace Crest
             }
 #endif
 
+            if (rend == null) return;
+
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
@@ -375,6 +399,8 @@ namespace Crest
 
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
+
+            var time = OceanRenderer.Instance.CurrentTime;
 
             // register any nonzero components
             for (int i = 0; i < numComponents; i++)
@@ -408,7 +434,7 @@ namespace Crest
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
                         float k = twopi / wl;
                         // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * time, Mathf.PI * 2f);
 
                         numInBatch++;
                     }
@@ -470,9 +496,6 @@ namespace Crest
                 mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
 
-                LodDataMgrAnimWaves.Bind(mat);
-                LodDataMgrSeaFloorDepth.Bind(mat);
-
                 if (_directTowardsPoint)
                 {
                     mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
@@ -531,6 +554,8 @@ namespace Crest
 
         void OnDisable()
         {
+            Instances.Remove(this);
+
             if (_batches != null)
             {
                 var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
@@ -857,7 +882,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
+                    "The <i>MeshRenderer</i> component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
+                    "Either remove the <i>MeshRenderer</i> component or set the <i>Mode</i> option to <i>Geometry</i>.",
                     ValidatedHelper.MessageType.Warning, this
                 );
             }
@@ -866,7 +892,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
+                    "The <i>MeshRenderer</i> component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
+                    "Either remove the <i>MeshRenderer</i> component or set the Mode option to <i>Geometry</i>.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 
@@ -878,6 +905,7 @@ namespace Crest
                 showMessage
                 (
                     "There is no spectrum assigned meaning this Gerstner component won't generate any waves.",
+                    "Assign a valid spectrum asset to the <i>Spectrum</i> field.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 
@@ -888,7 +916,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Components Per Octave set to 0 meaning this Gerstner component won't generate any waves.",
+                    "<i>Components Per Octave</i> set to 0 meaning this Gerstner component won't generate any waves.",
+                    "Increase <i>Components Per Octave</i> to 8 or 16.",
                     ValidatedHelper.MessageType.Warning, this
                 );
 

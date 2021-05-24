@@ -15,6 +15,7 @@ namespace Crest
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_INTERNAL + "Ocean Chunk Renderer")]
     public class OceanChunkRenderer : MonoBehaviour
     {
         public bool _drawRenderBounds = false;
@@ -24,11 +25,7 @@ namespace Crest
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
-        // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
-        int _totalLodCount = -1;
-        int _lodDataResolution = 256;
-        int _geoDownSampleFactor = 1;
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
 
@@ -84,6 +81,9 @@ namespace Crest
 
         private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
+            // Camera.current is only supported in the built-in pipeline. This provides the current camera for
+            // OnWillRenderObject for SRPs. BeginCameraRendering is called for each active camera in every frame.
+            // OnWillRenderObject is called after BeginCameraRendering for the current camera so this works.
             _currentCamera = camera;
         }
 
@@ -95,7 +95,7 @@ namespace Crest
                 return;
             }
 
-            // check if built-in pipeline being used
+            // Camera.current is only supported in built-in pipeline.
             if (Camera.current != null)
             {
                 _currentCamera = Camera.current;
@@ -144,9 +144,9 @@ namespace Crest
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
         }
 
-        public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
+        public void SetInstanceData(int lodIndex)
         {
-            _lodIndex = lodIndex; _totalLodCount = totalLodCount; _lodDataResolution = lodDataResolution; _geoDownSampleFactor = geoDownSampleFactor;
+            _lodIndex = lodIndex;
         }
 
 #if UNITY_2019_3_OR_NEWER

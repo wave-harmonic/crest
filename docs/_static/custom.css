@@ -1,0 +1,386 @@
+/****************************************************************************/
+/* Furo Theme:
+/* https://pradyunsg.me/furo/kitchen-sink/
+/*
+/* Furo variables can be found here:
+/* https://github.com/pradyunsg/furo/blob/main/src/furo/assets/styles/variables/_index.scss
+/*
+/* Inline tabs variables:
+/* https://github.com/pradyunsg/sphinx-inline-tabs/blob/main/src/sphinx_inline_tabs/static/tabs.css
+/****************************************************************************/
+
+.tab-content
+{
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    border-bottom:  solid 2px var(--tabs--border);
+    /* Make tabbed content stand out a little. */
+    background: var(--color-background-secondary);
+    border-left: solid 2px var(--tabs--border--active);
+}
+
+.figure
+{
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Disable extension styling. */
+.hoverxref
+{
+    border-bottom: none !important;
+}
+
+#frequent-setup-issues .section h3,
+#q-a .section h2
+{
+    font-size: 110%;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+}
+
+
+/* Hide sections as these can get long. */
+.toctree-wrapper *[href~="user/faq.html"] + ul,
+.toctree-wrapper *[href~="about/history.html"] + ul
+{
+    display: none;
+}
+
+/* Compatibility admonition is right at the top so it needs more margin. */
+article[role="main"] > .admonition:first-child
+{
+    margin-top: 2rem;
+}
+
+#assets .sphinx-bs.container.pb-4.docutils
+{
+    /* Assets have too much padding. */
+    padding-bottom: 0 !important;
+}
+
+
+/****************************************************************************/
+/* Sidebar Logo
+/****************************************************************************/
+
+.sidebar-logo
+{
+    /* Make the square part of the logo centered for symmetry. */
+    padding-right: 0.5rem;
+}
+
+.sidebar-brand-text
+{
+    font-weight: 700;
+    font-size: 3rem;
+    margin-top: 0;
+}
+
+/****************************************************************************/
+/* 16:9 Aspect Ration YouTube Embeds                                        */
+/****************************************************************************/
+
+.video-container
+{
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+    margin-bottom: 2rem;
+}
+
+.figure .video-container
+{
+    margin-bottom: 0;
+}
+
+.video-container iframe
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/****************************************************************************/
+/* Dark Theme Integration for HoverXRef
+/****************************************************************************/
+
+.tooltipster-box
+{
+    background-color: var(--color-background-primary) !important;
+}
+
+.tooltipster-content
+{
+    color: var(--color-foreground-primary) !important;
+}
+
+/****************************************************************************/
+/* Dark Theme Integration for Search
+/****************************************************************************/
+
+.search__outer::before
+{
+    content: "";
+    position: absolute;
+    left: 0.5rem;
+    top: 0.75rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: var(--color-sidebar-search-icon);
+    -webkit-mask-image: var(--icon-search);
+    mask-image: var(--icon-search);
+}
+
+.search__outer,
+.rtd__search__credits
+{
+    background-color: var(--color-background-primary) !important;
+}
+
+.search__result__subheading
+{
+    color: var(--color-foreground-primary) !important;
+}
+
+.rtd__search__credits,
+.rtd__search__credits a,
+.search__result__content
+{
+    color: var(--color-foreground-primary) !important;
+}
+
+.search__outer__input
+{
+    background-color: transparent !important;
+    color: var(--color-foreground-primary) !important;
+    background-image: var(--icon-search) !important;
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.5rem !important;
+    height: auto !important;
+    padding-left: 1.5rem !important;
+}
+
+.search__outer__input
+{
+    background-image: none !important;
+}
+
+.search__cross__img
+{
+    fill: var(--color-foreground-primary) !important;
+}
+
+.search__result__single
+{
+    border-color: var(--color-foreground-border) !important;
+}
+
+.outer_div_page_results:hover,
+.search__outer .search__result__content span
+{
+    background-color: var(--color-highlighted-background) !important;
+    border-bottom-color: var(--color-foreground) !important;
+}
+
+/****************************************************************************/
+/* Dark Theme Integration for Image Zoom
+/****************************************************************************/
+
+.medium-zoom-overlay
+{
+    background-color: var(--color-background-primary) !important;
+}
+
+
+/****************************************************************************
+/* Expand Tabs Beyond Container
+/****************************************************************************
+/*
+/* We use rems since we do not want font size to influence the spacing.
+/*
+/****************************************************************************/
+
+.tab-set
+{
+    width: calc(100% + 6rem);
+    margin-left: -3rem;
+}
+
+.tab-set > label:first-of-type
+{
+    margin-left: 3rem;
+}
+
+.tab-content
+{
+    padding-left: 3rem !important;
+    padding-right: 3rem !important;
+}
+
+@media (max-width: 46em)
+{
+    .tab-set
+    {
+        width: calc(100% + 2rem);
+        margin-left: -1rem;
+    }
+
+    .tab-set > label:first-of-type
+    {
+        margin-left: 1rem;
+    }
+
+    .tab-content
+    {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+
+
+/****************************************************************************/
+/* Fix Medium Zoom                                                          */
+/****************************************************************************/
+
+.medium-zoom-overlay,
+.medium-zoom-image--opened
+{
+  z-index: 999;
+}
+
+
+/****************************************************************************/
+/* Custom Admonitions                                                       */
+/****************************************************************************/
+
+/* https://squidfunk.github.io/mkdocs-material/reference/admonitions/ */
+/* https://squidfunk.github.io/mkdocs-material/reference/icons-emojis/ */
+
+.admonition.admonition-bug
+{
+    border-left-color: #f50057;
+}
+
+.admonition.admonition-bug > p.admonition-title
+{
+    background-color: rgba(245, 0, 87, 0.1);
+}
+
+.admonition.admonition-bug > p.admonition-title::before
+{
+    background-color: #f50057;
+}
+
+.admonition.admonition-bug > p.admonition-title::before
+{
+    -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M14 12h-4v-2h4m0 6h-4v-2h4m6-6h-2.81a5.985 5.985 0 0 0-1.82-1.96L17 4.41 15.59 3l-2.17 2.17a6.002 6.002 0 0 0-2.83 0L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8z'/></svg>");
+    mask-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M14 12h-4v-2h4m0 6h-4v-2h4m6-6h-2.81a5.985 5.985 0 0 0-1.82-1.96L17 4.41 15.59 3l-2.17 2.17a6.002 6.002 0 0 0-2.83 0L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8z'/></svg>");
+}
+
+.admonition.admonition-research
+{
+    border-left-color: #9e9e9e;
+}
+
+.admonition.admonition-research > p.admonition-title::before
+{
+    background-color: #9e9e9e;
+}
+
+.admonition.admonition-research > .admonition-title
+{
+
+    background-color: hsla(0, 0%, 62%, 0.1);
+}
+
+.admonition.admonition-preview > p.admonition-title::before,
+.admonition.admonition-research > p.admonition-title::before
+{
+    -webkit-mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 22a3 3 0 0 1-3-3c0-.6.18-1.16.5-1.63L9 7.81V6a1 1 0 0 1-1-1V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1v1.81l5.5 9.56c.32.47.5 1.03.5 1.63a3 3 0 0 1-3 3H6m-1-3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1c0-.21-.07-.41-.18-.57l-2.29-3.96L14 17l-5.07-5.07-3.75 6.5c-.11.16-.18.36-.18.57m8-9a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1z"/></svg>');
+    mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 22a3 3 0 0 1-3-3c0-.6.18-1.16.5-1.63L9 7.81V6a1 1 0 0 1-1-1V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1v1.81l5.5 9.56c.32.47.5 1.03.5 1.63a3 3 0 0 1-3 3H6m-1-3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1c0-.21-.07-.41-.18-.57l-2.29-3.96L14 17l-5.07-5.07-3.75 6.5c-.11.16-.18.36-.18.57m8-9a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1z"/></svg>');
+}
+
+.admonition.admonition-technical-note
+.admonition.admonition-technical-note > p.admonition-title::before
+{
+    border-left-color: #9e9e9e;
+}
+
+.admonition.admonition-technical-note > p.admonition-title::before
+{
+    background-color: #9e9e9e;
+}
+
+.admonition.admonition-technical-note > .admonition-title
+{
+    background-color: hsla(0, 0%, 62%, 0.1);
+}
+
+.admonition.admonition-technical-note > p.admonition-title::before
+{
+    -webkit-mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19.88V22l-1.8-1.17-4.79-9a4.94 4.94 0 0 0 1.78-1M15 7a3 3 0 0 1-3 3 3.27 3.27 0 0 1-.44 0L5.8 20.83 4 22v-2.12L9.79 9A3 3 0 0 1 12 4V2a1 1 0 0 1 1 1v1.18A3 3 0 0 1 15 7m-2 0a1 1 0 1 0-1 1 1 1 0 0 0 1-1m-8.78 3L6 11.8l-1.44 2.76L2.1 12.1m9.9 5.66l-1.5-1.51L9 19l3 3 3-3-1.47-2.77M19.78 10L18 11.8l1.5 2.76 2.4-2.46z"/></svg>');
+    mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19.88V22l-1.8-1.17-4.79-9a4.94 4.94 0 0 0 1.78-1M15 7a3 3 0 0 1-3 3 3.27 3.27 0 0 1-.44 0L5.8 20.83 4 22v-2.12L9.79 9A3 3 0 0 1 12 4V2a1 1 0 0 1 1 1v1.18A3 3 0 0 1 15 7m-2 0a1 1 0 1 0-1 1 1 1 0 0 0 1-1m-8.78 3L6 11.8l-1.44 2.76L2.1 12.1m9.9 5.66l-1.5-1.51L9 19l3 3 3-3-1.47-2.77M19.78 10L18 11.8l1.5 2.76 2.4-2.46z"/></svg>');
+}
+
+.admonition.admonition-sponsor
+{
+    border-left-color: #ea4aaa;
+}
+
+.admonition.admonition-sponsor > p.admonition-title
+{
+    background-color: rgba(234, 74, 170, 0.1);
+}
+
+.admonition.admonition-sponsor > p.admonition-title::before
+{
+    background-color: #ea4aaa;
+}
+
+.admonition.admonition-sponsor > p.admonition-title::before
+{
+    /* GitHub's heart. */
+    -webkit-mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="octicon octicon-heart icon-sponsor text-pink mr-2" version="1.1" width="16" aria-hidden="true"><path fill-rule="evenodd" d="M4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.565 20.565 0 008 13.393a20.561 20.561 0 003.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.75.75 0 01-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5zM8 14.25l-.345.666-.002-.001-.006-.003-.018-.01a7.643 7.643 0 01-.31-.17 22.075 22.075 0 01-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.08 22.08 0 01-3.744 2.584l-.018.01-.006.003h-.002L8 14.25zm0 0l.345.666a.752.752 0 01-.69 0L8 14.25z"></path></svg>');
+    mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="octicon octicon-heart icon-sponsor text-pink mr-2" version="1.1" width="16" aria-hidden="true"><path fill-rule="evenodd" d="M4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.565 20.565 0 008 13.393a20.561 20.561 0 003.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.75.75 0 01-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5zM8 14.25l-.345.666-.002-.001-.006-.003-.018-.01a7.643 7.643 0 01-.31-.17 22.075 22.075 0 01-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.08 22.08 0 01-3.744 2.584l-.018.01-.006.003h-.002L8 14.25zm0 0l.345.666a.752.752 0 01-.69 0L8 14.25z"></path></svg>');
+}
+
+.admonition.admonition-deprecated
+{
+    border-left-color: #ff9100;
+}
+
+.admonition.admonition-deprecated > p.admonition-title
+{
+    background-color: rgba(225, 145, 0, 0.1);
+}
+
+.admonition.admonition-deprecated > p.admonition-title::before
+{
+    background-color: #ff9100;
+}
+
+.admonition.admonition-obsolete
+{
+    border-left-color: #f50057;
+}
+
+.admonition.admonition-obsolete > p.admonition-title
+{
+    background-color: hsla(0, 0%, 62%, 0.1);
+}
+
+.admonition.admonition-obsolete > p.admonition-title::before
+{
+    background-color: #f50057;
+}
+
+.admonition.admonition-deprecated > p.admonition-title::before,
+.admonition.admonition-obsolete > p.admonition-title::before
+{
+    /* Trash can. */
+    -webkit-mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6m2 2v9h2V8H9m4 0v9h2V8h-2z"/></svg>');
+    mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6m2 2v9h2V8H9m4 0v9h2V8h-2z"/></svg>');
+}

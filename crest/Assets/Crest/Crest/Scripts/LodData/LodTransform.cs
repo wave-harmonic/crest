@@ -21,7 +21,7 @@ namespace Crest
             public float _textureRes;
             public Vector3 _posSnapped;
             public int _frame;
-            public float _oceanScale;
+            public float _maxWavelength;
 
             public RenderData Validate(int frameOffset, string context)
             {
@@ -92,16 +92,17 @@ namespace Crest
 
                 _renderData[lodIdx].Current._frame = OceanRenderer.FrameCount;
 
-                _renderData[lodIdx].Current._oceanScale = OceanRenderer.Instance.Scale;
+                _renderData[lodIdx].Current._maxWavelength = MaxWavelength(lodIdx);
 
                 // TODO?
-                //// detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
-                //if (_renderDataSource[lodIdx].Current._textureRes == 0f)
-                //{
-                //    _renderDataSource[lodIdx].Current._posSnapped = _renderData[lodIdx].Current._posSnapped;
-                //    _renderDataSource[lodIdx].Current._texelWidth = _renderData[lodIdx].Current._texelWidth;
-                //    _renderDataSource[lodIdx].Current._textureRes = _renderData[lodIdx].Current._textureRes;
-                //}
+                // // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
+                // if (_renderDataSource[lodIdx].Current._textureRes == 0f)
+                // {
+                //     _renderDataSource[lodIdx].Current._posSnapped = _renderData[lodIdx].Current._posSnapped;
+                //     _renderDataSource[lodIdx].Current._texelWidth = _renderData[lodIdx].Current._texelWidth;
+                //     _renderDataSource[lodIdx].Current._textureRes = _renderData[lodIdx].Current._textureRes;
+                //     _renderDataSource[lodIdx].Current._maxWavelength = _renderData[lodIdx].Current._maxWavelength;
+                // }
 
                 _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx].Current._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
 
@@ -157,6 +158,10 @@ namespace Crest
                 cascadeParamsSrc[lodIdx]._texelWidth = _renderData[lodIdx].Previous(1)._texelWidth;
 
                 cascadeParamsTgt[lodIdx]._weight = cascadeParamsSrc[lodIdx]._weight = 1f;
+
+                cascadeParamsTgt[lodIdx]._maxWavelength = _renderData[lodIdx].Current._maxWavelength;
+                // TODO?
+                // cascadeParamsSrc[lodIdx]._maxWavelength = _renderDataSource[lodIdx].Current._maxWavelength;
             }
 
             // Duplicate last element so that things can safely read off the end of the cascades

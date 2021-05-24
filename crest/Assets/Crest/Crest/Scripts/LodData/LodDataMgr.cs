@@ -74,6 +74,9 @@ namespace Crest
         public const int THREAD_GROUP_SIZE_X = 8;
         public const int THREAD_GROUP_SIZE_Y = 8;
 
+        // NOTE: This is a temporary solution to keywords having prefixes downstream.
+        internal const string MATERIAL_KEYWORD_PREFIX = "";
+
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
         protected abstract bool NeedToReadWriteTextureData { get; }
@@ -85,6 +88,8 @@ namespace Crest
 
         public virtual int BufferCount => 1;
         public virtual void FlipBuffers() => _targets.Flip();
+
+        protected virtual Texture2DArray NullTexture => TextureArrayHelpers.BlackTextureArray;
 
         public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
         protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
@@ -261,7 +266,7 @@ namespace Crest
         internal virtual void OnDisable()
         {
             // Unbind from all graphics shaders (not compute)
-            Shader.SetGlobalTexture(GetParamIdSampler(), null);
+            Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);
         }
 
 #if UNITY_2019_3_OR_NEWER

@@ -3,6 +3,9 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.XR;
 
 /// <summary>
@@ -23,13 +26,15 @@ public class CamController : MonoBehaviour
 
     Transform _targetTransform;
 
+    new Camera camera;
+
     [System.Serializable]
     class DebugFields
     {
         [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
         public bool disableOcclusionMesh = false;
 
-        [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), Range(1f, 2f)]
+        [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), UnityEngine.Range(1f, 2f)]
         public float occlusionMeshScale = 1f;
     }
 
@@ -39,6 +44,14 @@ public class CamController : MonoBehaviour
     {
         _targetTransform = transform;
 
+        camera = GetComponent<Camera>();
+        if (camera == null)
+        {
+            enabled = false;
+            return;
+        }
+
+#if ENABLE_VR && ENABLE_VR_MODULE
         // We cannot change the Camera's transform when XR is enabled. This is not an issue with the new XR plugin.
         if (XRSettings.enabled)
         {
@@ -63,6 +76,7 @@ public class CamController : MonoBehaviour
             XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
             XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
+#endif
     }
 
     void Update()
@@ -73,13 +87,16 @@ public class CamController : MonoBehaviour
 
         UpdateMovement(dt);
 
+#if ENABLE_VR && ENABLE_VR_MODULE
         // These aren't useful and can break for XR hardware.
         if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
+#endif
         {
             UpdateDragging(dt);
             UpdateKillRoll();
         }
 
+#if ENABLE_VR && ENABLE_VR_MODULE
         if (XRSettings.enabled)
         {
             // Check if property has changed.
@@ -90,13 +107,19 @@ public class CamController : MonoBehaviour
 
             XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
+#endif
     }
 
     void UpdateMovement(float dt)
     {
-        if (!Input.GetMouseButton(0) && _requireLMBToMove) return;
 
+#if ENABLE_INPUT_SYSTEM
+        if (!Mouse.current.leftButton.isPressed && _requireLMBToMove) return;
+        float forward = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0);
+#else
+        if (!Input.GetMouseButton(0) && _requireLMBToMove) return;
         float forward = (Input.GetKey(KeyCode.W) ? 1 : 0) - (Input.GetKey(KeyCode.S) ? 1 : 0);
+#endif
         if (simForwardInput)
         {
             forward = 1f;
@@ -104,13 +127,28 @@ public class CamController : MonoBehaviour
 
         _targetTransform.position += linSpeed * _targetTransform.forward * forward * dt;
         var speed = linSpeed;
+
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current.leftShiftKey.isPressed)
+#else
         if (Input.GetKey(KeyCode.LeftShift))
+#endif
         {
             speed *= 3f;
         }
 
         _targetTransform.position += speed * _targetTransform.forward * forward * dt;
         //_transform.position += linSpeed * _transform.right * Input.GetAxis( "Horizontal" ) * dt;
+#if ENABLE_INPUT_SYSTEM
+        _targetTransform.position += linSpeed * _targetTransform.up * (Keyboard.current.eKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= linSpeed * _targetTransform.up * (Keyboard.current.qKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= linSpeed * _targetTransform.right * (Keyboard.current.aKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position += linSpeed * _targetTransform.right * (Keyboard.current.dKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position += speed * _targetTransform.up * (Keyboard.current.eKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= speed * _targetTransform.up * (Keyboard.current.qKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position -= speed * _targetTransform.right * (Keyboard.current.aKey.isPressed ? 1 : 0) * dt;
+        _targetTransform.position += speed * _targetTransform.right * (Keyboard.current.dKey.isPressed ? 1 : 0) * dt;
+#else
         _targetTransform.position += linSpeed * _targetTransform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * dt;
         _targetTransform.position -= linSpeed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
         _targetTransform.position -= linSpeed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
@@ -119,11 +157,17 @@ public class CamController : MonoBehaviour
         _targetTransform.position -= speed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
         _targetTransform.position -= speed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
         _targetTransform.position += speed * _targetTransform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
-
+#endif
         {
             float rotate = 0f;
+#if ENABLE_INPUT_SYSTEM
+            rotate += (Keyboard.current.rightArrowKey.isPressed ? 1 : 0);
+            rotate -= (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
+#else
             rotate += (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
             rotate -= (Input.GetKey(KeyCode.LeftArrow) ? 1 : 0);
+#endif
+
             rotate *= 5f;
             Vector3 ea = _targetTransform.eulerAngles;
             ea.y += 0.1f * rotSpeed * rotate * dt;
@@ -133,16 +177,31 @@ public class CamController : MonoBehaviour
 
     void UpdateDragging(float dt)
     {
-        Vector2 mousePos;
-        mousePos.x = Input.mousePosition.x;
-        mousePos.y = Input.mousePosition.y;
+        Vector2 mousePos =
+#if ENABLE_INPUT_SYSTEM
+            Mouse.current.position.ReadValue();
+#else
+            Input.mousePosition;
+#endif
 
-        if (!_dragging && Input.GetMouseButtonDown(0) && !Crest.OceanDebugGUI.OverGUI(mousePos))
+        var wasLeftMouseButtonPressed =
+#if ENABLE_INPUT_SYSTEM
+            Mouse.current.leftButton.wasPressedThisFrame;
+#else
+            Input.GetMouseButtonDown(0);
+#endif
+
+        if (!_dragging && wasLeftMouseButtonPressed && camera.rect.Contains(camera.ScreenToViewportPoint(mousePos)) &&
+            !Crest.OceanDebugGUI.OverGUI(mousePos))
         {
             _dragging = true;
             _lastMousePos = mousePos;
         }
+#if ENABLE_INPUT_SYSTEM
+        if (_dragging && Mouse.current.leftButton.wasReleasedThisFrame)
+#else
         if (_dragging && Input.GetMouseButtonUp(0))
+#endif
         {
             _dragging = false;
             _lastMousePos = -Vector2.one;

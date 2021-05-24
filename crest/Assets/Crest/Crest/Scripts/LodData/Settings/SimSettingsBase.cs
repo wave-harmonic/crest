@@ -23,7 +23,7 @@ namespace Crest
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage) => true;
     }
 
-    [CustomEditor(typeof(SimSettingsAnimatedWaves), true), CanEditMultipleObjects]
+    [CustomEditor(typeof(SimSettingsBase), true), CanEditMultipleObjects]
     class SimSettingsBaseEditor : ValidatedEditor { }
 #endif
 }

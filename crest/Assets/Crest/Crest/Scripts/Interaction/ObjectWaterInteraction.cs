@@ -13,6 +13,7 @@ namespace Crest
     /// <summary>
     /// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Object Water Interaction")]
     public partial class ObjectWaterInteraction : MonoBehaviour
     {
         [Range(0f, 2f), SerializeField]
@@ -54,6 +55,13 @@ namespace Crest
                 return;
             }
 #endif
+
+            if (OceanRenderer.Instance._lodDataDynWaves == null)
+            {
+                // Don't run without a dyn wave sim
+                enabled = false;
+                return;
+            }
 
             _localOffset = transform.localPosition;
             _renderer = GetComponent<Renderer>();
@@ -138,15 +146,17 @@ namespace Crest
                 }
             }
 
-            float dt;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
-            float weight = _boat.InWater ? 1f / simsActive : 0f;
+            var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
+            var weight = _boat.InWater ? 1f / simsActive : 0f;
 
             _renderer.GetPropertyBlock(_mpb);
 
             _mpb.SetVector("_Velocity", vel);
-            _mpb.SetFloat("_Weight", weight);
             _mpb.SetFloat("_SimDeltaTime", dt);
+
+            // Weighting with this value helps keep ripples consistent for different gravity values
+            var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
+            _mpb.SetFloat("_Weight", weight * gravityMul);
 
             _renderer.SetPropertyBlock(_mpb);
 
@@ -161,12 +171,14 @@ namespace Crest
         {
             var isValid = true;
 
-            if (!ocean.CreateDynamicWaveSim)
+            if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> requires dynamic wave simulation to be enabled on <i>OceanRenderer</i>.",
-                    ValidatedHelper.MessageType.Error, ocean
+                    "<i>ObjectWaterInteraction</i> requires dynamic wave simulation to be enabled.",
+                    $"Enable the <i>{LodDataMgrDynWaves.FEATURE_TOGGLE_LABEL}</i> option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Warning, ocean,
+                    (so) => OceanRenderer.FixSetFeatureEnabled(so, LodDataMgrDynWaves.FEATURE_TOGGLE_NAME, true)
                 );
 
                 isValid = false;
@@ -176,7 +188,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> script requires a parent <i>GameObject</i>.",
+                    "<i>ObjectWaterInteraction</i> script requires a parent GameObject.",
+                    "Create a primary GameObject for the object, and parent this underneath it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -187,8 +200,10 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> script requires <i>RegisterDynWavesInput</i> script to be present.",
-                    ValidatedHelper.MessageType.Error, this
+                    "<i>ObjectWaterInteraction</i> script requires <i>RegisterDynWavesInput</i> component to be present.",
+                    "Attach a <i>RegisterDynWavesInput</i> component.",
+                    ValidatedHelper.MessageType.Error, this,
+                    ValidatedHelper.FixAttachComponent<RegisterDynWavesInput>
                 );
 
                 isValid = false;
@@ -198,8 +213,10 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>ObjectWaterInteraction</i> script requires <i>Renderer</i> component.",
-                    ValidatedHelper.MessageType.Error, this
+                    "<i>ObjectWaterInteraction</i> component requires <i>MeshRenderer</i> component.",
+                    "Attach a <i>MeshRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, this,
+                    ValidatedHelper.FixAttachComponent<MeshRenderer>
                 );
 
                 isValid = false;

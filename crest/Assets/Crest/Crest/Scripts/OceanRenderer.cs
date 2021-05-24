@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
+using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -22,8 +23,13 @@ namespace Crest
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
     [ExecuteAlways, SelectionBase]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
+    [HelpURL(Constants.HELP_URL_GENERAL)]
     public partial class OceanRenderer : MonoBehaviour
     {
+        [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f, power: 2f)]
+        public float _globalWindSpeed = 150f;
+
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint
@@ -33,7 +39,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    var sceneViewCamera = EditorHelpers.EditorHelpers.GetActiveSceneViewCamera();
                     if (sceneViewCamera != null)
                     {
                         return sceneViewCamera.transform;
@@ -70,7 +76,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    var sceneViewCamera = EditorHelpers.EditorHelpers.GetActiveSceneViewCamera();
                     if (sceneViewCamera != null)
                     {
                         return sceneViewCamera;
@@ -94,20 +100,39 @@ namespace Crest
 
         public Transform Root { get; private set; }
 
+        // does not respond to _timeProvider changing in inspector
+
+        // Loosely a stack for time providers. The last TP in the list is the active one. When a TP gets
+        // added to the stack, it is bumped to the top of the list. When a TP is removed, all instances
+        // of it are removed from the stack. This is less rigid than a real stack which would be harder
+        // to use as users have to keep a close eye on the order that things are pushed/popped.
+        public List<ITimeProvider> _timeProviderStack = new List<ITimeProvider>();
+
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;
-        TimeProviderDefault _timeProviderDefault = new TimeProviderDefault();
         public ITimeProvider TimeProvider
         {
-            get
-            {
-                if (_timeProvider != null)
-                {
-                    return _timeProvider;
-                }
+            get => _timeProviderStack[_timeProviderStack.Count - 1];
+        }
 
-                return _timeProviderDefault ?? (_timeProviderDefault = new TimeProviderDefault());
-            }
+        // Put a time provider at the top of the stack
+        public void PushTimeProvider(ITimeProvider tp)
+        {
+            Debug.Assert(tp != null, "Null time provider pushed");
+
+            // Remove any instances of it already in the stack
+            PopTimeProvider(tp);
+
+            // Add it to the top
+            _timeProviderStack.Add(tp);
+        }
+
+        // Remove a time provider from the stack
+        public void PopTimeProvider(ITimeProvider tp)
+        {
+            Debug.Assert(tp != null, "Null time provider popped");
+
+            _timeProviderStack.RemoveAll(candidate => candidate == tp);
         }
 
         public float CurrentTime => TimeProvider.CurrentTime;
@@ -117,18 +142,25 @@ namespace Crest
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;
         [Tooltip("If Primary Light is not set, search the scene for all directional lights and pick the brightest to use as the sun light.")]
-        [SerializeField, PredicatedField("_primaryLight", true)]
+        [SerializeField, Predicated("_primaryLight", true), DecoratedField]
         bool _searchForPrimaryLightOnStartup = true;
 
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
-        Material _material = null;
-        public Material OceanMaterial { get { return _material; } }
+        internal Material _material = null;
+        public Material OceanMaterial { get { return _material; } set { _material = value; } }
 
-        [SerializeField]
-        string _layerName = "Water";
+        [System.Obsolete("Use the _layer field instead."), HideInInspector, SerializeField]
+        string _layerName = "";
+        [System.Obsolete("Use the Layer property instead.")]
         public string LayerName { get { return _layerName; } }
+
+        [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", HelpBoxAttribute.MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
+        [Tooltip("The ocean tile renderers will have this layer.")]
+        [SerializeField, Predicated("_layerName", inverted: true), Layer]
+        int _layer = 4; // Water
+        public int Layer => _layer;
 
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
@@ -151,19 +183,20 @@ namespace Crest
         [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
         float _dropDetailHeightBasedOnWaves = 0.2f;
 
-        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256. Press 'Rebuild Ocean' button below to apply.")]
+        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
 
-        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4... Press 'Rebuild Ocean' button below to apply.")]
+        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
         int _geometryDownSampleFactor = 2;
 
-        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate. Press 'Rebuild Ocean' button below to apply."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
+        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
 
         [Header("Simulation Params")]
 
+        [Embedded]
         public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
 
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
@@ -173,25 +206,25 @@ namespace Crest
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
         public bool CreateFoamSim { get { return _createFoamSim; } }
-        [PredicatedField("_createFoamSim")]
+        [Predicated("_createFoamSim"), Embedded]
         public SimSettingsFoam _simSettingsFoam;
 
         [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
         bool _createDynamicWaveSim = false;
         public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
-        [PredicatedField("_createDynamicWaveSim")]
+        [Predicated("_createDynamicWaveSim"), Embedded]
         public SimSettingsWave _simSettingsDynamicWaves;
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
         public bool CreateFlowSim { get { return _createFlowSim; } }
-        [PredicatedField("_createFlowSim")]
+        [Predicated("_createFlowSim"), Embedded]
         public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [PredicatedField("_createShadowData")]
+        [Predicated("_createShadowData"), Embedded]
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
@@ -203,7 +236,7 @@ namespace Crest
             EverythingClipped,
         }
         [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
-        [PredicatedField("_createClipSurfaceData")]
+        [Predicated("_createClipSurfaceData"), DecoratedField]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -222,10 +255,16 @@ namespace Crest
         float _editModeFPS = 30f;
 #pragma warning restore 414
 
-        [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField, PredicatedField("_showOceanProxyPlane", true)]
+        [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField, Predicated("_showOceanProxyPlane", true), DecoratedField]
 #pragma warning disable 414
         bool _followSceneCamera = true;
 #pragma warning restore 414
+
+        [Header("Server Settings")]
+        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument."), SerializeField]
+        bool _forceBatchMode = false;
+        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument."), SerializeField]
+        bool _forceNoGPU = false;
 
         [Header("Debug Params")]
 
@@ -284,6 +323,27 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
 
+        // A hash of the settings used to generate the ocean, used to regenerate when necessary
+        int _generatedSettingsHash = 0;
+
+        /// <summary>
+        /// Is runtime environment without graphics card
+        /// </summary>
+        public static bool RunningWithoutGPU
+        {
+            get
+            {
+                var noGPU = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
+                var emulateNoGPU = (Instance != null ? Instance._forceNoGPU : false);
+                return noGPU || emulateNoGPU;
+            }
+        }
+
+        /// <summary>
+        /// Is runtime environment without graphics card
+        /// </summary>
+        public static bool RunningHeadless => Application.isBatchMode || (Instance != null ? Instance._forceBatchMode : false);
+
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
         float _lodAlphaBlackPointWhitePointFade;
@@ -324,8 +384,7 @@ namespace Crest
 
             public float _weight;
 
-            // Align to 32 bytes
-            public float __padding;
+            public float _maxWavelength;
         }
         public ComputeBuffer _bufCascadeDataTgt;
         public ComputeBuffer _bufCascadeDataSrc;
@@ -352,6 +411,18 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // Setup a default time provider, and add the override one (from the inspector)
+            _timeProviderStack.Clear();
+
+            // Put a base TP that should always be available as a fallback
+            PushTimeProvider(new TimeProviderDefault());
+
+            // Add the TP from the inspector
+            if (_timeProvider != null)
+            {
+                PushTimeProvider(_timeProvider);
+            }
+
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -403,6 +474,15 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            _generatedSettingsHash = CalculateSettingsHash();
+
+            // Make sure we have correct defaults in case simulations are not enabled.
+            LodDataMgrClipSurface.BindNullToGraphicsShaders();
+            LodDataMgrDynWaves.BindNullToGraphicsShaders();
+            LodDataMgrFlow.BindNullToGraphicsShaders();
+            LodDataMgrFoam.BindNullToGraphicsShaders();
+            LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
+            LodDataMgrShadow.BindNullToGraphicsShaders();
 
             CreateDestroySubSystems();
 
@@ -480,175 +560,186 @@ namespace Crest
 
         void CreateDestroySubSystems()
         {
+            if (!RunningWithoutGPU)
             {
-                if (_lodDataAnimWaves == null)
                 {
-                    _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
-                    _lodDatas.Add(_lodDataAnimWaves);
-                }
-            }
-
-            if (CreateClipSurfaceData)
-            {
-                if (_lodDataClipSurface == null)
-                {
-                    _lodDataClipSurface = new LodDataMgrClipSurface(this);
-                    _lodDatas.Add(_lodDataClipSurface);
-                }
-            }
-            else
-            {
-                if (_lodDataClipSurface != null)
-                {
-                    _lodDataClipSurface.OnDisable();
-                    _lodDatas.Remove(_lodDataClipSurface);
-                    _lodDataClipSurface = null;
-                }
-            }
-
-            if (CreateDynamicWaveSim)
-            {
-                if (_lodDataDynWaves == null)
-                {
-                    _lodDataDynWaves = new LodDataMgrDynWaves(this);
-                    _lodDatas.Add(_lodDataDynWaves);
-                }
-            }
-            else
-            {
-                if (_lodDataDynWaves != null)
-                {
-                    _lodDataDynWaves.OnDisable();
-                    _lodDatas.Remove(_lodDataDynWaves);
-                    _lodDataDynWaves = null;
-                }
-            }
-
-            if (CreateFlowSim)
-            {
-                if (_lodDataFlow == null)
-                {
-                    _lodDataFlow = new LodDataMgrFlow(this);
-                    _lodDatas.Add(_lodDataFlow);
+                    if (_lodDataAnimWaves == null)
+                    {
+                        _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
+                        _lodDatas.Add(_lodDataAnimWaves);
+                    }
                 }
 
-                if (FlowProvider != null && !(FlowProvider is QueryFlow))
+                if (CreateClipSurfaceData && !RunningHeadless)
                 {
-                    FlowProvider.CleanUp();
-                    FlowProvider = null;
+                    if (_lodDataClipSurface == null)
+                    {
+                        _lodDataClipSurface = new LodDataMgrClipSurface(this);
+                        _lodDatas.Add(_lodDataClipSurface);
+                    }
                 }
-            }
-            else
-            {
-                if (_lodDataFlow != null)
+                else
                 {
-                    _lodDataFlow.OnDisable();
-                    _lodDatas.Remove(_lodDataFlow);
-                    _lodDataFlow = null;
+                    if (_lodDataClipSurface != null)
+                    {
+                        _lodDataClipSurface.OnDisable();
+                        _lodDatas.Remove(_lodDataClipSurface);
+                        _lodDataClipSurface = null;
+                    }
                 }
 
-                if (FlowProvider != null && FlowProvider is QueryFlow)
+                if (CreateDynamicWaveSim)
                 {
-                    FlowProvider.CleanUp();
-                    FlowProvider = null;
+                    if (_lodDataDynWaves == null)
+                    {
+                        _lodDataDynWaves = new LodDataMgrDynWaves(this);
+                        _lodDatas.Add(_lodDataDynWaves);
+                    }
                 }
-            }
-            if (FlowProvider == null)
-            {
-                FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
-            }
+                else
+                {
+                    if (_lodDataDynWaves != null)
+                    {
+                        _lodDataDynWaves.OnDisable();
+                        _lodDatas.Remove(_lodDataDynWaves);
+                        _lodDataDynWaves = null;
+                    }
+                }
 
-            if (CreateFoamSim)
-            {
-                if (_lodDataFoam == null)
+                if (CreateFlowSim)
                 {
-                    _lodDataFoam = new LodDataMgrFoam(this);
-                    _lodDatas.Add(_lodDataFoam);
-                }
-            }
-            else
-            {
-                if (_lodDataFoam != null)
-                {
-                    _lodDataFoam.OnDisable();
-                    _lodDatas.Remove(_lodDataFoam);
-                    _lodDataFoam = null;
-                }
-            }
+                    if (_lodDataFlow == null)
+                    {
+                        _lodDataFlow = new LodDataMgrFlow(this);
+                        _lodDatas.Add(_lodDataFlow);
+                    }
 
-            if (CreateSeaFloorDepthData)
-            {
-                if (_lodDataSeaDepths == null)
-                {
-                    _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
-                    _lodDatas.Add(_lodDataSeaDepths);
+                    if (FlowProvider != null && !(FlowProvider is QueryFlow))
+                    {
+                        FlowProvider.CleanUp();
+                        FlowProvider = null;
+                    }
                 }
-            }
-            else
-            {
-                if (_lodDataSeaDepths != null)
+                else
                 {
-                    _lodDataSeaDepths.OnDisable();
-                    _lodDatas.Remove(_lodDataSeaDepths);
-                    _lodDataSeaDepths = null;
-                }
-            }
+                    if (_lodDataFlow != null)
+                    {
+                        _lodDataFlow.OnDisable();
+                        _lodDatas.Remove(_lodDataFlow);
+                        _lodDataFlow = null;
+                    }
 
-            if (CreateShadowData)
-            {
-                if (_lodDataShadow == null)
-                {
-                    _lodDataShadow = new LodDataMgrShadow(this);
-                    _lodDatas.Add(_lodDataShadow);
+                    if (FlowProvider != null && FlowProvider is QueryFlow)
+                    {
+                        FlowProvider.CleanUp();
+                        FlowProvider = null;
+                    }
                 }
-            }
-            else
-            {
-                if (_lodDataShadow != null)
+                if (FlowProvider == null)
                 {
-                    _lodDataShadow.OnDisable();
-                    _lodDatas.Remove(_lodDataShadow);
-                    _lodDataShadow = null;
+                    FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
+                }
+
+                if (CreateFoamSim && !RunningHeadless)
+                {
+                    if (_lodDataFoam == null)
+                    {
+                        _lodDataFoam = new LodDataMgrFoam(this);
+                        _lodDatas.Add(_lodDataFoam);
+                    }
+                }
+                else
+                {
+                    if (_lodDataFoam != null)
+                    {
+                        _lodDataFoam.OnDisable();
+                        _lodDatas.Remove(_lodDataFoam);
+                        _lodDataFoam = null;
+                    }
+                }
+
+                if (CreateSeaFloorDepthData)
+                {
+                    if (_lodDataSeaDepths == null)
+                    {
+                        _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
+                        _lodDatas.Add(_lodDataSeaDepths);
+                    }
+                }
+                else
+                {
+                    if (_lodDataSeaDepths != null)
+                    {
+                        _lodDataSeaDepths.OnDisable();
+                        _lodDatas.Remove(_lodDataSeaDepths);
+                        _lodDataSeaDepths = null;
+                    }
+                }
+
+                if (CreateShadowData && !RunningHeadless)
+                {
+                    if (_lodDataShadow == null)
+                    {
+                        _lodDataShadow = new LodDataMgrShadow(this);
+                        _lodDatas.Add(_lodDataShadow);
+                    }
+                }
+                else
+                {
+                    if (_lodDataShadow != null)
+                    {
+                        _lodDataShadow.OnDisable();
+                        _lodDatas.Remove(_lodDataShadow);
+                        _lodDataShadow = null;
+                    }
                 }
             }
 
             // Potential extension - add 'type' field to collprovider and change provider if settings have changed - this would support runtime changes.
             if (CollisionProvider == null)
             {
-                CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
+                var settings = _lodDataAnimWaves != null ? _lodDataAnimWaves.Settings : _simSettingsAnimatedWaves;
+
+                if (settings != null)
+                {
+                    CollisionProvider = settings.CreateCollisionProvider();
+                }
             }
         }
 
         bool VerifyRequirements()
         {
-            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            if (!RunningWithoutGPU)
             {
-                Debug.LogError("Crest does not support WebGL backends.", this);
-                return false;
-            }
+                if (Application.platform == RuntimePlatform.WebGLPlayer)
+                {
+                    Debug.LogError("Crest does not support WebGL backends.", this);
+                    return false;
+                }
 #if UNITY_EDITOR
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
-            {
-                Debug.LogError("Crest does not support OpenGL backends.", this);
-                return false;
-            }
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+                {
+                    Debug.LogError("Crest does not support OpenGL backends.", this);
+                    return false;
+                }
 #endif
-            if (SystemInfo.graphicsShaderLevel < 45)
-            {
-                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
-                return false;
-            }
-            if (!SystemInfo.supportsComputeShaders)
-            {
-                Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
-                return false;
-            }
-            if (!SystemInfo.supports2DArrayTextures)
-            {
-                Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
-                return false;
+                if (SystemInfo.graphicsShaderLevel < 45)
+                {
+                    Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                    return false;
+                }
+                if (!SystemInfo.supportsComputeShaders)
+                {
+                    Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
+                    return false;
+                }
+                if (!SystemInfo.supports2DArrayTextures)
+                {
+                    Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
+                    return false;
+                }
             }
 
             return true;
@@ -694,8 +785,37 @@ namespace Crest
             RunUpdate();
         }
 
+        int CalculateSettingsHash()
+        {
+            var settingsHash = Hashy.CreateHash();
+
+            // Add all the settings that require rebuilding..
+            Hashy.AddInt(_layer, ref settingsHash);
+            Hashy.AddInt(_lodDataResolution, ref settingsHash);
+            Hashy.AddInt(_geometryDownSampleFactor, ref settingsHash);
+            Hashy.AddInt(_lodCount, ref settingsHash);
+            Hashy.AddBool(_forceBatchMode, ref settingsHash);
+            Hashy.AddBool(_forceNoGPU, ref settingsHash);
+            Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);
+
+#pragma warning disable 0618
+            Hashy.AddObject(_layerName, ref settingsHash);
+#pragma warning restore 0618
+
+            return settingsHash;
+        }
+
         void RunUpdate()
         {
+            // Rebuild if needed. Editor-only i suppose?
+#if UNITY_EDITOR
+            if (CalculateSettingsHash() != _generatedSettingsHash)
+            {
+                enabled = false;
+                enabled = true;
+            }
+#endif
+
             // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
 #if UNITY_EDITOR
             // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
@@ -703,8 +823,8 @@ namespace Crest
             if (EditorApplication.isPlaying)
 #endif
             {
-                CollisionProvider.UpdateQueries();
-                FlowProvider.UpdateQueries();
+                CollisionProvider?.UpdateQueries();
+                FlowProvider?.UpdateQueries();
             }
 
             // set global shader params
@@ -764,11 +884,14 @@ namespace Crest
 
         void WritePerFrameMaterialParams()
         {
-            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
-            // add a param here that forces ocean to be in underwater state. I think the root
-            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
-            // i'm not sure why cracks are not visible in this case.
-            OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            if (OceanMaterial != null)
+            {
+                // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+                // add a param here that forces ocean to be in underwater state. I think the root
+                // cause here might be imprecision or numerical issues at ocean tile boundaries, although
+                // i'm not sure why cracks are not visible in this case.
+                OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            }
 
             _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
             _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
@@ -1014,9 +1137,9 @@ namespace Crest
 
             _oceanChunkRenderers.Clear();
 
-            _bufPerCascadeInstanceData.Dispose();
-            _bufCascadeDataTgt.Dispose();
-            _bufCascadeDataSrc.Dispose();
+            _bufPerCascadeInstanceData?.Dispose();
+            _bufCascadeDataTgt?.Dispose();
+            _bufCascadeDataSrc?.Dispose();
         }
 
 #if UNITY_EDITOR
@@ -1094,13 +1217,6 @@ namespace Crest
                 depthCache.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
-            // AssignLayer
-            var assignLayers = FindObjectsOfType<AssignLayer>();
-            foreach (var assign in assignLayers)
-            {
-                assign.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
             // FloatingObjectBase
             var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
             foreach (var floatingObject in floatingObjects)
@@ -1129,23 +1245,14 @@ namespace Crest
         {
             var isValid = true;
 
-#if !UNITY_2019_4_9_OR_NEWER
-            if (_camera == null)
-            {
-                showMessage
-                (
-                    "Not setting the camera property will result in using Camera.main which has a significant " +
-                    "performance cost. This is improved in Unity 2019.4.9 and above.",
-                    ValidatedHelper.MessageType.Warning, ocean
-                );
-            }
-#endif
+            isValid = ValidateObsolete(ocean, showMessage);
 
             if (_material == null)
             {
                 showMessage
                 (
-                    "A material for the ocean must be assigned on the Material property of the OceanRenderer.",
+                    "No ocean material specified.",
+                    "Assign a valid ocean material to the Material property of the <i>OceanRenderer</i> component.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
 
@@ -1157,7 +1264,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
+                    "Multiple <i>OceanRenderer</i> components detected in open scenes, this is not typical - usually only one <i>OceanRenderer</i> is expected to be present.",
+                    "Remove extra <i>OceanRenderer</i> components.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
             }
@@ -1169,7 +1277,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    "No ShapeGerstnerBatched script found, so ocean will appear flat (no waves).",
+                    "No ShapeGerstnerBatched component found, so ocean will appear flat (no waves).",
+                    "Assign a ShapeGerstnerBatched component to a GameObject.",
                     ValidatedHelper.MessageType.Info, ocean
                 );
             }
@@ -1181,7 +1290,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Base mesh density is lower than 8. There will be visible gaps in the ocean surface. " +
+                    "Base mesh density is lower than 8. There will be visible gaps in the ocean surface.",
                     "Increase the <i>LOD Data Resolution</i> or decrease the <i>Geometry Down Sample Factor</i>.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
@@ -1190,7 +1299,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Base mesh density is lower than 16. There will be visible transitions when traversing the ocean surface. " +
+                    "Base mesh density is lower than 16. There will be visible transitions when traversing the ocean surface. ",
                     "Increase the <i>LOD Data Resolution</i> or decrease the <i>Geometry Down Sample Factor</i>.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
@@ -1217,9 +1326,8 @@ namespace Crest
                     {
                         showMessage
                         (
-                            "There is no skybox set in the lighting settings window. " +
-                            oceanColourIncorrectText +
-                            alternativesText,
+                            "There is no skybox set in the Lighting window. " + oceanColourIncorrectText,
+                            "Configure a valid skybox. " + alternativesText,
                             ValidatedHelper.MessageType.Warning, ocean
                         );
                     }
@@ -1228,10 +1336,8 @@ namespace Crest
                     {
                         showMessage
                         (
-                            "Lighting data is missing which provides baked spherical harmonics." +
-                            oceanColourIncorrectText +
-                            "Generate lighting or enable Auto Generate from the Lighting window. " +
-                            alternativesText,
+                            "Lighting data is missing which provides baked spherical harmonics." + oceanColourIncorrectText,
+                            "Generate lighting or enable Auto Generate from the Lighting window. " + alternativesText,
                             ValidatedHelper.MessageType.Warning, ocean
                         );
                     }
@@ -1243,10 +1349,8 @@ namespace Crest
                     {
                         showMessage
                         (
-                            "Environmental Reflections is set to Custom, but no cubemap has been provided. " +
-                            oceanColourIncorrectText +
-                            "Assign a cubemap in the lighting settings window. " +
-                            alternativesText,
+                            "Environmental Reflections is set to Custom, but no cubemap has been provided. " + oceanColourIncorrectText,
+                            "Assign a cubemap in the Lighting window. " + alternativesText,
                             ValidatedHelper.MessageType.Warning, ocean
                         );
                     }
@@ -1259,11 +1363,59 @@ namespace Crest
             {
                 showMessage
                 (
-                    "<i>Override Reflection Cubemap</i> is enabled but no cubemap has been provided. " +
-                    oceanColourIncorrectText +
+                    "<i>Override Reflection Cubemap</i> is enabled but no cubemap has been provided. " + oceanColourIncorrectText,
                     "Assign a cubemap or disable the checkbox on the ocean material.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
+            }
+
+            // Validate scene view effects options.
+            if (SceneView.lastActiveSceneView != null && !EditorApplication.isPlaying)
+            {
+                var sceneView = SceneView.lastActiveSceneView;
+
+                // Validate "Animated Materials".
+                if (ocean != null && !ocean._showOceanProxyPlane && !sceneView.sceneViewState.showMaterialUpdate)
+                {
+                    showMessage
+                    (
+                        "<i>Animated Materials</i> is not enabled on the scene view. The ocean's framerate will appear low as updates are not real-time.",
+                        "Enable <i>Animated Materials</i> on the scene view.",
+                        ValidatedHelper.MessageType.Info, ocean,
+                        _ =>
+                        {
+                            SceneView.lastActiveSceneView.sceneViewState.showMaterialUpdate = true;
+                            // Required after changing sceneViewState according to:
+                            // https://docs.unity3d.com/ScriptReference/SceneView.SceneViewState.html
+                            SceneView.RepaintAll();
+                        }
+                    );
+                }
+
+#if UNITY_POSTPROCESSING_ENABLED
+                // Validate "Post-Processing".
+                // Only check built-in renderer and Camera.main with enabled PostProcessLayer component.
+                if (GraphicsSettings.currentRenderPipeline == null && Camera.main != null &&
+                    Camera.main.TryGetComponent<UnityEngine.Rendering.PostProcessing.PostProcessLayer>(out var ppLayer)
+                    && ppLayer.enabled && sceneView.sceneViewState.showImageEffects)
+                {
+                    showMessage
+                    (
+                        "<i>Post Processing</i> is enabled on the scene view. " +
+                        "There is a Unity bug where gizmos and grid lines will render over opaque objects. " +
+                        "Please see <i>Known Issues</i> in the documentation for a link to vote on having this issue resolved.",
+                        "Disable <i>Post Processing</i> on the scene view.",
+                        ValidatedHelper.MessageType.Warning, ocean,
+                        _ =>
+                        {
+                            sceneView.sceneViewState.showImageEffects = false;
+                            // Required after changing sceneViewState according to:
+                            // https://docs.unity3d.com/ScriptReference/SceneView.SceneViewState.html
+                            SceneView.RepaintAll();
+                        }
+                    );
+                }
+#endif
             }
 
             // SimSettingsAnimatedWaves
@@ -1277,8 +1429,75 @@ namespace Crest
                 showMessage
                 (
                     $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    "Clear this rotation from the GameObject.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
+            }
+
+            // For safety.
+            if (ocean == null || ocean.OceanMaterial == null)
+            {
+                return isValid;
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFoamSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateFoamSim)
+                {
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrFoam.MATERIAL_KEYWORD, LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY, true));
+                }
+                else
+                {
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
+                        ValidatedHelper.MessageType.Info, ocean);
+                }
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFlowSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateFlowSim)
+                {
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrFlow.MATERIAL_KEYWORD, LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY, true));
+                }
+                else
+                {
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
+                        ValidatedHelper.MessageType.Info, ocean);
+                }
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrShadow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateShadowData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateShadowData)
+                {
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrShadow.MATERIAL_KEYWORD, LodDataMgrShadow.MATERIAL_KEYWORD_PROPERTY, true));
+                }
+                else
+                {
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
+                        ValidatedHelper.MessageType.Info, ocean);
+                }
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateClipSurfaceData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateClipSurfaceData)
+                {
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrClipSurface.MATERIAL_KEYWORD, LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY, true));
+                }
+                else
+                {
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
+                        ValidatedHelper.MessageType.Info, ocean);
+                }
             }
 
             return isValid;
@@ -1317,26 +1536,139 @@ namespace Crest
                 _lodDataResolution = newLDR;
             }
         }
+
+        internal static void FixSetFeatureEnabled(SerializedObject oceanSO, string paramName, bool enabled)
+        {
+            oceanSO.FindProperty(paramName).boolValue = enabled;
+        }
+
+#pragma warning disable 0618
+        public bool ValidateObsolete(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (_layerName != "")
+            {
+                showMessage
+                (
+                    "<i>Layer Name</i> on the <i>Ocean Renderer</i> is deprecated and will be removed. " +
+                    "Use <i>Layer</i> instead.",
+                    $"Set <i>Layer</i> to <i>{_layerName}</i> using the <i>Layer Name</i> to complete the migration.",
+                    ValidatedHelper.MessageType.Warning, this,
+                    (SerializedObject serializedObject) =>
+                    {
+                        serializedObject.FindProperty("_layer").intValue = LayerMask.NameToLayer(_layerName);
+                        serializedObject.FindProperty("_layerName").stringValue = "";
+                    }
+                );
+            }
+
+            return isValid;
+        }
+#pragma warning restore 0618
     }
 
     [CustomEditor(typeof(OceanRenderer))]
     public class OceanRendererEditor : ValidatedEditor
     {
+        OceanRenderer _target;
+        MaterialEditor _materialEditor;
+
+        void OnEnable()
+        {
+            _target = (OceanRenderer)target;
+
+            if (_target._material != null)
+            {
+                // Create an instance of the default MaterialEditor.
+                _materialEditor = (MaterialEditor)CreateEditor(_target._material);
+            }
+        }
+
+        void OnDisable()
+        {
+            if (_materialEditor != null)
+            {
+                // Free the memory used by default MaterialEditor.
+                DestroyImmediate(_materialEditor);
+            }
+        }
+
         public override void OnInspectorGUI()
         {
+            var currentAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
+
             base.OnInspectorGUI();
 
             var target = this.target as OceanRenderer;
 
-            if (GUILayout.Button("Rebuild Ocean"))
+            // Detect if user changed TP, if so update stack
+            var newlyAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
+            if (currentAssignedTP != newlyAssignedTP)
             {
-                target.enabled = false;
-                target.enabled = true;
+                if (currentAssignedTP != null)
+                {
+                    target.PopTimeProvider(currentAssignedTP as TimeProviderBase);
+                }
+                if (newlyAssignedTP != null)
+                {
+                    target.PushTimeProvider(newlyAssignedTP as TimeProviderBase);
+                }
             }
 
             if (GUILayout.Button("Validate Setup"))
             {
                 OceanRenderer.RunValidation(target);
+            }
+
+            if (GUILayout.Button("Open Material Online Help"))
+            {
+                Application.OpenURL(Internal.Constants.HELP_URL_BASE_USER + "configuration.html" + Internal.Constants.HELP_URL_RP + "#material-parameters");
+            }
+
+            DrawMaterialEditor();
+        }
+
+        // Adapted from: http://answers.unity.com/answers/975894/view.html
+        void DrawMaterialEditor()
+        {
+            Material oldMaterial = null;
+
+            if (_materialEditor != null)
+            {
+                oldMaterial = (Material)_materialEditor.target;
+            }
+
+            if (oldMaterial != _target._material)
+            {
+                serializedObject.ApplyModifiedProperties();
+
+                if (_materialEditor != null)
+                {
+                    // Free the memory used by the previous MaterialEditor.
+                    DestroyImmediate(_materialEditor);
+                }
+
+                if (_target._material != null)
+                {
+                    // Create a new instance of the default MaterialEditor.
+                    _materialEditor = (MaterialEditor)CreateEditor(_target._material);
+                }
+            }
+
+            if (_materialEditor != null)
+            {
+                // Draw the material's foldout and the material shader field. Required to call OnInspectorGUI.
+                _materialEditor.DrawHeader();
+
+                // We need to prevent the user from editing Unity's default materials.
+                bool isDefaultMaterial = !AssetDatabase.GetAssetPath(_target._material).StartsWith("Assets");
+
+                using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
+                {
+                    // Draw the material properties. Works only if the foldout of DrawHeader is open.
+                    _materialEditor.OnInspectorGUI();
+                }
             }
         }
     }

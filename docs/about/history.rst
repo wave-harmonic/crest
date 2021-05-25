@@ -35,6 +35,10 @@ Changed
    -  Cutscene Time Provider added to drive water simulation time from Timelines.
    -  Made many fields scriptable (public) on *BoatProbes*, *BoatAlignNormal* and *SimpleFloatingObject*.
 
+   .. only:: birp or urp
+
+      -  Tweaked colours and some of properties for *Ocean-Underwater* material. `[BIRP] [URP]`
+
    .. only:: hdrp
 
       -  *Copy Ocean Material Params Each Frame* is now enabled by default for *Underwater Post Process*. `[HDRP]`

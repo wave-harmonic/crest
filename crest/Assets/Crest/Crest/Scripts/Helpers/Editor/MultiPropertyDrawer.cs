@@ -5,13 +5,6 @@
 // This class draws all the attributes which inherit from DecoratedPropertyAttribute. This class may need to be
 // extended to handle reseting GUI states as we need them.
 
-// NOTE:
-// If you come across the following exception:
-// > ArgumentException: Getting control 1's position in a group with only 1 controls when doing repaint.
-// Then the problem component needs a custom editor. It can be simlple as adding:
-// > [CustomEditor(typeof(YourComponent), editorForChildClasses: true), CanEditMultipleObjects]
-// > class YourComponentEditor : Editor { }
-
 #if UNITY_EDITOR
 
 namespace Crest.EditorHelpers
@@ -61,8 +54,19 @@ namespace Crest.EditorHelpers
             }
 
             var a = (DecoratedPropertyAttribute) attribute;
-            // See note at top of file if exception is thrown here.
-            a.OnGUI(a.NeedsControlRectangle ? EditorGUILayout.GetControlRect(true) : position, property, a.BuildLabel(label), this);
+            try
+            {
+                a.OnGUI(a.NeedsControlRectangle ? EditorGUILayout.GetControlRect(true) : position, property, a.BuildLabel(label), this);
+            }
+            catch (System.ArgumentException)
+            {
+                Debug.LogError
+                (
+                    $"Property <i>{property.displayName}</i> on <i>{property.serializedObject.targetObject.name}</i> " +
+                    "has a multi-property attribute which requires a custom editor.",
+                    property.serializedObject.targetObject
+                );
+            }
 
             // Handle resetting the GUI state.
             GUI.color = originalColor;

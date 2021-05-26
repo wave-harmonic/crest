@@ -89,7 +89,7 @@ The new system has the following advantages:
 After more testing we will switch over to this new system and deprecate the *ShapeGerstnerBatched* component.
 
 
-.. _shape-gerstner-section:
+.. _shape-fft-section:
 
 ShapeFFT (preview)
 ------------------

@@ -42,7 +42,7 @@ namespace Crest
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
         public bool _overrideGlobalWindSpeed = false;
-        [Tooltip("Wind speed in km/h. Controls wave conditions."), Range(0, 150f), Predicated("_overrideGlobalWindSpeed")]
+        [Tooltip("Wind speed in km/h. Controls wave conditions."), Range(0, 150f, 2f), Predicated("_overrideGlobalWindSpeed")]
         public float _windSpeed = 20f;
 
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]

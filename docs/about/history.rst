@@ -80,12 +80,15 @@ Removed
 
    -  Remove Phillips and JONSWAP spectrum model options.
 
-.. only:: birp or urp
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
 
-   Deprecated
-   ^^^^^^^^^^
-   -  The *Refractive Index of Air* on the ocean material will be removed in a future version. `[BIRP] [URP]`
    -  *Layer Name* on the *Ocean Renderer* has been deprecated. Use *Layer* instead.
+
+   .. only:: birp or urp
+
+      -  The *Refractive Index of Air* on the ocean material will be removed in a future version. `[BIRP] [URP]`
 
 Documentation
 ^^^^^^^^^^^^^

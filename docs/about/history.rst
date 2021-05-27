@@ -18,6 +18,13 @@ Release Notes
 |version|
 ---------
 
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  FFT wave simulation added via new Shape FFT component.
+      Read :ref:`shape-fft-section` for more information.
+
 Changed
 ^^^^^^^
 .. bullet_list::
@@ -66,6 +73,12 @@ Fixed
    .. only:: urp
 
       -  Fix ocean tiles disappearing when far from zero. `[URP]`
+
+Removed
+^^^^^^^
+.. bullet_list::
+
+   -  Remove Phillips and JONSWAP spectrum model options.
 
 .. only:: birp or urp
 

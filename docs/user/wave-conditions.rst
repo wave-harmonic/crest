@@ -17,11 +17,11 @@ The following sections describe how to define the wave conditions.
 Authoring
 ---------
 
-To add waves, add the *ShapeGerstnerBatched* component to a GameObject.
+To add waves, add the *ShapeGerstner* component to a GameObject.
 
 The appearance and shape of the waves is determined by a *Wave Spectrum*.
 A default wave spectrum will be created if none is specified.
-To change the waves, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum*, and assign the new asset to the *Spectrum* property of the *ShapeGerstnerBatched* script.
+To change the waves, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum*, and assign the new asset to the *Spectrum* property of the *ShapeGerstner* script.
 
 The spectrum has sliders for each wavelength to control contribution of different scales of waves.
 To control the contribution of 2m wavelengths, use the slider labelled '2'.
@@ -88,6 +88,18 @@ The new system has the following advantages:
 
 After more testing we will switch over to this new system and deprecate the *ShapeGerstnerBatched* component.
 
+
+.. _shape-fft-section:
+
+ShapeFFT (preview)
+------------------
+
+A wave simulation based on the *FFT* technique.
+
+The usage is very similar to the *ShapeGerstner* component.
+Add the *ShapeFFT* component to a GameObject, and follow the authoring instructions above to modify the wave conditions.
+
+This simulation type adds more wave components together than the *ShapeGerstner* component and can produce more realistic water waves, at a similar performance cost.
 
 .. _wave-splines-section:
 

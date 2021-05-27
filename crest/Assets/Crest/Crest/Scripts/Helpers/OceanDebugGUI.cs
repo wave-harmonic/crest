@@ -35,7 +35,7 @@ namespace Crest
 
         static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
-        static Material s_textureArrayMaterial = null;
+        static Dictionary<RenderTexture, Material> s_textureArrayMaterials = new Dictionary<RenderTexture, Material>();
 
         public static bool OverGUI(Vector2 screenPosition)
         {
@@ -213,16 +213,16 @@ namespace Crest
         {
             float column = 1f;
 
-            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, _drawLodDatasActualSize, ref _drawAnimWaves, ref column);
-            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, _drawLodDatasActualSize, ref _drawDynWaves, ref column);
+            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, _drawLodDatasActualSize, ref _drawAnimWaves, ref column, 0.5f);
+            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, _drawLodDatasActualSize, ref _drawDynWaves, ref column, 0.5f, 2f);
             DrawSim<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, _drawLodDatasActualSize, ref _drawFoam, ref column);
-            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, _drawLodDatasActualSize, ref _drawFlow, ref column);
+            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, _drawLodDatasActualSize, ref _drawFlow, ref column, 0.5f, 2f);
             DrawSim<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, _drawLodDatasActualSize, ref _drawShadow, ref column);
             DrawSim<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, _drawLodDatasActualSize, ref _drawSeaFloorDepth, ref column);
             DrawSim<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, _drawLodDatasActualSize, ref _drawClipSurface, ref column);
         }
 
-        static void DrawSim<SimType>(LodDataMgr lodData, bool actualSize, ref bool doDraw, ref float offset) where SimType : LodDataMgr
+        static void DrawSim<SimType>(LodDataMgr lodData, bool actualSize, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f) where SimType : LodDataMgr
         {
             if (lodData == null) return;
 
@@ -253,25 +253,28 @@ namespace Crest
                         float y = idx * h;
                         if (offset == 1f) w += b;
 
-                        if (s_textureArrayMaterial == null)
+                        s_textureArrayMaterials.TryGetValue(lodData.DataTexture, out var material);
+                        if (material == null)
                         {
-                            s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            s_textureArrayMaterials.Add(lodData.DataTexture, material);
                         }
 
                         // Render specific slice of 2D texture array
-                        s_textureArrayMaterial.SetInt("_Depth", idx);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, s_textureArrayMaterial);
+                        material.SetInt("_Depth", idx);
+                        material.SetFloat("_Scale", scale);
+                        material.SetFloat("_Bias", bias);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, material);
                     }
                 }
             }
-
 
             doDraw = GUI.Toggle(new Rect(x + b, togglesBegin, w - 2f * b, _bottomPanelHeight), doDraw, s_simNames[type]);
 
             offset++;
         }
 
-        public static void DrawTextureArray(RenderTexture data, int columnOffsetFromRightSide)
+        public static void DrawTextureArray(RenderTexture data, int columnOffsetFromRightSide, float bias = 0f, float scale = 1f)
         {
             int offset = columnOffsetFromRightSide;
 
@@ -295,14 +298,18 @@ namespace Crest
                         float y = idx * h;
                         if (offset == 1f) w += b;
 
-                        if (s_textureArrayMaterial == null)
+                        s_textureArrayMaterials.TryGetValue(data, out var material);
+                        if (material == null)
                         {
-                            s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            s_textureArrayMaterials.Add(data, material);
                         }
 
                         // Render specific slice of 2D texture array
-                        s_textureArrayMaterial.SetInt("_Depth", idx);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, s_textureArrayMaterial);
+                        material.SetInt("_Depth", idx);
+                        material.SetFloat("_Scale", scale);
+                        material.SetFloat("_Bias", bias);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, material);
                     }
                 }
             }
@@ -320,7 +327,7 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             s_simNames.Clear();
-            s_textureArrayMaterial = null;
+            s_textureArrayMaterials.Clear();
         }
     }
 }

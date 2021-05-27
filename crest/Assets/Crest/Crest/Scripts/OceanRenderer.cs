@@ -1201,6 +1201,18 @@ namespace Crest
                 gerstner.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+            // ShapeGerstner
+            foreach (var component in FindObjectsOfType<ShapeGerstner>())
+            {
+                component.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            // ShapeFFT
+            foreach (var component in FindObjectsOfType<ShapeFFT>())
+            {
+                component.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
             // UnderwaterEffect
             var underwaters = FindObjectsOfType<UnderwaterEffect>();
             foreach (var underwater in underwaters)
@@ -1269,9 +1281,10 @@ namespace Crest
             }
 
             // ShapeGerstnerBatched
-            var gerstnerBatchs = FindObjectsOfType<ShapeGerstnerBatched>();
+            var gerstnerBatches = FindObjectsOfType<ShapeGerstnerBatched>();
             var gerstners = FindObjectsOfType<ShapeGerstner>();
-            if (gerstnerBatchs.Length == 0 && gerstners.Length == 0)
+            var ffts = FindObjectsOfType<ShapeFFT>();
+            if (gerstnerBatches.Length == 0 && gerstners.Length == 0 && ffts.Length == 0)
             {
                 showMessage
                 (

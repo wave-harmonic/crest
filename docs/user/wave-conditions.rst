@@ -94,7 +94,7 @@ After more testing we will switch over to this new system and deprecate the *Sha
 ShapeFFT (preview)
 ------------------
 
-A wave simulation based on the *FFT* technique.
+A wave simulation based on the `FFT` technique.
 
 The usage is very similar to the *ShapeGerstner* component.
 Add the *ShapeFFT* component to a GameObject, and follow the authoring instructions above to modify the wave conditions.

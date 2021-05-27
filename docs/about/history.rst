@@ -15,7 +15,7 @@ Release Notes
 
 .. important::
 
-   The *Ocean Wave Spectrums* will automatically migrate so they look similar when being used with both Gerstners and FFTs.
+   The *Ocean Wave Spectrums* will automatically migrate so they look similar when being used with both Gerstners and `FFT`\ s.
    Unfortunately, there is an issue with Unity where changing the spectrum asset file can cause Unity to not detect the change;
    For example, reverting the spectrum asset file using git on the command line.
    This will cause the data to be in an incorrect state which results in the waves being much stronger than they were.
@@ -25,7 +25,7 @@ Preview
 ^^^^^^^
 .. bullet_list::
 
-   -  FFT wave simulation added via new Shape FFT component.
+   -  `FFT` wave simulation added via new Shape `FFT` component.
       Read :ref:`shape-fft-section` for more information.
 
 Changed

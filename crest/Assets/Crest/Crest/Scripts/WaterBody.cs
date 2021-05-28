@@ -19,8 +19,17 @@ namespace Crest
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-bodies.html")]
     public partial class WaterBody : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
 #pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("Editor only: run validation checks on Start() to check for issues."), SerializeField]
+#pragma warning disable 414
         bool _runValidationOnStart = true;
 #pragma warning restore 414
 

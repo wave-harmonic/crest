@@ -19,6 +19,15 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Boat Probes")]
     public class BoatProbes : FloatingObjectBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Header("Forces")]
         [Tooltip("Override RB center of mass, in local space."), SerializeField]
         Vector3 _centerOfMass = Vector3.zero;

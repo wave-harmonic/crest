@@ -13,6 +13,15 @@ namespace Crest
     [AddComponentMenu("")]
     public class SplinePointDataFlow : MonoBehaviour, ISplinePointCustomData
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public const float k_defaultSpeed = 2f;
 
         [Tooltip("Flow velocity (speed of flow in direction of spline). Can be negative to flip direction."), SerializeField]

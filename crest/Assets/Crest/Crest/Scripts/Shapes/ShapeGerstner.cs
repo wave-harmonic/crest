@@ -26,6 +26,15 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
         OceanWaveSpectrum _activeSpectrum = null;

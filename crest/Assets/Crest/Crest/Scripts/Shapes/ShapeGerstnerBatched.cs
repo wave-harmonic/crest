@@ -21,6 +21,15 @@ namespace Crest
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstnerbatched")]
     public partial class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public enum GerstnerMode
         {
             Global,

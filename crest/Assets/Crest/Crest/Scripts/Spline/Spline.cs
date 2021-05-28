@@ -20,6 +20,15 @@ namespace Crest.Spline
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines-preview")]
     public partial class Spline : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
 

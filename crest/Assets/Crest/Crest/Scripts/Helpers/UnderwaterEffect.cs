@@ -23,6 +23,15 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Effect")]
     public partial class UnderwaterEffect : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Header("Copy params from Ocean material")]
         [Tooltip("Copy ocean material settings on each frame, to ensure consistent appearance between underwater effect and ocean surface. This should be turned off if you are not changing the ocean material values every frame."), SerializeField]
         bool _copyParamsEachFrame = true;

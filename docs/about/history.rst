@@ -30,7 +30,9 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
-   -  Sponsorship page launched! Asset Store sales only cover fixes and basic support. To support new feature development and give us financial stability please consider sponsoring us, no amount is too small! https://github.com/sponsors/wave-harmonic
+   -  Sponsorship page launched!
+      Asset Store sales only cover fixes and basic support.
+      To support new feature development and give us financial stability please consider sponsoring us, no amount is too small! https://github.com/sponsors/wave-harmonic
    -  Wind speed added to OceanRenderer component so that wave conditions change naturally for different wind conditions.
    -  Empirical spectra retweaked and use the aforementioned wind speed.
    -  Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).

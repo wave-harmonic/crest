@@ -17,6 +17,15 @@ namespace Crest
     public class TimeProviderNetworked : TimeProviderBase
     {
         /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
+        /// <summary>
         /// If Time.time on this client is 1.5s ahead of the shared/server Time.time, set
         /// this field to -1.5.
         /// </summary>

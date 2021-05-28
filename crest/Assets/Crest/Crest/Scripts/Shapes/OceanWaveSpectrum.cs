@@ -21,7 +21,9 @@ namespace Crest
         /// only be changed when the editor upgrades the version.
         /// </summary>
         [SerializeField, HideInInspector]
+#pragma warning disable 414
         int _version = 0;
+#pragma warning restore 414
 
         // These must match corresponding constants in FFTSpectrum.compute
         public const int NUM_OCTAVES = 14;

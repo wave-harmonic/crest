@@ -13,6 +13,15 @@ namespace Crest
     [AddComponentMenu("")]
     public class SplinePointDataGerstner : MonoBehaviour, ISplinePointCustomData
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("Weight multiplier to scale waves."), SerializeField]
         float _weight = 1f;
 

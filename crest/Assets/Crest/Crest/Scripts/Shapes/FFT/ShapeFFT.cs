@@ -24,6 +24,15 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Header("Wave Conditions")]
         [Tooltip("Impacts how aligned waves are with wind.")]
         [Range(0, 1)]

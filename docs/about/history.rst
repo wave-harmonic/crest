@@ -15,11 +15,9 @@ Release Notes
 
 .. important::
 
-   The *Ocean Wave Spectrums* will automatically migrate so they look similar when being used with both Gerstners and `FFT`\ s.
-   Unfortunately, there is an issue with Unity where changing the spectrum asset file can cause Unity to not detect the change;
-   For example, reverting the spectrum asset file using git on the command line.
-   This will cause the data to be in an incorrect state which results in the waves being much stronger than they were.
-   If you experience this issue, then do **not** save the spectrum and to restart Unity.
+   Spectrum data will be upgraded in this version.
+   Due to a unity bug, in some rare cases upgrading the spectrum may fail and waves will be too large.
+   Restart Unity to restore the spectrum.
 
 Preview
 ^^^^^^^

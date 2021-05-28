@@ -9,6 +9,15 @@ using UnityEngine;
 /// </summary>
 public class TimedDestroy : MonoBehaviour
 {
+    /// <summary>
+    /// The version of this asset. Can be used to migrate across versions. This value should
+    /// only be changed when the editor upgrades the version.
+    /// </summary>
+    [SerializeField, HideInInspector]
+#pragma warning disable 414
+    int _version = 0;
+#pragma warning restore 414
+
     public float m_lifeTime = 2.0f;
 
     // this seems to make motion stutter?

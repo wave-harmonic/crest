@@ -356,7 +356,7 @@ namespace Crest
 
             var spSpectrumModel = serializedObject.FindProperty("_model");
             var spectraIndex = serializedObject.FindProperty("_model").enumValueIndex;
-            var spectrumModel = (OceanWaveSpectrum.SpectrumModel)Mathf.Min(spectraIndex, 1);
+            var spectrumModel = (OceanWaveSpectrum.SpectrumModel)Mathf.Clamp(spectraIndex, 0, 1);
 
             EditorGUILayout.Space();
 

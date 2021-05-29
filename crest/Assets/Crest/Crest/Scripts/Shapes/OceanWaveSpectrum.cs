@@ -338,6 +338,8 @@ namespace Crest
                     pow = Mathf.Log10(pow);
                     powValues.GetArrayElementAtIndex(i).floatValue = pow;
                 }
+                // Spectrum model enum has changed so use "None" to be safe.
+                soSpectrum.FindProperty("_model").enumValueIndex = 0;
                 spVer.intValue = spVer.intValue + 1;
             }
 

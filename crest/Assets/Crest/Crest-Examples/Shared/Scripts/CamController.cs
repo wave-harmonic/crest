@@ -35,7 +35,10 @@ public class CamController : MonoBehaviour
 
     Transform _targetTransform;
 
-    new Camera camera;
+#pragma warning disable CS0108
+    // In editor we need to use "new" to suppress warning but then gives warning when building so use pragma instead.
+    Camera camera;
+#pragma warning restore CS0108
 
     [System.Serializable]
     class DebugFields

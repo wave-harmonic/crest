@@ -140,7 +140,7 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	// Spectrum - use power values from users spectrum, but borrow wind term from PM
 	const float wavelength = PI2 / kMag;
 	const float octaveIndex = log2( wavelength ) - SPECTRUM_SMALLEST_WL_POW_2;
-	const float spectrumUV = float2((octaveIndex + 0.5) / SPECTRUM_OCTAVE_COUNT, 0.5);
+	const float2 spectrumUV = float2((octaveIndex + 0.5) / SPECTRUM_OCTAVE_COUNT, 0.5);
 	const float spectrum = _SpectrumControls.SampleLevel( linear_clamp_sampler, spectrumUV, 0.0 ) *
 		PiersonMoskowitzWindTerm( w );
 

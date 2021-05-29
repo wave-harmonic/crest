@@ -72,6 +72,7 @@ Fixed
    .. only:: hdrp
 
       -  Fix shadow data for XR/VR `SPI` from working and breaking builds. `[HDRP]`
+      -  Fix underwater effect from breaking after all cameras being disabled. `[HDRP]`
 
    .. only:: urp
 

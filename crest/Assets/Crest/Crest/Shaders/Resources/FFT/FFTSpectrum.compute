@@ -160,7 +160,7 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	// Amplitude
 	const float ampPos = RandGauss() * sqrt(abs(deltaSPos) * 2.0f);
 	const float ampNeg = RandGauss() * sqrt(abs(deltaSNeg) * 2.0f);
-	
+
 	// Output
 	const float phasePos = RandFloat() * PI2;
 	const float phaseNeg = RandFloat() * PI2;
@@ -192,7 +192,7 @@ void SpectrumUpdate(uint3 id : SV_DispatchThreadID)
 {
 	const int2 center = _Size.xx / 2;
 	const int2 coord = id.xy - center;
-	
+
 	// Find wave vector and number
 	const float worldSize = 0.5 * (1 << id.z);
 	const float2 k = PI2 * coord / worldSize;

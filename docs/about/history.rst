@@ -15,6 +15,8 @@ Release Notes
 
 .. important::
 
+   This will be the last version which supports Unity 2019 LTS.
+
    Spectrum data will be upgraded in this version.
    Due to a unity bug, in some rare cases upgrading the spectrum may fail and waves will be too large.
    Restart Unity to restore the spectrum.

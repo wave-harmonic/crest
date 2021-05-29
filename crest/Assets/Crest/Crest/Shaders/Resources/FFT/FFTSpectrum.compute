@@ -112,7 +112,7 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 		_ResultInit.GetDimensions( width, height, depth );
 	}
 
-	if( id.z < uint(depth - 1) && max( abs( coord.x ), abs( coord.y ) ) < _Size / 4 )
+	if ( id.z < (depth - 1) && max( abs( coord.x ), abs( coord.y ) ) < int(_Size / 4) )
 	{
 		_ResultInit[id] = 0.0;
 		return;

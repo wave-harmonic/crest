@@ -7,7 +7,6 @@
 // cheaper, than this approach. Grabpass is possible on BIRP, and projected decals on water already
 // works on HDRP, so this is mainly concerning URP which doesn't seem to have built-in grabpass.
 
-// TODO - needs to sample opaque depth buffer so it doesnt draw in front of scene
 // TODO - needs to stay within box
 // TODO - could probaby use bisection search or similar
 

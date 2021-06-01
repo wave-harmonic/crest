@@ -13,6 +13,13 @@ Release Notes
 |version|
 ---------
 
+.. admonition:: Todo
+
+   Nothing here yet.
+
+4.11
+----
+
 .. important::
 
    This will be the last version which supports Unity 2019 LTS.

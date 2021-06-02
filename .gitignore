@@ -5,6 +5,7 @@ crest/[Bb]uild/
 crest/[Bb]uilds/
 crest/[Ll]ogs/
 crest/Assets/AssetStoreTools*
+crest/UserSettings/
 
 # Visual Studio 2015 cache directory
 crest/.vs/

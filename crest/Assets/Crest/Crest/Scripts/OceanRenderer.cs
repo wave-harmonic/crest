@@ -1395,7 +1395,7 @@ namespace Crest
                 var sceneView = SceneView.lastActiveSceneView;
 
                 // Validate "Animated Materials".
-                if (ocean != null && !ocean._showOceanProxyPlane && !sceneView.sceneViewState.showMaterialUpdate)
+                if (ocean != null && !ocean._showOceanProxyPlane && !sceneView.sceneViewState.alwaysRefresh)
                 {
                     showMessage
                     (
@@ -1404,7 +1404,7 @@ namespace Crest
                         ValidatedHelper.MessageType.Info, ocean,
                         _ =>
                         {
-                            SceneView.lastActiveSceneView.sceneViewState.showMaterialUpdate = true;
+                            SceneView.lastActiveSceneView.sceneViewState.alwaysRefresh = true;
                             // Required after changing sceneViewState according to:
                             // https://docs.unity3d.com/ScriptReference/SceneView.SceneViewState.html
                             SceneView.RepaintAll();

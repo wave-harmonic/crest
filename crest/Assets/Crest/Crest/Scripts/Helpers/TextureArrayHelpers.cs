@@ -83,9 +83,7 @@ namespace Crest
             return array;
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             if (OceanRenderer.RunningWithoutGPU)

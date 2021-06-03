@@ -12,8 +12,8 @@ using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
-#if !UNITY_2019_4_OR_NEWER
-#error This version of Crest requires Unity 2019.4 or later.
+#if !UNITY_2020_3_OR_NEWER
+#error This version of Crest requires Unity 2020.3 or later.
 #endif
 
 namespace Crest
@@ -762,9 +762,7 @@ namespace Crest
             }
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards

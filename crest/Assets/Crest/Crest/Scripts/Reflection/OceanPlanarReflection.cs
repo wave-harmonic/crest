@@ -64,9 +64,7 @@ namespace Crest
                 .Append(new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture)).ToArray();
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards

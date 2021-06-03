@@ -1,6 +1,7 @@
 # Ignore editor files
 .idea/
 .vsconfig/
+.vscode/
 
 # Start generated .gitignore file.
 

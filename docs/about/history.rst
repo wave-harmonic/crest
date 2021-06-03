@@ -13,11 +13,22 @@ Release Notes
 |version|
 ---------
 
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Set minimum Unity version to 2020.3.10.
+
+   .. only:: hdrp or urp
+
+      -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
+
 Fixed
 ^^^^^
 .. bullet_list::
 
    -  Fixed case where normal could be NaN, which could make screen flash black in HDRP
+
 
 4.11
 ----

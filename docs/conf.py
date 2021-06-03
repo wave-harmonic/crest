@@ -187,10 +187,10 @@ rst_prolog = f"""
 .. set:: SponsorLink {sponsor_link}
 """
 rst_prolog = rst_prolog + """
-.. set:: RPMinVersion 7.6
+.. set:: RPMinVersion 10.5
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
-.. set:: UnityMinVersionShort 2019.4
-.. set:: UnityMinVersion {UnityMinVersionShort}.24
+.. set:: UnityMinVersionShort 2020.3
+.. set:: UnityMinVersion {UnityMinVersionShort}.10
 .. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
 .. set:: UnityIssueLink https://issuetracker.unity3d.com/product/unity/issues/guid
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects

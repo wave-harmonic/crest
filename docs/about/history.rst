@@ -13,9 +13,11 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: Todo
+Fixed
+^^^^^
+.. bullet_list::
 
-   Nothing here yet.
+   -  Fixed case where normal could be NaN, which could make screen flash black in HDRP
 
 4.11
 ----

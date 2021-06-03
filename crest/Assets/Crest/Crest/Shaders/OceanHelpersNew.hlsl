@@ -69,7 +69,7 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 
 		// Situation could arise where cross returns 0, prob when arguments are two aligned vectors. This
 		// resulted in NaNs and flashing screen in HDRP. Force normal to point upwards as the only time
-		// it should point downwards if for underwater (handled elsewhere) or in surface inversions which
+		// it should point downwards is for underwater (handled elsewhere) or in surface inversions which
 		// should not happen for well tweaked waves, and look broken anyway.
 		crossProd.y = max(crossProd.y, 0.0001);
 

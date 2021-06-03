@@ -13,8 +13,6 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: Todo
-
 Fixed
 ^^^^^
 .. bullet_list::

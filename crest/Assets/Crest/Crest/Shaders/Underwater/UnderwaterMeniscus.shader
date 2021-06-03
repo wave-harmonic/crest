@@ -27,7 +27,6 @@ Shader "Crest/Underwater Meniscus"
 			#pragma multi_compile_instancing
 
 			#include "UnityCG.cginc"
-			#include "Lighting.cginc"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"

@@ -15,10 +15,21 @@ namespace Crest
     /// culled if they don't overlap any WaterBody.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Water Body")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-bodies.html")]
     public partial class WaterBody : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
 #pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("Editor only: run validation checks on Start() to check for issues."), SerializeField]
+#pragma warning disable 414
         bool _runValidationOnStart = true;
 #pragma warning restore 414
 
@@ -88,7 +99,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    $"Water body <i>{gameObject.name}</i> requires an ocean renderer component to be present. Please create a separate Game Object and add an Ocean Renderer component to it.",
+                    $"Water body <i>{gameObject.name}</i> requires an ocean renderer component to be present.",
+                    "Create a separate GameObject and add an <i>OceanRenderer</i> component to it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -99,7 +111,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    $"Water body {gameObject.name} has a very small size (the size is set by the X & Z scale of its transform). This will be a very small body of water. Is this intentional?",
+                    $"Water body {gameObject.name} has a very small size (the size is set by the X & Z scale of its transform), and will be a very small body of water.",
+                    "Increase X & Z scale on water body transform (or parents).",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -110,7 +123,8 @@ namespace Crest
             {
                 showMessage
                 (
-                    $"There must be no rotation on the WaterBody GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    $"There must be no rotation on the water body GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    "Reset the rotations on this GameObject and all parents to 0.",
                     ValidatedHelper.MessageType.Error, this
                 );
             }

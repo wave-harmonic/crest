@@ -8,11 +8,21 @@ using UnityEngine;
 /// <summary>
 /// Attach this script to any GameObject and it will create three collision probes in front of the camera
 /// </summary>
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ocean Sample Displacement Demo")]
 public class OceanSampleDisplacementDemo : MonoBehaviour
 {
+    /// <summary>
+    /// The version of this asset. Can be used to migrate across versions. This value should
+    /// only be changed when the editor upgrades the version.
+    /// </summary>
+    [SerializeField, HideInInspector]
+#pragma warning disable 414
+    int _version = 0;
+#pragma warning restore 414
+
     public bool _trackCamera = true;
 
-    [Range(0f, 32f)]
+    [UnityEngine.Range(0f, 32f)]
     public float _minGridSize = 0f;
 
     GameObject[] _markerObjects = new GameObject[3];

@@ -39,7 +39,7 @@ void Flow(in const CascadeParams cascadeData, out float2 offsets, out float2 wei
 void SampleDisplacementsCompute(
 	in RWTexture2DArray<half4> i_dispSampler,
 	in float i_width, in float i_height, in float3 i_uv_slice,
-	in float i_wt, inout float3 io_worldPos, inout half io_sss
+	in float i_wt, inout float3 io_worldPos
 ) {
 	// NOTE: We have to roll our own bilinear filter in Compute shaders when
 	// reading from a RWTexture. The documentation below explains how SRV
@@ -72,14 +72,14 @@ void SampleDisplacementsCompute(
 	);
 
 	io_worldPos += i_wt * dataLerped.xyz;
-	io_sss += dataLerped.a;
 }
 
 void ShapeCombineBase(uint3 id)
 {
-	float width; float height; float depth;
+	float width, height;
 	{
-		_LD_TexArray_AnimatedWaves_Compute.GetDimensions(width, height, depth);
+		float dummy;
+		_LD_TexArray_AnimatedWaves_Compute.GetDimensions(width, height, dummy);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
@@ -93,8 +93,9 @@ void ShapeCombineBase(uint3 id)
 	float3 uv_thisLod = float3(input_uv, _LD_SliceIndex);
 
 	float3 result = 0.0;
-	half sss = 0.;
-	// this lods waves
+	half variance = 0.0;
+
+	// Sample in waves for this cascade.
 #if _FLOW_ON
 	half2 flow = 0.0;
 	SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
@@ -104,18 +105,16 @@ void ShapeCombineBase(uint3 id)
 
 	const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
 	const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, variance );
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, variance );
 #else
-	float4 data =_LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
-	result += data.xyz;
-	sss = data.a;
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod, 1.0, result, variance);
 #endif // _FLOW_ON
 
-	// C# Script determines whether this enabled or not by selecting appropriate
-	// kernel for each LOD.
 #if !_DISABLE_COMBINE
-	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result, sss);
+	// Waves to combine down from the next lod up the chain.
+	// Do not combine variance. Variance is already cumulative - from low cascades up.
+	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result);
 #endif
 
 #if _DYNAMIC_WAVE_SIM_ON
@@ -145,7 +144,7 @@ void ShapeCombineBase(uint3 id)
 	}
 #endif // _DYNAMIC_WAVE_SIM_ON
 
-	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, sss);
+	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, variance);
 }
 
 

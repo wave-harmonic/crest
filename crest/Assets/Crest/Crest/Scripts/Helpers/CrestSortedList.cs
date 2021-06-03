@@ -78,6 +78,12 @@ namespace Crest
             return removed;
         }
 
+        public void Clear()
+        {
+            _backingList.Clear();
+            _needsSorting = false;
+        }
+
         #region GetEnumerator
         public List<KeyValuePair<TKey, TValue>>.Enumerator GetEnumerator()
         {
@@ -104,5 +110,10 @@ namespace Crest
             }
             _needsSorting = false;
         }
+    }
+
+    internal class SiblingIndexComparer : IComparer<int>
+    {
+        public int Compare(int x, int y) => x.CompareTo(y);
     }
 }

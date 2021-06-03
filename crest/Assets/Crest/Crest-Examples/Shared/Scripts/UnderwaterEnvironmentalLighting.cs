@@ -12,11 +12,24 @@ namespace Crest
 {
     /// <summary>
     /// Provides out-scattering based on the camera's underwater depth. It scales down environmental lighting
-    /// (directional light, reflections, ambient etc) with the underwater depth. This works with vanilla lighting, but 
+    /// (directional light, reflections, ambient etc) with the underwater depth. This works with vanilla lighting, but
     /// uncommon or custom lighting will require a custom solution (use this for reference).
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_EXAMPLE + "Underwater Environmental Lighting")]
     public class UnderwaterEnvironmentalLighting : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
+        [Tooltip("How much this effect applies. Values less than 1 attenuate light less underwater. Value of 1 is physically based."), SerializeField, Range(0f, 3f)]
+        float _weight = 1f;
+
         Light _primaryLight;
         float _lightIntensity;
         float _ambientIntensity;
@@ -88,7 +101,8 @@ namespace Crest
             }
 
             float depthMultiplier = Mathf.Exp(_averageDensity *
-                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
+                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f) *
+                _weight);
 
             // Darken environmental lighting when viewer underwater
             if (_primaryLight)

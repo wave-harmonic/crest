@@ -11,8 +11,19 @@ namespace Crest
     /// For static objects, use an Ocean Depth Cache.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(MENU_PREFIX + "Sea Floor Depth Input")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#sea-floor-depth")]
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public override bool Enabled => true;
 
         public bool _assignOceanDepthMaterial = true;
@@ -30,8 +41,17 @@ namespace Crest
             if (_assignOceanDepthMaterial)
             {
                 var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"));
+                if (rend != null)
+                {
+                    rend.material = new Material(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"));
+                }
             }
         }
+
+#if UNITY_EDITOR
+        protected override string FeatureToggleName => LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_NAME;
+        protected override string FeatureToggleLabel => LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_LABEL;
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateSeaFloorDepthData;
+#endif // UNITY_EDITOR
     }
 }

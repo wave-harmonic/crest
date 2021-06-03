@@ -35,6 +35,8 @@ Shader "Hidden/Crest/Debug/TextureArray"
 
 			UNITY_DECLARE_TEX2DARRAY(_MainTex);
 			uint _Depth;
+			float _Scale;
+			float _Bias;
 
 			Varyings Vert(Attributes input)
 			{
@@ -46,7 +48,7 @@ Shader "Hidden/Crest/Debug/TextureArray"
 
 			half4 Frag(Varyings input) : SV_TARGET
 			{
-				return UNITY_SAMPLE_TEX2DARRAY(_MainTex, input.uv);
+				return _Scale * UNITY_SAMPLE_TEX2DARRAY(_MainTex, input.uv) + _Bias;
 			}
 			ENDCG
 		}

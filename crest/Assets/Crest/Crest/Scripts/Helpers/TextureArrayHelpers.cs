@@ -83,11 +83,15 @@ namespace Crest
             return array;
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
+            if (OceanRenderer.RunningWithoutGPU)
+            {
+                // No texture arrays when no graphics card..
+                return;
+            }
+
             // Init here from 2019.3 onwards
             sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 

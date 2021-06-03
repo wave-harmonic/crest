@@ -43,7 +43,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float minGridSize = data.z;
 
 	const float gridSizeSlice0 = _CrestCascadeData[0]._texelWidth;
-	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
+	// Displacements should not utilize the last slice which is used for transitioning waves between
+	// sampling resolutions
+	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 2.0);
 	const float baseScale = _CrestCascadeData[0]._scale;
 
 	// Perform iteration to invert the displacement vector field - find position that displaces to query position,

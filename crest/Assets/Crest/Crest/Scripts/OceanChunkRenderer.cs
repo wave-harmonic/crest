@@ -15,8 +15,18 @@ namespace Crest
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_INTERNAL + "Ocean Chunk Renderer")]
     public class OceanChunkRenderer : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public bool _drawRenderBounds = false;
 
         public Bounds _boundsLocal;
@@ -24,11 +34,7 @@ namespace Crest
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
-        // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
-        int _totalLodCount = -1;
-        int _lodDataResolution = 256;
-        int _geoDownSampleFactor = 1;
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
 
@@ -84,6 +90,9 @@ namespace Crest
 
         private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
+            // Camera.current is only supported in the built-in pipeline. This provides the current camera for
+            // OnWillRenderObject for SRPs. BeginCameraRendering is called for each active camera in every frame.
+            // OnWillRenderObject is called after BeginCameraRendering for the current camera so this works.
             _currentCamera = camera;
         }
 
@@ -95,7 +104,7 @@ namespace Crest
                 return;
             }
 
-            // check if built-in pipeline being used
+            // Camera.current is only supported in built-in pipeline.
             if (Camera.current != null)
             {
                 _currentCamera = Camera.current;
@@ -144,14 +153,12 @@ namespace Crest
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
         }
 
-        public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
+        public void SetInstanceData(int lodIndex)
         {
-            _lodIndex = lodIndex; _totalLodCount = totalLodCount; _lodDataResolution = lodDataResolution; _geoDownSampleFactor = geoDownSampleFactor;
+            _lodIndex = lodIndex;
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards

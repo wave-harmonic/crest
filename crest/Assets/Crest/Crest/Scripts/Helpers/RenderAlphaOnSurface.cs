@@ -10,8 +10,18 @@ namespace Crest
     /// Helper script for alpha geometry rendering on top of ocean surface. This is required to select the best
     /// LOD and assign the shape texture to the material.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Render Alpha On Surface")]
     public class RenderAlphaOnSurface : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public bool _drawBounds = false;
 
         PropertyWrapperMPB _mpb;

@@ -5,26 +5,12 @@
 #ifndef CREST_OCEAN_FOAM_INCLUDED
 #define CREST_OCEAN_FOAM_INCLUDED
 
-#if _FOAM_ON
-
-uniform sampler2D _FoamTexture;
-uniform half _FoamScale;
-uniform float4 _FoamTexture_TexelSize;
-uniform half4 _FoamWhiteColor;
-uniform half4 _FoamBubbleColor;
-uniform half _FoamBubbleParallax;
-uniform half _ShorelineFoamMinDepth;
-uniform half _WaveFoamFeather;
-uniform half _WaveFoamBubblesCoverage;
-uniform half _WaveFoamNormalStrength;
-uniform half _WaveFoamSpecularFallOff;
-uniform half _WaveFoamSpecularBoost;
-uniform half _WaveFoamLightScale;
-
 half3 AmbientLight()
 {
 	return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 }
+
+#if _FOAM_ON
 
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
@@ -57,8 +43,10 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 {
 	half foamAmount = i_foam;
 
+#if _TRANSPARENCY_ON
 	// feather foam very close to shore
 	foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
+#endif
 
 	// Additive underwater foam - use same foam texture but add mip bias to blur for free
 	half bubbleFoamTexValue = BubbleFoamTexture(i_worldXZ, i_worldXZUndisplaced, i_n, i_view, lodVal, cascadeData0, cascadeData1);

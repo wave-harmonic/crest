@@ -3,27 +3,30 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsFoam;
+
     /// <summary>
     /// A persistent foam simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
         protected override string ShaderSim { get { return "UpdateFoam"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
         public override string SimName { get { return "Foam"; } }
-        public override RenderTextureFormat TextureFormat { get { return Settings._renderTextureFormat; } }
+        protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
+        static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
+        protected override Texture2DArray NullTexture => s_nullTexture;
 
-        SimSettingsFoam Settings { get { return OceanRenderer.Instance._simSettingsFoam; } }
-        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFoam = settings as SimSettingsFoam; }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            var settings = ScriptableObject.CreateInstance<SimSettingsFoam>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
-        }
+        internal const string MATERIAL_KEYWORD_PROPERTY = "_Foam";
+        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FOAM_ON";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Foam is not enabled on the ocean material and will not be visible.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Foam</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Foam feature is disabled on this component but is enabled on the ocean material.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Foam Sim</i> option on this component to turn it on, or disable the <i>Foam</i> feature on the ocean material to save performance.";
 
         readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
         readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
@@ -31,15 +34,37 @@ namespace Crest
         readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
 
+        SettingsType _defaultSettings;
+        public SettingsType Settings
+        {
+            get
+            {
+                if (_ocean._simSettingsFoam != null) return _ocean._simSettingsFoam;
 
-        protected override void Start()
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+                return _defaultSettings;
+            }
+        }
+
+        public LodDataMgrFoam(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
+        }
+
+        public override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
+            if (OceanRenderer.Instance.OceanMaterial != null
+                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning("Foam is not enabled on the current ocean material and will not be visible.", this);
+                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }
@@ -55,47 +80,40 @@ namespace Crest
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);
+            LodDataMgrAnimWaves.Bind(simMaterial);
 
             // assign sea floor depth - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataSeaDepths)
-            {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(simMaterial);
-            }
+            LodDataMgrSeaFloorDepth.Bind(simMaterial);
 
             // assign flow - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataFlow)
-            {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrFlow.BindNull(simMaterial);
-            }
+            LodDataMgrFlow.Bind(simMaterial);
         }
 
-        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
+        protected override void GetSimSubstepData(float timeToSimulate, out int numSubsteps, out float substepDt)
         {
-            // foam always does just one sim step
-            substepDt = frameDt;
-            numSubsteps = 1;
+            numSubsteps = Mathf.FloorToInt(timeToSimulate * Settings._simulationFrequency);
+
+            substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Foam";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            return ParamIdSampler(sourceLod);
+            if (OceanRenderer.Instance._lodDataFoam != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataFoam.GetParamIdSampler(), OceanRenderer.Instance._lodDataFoam.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
+            }
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
-        {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
-        }
+
+        public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

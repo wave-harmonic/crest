@@ -26,6 +26,12 @@ namespace Crest
         [SerializeField, Tooltip("Assign this to a material that uses shader `Crest/Underwater/Post Process`, with the same features enabled as the ocean surface material(s).")]
         Material _underwaterPostProcessMaterial;
 
+        [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData), Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue)]
+        public int _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
+
+        [SerializeField, Tooltip(tooltipMeniscus)]
+        bool _meniscus = true;
+
         [Header("Debug Options")]
         [SerializeField] bool _viewPostProcessMask = false;
         [SerializeField] bool _disableOceanMask = false;
@@ -58,6 +64,9 @@ namespace Crest
 
         bool _eventsRegistered = false;
         bool _firstRender = true;
+
+        // Only one camera is supported.
+        public static UnderwaterPostProcess Instance { get; private set; }
 
         public void RegisterOceanOccluder(OceanOccluder _oceanOccluder)
         {
@@ -154,6 +163,16 @@ namespace Crest
             _eventsRegistered = false;
         }
 
+        void OnEnable()
+        {
+            Instance = this;
+        }
+
+        void OnDisable()
+        {
+            Instance = null;
+        }
+
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
         {
             // TODO(TRC):Now This "optimisation" doesn't work if you have underwater windows, because the ocean mask
@@ -174,6 +193,8 @@ namespace Crest
 
         void OnPreRender()
         {
+            XRHelpers.Update(_mainCamera);
+
             // Allocate planes only once
             if (_cameraFrustumPlanes == null)
             {
@@ -192,7 +213,9 @@ namespace Crest
             }
 
             {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                RenderTextureDescriptor descriptor = XRHelpers.IsRunning
+                    ? XRHelpers.EyeRenderTextureDescriptor
+                    : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
                 InitialiseMaskTextures(descriptor, true, ref _oceanMask, ref _oceanDepthBuffer);
                 // TODO(TRC):Now only initialise these if there are any transparent ocean occluders
                 InitialiseMaskTextures(descriptor, false, ref _oceanOccluderMask, ref _oceanOccluderDepthBuffer);
@@ -200,7 +223,7 @@ namespace Crest
 
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera,
-                OceanBuilder.OceanChunkRenderers,
+                OceanRenderer.Instance.Tiles,
                 _oceanOccluderMasksToRender,
                 _cameraFrustumPlanes,
                 _oceanMask, _oceanDepthBuffer, _oceanMaskMaterial,
@@ -247,8 +270,12 @@ namespace Crest
                 source,
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
+                _sphericalHarmonicsData,
+                _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
-                _viewPostProcessMask
+                _viewPostProcessMask,
+                _horizonSafetyMarginMultiplier,
+                _filterOceanData
             );
 
             _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);

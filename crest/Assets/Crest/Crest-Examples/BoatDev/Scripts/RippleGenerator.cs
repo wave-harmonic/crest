@@ -1,8 +1,11 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
 
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ripple Generator")]
 public class RippleGenerator : MonoBehaviour
 {
     public bool _animate = true;
@@ -11,7 +14,6 @@ public class RippleGenerator : MonoBehaviour
     public float _period = 4f;
 
     Renderer _rend;
-    Material _mat;
     MaterialPropertyBlock _mpb;
 
     RegisterDynWavesInput _rdwi;
@@ -27,12 +29,16 @@ public class RippleGenerator : MonoBehaviour
         }
 
         _rend = GetComponent<Renderer>();
-        _mat = _rend.material;
         _mpb = new MaterialPropertyBlock();
     }
 
     void Update()
     {
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         if (_animate)
         {
             float t = OceanRenderer.Instance.CurrentTime;
@@ -62,8 +68,7 @@ public class RippleGenerator : MonoBehaviour
             return;
         }
 
-        float dt; int steps;
-        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
+        var dt = 1 / OceanRenderer.Instance._lodDataDynWaves.Settings._simulationFrequency;
 
         _rend.GetPropertyBlock(_mpb);
 

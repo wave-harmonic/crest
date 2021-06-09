@@ -4,7 +4,7 @@
 
 // This writes straight into the displacement texture and sets the water height to the y value of the geometry.
 
-Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
+Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
 {
 	Properties
 	{
@@ -28,6 +28,7 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -44,8 +45,13 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				
+				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				o.worldPos.xz -= _DisplacementAtInputPosition.xz;
+				
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+
 				return o;
 			}
 

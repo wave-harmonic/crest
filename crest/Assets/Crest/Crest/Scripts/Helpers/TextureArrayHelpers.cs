@@ -22,21 +22,32 @@ namespace Crest
 
         // This is used as alternative to Texture2D.blackTexture, as using that
         // is not possible in some shaders.
-        public static Texture2DArray BlackTextureArray { get; private set; }
+        static Texture2DArray _blackTextureArray = null;
+        public static Texture2DArray BlackTextureArray
+        {
+            get
+            {
+                if (_blackTextureArray == null)
+                {
+                    CreateBlackTexArray();
+                }
+                return _blackTextureArray;
+            }
+        }
 
         // Unity 2018.* does not support blitting to texture arrays, so have
         // implemented a custom version to clear to black
         public static void ClearToBlack(RenderTexture dst)
         {
-            if(s_clearToBlackShader == null)
+            if (s_clearToBlackShader == null)
             {
                 return;
             }
             s_clearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_TexArray_Target, dst);
             s_clearToBlackShader.Dispatch(
                 krnl_ClearToBlack,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_Y,
+                OceanRenderer.Instance.LodDataResolution / LodDataMgr.THREAD_GROUP_SIZE_X,
+                OceanRenderer.Instance.LodDataResolution / LodDataMgr.THREAD_GROUP_SIZE_Y,
                 dst.volumeDepth
             );
         }
@@ -77,20 +88,34 @@ namespace Crest
 #endif
         static void InitStatics()
         {
+            if (OceanRenderer.RunningWithoutGPU)
+            {
+                // No texture arrays when no graphics card..
+                return;
+            }
+
             // Init here from 2019.3 onwards
             sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
-            if (BlackTextureArray == null)
+            if (_blackTextureArray == null)
             {
-                BlackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
-                BlackTextureArray.name = "Black Texture2DArray";
+                CreateBlackTexArray();
             }
 
-            s_clearToBlackShader = ComputeShaderHelpers.LoadShader(CLEAR_TO_BLACK_SHADER_NAME);
-            if(s_clearToBlackShader != null)
+            if (s_clearToBlackShader == null)
+            {
+                s_clearToBlackShader = ComputeShaderHelpers.LoadShader(CLEAR_TO_BLACK_SHADER_NAME);
+            }
+            if (s_clearToBlackShader != null)
             {
                 krnl_ClearToBlack = s_clearToBlackShader.FindKernel(CLEAR_TO_BLACK_SHADER_NAME);
             }
+        }
+
+        static void CreateBlackTexArray()
+        {
+            _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
+            _blackTextureArray.name = "Black Texture2DArray";
         }
     }
 }

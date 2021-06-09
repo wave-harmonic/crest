@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -13,19 +14,24 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
-
-        public override SimSettingsBase CreateDefaultSettings() { return null; }
-        public override void UseSettings(SimSettingsBase settings) { }
+        // We want the null colour to be the depth where wave attenuation begins (1000 metres)
+        readonly static Color s_nullColor = Color.red * 1000f;
+        static Texture2DArray s_nullTexture;
+        protected override Texture2DArray NullTexture => s_nullTexture;
 
         bool _targetsClear = false;
 
+        public const string FEATURE_TOGGLE_NAME = "_createSeaFloorDepthData";
+        public const string FEATURE_TOGGLE_LABEL = "Create Sea Floor Depth Data";
+
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
-        // We want the null colour to be the depth where wave attenuation begins (1000 metres)
-        readonly static Color s_nullColor = Color.red * 1000f;
-        static Texture2DArray s_nullTexture2DArray;
+        public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
+        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -52,28 +58,44 @@ namespace Crest
 
         readonly static string s_textureArrayName = "_LD_TexArray_SeaFloorDepth";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            return ParamIdSampler(sourceLod);
+            if (OceanRenderer.Instance._lodDataSeaDepths != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataSeaDepths.GetParamIdSampler(), OceanRenderer.Instance._lodDataSeaDepths.DataTexture);
+            }
+            else
+            {
+                // TextureArrayHelpers prevents use from using this in a static constructor due to blackTexture usage
+                if (s_nullTexture == null)
+                {
+                    InitNullTexture();
+                }
+
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
+            }
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void BindNullToGraphicsShaders()
         {
-            // TextureArrayHelpers prevents use from using this in a static constructor due to blackTexture usage
-            if (s_nullTexture2DArray == null)
+            // TextureArrayHelpers prevents us from using this in a static constructor due to blackTexture usage.
+            if (s_nullTexture == null)
             {
                 InitNullTexture();
             }
 
-            properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+            Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
         }
 
         static void InitNullTexture()
         {
             // Depth textures use HDR values
             var texture = TextureArrayHelpers.CreateTexture2D(s_nullColor, UnityEngine.TextureFormat.RGB9e5Float);
-            s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
-            s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
+            s_nullTexture = TextureArrayHelpers.CreateTexture2DArray(texture);
+            s_nullTexture.name = "Sea Floor Depth Null Texture";
         }
 
 #if UNITY_2019_3_OR_NEWER

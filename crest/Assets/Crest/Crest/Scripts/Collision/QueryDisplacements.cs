@@ -17,28 +17,13 @@ namespace Crest
         protected override string QueryShaderName => "QueryDisplacements";
         protected override string QueryKernelName => "CSMain";
 
-        public static QueryDisplacements Instance { get; private set; }
-
-        protected override void OnEnable()
-        {
-            Debug.Assert(Instance == null);
-            Instance = this;
-
-            base.OnEnable();
-        }
-
-        protected override void OnDisable()
-        {
-            Instance = null;
-
-            base.OnDisable();
-        }
-
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(wrapper);
+            LodDataMgrAnimWaves.Bind(wrapper);
             ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_AnimatedWaves, OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultDisplacements, resultsBuffer);
+
+            ShaderProcessQueries.SetBuffer(_kernelHandle, OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
         }
 
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
@@ -57,19 +42,10 @@ namespace Crest
 
             if (o_resultVels != null)
             {
-                result |= CalculateVelocities(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultVels);
+                result |= CalculateVelocities(i_ownerHash, o_resultVels);
             }
 
             return result;
-        }
-
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            Instance = null;
         }
     }
 }

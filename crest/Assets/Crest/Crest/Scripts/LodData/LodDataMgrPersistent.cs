@@ -18,6 +18,7 @@ namespace Crest
         PropertyWrapperCompute _renderSimProperties;
 
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         protected ComputeShader _shader;
 
@@ -29,17 +30,26 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
-        protected override void Start()
+        // This is how far the simulation time is behind unity's time
+        float _timeToSimulate = 0f;
+
+        public int LastUpdateSubstepCount { get; private set; }
+
+        public LodDataMgrPersistent(OceanRenderer ocean) : base(ocean)
+        {
+        }
+
+        public override void Start()
         {
             base.Start();
 
-            CreateProperties(OceanRenderer.Instance.CurrentLodCount);
+            CreateProperties();
         }
 
-        void CreateProperties(int lodCount)
+        void CreateProperties()
         {
             _shader = ComputeShaderHelpers.LoadShader(ShaderSim);
-            if(_shader == null)
+            if (_shader == null)
             {
                 enabled = false;
                 return;
@@ -52,7 +62,7 @@ namespace Crest
             base.InitData();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
 
             TextureArrayHelpers.ClearToBlack(_targets);
@@ -64,23 +74,14 @@ namespace Crest
             var renderDataToValidate = usePrevTransform ?
                 OceanRenderer.Instance._lodTransform._renderDataSource
                 : OceanRenderer.Instance._lodTransform._renderData;
-            int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
+            int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount : 0;
             foreach (var renderData in renderDataToValidate)
             {
-                renderData.Validate(validationFrame, this);
+                renderData.Validate(validationFrame, SimName);
             }
         }
 
-        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
-        {
-            var renderData = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
-
-            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
-        }
-
-        public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
+        protected abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -88,9 +89,26 @@ namespace Crest
 
             var lodCount = ocean.CurrentLodCount;
 
+            // How far are we behind
+            _timeToSimulate += ocean.DeltaTime;
+
+            // Do a set of substeps to catch up
             float substepDt;
             int numSubsteps;
-            GetSimSubstepData(ocean.DeltaTime, out numSubsteps, out substepDt);
+            GetSimSubstepData(_timeToSimulate, out numSubsteps, out substepDt);
+
+            // Record how much we caught up
+            _timeToSimulate -= substepDt * numSubsteps;
+
+            LastUpdateSubstepCount = numSubsteps;
+
+            // Even if no steps were needed this frame, the sim still needs to advect to compensate for camera motion / ocean scale changes,
+            // so do a trivial substep. This could be a specialised kernel that only advects, or the sim shader could have a branch for 0 dt.
+            if (numSubsteps == 0)
+            {
+                numSubsteps = 1;
+                substepDt = 0f;
+            }
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
@@ -110,7 +128,7 @@ namespace Crest
 
                 // bind data to slot 0 - previous frame data
                 ValidateSourceData(usePreviousFrameTransform);
-                BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
+                _renderSimProperties.SetTexture(GetParamIdSampler(true), _sources);
 
                 SetAdditionalSimParams(_renderSimProperties);
 
@@ -121,12 +139,26 @@ namespace Crest
                     DataTexture
                 );
 
-                _renderSimProperties.DispatchShaderMultiLOD();
+                // Bind current data
+                // Global shader vars don't carry over to compute
+                _renderSimProperties.SetBuffer(sp_cascadeDataSrc, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
+                _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
 
-                for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+                buf.DispatchCompute(_shader, krnl_ShaderSim,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    OceanRenderer.Instance.CurrentLodCount);
+
+                // Only add forces if we did a step
+                if (substepDt > 0f)
                 {
-                    buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
-                    SubmitDraws(lodIdx, buf);
+                    for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+                    {
+                        buf.SetGlobalFloat("_MinWavelength", ocean._lodTransform.MaxWavelength(lodIdx) / 2f);
+                        buf.SetGlobalFloat("_LodIdx", lodIdx);
+                        buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                        SubmitDraws(lodIdx, buf);
+                    }
                 }
 
                 _substepDtPrevious = substepDt;
@@ -138,6 +170,9 @@ namespace Crest
             {
                 BuildCommandBufferInternal(lodIdx);
             }
+
+            // Set the target texture as to make sure we catch the 'pong' each frame
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         protected virtual bool BuildCommandBufferInternal(int lodIdx)
@@ -151,20 +186,5 @@ namespace Crest
         protected virtual void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
         }
-
-#if UNITY_EDITOR
-        [UnityEditor.Callbacks.DidReloadScripts]
-        protected static void OnReLoadScripts()
-        {
-            var ocean = FindObjectOfType<OceanRenderer>();
-            if (ocean == null) return;
-            foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
-            {
-                // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
-                ldp.CreateProperties(ocean.CurrentLodCount);
-            }
-        }
-#endif
-
     }
 }

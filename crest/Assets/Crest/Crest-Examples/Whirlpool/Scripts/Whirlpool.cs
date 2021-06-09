@@ -1,9 +1,12 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
 namespace Crest
 {
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_EXAMPLE + "Whirlpool")]
     public class Whirlpool : MonoBehaviour
     {
         [Range(0, 1000), SerializeField]
@@ -79,6 +82,11 @@ namespace Crest
 
         void Update()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
 
             UpdateMaterials();

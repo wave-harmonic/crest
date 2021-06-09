@@ -26,11 +26,13 @@ Varyings Vert (Attributes input)
 	return output;
 }
 
+half _DataSliceOffset;
 half3 _CrestAmbientLighting;
 #include "OceanConstants.hlsl"
 #include "OceanInputsDriven.hlsl"
 #include "OceanGlobals.hlsl"
-#include "OceanLODData.hlsl"
+#include "OceanShaderData.hlsl"
+#include "OceanShaderHelpers.hlsl"
 #include "OceanHelpersNew.hlsl"
 #include "OceanEmission.hlsl"
 
@@ -41,8 +43,6 @@ sampler2D _CrestOceanMaskDepthTexture;
 #include "UnderwaterHelpers.hlsl"
 
 // Unity Defined Samplers
-sampler2D _Normals;
-sampler2D _CameraDepthTexture;
 sampler2D _GrabTexture;
 float4 _GrabTexture_TexelSize;
 

@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
@@ -6,6 +8,7 @@ using UnityEngine;
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Boat Align Normal")]
 public class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]
@@ -15,6 +18,8 @@ public class BoatAlignNormal : FloatingObjectBase
     float _buoyancyCoeff = 1.5f;
     [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
     float _boyancyTorque = 8f;
+    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Crest.Range(0, 1)]
+    float _accelerateDownhill = 0f;
 
     [Header("Engine Power")]
     [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
@@ -29,7 +34,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
-    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField]
+    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField, Predicated("_useBoatLength"), DecoratedField]
     float _boatLength = 3f;
 
     [Header("Drag")]
@@ -51,9 +56,6 @@ public class BoatAlignNormal : FloatingObjectBase
 
     bool _inWater;
     public override bool InWater { get { return _inWater; } }
-
-    Vector3 _displacementToObject = Vector3.zero;
-    public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
     public override Vector3 Velocity => _rb.velocity;
 
@@ -83,25 +85,18 @@ public class BoatAlignNormal : FloatingObjectBase
 
         UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
 
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
-        var position = transform.position;
-
         _sampleHeightHelper.Init(transform.position, _boatWidth, true);
         var height = OceanRenderer.Instance.SeaLevel;
-        var normal = Vector3.up;
-        var waterSurfaceVel = Vector3.zero;
 
-        _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
+        _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);
 
         // height = base sea level + surface displacement y
-        height += _displacementToObject.y;
+        height += disp.y;
 
-        if (QueryFlow.Instance)
         {
             _sampleFlowHelper.Init(transform.position, _boatWidth);
 
-            Vector2 surfaceFlow = Vector2.zero;
-            _sampleFlowHelper.Sample(ref surfaceFlow);
+            _sampleFlowHelper.Sample(out var surfaceFlow);
             waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
 
@@ -128,6 +123,11 @@ public class BoatAlignNormal : FloatingObjectBase
         var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
         _rb.AddForce(buoyancy, ForceMode.Acceleration);
 
+        // Approximate hydrodynamics of sliding along water
+        if (_accelerateDownhill > 0f)
+        {
+            _rb.AddForce(new Vector3(normal.x, 0f, normal.z) * -Physics.gravity.y * _accelerateDownhill, ForceMode.Acceleration);
+        }
 
         // apply drag relative to water
         var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
@@ -147,7 +147,7 @@ public class BoatAlignNormal : FloatingObjectBase
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-        FixedUpdateOrientation(collProvider, normal);
+        FixedUpdateOrientation(normal);
 
         UnityEngine.Profiling.Profiler.EndSample();
     }
@@ -156,15 +156,14 @@ public class BoatAlignNormal : FloatingObjectBase
     /// Align to water normal. One normal by default, but can use a separate normal based on boat length vs width. This gives
     /// varying rotations based on boat dimensions.
     /// </summary>
-    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 normalSideways)
+    void FixedUpdateOrientation(Vector3 normalSideways)
     {
         Vector3 normal = normalSideways, normalLongitudinal = Vector3.up;
 
         if (_useBoatLength)
         {
             _sampleHeightHelperLengthwise.Init(transform.position, _boatLength, true);
-            var dummy = 0f;
-            if (_sampleHeightHelperLengthwise.Sample(ref dummy, ref normalLongitudinal))
+            if (_sampleHeightHelperLengthwise.Sample(out _, out normalLongitudinal))
             {
                 var F = transform.forward;
                 F.y = 0f;

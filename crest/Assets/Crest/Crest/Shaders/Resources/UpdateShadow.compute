@@ -28,9 +28,7 @@ uniform float4 _LightShadowData;
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
-#include "../OceanLODData.hlsl"
 #include "../OceanHelpersNew.hlsl"
-#include "../OceanHelpers.hlsl"
 
 struct ShadowCoords
 {
@@ -44,7 +42,9 @@ struct ShadowCoords
 	float4 MainCameraCoords;
 };
 
+StructuredBuffer<CascadeParams> _CascadeDataSrc;
 uniform uint _LD_SliceIndex_Source;
+
 uniform float3 _CenterPos;
 uniform float3 _Scale;
 uniform float3 _CamPos;
@@ -70,7 +70,7 @@ fixed ComputeShadow(in ShadowCoords shadowCoords, in float jitterDiameter, in fl
 
 	if (jitterDiameter > 0.0)
 	{
-		half2 jitter = jitterDiameter * (hash33(uint3(abs(shadowCoords._WorldPosViewZ.xz*10.0), _Time.y*120.0)) - 0.5).xy;
+		half2 jitter = jitterDiameter * (hash33(uint3(abs(shadowCoords._WorldPosViewZ.xz*10.0), _CrestTime*120.0)) - 0.5).xy;
 		shadowCoords._ShadowCoord0.xz += shadowCoords.ShadowCoord0_dxdz.xy * jitter.x + shadowCoords.ShadowCoord0_dxdz.zw * jitter.y;
 		shadowCoords._ShadowCoord1.xz += shadowCoords.ShadowCoord1_dxdz.xy * jitter.x + shadowCoords.ShadowCoord1_dxdz.zw * jitter.y;
 		shadowCoords._ShadowCoord2.xz += shadowCoords.ShadowCoord2_dxdz.xy * jitter.x + shadowCoords.ShadowCoord2_dxdz.zw * jitter.y;
@@ -129,20 +129,21 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		shadowCoords.MainCameraCoords = mul(_MainCameraProjectionMatrix, wpos);
 	}
 
+	const CascadeParams cascadeDataSrc = _CascadeDataSrc[_LD_SliceIndex_Source];
 	half2 shadow = 0.0;
-	const half r_max = 0.5 - _LD_Params_Source[_LD_SliceIndex_Source].w;
+	const half r_max = 0.5 - cascadeDataSrc._oneOverTextureRes;
 
 	// Shadow from last frame - manually implement black border
-	float3 uv_source = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex_Source);
-	half2 r = abs(uv_source.xy - 0.5);
+	const float3 uv_source = WorldToUV(shadowCoords._WorldPosViewZ.xz, cascadeDataSrc, _LD_SliceIndex_Source);
+	const half2 r = abs(uv_source.xy - 0.5);
 	if (max(r.x, r.y) <= r_max)
 	{
 		SampleShadow(_LD_TexArray_Shadow_Source, uv_source, 1.0, shadow);
 	}
 	else if (_LD_SliceIndex_Source + 1.0 < depth)
 	{
-		float3 uv_source_nextlod = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex_Source + 1);
-		half2 r2 = abs(uv_source_nextlod.xy - 0.5);
+		const float3 uv_source_nextlod = WorldToUV(shadowCoords._WorldPosViewZ.xz, _CascadeDataSrc[_LD_SliceIndex_Source + 1], _LD_SliceIndex_Source + 1);
+		const half2 r2 = abs(uv_source_nextlod.xy - 0.5);
 		if (max(r2.x, r2.y) < r_max)
 		{
 			SampleShadow(_LD_TexArray_Shadow_Source, uv_source_nextlod, 1.0, shadow);
@@ -165,8 +166,23 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		half shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
 
 		fixed2 shadowThisFrame;
-		shadowThisFrame.x = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
-		shadowThisFrame.y = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
+
+		// Add soft shadowing data.
+		shadowThisFrame[CREST_SHADOW_INDEX_SOFT] = ComputeShadow
+		(
+			shadowCoords,
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_SOFT],
+			cascadeWeights
+		);
+
+		// Add hard shadowing data.
+		shadowThisFrame[CREST_SHADOW_INDEX_HARD] = ComputeShadow
+		(
+			shadowCoords,
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_HARD],
+			cascadeWeights
+		);
+
 		shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);
 
 		shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.0);

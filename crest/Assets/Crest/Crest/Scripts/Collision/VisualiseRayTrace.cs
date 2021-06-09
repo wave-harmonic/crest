@@ -1,10 +1,15 @@
-﻿using UnityEngine;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
     /// <summary>
     /// Debug draw a line trace from this gameobjects position, in this gameobjects forward direction.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Visualise Ray Trace")]
     public class VisualiseRayTrace : MonoBehaviour
     {
         RayTraceHelper _rayTrace = new RayTraceHelper(50f, 2f);

@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
@@ -6,11 +8,12 @@ using UnityEngine;
 /// <summary>
 /// Attach this script to any GameObject and it will create three collision probes in front of the camera
 /// </summary>
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ocean Sample Displacement Demo")]
 public class OceanSampleDisplacementDemo : MonoBehaviour
 {
     public bool _trackCamera = true;
 
-    [Range(0f, 32f)]
+    [Crest.Range(0f, 32f)]
     public float _minGridSize = 0f;
 
     GameObject[] _markerObjects = new GameObject[3];
@@ -23,6 +26,11 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 
     void Update()
     {
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         if (_trackCamera)
         {
             var height = Mathf.Abs(Camera.main.transform.position.y - OceanRenderer.Instance.SeaLevel);
@@ -31,11 +39,6 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             _markerPos[0] = Camera.main.transform.position + Camera.main.transform.forward * offset;
             _markerPos[1] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.right;
             _markerPos[2] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.forward;
-        }
-
-        if (OceanRenderer.Instance == null)
-        {
-            return;
         }
 
         var collProvider = OceanRenderer.Instance.CollisionProvider;

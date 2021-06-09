@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -10,18 +11,27 @@ namespace Crest
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
-    public abstract class LodDataMgr : MonoBehaviour
+    public abstract class LodDataMgr
     {
         public abstract string SimName { get; }
 
-        public abstract SimSettingsBase CreateDefaultSettings();
-        public abstract void UseSettings(SimSettingsBase settings);
+        // This is the texture format we want to use.
+        protected abstract GraphicsFormat RequestedTextureFormat { get; }
 
-        public abstract RenderTextureFormat TextureFormat { get; }
+        // This is the platform compatible texture format we will use.
+        public GraphicsFormat CompatibleTextureFormat { get; private set; }
 
-        // NOTE: This MUST match the value in OceanLODData.hlsl, as it
+        // NOTE: This MUST match the value in OceanConstants.hlsl, as it
         // determines the size of the texture arrays in the shaders.
         public const int MAX_LOD_COUNT = 15;
+
+        // NOTE: these MUST match the values in OceanConstants.hlsl
+        // 64 recommended as a good common minimum: https://www.reddit.com/r/GraphicsProgramming/comments/aeyfkh/for_compute_shaders_is_there_an_ideal_numthreads/
+        public const int THREAD_GROUP_SIZE_X = 8;
+        public const int THREAD_GROUP_SIZE_Y = 8;
+
+        // NOTE: This is a temporary solution to keywords having prefixes downstream.
+        internal const string MATERIAL_KEYWORD_PREFIX = "";
 
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
@@ -30,6 +40,8 @@ namespace Crest
         protected RenderTexture _targets;
 
         public RenderTexture DataTexture { get { return _targets; } }
+
+        protected virtual Texture2DArray NullTexture => TextureArrayHelpers.BlackTextureArray;
 
         public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
         protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
@@ -43,9 +55,19 @@ namespace Crest
         int _scaleDifferencePow2 = 0;
         protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
 
-        protected virtual void Start()
+        public bool enabled { get; protected set; }
+
+        protected OceanRenderer _ocean;
+
+        public LodDataMgr(OceanRenderer ocean)
+        {
+            _ocean = ocean;
+        }
+
+        public virtual void Start()
         {
             InitData();
+            enabled = true;
         }
 
         public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
@@ -66,13 +88,23 @@ namespace Crest
 
         protected virtual void InitData()
         {
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
+            // Find a compatible texture format.
+            var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
+            CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(RequestedTextureFormat, formatUsage);
+            if (CompatibleTextureFormat != RequestedTextureFormat)
+            {
+                Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {RequestedTextureFormat}");
+            }
+            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {RequestedTextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
+
+            // Bind globally once here on init, which will bind to all graphics shaders (not compute)
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         public virtual void UpdateLodData()
@@ -93,7 +125,7 @@ namespace Crest
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
-            float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
+            float oceanLocalScale = OceanRenderer.Instance.Root.localScale.x;
             if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
             float ratio = oceanLocalScale / _oceanLocalScalePrev;
             _oceanLocalScalePrev = oceanLocalScale;
@@ -101,56 +133,6 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
-        {
-            BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
-        }
-
-        // Avoid heap allocations instead BindData
-        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
-        // Used in child
-        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT + 1];
-        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
-        {
-            if (applyData)
-            {
-                properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
-            }
-
-            var lt = OceanRenderer.Instance._lodTransform;
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-                _BindData_paramIdPosScales[lodIdx] = new Vector4(
-                    renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
-                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
-                _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
-            }
-
-            // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
-            // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
-            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
-            // Never use this last lod - it exists to give 'something' but should not be used
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
-
-            properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
-            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
-        }
-
-        public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)
-            where LodDataType : LodDataMgr where LodDataSettings : SimSettingsBase
-        {
-            var sim = attachGO.AddComponent<LodDataType>();
-
-            if (settings == null)
-            {
-                settings = sim.CreateDefaultSettings() as LodDataSettings;
-            }
-            sim.UseSettings(settings);
-
-            return sim;
-        }
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -171,7 +153,7 @@ namespace Crest
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -190,7 +172,7 @@ namespace Crest
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -225,6 +207,15 @@ namespace Crest
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
             public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+        }
+
+        internal virtual void OnEnable()
+        {
+        }
+        internal virtual void OnDisable()
+        {
+            // Unbind from all graphics shaders (not compute)
+            Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);
         }
 
 #if UNITY_2019_3_OR_NEWER

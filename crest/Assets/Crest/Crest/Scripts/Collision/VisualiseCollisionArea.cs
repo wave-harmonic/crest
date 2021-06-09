@@ -1,10 +1,15 @@
-﻿using UnityEngine;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
     /// <summary>
     /// Debug draw crosses in an area around the GameObject on the water surface.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Visualise Collision Area")]
     public class VisualiseCollisionArea : MonoBehaviour
     {
         [SerializeField]

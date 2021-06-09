@@ -3,12 +3,8 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-#if UNITY_2018
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Serialization;
-#else
 using UnityEngine.Rendering;
-#endif
+using UnityEngine.Serialization;
 
 namespace Crest
 {

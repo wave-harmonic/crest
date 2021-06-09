@@ -106,7 +106,7 @@ Shader "Crest/Underwater/Post Process"
 				return output;
 			}
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
 
@@ -168,7 +168,7 @@ Shader "Crest/Underwater/Post Process"
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
 
-				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, uvScreenSpace).rgb;
+				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
 
 				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
 

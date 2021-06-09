@@ -59,6 +59,8 @@ namespace Crest
         bool _eventsRegistered = false;
         bool _firstRender = true;
 
+        int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
+
         // Only one camera is supported.
         public static UnderwaterPostProcess Instance { get; private set; }
 
@@ -247,6 +249,8 @@ namespace Crest
                 // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
                 _postProcessCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
+
+            _underwaterPostProcessMaterialWrapper.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 
             _postProcessCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
             _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, -1, MeshTopology.Triangles, 3, 1);

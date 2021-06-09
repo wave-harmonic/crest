@@ -15,7 +15,6 @@ namespace Crest
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
 
         static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
-        static readonly int sp_MainTex = Shader.PropertyToID("_MainTex");
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
@@ -261,9 +260,6 @@ namespace Crest
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
-
-            // Not sure why we need to do this - blit should set it...?
-            underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
 
             // Compute ambient lighting SH
             {

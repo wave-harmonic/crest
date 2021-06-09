@@ -10,6 +10,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Crest
@@ -205,8 +206,9 @@ namespace Crest
             }
 
             // OceanRenderer isn't a hard requirement for validation to work. Null needs to be handled in each
-            // component.
-            target.Validate(FindObjectOfType<OceanRenderer>(), ValidatedHelper.HelpBox);
+            // component. Get instance using StageUtility so it searches only within the prefab in prefab mode instead
+            // of the opened scene which is incorrect.
+            target.Validate(StageUtility.GetCurrentStageHandle().FindComponentOfType<OceanRenderer>(), ValidatedHelper.HelpBox);
 
             // We only want space before and after the list of help boxes. We don't want space between.
             var needsSpaceAbove = true;
@@ -251,7 +253,12 @@ namespace Crest
                         foreach (var message in messages)
                         {
                             EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.HelpBox(message._message + " " + message._fixDescription, messageType);
+                            var fixDescription = message._fixDescription;
+                            if (message._action != null)
+                            {
+                                fixDescription += " Click the fix/repair button on the right to fix.";
+                            }
+                            EditorGUILayout.HelpBox($"{message._message} {fixDescription}", messageType);
 
                             // Jump to object button.
                             if (message._object != null)

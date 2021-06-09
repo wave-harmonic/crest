@@ -16,16 +16,26 @@ namespace Crest
     [CreateAssetMenu(fileName = "OceanWaves", menuName = "Crest/Ocean Wave Spectrum", order = 10000)]
     public class OceanWaveSpectrum : ScriptableObject
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
+        // These must match corresponding constants in FFTSpectrum.compute
         public const int NUM_OCTAVES = 14;
         public static readonly float SMALLEST_WL_POW_2 = -4f;
 
         [HideInInspector]
         public float _fetch = 500000f;
 
-        public static readonly float MIN_POWER_LOG = -7f;
+        public static readonly float MIN_POWER_LOG = -8f;
         public static readonly float MAX_POWER_LOG = 5f;
 
-        [Tooltip("Variance of wave directions, in degrees"), Range(0f, 180f)]
+        [Tooltip("Variance of wave directions, in degrees. Gerstner-only - use the Turbulence param on the ShapeFFT component for FFT."), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
 
         [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
@@ -34,15 +44,15 @@ namespace Crest
         [Range(0f, 2f), HideInInspector]
         public float _smallWavelengthMultiplier = 1f;
 
-        [Tooltip("Multiplier which scales waves"), Range(0f, 10f), SerializeField]
-        float _multiplier = 1f;
+        [Tooltip("Multiplier which scales waves"), Range(0f, 10f)]
+        public float _multiplier = 1f;
 
         [HideInInspector, SerializeField]
-        float[] _powerLog = new float[NUM_OCTAVES]
-            { -5.710145f, -5.841546f, -5.17913f, -4.4710717f, -3.480769f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
+        internal float[] _powerLog = new float[NUM_OCTAVES]
+            { -5.71f, -5.03f, -4.54f, -3.88f, -3.28f, -2.32f, -1.78f, -1.21f, -0.54f, 0.28f, 0.54f, 1.03f, 1.44f, -8f };
 
         [HideInInspector, SerializeField]
-        bool[] _powerDisabled = new bool[NUM_OCTAVES];
+        internal bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
         [HideInInspector]
         public float[] _chopScales = new float[NUM_OCTAVES]
@@ -55,6 +65,21 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
 
+        void Reset()
+        {
+            // Auto-upgrade any new data objects directly to v1. This is in lieu of simply
+            // giving _version a default value of 1 to distuingish new data, which we can't do
+            // because _version is not present in the old data at all.
+            // TODO: after a few releases, we can be sure _version will be present in the data.
+            // At this point we can bump _version to a default value of 1 and from that point
+            // onwards know that version is correct, and this auto upgrade path can go away.
+            for (int i = 0; i < _powerLog.Length; i++)
+            {
+                // This is equivalent to power /= 25, in log10 space
+                _powerLog[i] -= 1.39794f;
+            }
+            _version = 1;
+        }
 
 #if UNITY_EDITOR
 #pragma warning disable 414
@@ -64,9 +89,7 @@ namespace Crest
         public enum SpectrumModel
         {
             None,
-            Phillips,
             PiersonMoskowitz,
-            JONSWAP,
         }
 
 #pragma warning disable 414
@@ -143,15 +166,23 @@ namespace Crest
             power = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
             power = Mathf.Pow(10f, power);
 
-            var c = ComputeWaveSpeed(wavelength);
+            // Empirical wind influence based on alpha-beta spectrum that underlies empirical spectra
+            var gravity = _gravityScale * Mathf.Abs(Physics.gravity.y);
+            var B = 1.291f;
+            var wm = 0.87f * gravity / windSpeed;
+            DeepDispersion(2f * Mathf.PI / wavelength, gravity, out var w);
+            power *= Mathf.Exp(-B * Mathf.Pow(wm / w, 4.0f));
 
-            // Dampen based on wind. Waves travelling faster than wind get dampened. 0.75
-            // is arbitrary value to give some 'ramp' in the multiplier.
-            power *= Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(windSpeed, windSpeed * 0.75f, c));
             var a_2 = 2f * power * domega;
 
             // Amplitude
             var a = Mathf.Sqrt(a_2);
+
+            // Gerstner fudge -one hack to get Gerstners looking on par with FFT
+            if (_version > 0)
+            {
+                a *= 5f;
+            }
 
             return a * _multiplier;
         }
@@ -187,8 +218,8 @@ namespace Crest
                 {
                     var index = octave * componentsPerOctave + i;
 
-                    // stratified random sampling - should give a better range of wavelengths, and also means i can generated the
-                    // wavelengths in sorted order!
+                    // Stratified random sampling - should give a better distribution of wavelengths, and also means i can generate
+                    // the wavelengths in ascending order!
                     var minWavelengthi = minWavelength + invComponentsPerOctave * minWavelength * i;
                     var maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
                     wavelengths[index] = Mathf.Lerp(minWavelengthi, maxWavelengthi, Random.value);
@@ -201,116 +232,42 @@ namespace Crest
             }
         }
 
-        public void ApplyPhillipsSpectrum(float windSpeed, float smallWavelengthMultiplier)
+        // This applies the correct PM spectrum powers, validated against a separate implementation
+        public void ApplyPiersonMoskowitzSpectrum()
         {
-            // Angles should usually be relative to wind direction, so setting wind direction to angle=0 should be ok.
-            var windDir = Vector2.right;
+            var gravity = Physics.gravity.magnitude;
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                // Shift wavelengths based on a magic number of this spectrum which seems to give small waves.
-                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 1.5f;
+                var wl = SmallWavelength(octave);
 
-                var pow = PhillipsSpectrum(windSpeed, windDir, Mathf.Abs(Physics.gravity.y), wl, 0f);
+                var pow = PiersonMoskowitzSpectrum(gravity, wl);
+
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
+
                 _powerLog[octave] = Mathf.Log10(pow);
             }
         }
 
-        public void ApplyPiersonMoskowitzSpectrum(float windSpeed, float smallWavelengthMultiplier)
+        // Alpha-beta spectrum without the beta. Beta represents wind influence and is evaluated at runtime
+        // for 'current' wind conditions
+        static float AlphaSpectrum(float A, float g, float w)
         {
-            for (int octave = 0; octave < NUM_OCTAVES; octave++)
-            {
-                // Shift wavelengths based on a magic number of this spectrum which seems to give small waves.
-                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 9f;
-
-                var pow = PiersonMoskowitzSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl);
-                // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
-                pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
-                _powerLog[octave] = Mathf.Log10(pow);
-            }
+            return A * g * g / Mathf.Pow(w, 5.0f);
         }
 
-        public void ApplyJONSWAPSpectrum(float windSpeed, float fetch, float smallWavelengthMultiplier)
+        static void DeepDispersion(float k, float gravity, out float w)
         {
-            for (int octave = 0; octave < NUM_OCTAVES; octave++)
-            {
-                // Shift wavelengths based on a magic number of this spectrum which seems to give small waves.
-                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 9f;
-
-                var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, fetch);
-                // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
-                pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
-                _powerLog[octave] = Mathf.Log10(pow);
-            }
+            w = Mathf.Sqrt(gravity * k);
         }
 
-        static float PhillipsSpectrum(float windSpeed, Vector2 windDir, float gravity, float wavelength, float angle)
+        static float PiersonMoskowitzSpectrum(float gravity, float wavelength)
         {
-            var wavenumber = 2f * Mathf.PI / wavelength;
-            var angle_radians = Mathf.PI * angle / 180f;
-            var kx = Mathf.Cos(angle_radians) * wavenumber;
-            var kz = Mathf.Sin(angle_radians) * wavenumber;
-
-            var k2 = kx * kx + kz * kz;
-
-            var windSpeed2 = windSpeed * windSpeed;
-            var wx = windDir.x;
-            var wz = windDir.y;
-
-            var kdotw = (wx * kx + wz * kz);
-
-            var a = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
-            var L = windSpeed2 / gravity;
-
-            // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.161.9102&rep=rep1&type=pdf
-            return a * kdotw * kdotw * Mathf.Exp(-1f / (k2 * L * L)) / (k2 * k2);
-        }
-
-        // base of modern parametric wave spectrum
-        static float PhilSpectrum(float gravity, float wavelength)
-        {
-            var alpha = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
-            return PhilSpectrum(gravity, alpha, wavelength);
-        }
-        // base of modern parametric wave spectrum
-        static float PhilSpectrum(float gravity, float alpha, float wavelength)
-        {
-            //float alpha = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
-            var wavenumber = 2f * Mathf.PI / wavelength;
-            var frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
-            return alpha * gravity * gravity / Mathf.Pow(frequency, 5f);
-        }
-
-        static float PiersonMoskowitzSpectrum(float gravity, float windspeed, float wavelength)
-        {
-            var wavenumber = 2f * Mathf.PI / wavelength;
-            var frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
-            var frequency_peak = 0.855f * gravity / windspeed;
-            return PhilSpectrum(gravity, wavelength) * Mathf.Exp(-Mathf.Pow(frequency_peak / frequency, 4f) * 5f / 4f);
-        }
-        static float PiersonMoskowitzSpectrum(float gravity, float windspeed, float frequency_peak, float alpha, float wavelength)
-        {
-            float wavenumber = 2f * Mathf.PI / wavelength;
-            float frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
-            return PhilSpectrum(gravity, alpha, wavelength) * Mathf.Exp(-Mathf.Pow(frequency_peak / frequency, 4f) * 5f / 4f);
-        }
-
-        static float JONSWAPSpectrum(float gravity, float windspeed, float wavelength, float fetch)
-        {
-            // fetch distance
-            var F = fetch;
-            var alpha = 0.076f * Mathf.Pow(windspeed * windspeed / (F * gravity), 0.22f);
-
-            var wavenumber = 2f * Mathf.PI / wavelength;
-            var frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
-            var frequency_peak = 22f * Mathf.Pow(gravity * gravity / (windspeed * F), 1f / 3f);
-            var sigma = frequency <= frequency_peak ? 0.07f : 0.09f;
-            var r = Mathf.Exp(-Mathf.Pow(frequency - frequency_peak, 2f) / (2f * sigma * sigma * frequency_peak * frequency_peak));
-            var gamma = 3.3f;
-
-            return PiersonMoskowitzSpectrum(gravity, windspeed, frequency_peak, alpha, wavelength) * Mathf.Pow(gamma, r);
+            var k = 2f * Mathf.PI / wavelength;
+            DeepDispersion(k, gravity, out var w);
+            var phillipsConstant = 8.1e-3f;
+            return AlphaSpectrum(phillipsConstant, gravity, w);
         }
 
 #if UNITY_EDITOR
@@ -331,13 +288,8 @@ namespace Crest
         readonly static string[] modelDescriptions = new string[]
         {
             "Select an option to author waves using a spectrum model.",
-            "Base of modern parametric wave spectra.",
             "Fully developed sea with infinite fetch.",
-            "Fetch limited sea where waves continue to grow.",
         };
-
-        static GUIContent s_labelSWM = new GUIContent("Small wavelength modifier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
-        static GUIContent s_labelFetch = new GUIContent("Fetch", "Length of area that wind excites waves. Applies only to JONSWAP");
 
         public static void UpgradeSpectrum(SerializedProperty prop, float defaultValue)
         {
@@ -370,14 +322,43 @@ namespace Crest
             }
         }
 
+        static void Upgrade(SerializedObject soSpectrum)
+        {
+            var spVer = soSpectrum.FindProperty("_version");
+
+            // Upgrade to version 1: Calibrate spectrum power values to make gerstner waves match FFT.
+            if (spVer.intValue == 0)
+            {
+                var powValues = soSpectrum.FindProperty("_powerLog");
+                for (int i = 0; i < powValues.arraySize; i++)
+                {
+                    float pow = powValues.GetArrayElementAtIndex(i).floatValue;
+                    pow = Mathf.Pow(10f, pow);
+                    pow /= 25f;
+                    pow = Mathf.Log10(pow);
+                    powValues.GetArrayElementAtIndex(i).floatValue = pow;
+                }
+                // Spectrum model enum has changed so use "None" to be safe.
+                soSpectrum.FindProperty("_model").enumValueIndex = 0;
+                spVer.intValue = spVer.intValue + 1;
+            }
+
+            // Future: Upgrade to version 2: ...
+
+            soSpectrum.ApplyModifiedProperties();
+        }
+
         public override void OnInspectorGUI()
         {
+            Upgrade(serializedObject);
+
             base.OnInspectorGUI();
 
             var showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
 
             var spSpectrumModel = serializedObject.FindProperty("_model");
-            var spectrumModel = (OceanWaveSpectrum.SpectrumModel)serializedObject.FindProperty("_model").enumValueIndex;
+            var spectraIndex = serializedObject.FindProperty("_model").enumValueIndex;
+            var spectrumModel = (OceanWaveSpectrum.SpectrumModel)Mathf.Clamp(spectraIndex, 0, 1);
 
             EditorGUILayout.Space();
 
@@ -481,38 +462,14 @@ namespace Crest
                 // It doesn't seem to matter where this is called.
                 Undo.RecordObject(spec, $"Apply {ObjectNames.NicifyVariableName(spectrumModel.ToString())} Spectrum");
 
-                if (spectrumModel == OceanWaveSpectrum.SpectrumModel.JONSWAP)
-                {
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_smallWavelengthMultiplier"));
-
-                    var maxLin = 4000f;
-                    var exponent = 4f;
-                    var maxExp = Mathf.Pow(maxLin, 1f / exponent);
-                    spec._fetch = Mathf.Clamp(EditorGUILayout.FloatField(s_labelFetch, spec._fetch), 0f, maxLin);
-                    var fetchNonLin = Mathf.Pow(spec._fetch, 1f / exponent);
-                    spec._fetch = Mathf.Pow(GUI.HorizontalSlider(EditorGUILayout.GetControlRect(false), fetchNonLin, 0, maxExp), exponent);
-                }
-
-                // Wind speed is taken into account during wave generation, not for the spectrum
-                var windSpeed = 10000f;
 
                 // Descriptions from this very useful paper:
                 // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
                 switch (spectrumModel)
                 {
-                    case OceanWaveSpectrum.SpectrumModel.Phillips:
-                        spec.ApplyPhillipsSpectrum(windSpeed, 1f);
-                        break;
                     case OceanWaveSpectrum.SpectrumModel.PiersonMoskowitz:
-                        // Magic number that seems to work well
-                        var swm = 0.42f;
-                        spec.ApplyPiersonMoskowitzSpectrum(windSpeed, swm);
-                        break;
-                    case OceanWaveSpectrum.SpectrumModel.JONSWAP:
-                        // Magic number that seems to work well when user has it set to 1
-                        var smallWavelengthMul = 0.0419265f * spec._smallWavelengthMultiplier;
-                        spec.ApplyJONSWAPSpectrum(windSpeed, spec._fetch, smallWavelengthMul);
+                        spec.ApplyPiersonMoskowitzSpectrum();
                         break;
                 }
             }

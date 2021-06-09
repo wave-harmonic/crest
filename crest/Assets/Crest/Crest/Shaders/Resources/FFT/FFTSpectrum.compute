@@ -1,0 +1,218 @@
+// Crest Ocean System
+
+// Copyright 2021 Wave Harmonic Ltd
+
+// Inspired by https://github.com/speps/GX-EncinoWaves
+
+#pragma kernel SpectrumInitalize
+#pragma kernel SpectrumUpdate
+
+#define INV2PI	0.15915494309f
+#define PI4		0.33661977236f
+#define INVPI2	0.63661977236f
+#define HPI		1.57079632679f
+#define PI		3.14159265358f
+#define PI2		6.28318530717f
+#define HSQRT2	0.70710678118f
+
+// These must match corresponding constants in OceanWaveSpectrum.cs
+#define SPECTRUM_OCTAVE_COUNT		14.0
+#define SPECTRUM_SMALLEST_WL_POW_2	-4.0
+
+uint _Size;
+float _WindSpeed;
+float _Turbulence;
+float _Gravity;
+
+uint _RngState;
+
+uint WangHash(uint seed)
+{
+	seed = (seed ^ 61) ^ (seed >> 16);
+	seed *= 9;
+	seed = seed ^ (seed >> 4);
+	seed *= 0x27d4eb2d;
+	seed = seed ^ (seed >> 15);
+	return seed;
+}
+
+uint Rand()
+{
+	_RngState ^= (_RngState << 13);
+	_RngState ^= (_RngState >> 17);
+	_RngState ^= (_RngState << 5);
+	return _RngState;
+}
+
+float RandFloat()
+{
+	return Rand() / 4294967296.0f;
+}
+
+float RandGauss()
+{
+	float u1 = RandFloat();
+	float u2 = RandFloat();
+	if (u1 < 1e-6f)
+		u1 = 1e-6f;
+	return sqrt(-2.0f * log(u1)) * cos(PI2 * u2);
+}
+
+void DeepDispersion(float k, out float w, out float dwdk)
+{
+	w = sqrt(abs(_Gravity * k));
+	dwdk = _Gravity / (2.0f * w);
+}
+
+float AlphaBetaSpectrum(float A, float B, float g, float w, float wm)
+{
+	return
+		(A * g * g / pow(w, 5.0f)) *
+		exp(-B * pow(wm / w, 4.0f));
+}
+
+float PiersonMoskowitzSpectrum(float w)
+{
+	float wm = 0.87f * _Gravity / _WindSpeed;
+	return AlphaBetaSpectrum(8.1e-3f, 1.291f, _Gravity, w, wm);
+}
+
+float PiersonMoskowitzWindTerm( float w )
+{
+	float wm = 0.87f * _Gravity / _WindSpeed;
+	return exp( -1.291 * pow( wm / w, 4.0f ) );
+}
+
+float PosCosSquaredDirectionalSpreading(float w, float theta, float kMag, float dTheta)
+{
+	if( abs( theta ) < HPI )
+	{
+		float ct = cos(theta);
+		return lerp( INVPI2 * (ct * ct), PI4, _Turbulence );
+	}
+	else
+	{
+		return PI4 * _Turbulence;
+	}
+}
+
+RWTexture2DArray<float4> _ResultInit;
+Texture2D<float> _SpectrumControls;
+SamplerState linear_clamp_sampler;
+
+[numthreads(8,8,1)]
+void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
+{
+	const int2 center = _Size.xx / 2;
+	const int2 coord = id.xy - center;
+
+	uint depth;
+	{
+		uint width, height;
+		_ResultInit.GetDimensions( width, height, depth );
+	}
+
+	if ( id.z < (depth - 1) && max( abs( coord.x ), abs( coord.y ) ) < int(_Size / 4) )
+	{
+		_ResultInit[id] = 0.0;
+		return;
+	}
+
+	if (coord.x == 0 && coord.y == 0)
+	{
+		_ResultInit[id] = float4(0, 0, 0, 0);
+		return;
+	}
+
+	const float worldSize = 0.5f * (1 << id.z);
+
+	// Find wave vector and number
+	const float2 k = PI2 * coord / worldSize;
+	const float kMag = length(k);
+
+	// Init seed
+	_RngState = WangHash(id.z * _Size * _Size + id.y * _Size + id.x);
+
+	// Dispersion
+	float w; float dwdk;
+	DeepDispersion(kMag, w, dwdk);
+
+	// Spectrum - use power values from users spectrum, but borrow wind term from PM
+	const float wavelength = PI2 / kMag;
+	const float octaveIndex = log2( wavelength ) - SPECTRUM_SMALLEST_WL_POW_2;
+	const float2 spectrumUV = float2((octaveIndex + 0.5) / SPECTRUM_OCTAVE_COUNT, 0.5);
+	const float spectrum = _SpectrumControls.SampleLevel( linear_clamp_sampler, spectrumUV, 0.0 ) *
+		PiersonMoskowitzWindTerm( w );
+
+	float deltaSPos = spectrum;
+	float deltaSNeg = spectrum;
+
+	// Directional spreading
+	const float dK = PI2 / worldSize;
+	const float thetaPos = atan2(-k.y, k.x);
+	const float thetaNeg = atan2(k.y, -k.x);
+	const float dTheta = abs(atan2(dK, kMag));
+	deltaSPos *= PosCosSquaredDirectionalSpreading(w, thetaPos, kMag, dTheta);
+	deltaSNeg *= PosCosSquaredDirectionalSpreading(w, thetaNeg, kMag, dTheta);
+	deltaSPos *= (dK * dK) * dwdk / kMag;
+	deltaSNeg *= (dK * dK) * dwdk / kMag;
+
+	// Amplitude
+	const float ampPos = RandGauss() * sqrt(abs(deltaSPos) * 2.0f);
+	const float ampNeg = RandGauss() * sqrt(abs(deltaSNeg) * 2.0f);
+
+	// Output
+	const float phasePos = RandFloat() * PI2;
+	const float phaseNeg = RandFloat() * PI2;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	const float spiceyMultiplier = 1.5;
+	_ResultInit[id] = float4(ampPos * float2(cos(phasePos), -sin(phasePos)), ampNeg * float2(cos(phaseNeg), -sin(phaseNeg)))
+		* spiceyMultiplier;
+}
+
+float _Time;
+float _Chop;
+
+Texture2DArray<float4> _Init0;
+RWTexture2DArray<float2> _ResultHeight;
+RWTexture2DArray<float2> _ResultDisplaceX;
+RWTexture2DArray<float2> _ResultDisplaceZ;
+
+float2 cmul(float2 lhs, float2 rhs)
+{
+	return float2(
+		lhs.x * rhs.x - lhs.y * rhs.y,
+		lhs.x * rhs.y + lhs.y * rhs.x
+	);
+}
+
+[numthreads(8, 8, 1)]
+void SpectrumUpdate(uint3 id : SV_DispatchThreadID)
+{
+	const int2 center = _Size.xx / 2;
+	const int2 coord = id.xy - center;
+
+	// Find wave vector and number
+	const float worldSize = 0.5 * (1 << id.z);
+	const float2 k = PI2 * coord / worldSize;
+	const float kMag = length(k);
+
+	// Dispersion
+	float w; float dwdk;
+	DeepDispersion(kMag, w, dwdk);
+
+	// Advance time
+	float sw; float cw;
+	sincos(w * _Time, sw, cw);
+
+	const float2 fwd = float2(cw, -sw);
+	const float2 bkwd = float2(cw, sw);
+
+	const float4 h0 = _Init0[id];
+	const float2 h = cmul(h0.xy, fwd) + cmul(h0.zw, bkwd);
+
+	_ResultHeight[id] = h;
+	_ResultDisplaceX[id] = _Chop * float2(-h.y * k.x, h.x * k.x) / (kMag + 0.00001f);
+	_ResultDisplaceZ[id] = _Chop * float2(-h.y * k.y, h.x * k.y) / (kMag + 0.00001f);
+}

@@ -16,6 +16,15 @@ using UnityEditor;
 [AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ocean Sample Height Events")]
 public class OceanSampleHeightEvents : MonoBehaviour
 {
+    /// <summary>
+    /// The version of this asset. Can be used to migrate across versions. This value should
+    /// only be changed when the editor upgrades the version.
+    /// </summary>
+    [SerializeField, HideInInspector]
+#pragma warning disable 414
+    int _version = 0;
+#pragma warning restore 414
+
     [Header("Settings For All Events")]
 
     [Tooltip("The higher the value, the more smaller waves will be ignored when sampling the ocean surface.")]

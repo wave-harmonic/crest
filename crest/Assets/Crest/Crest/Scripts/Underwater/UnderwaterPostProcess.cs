@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -255,4 +256,9 @@ namespace Crest
             _firstRender = false;
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(UnderwaterPostProcess))]
+    public class UnderwaterPostProcessEditor : Editor {}
+#endif
 }

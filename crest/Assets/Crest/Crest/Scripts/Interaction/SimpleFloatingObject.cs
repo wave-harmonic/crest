@@ -15,28 +15,37 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Simple Floating Object")]
     public class SimpleFloatingObject : FloatingObjectBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Header("Buoyancy Force")]
-        [Tooltip("Offsets center of object to raise it (or lower it) in the water."), SerializeField]
-        float _raiseObject = 1f;
-        [Tooltip("Strength of buoyancy force per meter of submersion in water."), SerializeField]
-        float _buoyancyCoeff = 3f;
-        [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
-        float _boyancyTorque = 8f;
-        [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Range(0, 1)]
-        float _accelerateDownhill = 0f;
+        [Tooltip("Offsets center of object to raise it (or lower it) in the water.")]
+        public float _raiseObject = 1f;
+        [Tooltip("Strength of buoyancy force per meter of submersion in water.")]
+        public float _buoyancyCoeff = 3f;
+        [Tooltip("Strength of torque applied to match boat orientation to water normal.")]
+        public float _boyancyTorque = 8f;
+        [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), Range(0, 1)]
+        public float _accelerateDownhill = 0f;
 
         [Header("Wave Response")]
-        [Tooltip("Diameter of object, for physics purposes. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
-        float _objectWidth = 3f;
+        [Tooltip("Diameter of object, for physics purposes. The larger this value, the more filtered/smooth the wave response will be.")]
+        public float _objectWidth = 3f;
         public override float ObjectWidth { get { return _objectWidth; } }
 
         [Header("Drag")]
-        [Tooltip("Vertical offset for where drag force should be applied."), SerializeField]
-        float _forceHeightOffset = -0.3f;
-        [SerializeField] float _dragInWaterUp = 3f;
-        [SerializeField] float _dragInWaterRight = 2f;
-        [SerializeField] float _dragInWaterForward = 1f;
-        [SerializeField] float _dragInWaterRotational = 0.2f;
+        [Tooltip("Vertical offset for where drag force should be applied.")]
+        public float _forceHeightOffset = -0.3f;
+        public float _dragInWaterUp = 3f;
+        public float _dragInWaterRight = 2f;
+        public float _dragInWaterForward = 1f;
+        public float _dragInWaterRotational = 0.2f;
 
         [Header("Debug")]
         [SerializeField] bool _debugDraw = false;

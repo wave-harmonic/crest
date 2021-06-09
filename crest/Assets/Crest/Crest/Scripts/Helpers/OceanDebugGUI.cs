@@ -4,6 +4,9 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.SceneManagement;
 
 namespace Crest
@@ -12,6 +15,15 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Ocean Debug GUI")]
     public class OceanDebugGUI : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public bool _showOceanData = true;
         public bool _guiVisible = true;
 
@@ -32,7 +44,7 @@ namespace Crest
 
         static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
-        static Material s_textureArrayMaterial = null;
+        static Dictionary<RenderTexture, Material> s_textureArrayMaterials = new Dictionary<RenderTexture, Material>();
 
         public static bool OverGUI(Vector2 screenPosition)
         {
@@ -41,15 +53,27 @@ namespace Crest
 
         private void Update()
         {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current.gKey.wasPressedThisFrame)
+#else
             if (Input.GetKeyDown(KeyCode.G))
+#endif
             {
                 ToggleGUI();
             }
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current.fKey.wasPressedThisFrame)
+#else
             if (Input.GetKeyDown(KeyCode.F))
+#endif
             {
                 Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
             }
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current.rKey.wasPressedThisFrame)
+#else
             if (Input.GetKeyDown(KeyCode.R))
+#endif
             {
                 SceneManager.LoadScene(SceneManager.GetSceneAt(0).buildIndex);
             }
@@ -198,16 +222,16 @@ namespace Crest
         {
             float column = 1f;
 
-            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, _drawLodDatasActualSize, ref _drawAnimWaves, ref column);
-            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, _drawLodDatasActualSize, ref _drawDynWaves, ref column);
+            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, _drawLodDatasActualSize, ref _drawAnimWaves, ref column, 0.5f);
+            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, _drawLodDatasActualSize, ref _drawDynWaves, ref column, 0.5f, 2f);
             DrawSim<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, _drawLodDatasActualSize, ref _drawFoam, ref column);
-            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, _drawLodDatasActualSize, ref _drawFlow, ref column);
+            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, _drawLodDatasActualSize, ref _drawFlow, ref column, 0.5f, 2f);
             DrawSim<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, _drawLodDatasActualSize, ref _drawShadow, ref column);
             DrawSim<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, _drawLodDatasActualSize, ref _drawSeaFloorDepth, ref column);
             DrawSim<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, _drawLodDatasActualSize, ref _drawClipSurface, ref column);
         }
 
-        static void DrawSim<SimType>(LodDataMgr lodData, bool actualSize, ref bool doDraw, ref float offset) where SimType : LodDataMgr
+        static void DrawSim<SimType>(LodDataMgr lodData, bool actualSize, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f) where SimType : LodDataMgr
         {
             if (lodData == null) return;
 
@@ -238,25 +262,28 @@ namespace Crest
                         float y = idx * h;
                         if (offset == 1f) w += b;
 
-                        if (s_textureArrayMaterial == null)
+                        s_textureArrayMaterials.TryGetValue(lodData.DataTexture, out var material);
+                        if (material == null)
                         {
-                            s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            s_textureArrayMaterials.Add(lodData.DataTexture, material);
                         }
 
                         // Render specific slice of 2D texture array
-                        s_textureArrayMaterial.SetInt("_Depth", idx);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, s_textureArrayMaterial);
+                        material.SetInt("_Depth", idx);
+                        material.SetFloat("_Scale", scale);
+                        material.SetFloat("_Bias", bias);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, material);
                     }
                 }
             }
-
 
             doDraw = GUI.Toggle(new Rect(x + b, togglesBegin, w - 2f * b, _bottomPanelHeight), doDraw, s_simNames[type]);
 
             offset++;
         }
 
-        public static void DrawTextureArray(RenderTexture data, int columnOffsetFromRightSide)
+        public static void DrawTextureArray(RenderTexture data, int columnOffsetFromRightSide, float bias = 0f, float scale = 1f)
         {
             int offset = columnOffsetFromRightSide;
 
@@ -280,14 +307,18 @@ namespace Crest
                         float y = idx * h;
                         if (offset == 1f) w += b;
 
-                        if (s_textureArrayMaterial == null)
+                        s_textureArrayMaterials.TryGetValue(data, out var material);
+                        if (material == null)
                         {
-                            s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                            s_textureArrayMaterials.Add(data, material);
                         }
 
                         // Render specific slice of 2D texture array
-                        s_textureArrayMaterial.SetInt("_Depth", idx);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, s_textureArrayMaterial);
+                        material.SetInt("_Depth", idx);
+                        material.SetFloat("_Scale", scale);
+                        material.SetFloat("_Bias", bias);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, material);
                     }
                 }
             }
@@ -298,14 +329,12 @@ namespace Crest
             _guiVisible = !_guiVisible;
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
             s_simNames.Clear();
-            s_textureArrayMaterial = null;
+            s_textureArrayMaterials.Clear();
         }
     }
 }

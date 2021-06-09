@@ -211,7 +211,7 @@ namespace Crest
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame || (_waveBuffers != null))
+            if (_firstUpdate || updateDataEachFrame)
             {
                 InitBatches();
 

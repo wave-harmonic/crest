@@ -160,6 +160,12 @@ Shader "Crest/Underwater/Post Process"
 				bool disableCaustics = oceanMask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));
 
 				sceneZ01 = disableCaustics ? oceanDepth01 : sceneZ01;
+
+				// TODO: Should this affect disableCaustics? Do we want caustics on windows?
+				// Prevents ocean surface from being rendered behind windows when underwater.
+				const float occluderDepth01 = tex2D(_CrestOceanOccluderMaskDepthTexture, uvScreenSpace).x;
+				sceneZ01 = occluderDepth01 > sceneZ01 ? occluderDepth01 : sceneZ01;
+
 				const float sceneZ = CrestLinearEyeDepth(sceneZ01);
 
 				float wt = 1.0;

@@ -26,7 +26,9 @@
 		Pass
 		{
 			Name "CrestWaterTransparency"
+			ZWrite Off // TODO: Make this an option? Prevents particles from being culled behind it.
 			Blend Off
+
 			CGPROGRAM
 
 			#include "../../../Crest/Shaders/UnderwaterWindowShaderPass.hlsl"

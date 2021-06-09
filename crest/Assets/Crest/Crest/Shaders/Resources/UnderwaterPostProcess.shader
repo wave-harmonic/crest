@@ -50,6 +50,7 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanShaderData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "../OceanShaderHelpers.hlsl"
+			#include "../FullScreenTriangle.hlsl"
 
 			half3 _AmbientLighting;
 
@@ -86,13 +87,8 @@ Shader "Crest/Underwater/Post Process"
 				UNITY_INITIALIZE_OUTPUT(Varyings, output);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-				// Procedural fullscreen triangle: https://git.io/JsH97
-				output.positionCS = float4(float2((input.id << 1) & 2, input.id & 2) * 2.0 - 1.0, UNITY_NEAR_CLIP_VALUE, 1.0);;
-#if UNITY_UV_STARTS_AT_TOP
-				output.uv = float2((input.id << 1) & 2, 1.0 - (input.id & 2));
-#else
-				output.uv = float2((input.id << 1) & 2, input.id & 2);
-#endif
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
+				output.uv = GetFullScreenTriangleTexCoord(input.id);
 
 				// Compute world space view vector
 				{

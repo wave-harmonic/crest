@@ -9,27 +9,67 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
-.. important::
-
-   The *Unity Asset Store* distribution is broken in some versions of *Unity*, please use 2019.4.19f1 / 2020.2.3f1 / 2021.1.0b3 or later.
-   If you are upgrading `Crest`, please make a backup of your project and remove the `Crest` files before installing the new version.
-
 
 |version|
 ---------
+
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Set minimum Unity version to 2020.3.10.
+
+   .. only:: hdrp or urp
+
+      -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fixed case where normal could be NaN, which could make screen flash black in HDRP
+
+
+4.11
+----
+
+.. important::
+
+   This will be the last version which supports Unity 2019 LTS.
+
+   Spectrum data will be upgraded in this version.
+   Due to a unity bug, in some rare cases upgrading the spectrum may fail and waves will be too large.
+   Restart Unity to restore the spectrum.
+
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  `FFT` wave simulation added via new Shape `FFT` component.
+      Read :ref:`shape-fft-section` for more information.
 
 Changed
 ^^^^^^^
 .. bullet_list::
 
-   -  Sponsorship page launched! Asset Store sales only cover fixes and basic support. To support new feature development and give us financial stability please consider sponsoring us, no amount is too small! https://github.com/sponsors/wave-harmonic
-   -  Wind speed added to OceanRenderer component so that wave conditions change naturally for different wind conditions
-   -  Empirical spectra retweaked and use the aforementioned wind speed
+   -  Sponsorship page launched!
+      Asset Store sales only cover fixes and basic support.
+      To support new feature development and give us financial stability please consider sponsoring us, no amount is too small! https://github.com/sponsors/wave-harmonic
+   -  Wind speed added to OceanRenderer component so that wave conditions change naturally for different wind conditions.
+   -  Empirical spectra retweaked and use the aforementioned wind speed.
    -  Add Overall Normals Scale parameter to material that scales final surface normal (includes both normal map and wave simulation normal).
    -  Headless support - add support for running without display, with new toggle on OceanRenderer to emulate it in Editor.
    -  No GPU support - add support for running without GPU, with new toggle on OceanRenderer to emulate it in Editor.
    -  OceanRenderer usability - system automatically rebuilds when changing settings on the component, 'Rebuild' button removed.
    -  Ocean material can now be set with scripting.
+   -  Custom Time Provider has pause toggle, for easy pausing functionality.
+   -  Network Time Provider added to easily sync water simulation to server time.
+   -  Cutscene Time Provider added to drive water simulation time from Timelines.
+   -  Made many fields scriptable (public) on *BoatProbes*, *BoatAlignNormal* and *SimpleFloatingObject*.
+
+   .. only:: birp or urp
+
+      -  Tweaked colours and some of properties for *Ocean-Underwater* material. `[BIRP] [URP]`
 
    .. only:: hdrp
 
@@ -46,20 +86,35 @@ Fixed
    -  Fix bad data being sampled from simulations when they're not enabled like the entire ocean being shadowed when shadow data was disabled.
    -  Fix null exception for attach renderer help box fix button.
    -  Fix "remove renderer" help box not showing when it should.
+   -  Fix bug where wind direction could not be set per ShapeGerstner component.
+   -  Fix compilation errors when only Unity's new *Input System* backend is available.
+   -  Fix null exceptions in validation when *OceanRenderer* is not present.
+   -  Fix incorrect validation showing in prefab mode.
 
    .. only:: hdrp
 
       -  Fix shadow data for XR/VR `SPI` from working and breaking builds. `[HDRP]`
+      -  Fix underwater effect from breaking after all cameras being disabled. `[HDRP]`
 
    .. only:: urp
 
       -  Fix ocean tiles disappearing when far from zero. `[URP]`
 
-.. only:: birp or urp
+Removed
+^^^^^^^
+.. bullet_list::
 
-   Deprecated
-   ^^^^^^^^^^
-   -  The *Refractive Index of Air* on the ocean material will be removed in a future version. `[BIRP] [URP]`
+   -  Remove Phillips and JONSWAP spectrum model options.
+
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
+
+   -  *Layer Name* on the *Ocean Renderer* has been deprecated. Use *Layer* instead.
+
+   .. only:: birp or urp
+
+      -  The *Refractive Index of Air* on the ocean material will be removed in a future version. `[BIRP] [URP]`
 
 Documentation
 ^^^^^^^^^^^^^

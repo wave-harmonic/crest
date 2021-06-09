@@ -19,7 +19,6 @@ namespace Crest
         public static readonly int sp_CrestInvViewProjectionRight = Shader.PropertyToID("_CrestInvViewProjectionRight");
 
         static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
-        static readonly int sp_MainTex = Shader.PropertyToID("_MainTex");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
         static readonly int sp_CrestAmbientLighting = Shader.PropertyToID("_CrestAmbientLighting");
         static readonly int sp_CrestHorizonPosNormal = Shader.PropertyToID("_CrestHorizonPosNormal");
@@ -306,9 +305,6 @@ namespace Crest
                     underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
                 }
             }
-
-            // Not sure why we need to do this - blit should set it...?
-            underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
         }
 
         /// <summary>

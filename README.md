@@ -81,6 +81,20 @@ https://github.com/sponsors/wave-harmonic
 
 ## Sponsors
 
+### Diamond
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="middle">
+        <a href="https://www.okomotive.ch/" target="_blank">
+          <img width="222px" src="https://cdn.discordapp.com/attachments/849200677301125123/849271975746601030/okomotive_logo_rgb_color_transparent_512px.png">
+        </a>
+      </td>
+    </tr><tr></tr>
+  </tbody>
+</table>
+
 ### Gold 🥇
 
 [@celeronpm](https://github.com/celeronpm) [@ipthgil](https://github.com/ipthgil)

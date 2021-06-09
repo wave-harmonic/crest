@@ -17,6 +17,15 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Sphere Water Interaction")]
     public partial class SphereWaterInteraction : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         float Radius => 0.5f * transform.lossyScale.x;
 
         [Range(-1f, 1f), SerializeField]
@@ -188,9 +197,7 @@ namespace Crest
             Gizmos.DrawWireSphere(transform.position, Radius);
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
@@ -208,7 +215,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (!ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
+            if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
             {
                 showMessage
                 (

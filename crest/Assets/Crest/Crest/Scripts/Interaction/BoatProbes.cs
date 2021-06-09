@@ -6,6 +6,9 @@
 
 using System;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.Serialization;
 
 namespace Crest
@@ -16,40 +19,43 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Boat Probes")]
     public class BoatProbes : FloatingObjectBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Header("Forces")]
         [Tooltip("Override RB center of mass, in local space."), SerializeField]
         Vector3 _centerOfMass = Vector3.zero;
         [SerializeField, FormerlySerializedAs("ForcePoints")]
         FloaterForcePoints[] _forcePoints = new FloaterForcePoints[] { };
-
-        [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
-        float _forceHeightOffset = 0f;
-        [SerializeField]
-        float _forceMultiplier = 10f;
-        [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
-        float _minSpatialLength = 12f;
-        [SerializeField, Range(0, 1)]
-        float _turningHeel = 0.35f;
+        [Tooltip("Vertical offset for where engine force should be applied.")]
+        public float _forceHeightOffset = 0f;
+        public float _forceMultiplier = 10f;
+        [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be.")]
+        public float _minSpatialLength = 12f;
+        [Range(0, 1)]
+        public float _turningHeel = 0.35f;
 
         [Header("Drag")]
-        [SerializeField]
-        float _dragInWaterUp = 3f;
-        [SerializeField]
-        float _dragInWaterRight = 2f;
-        [SerializeField]
-        float _dragInWaterForward = 1f;
+        public float _dragInWaterUp = 3f;
+        public float _dragInWaterRight = 2f;
+        public float _dragInWaterForward = 1f;
 
         [Header("Control")]
-        [SerializeField, FormerlySerializedAs("EnginePower")]
-        float _enginePower = 7;
-        [SerializeField, FormerlySerializedAs("TurnPower")]
-        float _turnPower = 0.5f;
-        [SerializeField]
-        bool _playerControlled = true;
-        [Tooltip("Used to automatically add throttle input"), SerializeField]
-        float _engineBias = 0f;
-        [Tooltip("Used to automatically add turning input"), SerializeField]
-        float _turnBias = 0f;
+        [FormerlySerializedAs("EnginePower")]
+        public float _enginePower = 7;
+        [FormerlySerializedAs("TurnPower")]
+        public float _turnPower = 0.5f;
+        public bool _playerControlled = true;
+        [Tooltip("Used to automatically add throttle input")]
+        public float _engineBias = 0f;
+        [Tooltip("Used to automatically add turning input")]
+        public float _turnBias = 0f;
 
         private const float WATER_DENSITY = 1000;
 
@@ -146,11 +152,23 @@ namespace Crest
             var forcePosition = _rb.position;
 
             var forward = _engineBias;
-            if (_playerControlled) forward += Input.GetAxis("Vertical");
+            if (_playerControlled) forward +=
+#if ENABLE_INPUT_SYSTEM
+                (Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0);
+#else
+                Input.GetAxis("Vertical");
+#endif
             _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
             var sideways = _turnBias;
-            if (_playerControlled) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
+            if (_playerControlled) sideways +=
+#if ENABLE_INPUT_SYSTEM
+                (Keyboard.current.aKey.isPressed ? -1f : 0f) +
+                (Keyboard.current.dKey.isPressed ? 1f : 0f);
+#else
+                (Input.GetKey(KeyCode.A) ? -1f : 0f) +
+                (Input.GetKey(KeyCode.D) ? 1f : 0f);
+#endif
             var rotVec = transform.up + _turningHeel * transform.forward;
             _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
         }

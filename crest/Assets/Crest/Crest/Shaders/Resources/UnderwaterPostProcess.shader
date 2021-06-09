@@ -54,6 +54,7 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanHelpersNew.hlsl"
 			#include "../OceanShaderHelpers.hlsl"
 			#include "../OceanOccluderHelpers.hlsl"
+			#include "../FullScreenTriangle.hlsl"
 
 			#include "../OceanEmission.hlsl"
 			#include "../UnderwaterHelpers.hlsl"
@@ -66,8 +67,7 @@ Shader "Crest/Underwater/Post Process"
 
 			struct Attributes
 			{
-				float4 positionOS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint id : SV_VertexID;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -89,12 +89,12 @@ Shader "Crest/Underwater/Post Process"
 				UNITY_INITIALIZE_OUTPUT(Varyings, output);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-				output.positionCS = UnityObjectToClipPos(input.positionOS);
-				output.uv = input.uv;
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
+				output.uv = GetFullScreenTriangleTexCoord(input.id);
 
 				// Compute world space view vector
 				{
-					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+					const float2 pixelCS = output.uv * 2 - float2(1.0, 1.0);
 #if CREST_HANDLE_XR
 					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _CrestInvViewProjection : _CrestInvViewProjectionRight;
 #else
@@ -108,7 +108,7 @@ Shader "Crest/Underwater/Post Process"
 				return output;
 			}
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
 
@@ -136,7 +136,7 @@ Shader "Crest/Underwater/Post Process"
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
 
-				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, uvScreenSpace).rgb;
+				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
 
 				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
 

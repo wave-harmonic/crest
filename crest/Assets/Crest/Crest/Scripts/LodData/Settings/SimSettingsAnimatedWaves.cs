@@ -10,6 +10,15 @@ namespace Crest
     [CreateAssetMenu(fileName = "SimSettingsAnimatedWaves", menuName = "Crest/Animated Waves Sim Settings", order = 10000)]
     public partial class SimSettingsAnimatedWaves : SimSettingsBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
         float _attenuationInShallows = 0.95f;
         public float AttenuationInShallows { get { return _attenuationInShallows; } }

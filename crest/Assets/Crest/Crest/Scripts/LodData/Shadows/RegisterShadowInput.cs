@@ -14,6 +14,15 @@ namespace Crest
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#shadows")]
     public class RegisterShadowInput : RegisterLodDataInput<LodDataMgrShadow>
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public override bool Enabled => true;
 
         public override float Wavelength => 0f;

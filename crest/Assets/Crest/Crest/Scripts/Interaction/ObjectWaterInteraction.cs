@@ -16,6 +16,15 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Object Water Interaction")]
     public partial class ObjectWaterInteraction : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
 
@@ -171,7 +180,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (!ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
+            if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
             {
                 showMessage
                 (

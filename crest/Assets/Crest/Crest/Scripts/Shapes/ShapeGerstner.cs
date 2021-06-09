@@ -7,7 +7,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using Crest.Spline;
-using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -21,12 +20,21 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstner-preview")]
-    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
+    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin, LodDataMgrAnimWaves.IShapeUpdatable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
         OceanWaveSpectrum _activeSpectrum = null;
@@ -236,7 +244,8 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            return texelSize * OceanRenderer.Instance.MinTexelsPerWave;
+            // Nyquist rate
+            return texelSize * 2f;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -271,6 +280,7 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
@@ -282,7 +292,6 @@ namespace Crest
                 UpdateGenerateWaves(buf);
             }
 
-            buf.SetGlobalVector(sp_AxisX, PrimaryWaveDirection);
             // Seems to come unbound when editing shaders at runtime, so rebinding here.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }
@@ -700,6 +709,21 @@ namespace Crest
             {
                 _bufWaveData.Dispose();
                 _bufWaveData = null;
+            }
+
+            if (_waveBuffers != null)
+            {
+#if UNITY_EDITOR
+                if (!EditorApplication.isPlaying)
+                {
+                    DestroyImmediate(_waveBuffers);
+                }
+                else
+#endif
+                {
+                    Destroy(_waveBuffers);
+                }
+                _waveBuffers = null;
             }
         }
 

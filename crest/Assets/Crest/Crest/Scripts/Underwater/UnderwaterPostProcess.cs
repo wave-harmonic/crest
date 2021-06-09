@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -65,6 +66,8 @@ namespace Crest
         bool _eventsRegistered = false;
         bool _firstRender = true;
 
+        int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
+
         // Only one camera is supported.
         public static UnderwaterPostProcess Instance { get; private set; }
 
@@ -108,13 +111,8 @@ namespace Crest
                 }
             }
 
-            if (OceanRenderer.Instance && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
-            {
-                Debug.LogError("Underwater must be enabled on the ocean material for UnderwaterPostProcess to work", this);
-                return false;
-            }
-
-            return CheckMaterial();
+            // TODO: Use run-time materials only.
+            return true;
         }
 
         bool CheckMaterial()
@@ -137,12 +135,20 @@ namespace Crest
             return success;
         }
 
-        void Start()
+        void Awake()
         {
             if (!InitialisedCorrectly())
             {
                 enabled = false;
                 return;
+            }
+
+            if (_postProcessCommandBuffer == null)
+            {
+                _postProcessCommandBuffer = new CommandBuffer()
+                {
+                    name = "Underwater Pass",
+                };
             }
 
             // Stop the material from being saved on-edits at runtime
@@ -166,11 +172,13 @@ namespace Crest
         void OnEnable()
         {
             Instance = this;
+            _mainCamera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
         }
 
         void OnDisable()
         {
             Instance = null;
+            _mainCamera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
         }
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
@@ -212,14 +220,12 @@ namespace Crest
                 _maskCommandBuffer.Clear();
             }
 
-            {
-                RenderTextureDescriptor descriptor = XRHelpers.IsRunning
+            RenderTextureDescriptor descriptor = XRHelpers.IsRunning
                     ? XRHelpers.EyeRenderTextureDescriptor
                     : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
-                InitialiseMaskTextures(descriptor, true, ref _oceanMask, ref _oceanDepthBuffer);
-                // TODO(TRC):Now only initialise these if there are any transparent ocean occluders
-                InitialiseMaskTextures(descriptor, false, ref _oceanOccluderMask, ref _oceanOccluderDepthBuffer);
-            }
+            InitialiseMaskTextures(descriptor, true, ref _oceanMask, ref _oceanDepthBuffer);
+            // TODO(TRC):Now only initialise these if there are any transparent ocean occluders
+            InitialiseMaskTextures(descriptor, false, ref _oceanOccluderMask, ref _oceanOccluderDepthBuffer);
 
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera,
@@ -234,13 +240,9 @@ namespace Crest
             );
 
             _oceanOccluderMasksToRender.Clear();
-        }
 
-        void OnRenderImage(RenderTexture source, RenderTexture target)
-        {
             if (OceanRenderer.Instance == null)
             {
-                Graphics.Blit(source, target);
                 _eventsRegistered = false;
                 return;
             }
@@ -254,20 +256,19 @@ namespace Crest
                 _eventsRegistered = true;
             }
 
-            if (_postProcessCommandBuffer == null)
-            {
-                _postProcessCommandBuffer = new CommandBuffer();
-                _postProcessCommandBuffer.name = "Underwater Post Process";
-            }
-
             if (GL.wireframe)
             {
-                Graphics.Blit(source, target);
                 return;
             }
 
+            descriptor.useDynamicScale = _mainCamera.allowDynamicResolution;
+            // Format must be correct for CopyTexture to work. Hopefully this is good enough.
+            if (_mainCamera.allowHDR) descriptor.colorFormat = RenderTextureFormat.DefaultHDR;
+
+            var temporaryColorBuffer = RenderTexture.GetTemporary(descriptor);
+
             UpdatePostProcessMaterial(
-                source,
+                temporaryColorBuffer,
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
                 _sphericalHarmonicsData,
@@ -278,16 +279,33 @@ namespace Crest
                 _filterOceanData
             );
 
-            _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
-
-            Graphics.ExecuteCommandBuffer(_postProcessCommandBuffer);
             _postProcessCommandBuffer.Clear();
 
-            // Need this to prevent Unity from giving the following warning:
-            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
-            Graphics.SetRenderTarget(target);
+            if (_mainCamera.allowMSAA)
+            {
+                // Use blit if MSAA is active because transparents were not included with CopyTexture.
+                // Not sure if we need an MSAA resolve? Not sure how to do that...
+                _postProcessCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+            }
+            else
+            {
+                // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
+                _postProcessCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+            }
+
+            _underwaterPostProcessMaterialWrapper.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
+
+            _postProcessCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+            _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, -1, MeshTopology.Triangles, 3, 1);
+
+            RenderTexture.ReleaseTemporary(temporaryColorBuffer);
 
             _firstRender = false;
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(UnderwaterPostProcess))]
+    public class UnderwaterPostProcessEditor : Editor {}
+#endif
 }

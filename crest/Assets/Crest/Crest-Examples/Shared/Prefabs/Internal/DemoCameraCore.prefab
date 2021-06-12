@@ -46,9 +46,10 @@ Camera:
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.22794116, g: 0.22794116, b: 0.22794116, a: 1}
   m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_GateFitMode: 2
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -96,6 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93632dc736a214a419a990743badcde2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   _lerpAlpha: 0.01
   _targetPos: {fileID: 0}
   _targetLookatPos: {fileID: 0}
@@ -113,8 +115,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
+  _debug:
+    disableCameraRollPrevention: 0
+    disableOcclusionMesh: 0
+    occlusionMeshScale: 1

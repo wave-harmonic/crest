@@ -21,6 +21,9 @@ namespace Crest
     [RequireComponent(typeof(Camera))]
     public class UnderwaterPostProcess : MonoBehaviour
     {
+        [SerializeField]
+        MeshFilter _waterVolumeBoundaryGeometry;
+
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
 
@@ -253,7 +256,15 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 
             _postProcessCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-            _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, -1, MeshTopology.Triangles, 3, 1);
+
+            if (_waterVolumeBoundaryGeometry == null)
+            {
+                _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, 0, MeshTopology.Triangles, 3, 1);
+            }
+            else
+            {
+                _postProcessCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterPostProcessMaterial,0, 1);
+            }
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
 

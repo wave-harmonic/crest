@@ -83,7 +83,7 @@ float PiersonMoskowitzWindTerm( float w )
 	return exp( -1.291 * pow( wm / w, 4.0f ) );
 }
 
-float PosCosSquaredDirectionalSpreading(float w, float theta, float kMag, float dTheta)
+float PosCosSquaredDirectionalSpreading(float theta, float kMag)
 {
 	if( abs( theta ) < HPI )
 	{
@@ -151,9 +151,8 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	const float dK = PI2 / worldSize;
 	const float thetaPos = atan2(-k.y, k.x);
 	const float thetaNeg = atan2(k.y, -k.x);
-	const float dTheta = abs(atan2(dK, kMag));
-	deltaSPos *= PosCosSquaredDirectionalSpreading(w, thetaPos, kMag, dTheta);
-	deltaSNeg *= PosCosSquaredDirectionalSpreading(w, thetaNeg, kMag, dTheta);
+	deltaSPos *= PosCosSquaredDirectionalSpreading(thetaPos, kMag);
+	deltaSNeg *= PosCosSquaredDirectionalSpreading(thetaNeg, kMag);
 	deltaSPos *= (dK * dK) * dwdk / kMag;
 	deltaSNeg *= (dK * dK) * dwdk / kMag;
 

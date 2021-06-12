@@ -220,14 +220,14 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
+            _matGenerateWaves.SetVector(sp_AxisX, Vector2.right);
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
             ReportMaxDisplacement();
 
             var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame, _waveBuffers);
+            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, _waveDirectionHeadingAngle * Mathf.Deg2Rad, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame, _waveBuffers);
 
             // Seems to come unbound when editing shaders at runtime, so rebinding here.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);

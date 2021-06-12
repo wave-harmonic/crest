@@ -83,12 +83,11 @@ float PiersonMoskowitzWindTerm( float w )
 	return exp( -1.291 * pow( wm / w, 4.0f ) );
 }
 
-float PosCosSquaredDirectionalSpreading(float theta, float kMag)
+float PosCosSquaredDirectionalSpreading( float cosTheta )
 {
-	if( abs( theta ) < HPI )
+	if( cosTheta > 0.0 )
 	{
-		float ct = cos(theta);
-		return lerp( INVPI2 * (ct * ct), PI4, _Turbulence );
+		return lerp( INVPI2 * (cosTheta * cosTheta), PI4, _Turbulence );
 	}
 	else
 	{
@@ -99,6 +98,7 @@ float PosCosSquaredDirectionalSpreading(float theta, float kMag)
 RWTexture2DArray<float4> _ResultInit;
 Texture2D<float> _SpectrumControls;
 SamplerState linear_clamp_sampler;
+float2 _WindDir;
 
 [numthreads(8,8,1)]
 void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
@@ -148,11 +148,10 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	float deltaSNeg = spectrum;
 
 	// Directional spreading
+	const float cosTheta = dot( k, _WindDir ) / kMag;
+	deltaSPos *= PosCosSquaredDirectionalSpreading( cosTheta );
+	deltaSNeg *= PosCosSquaredDirectionalSpreading( -cosTheta );
 	const float dK = PI2 / worldSize;
-	const float thetaPos = atan2(-k.y, k.x);
-	const float thetaNeg = atan2(k.y, -k.x);
-	deltaSPos *= PosCosSquaredDirectionalSpreading(thetaPos, kMag);
-	deltaSNeg *= PosCosSquaredDirectionalSpreading(thetaNeg, kMag);
 	deltaSPos *= (dK * dK) * dwdk / kMag;
 	deltaSNeg *= (dK * dK) * dwdk / kMag;
 

@@ -89,13 +89,11 @@ half3 ScatterColour(
 
 
 #if _CAUSTICS_ON
-void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour,
+void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in const float3 scenePos, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
-	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
 
 	const float3 scenePosUV = WorldToUV(scenePos.xz, cascadeData1, _LD_SliceIndex + 1);
 
@@ -194,7 +192,9 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
-		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour, cascadeData0, cascadeData1);
+		float3 cameraForward = mul((float3x3)unity_CameraToWorld, float3(0.0, 0.0, 1.0));
+		float3 scenePosition = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(cameraForward, -i_view);
+		ApplyCaustics(i_view, i_lightDir, i_sceneZ, scenePosition, i_normals, i_underwater, sceneColour, cascadeData0, cascadeData1);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

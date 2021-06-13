@@ -72,7 +72,7 @@ Shader "Crest/Underwater/Post Process"
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
-	half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const float sceneZ, const half3 view, bool isOceanSurface)
+	half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const float sceneZ, const float3 scenePosition, const half3 view, bool isOceanSurface)
 	{
 		const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
@@ -98,7 +98,7 @@ Shader "Crest/Underwater/Post Process"
 #if _CAUSTICS_ON
 		if (sceneZ01 != 0.0 && !isOceanSurface)
 		{
-			ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
+			ApplyCaustics(view, lightDir, sceneZ, scenePosition, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
 		}
 #endif // _CAUSTICS_ON
 
@@ -172,11 +172,15 @@ Shader "Crest/Underwater/Post Process"
 #else
 		if (isUnderwater)
 		{
+			float3 view = normalize(input.viewWS);
 			float sceneZ = CrestLinearEyeDepth(sceneZ01);
+
+			float3 cameraForward = mul((float3x3)unity_CameraToWorld, float3(0.0, 0.0, 1.0));
+			float3 scenePosition = _WorldSpaceCameraPos - view * sceneZ / dot(cameraForward, -view);
 #if _GEOMETRY_EFFECT
 			sceneZ -= input.screenPosition.w;
 #endif
-			sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, sceneZ, normalize(input.viewWS), isOceanSurface);
+			sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, sceneZ, scenePosition, view, isOceanSurface);
 		}
 
 		return half4(wt * sceneColour, 1.0);

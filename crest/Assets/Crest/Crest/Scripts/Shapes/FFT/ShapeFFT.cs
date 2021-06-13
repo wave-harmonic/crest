@@ -98,6 +98,11 @@ namespace Crest
 
         Mesh _meshForDrawingWaves;
 
+        int _resolutionOld;
+        float _windTurbulenceOld;
+        float _windSpeedOld;
+        OceanWaveSpectrum _spectrumOld;
+
         public class FFTBatch : ILodDataInput
         {
             ShapeFFT _shapeFFT;
@@ -146,7 +151,6 @@ namespace Crest
         const int CASCADE_COUNT = 16;
 
         FFTBatch[] _batches = null;
-        FFTCompute _compute = null;
 
         // Used to populate data on first frame
         bool _firstUpdate = true;
@@ -159,11 +163,6 @@ namespace Crest
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
-
-        void InitData()
-        {
-            _compute = new FFTCompute();
-        }
 
         /// <summary>
         /// Min wavelength for a cascade in the wave buffer. Does not depend on viewpoint.
@@ -181,11 +180,6 @@ namespace Crest
 #if UNITY_EDITOR
             UpdateEditorOnly();
 #endif
-
-            if (_compute == null)
-            {
-                InitData();
-            }
 
             var updateDataEachFrame = !_spectrumFixedAtRuntime;
 #if UNITY_EDITOR
@@ -206,7 +200,19 @@ namespace Crest
             ReportMaxDisplacement();
 
             var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-            var waveData = _compute.GenerateDisplacements(buf, _resolution, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+
+            // Don't create tons of generators when values are varying. Notify so that existing generators may be adapted.
+            if (_resolutionOld != _resolution || _windTurbulenceOld != _windTurbulence || _windSpeedOld != windSpeedMPS || _spectrumOld != _spectrum)
+            {
+                FFTCompute.OnGenerationDataUpdated(_resolutionOld, _windTurbulenceOld, _windSpeedOld, _spectrumOld, _resolution, _windTurbulence, windSpeedMPS, _spectrum);
+            }
+
+            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+
+            _resolutionOld = _resolution;
+            _windTurbulenceOld = _windTurbulence;
+            _windSpeedOld = windSpeedMPS;
+            _spectrumOld = _spectrum;
 
             _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
         }
@@ -322,12 +328,6 @@ namespace Crest
 
                 _batches = null;
             }
-
-            if (_compute != null)
-            {
-                _compute.Release();
-                _compute = null;
-            }
         }
 
 #if UNITY_EDITOR
@@ -347,9 +347,10 @@ namespace Crest
 
         void OnGUI()
         {
-            if (_debugDrawSlicesInEditor && _compute != null)
+            if (_debugDrawSlicesInEditor)
             {
-                _compute.OnGUI();
+                var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
+                FFTCompute.OnGUI(_resolution, _windTurbulence, windSpeedMPS, _activeSpectrum);
             }
         }
 

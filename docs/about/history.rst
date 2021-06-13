@@ -27,7 +27,8 @@ Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fixed case where normal could be NaN, which could make screen flash black in HDRP
+   -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
+   -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
 
 
 4.11

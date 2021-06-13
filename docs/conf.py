@@ -234,6 +234,7 @@ rst_prolog = rst_prolog + """
 .. set:: SMAA :abbr:`SMAA (Subpixel Morphological Anti-Aliasing)`
 .. set:: SPI :abbr:`SPI (Single Pass Instanced)`
 .. set:: FFT :abbr:`FFT (Fast Fourier Transform)`
+.. set:: GC :abbr:`GC (Garbage Collector)`
 
 .. set:: DWP2 :abbr:`DWP2 (Dynamic Water Physics 2)`
 """

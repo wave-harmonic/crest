@@ -25,6 +25,9 @@ Shader "Crest/Underwater/Post Process"
 
 	#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
+	// Are we rendering from a geometry?
+	#pragma multi_compile_local __ _GEOMETRY_EFFECT
+	// Fullscreen only denotes an optimisation of whether to skip the horizon calculation. Not related to above.
 	#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
 
@@ -60,15 +63,17 @@ Shader "Crest/Underwater/Post Process"
 	struct Varyings
 	{
 		float4 positionCS : SV_POSITION;
+#if _GEOMETRY_EFFECT
+		float4 screenPosition : TEXCOORD0;
+#else
 		float2 uv : TEXCOORD0;
+#endif
 		float3 viewWS : TEXCOORD1;
-		float4 screenPosition : TEXCOORD2;
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
-	half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
+	half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const float sceneZ, const half3 view, bool isOceanSurface)
 	{
-		const float sceneZ = CrestLinearEyeDepth(sceneZ01);
 		const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 		half3 scatterCol = 0.0;
@@ -100,29 +105,30 @@ Shader "Crest/Underwater/Post Process"
 		return lerp(sceneColour, scatterCol, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneZ)));
 	}
 
-	fixed4 Frag (Varyings input) : SV_Target
+	fixed4 Frag(Varyings input) : SV_Target
 	{
 		// We need this when sampling a screenspace texture.
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-		float3 viewWS;
-		float farPlanePixelHeight;
+#if _GEOMETRY_EFFECT
+		float2 uv = input.screenPosition.xy / input.screenPosition.w;
+#else
+		float2 uv = input.uv;
+#endif
 
 #if !_FULL_SCREEN_EFFECT
 		// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
 		// intersection line is passed in.
 #if CREST_HANDLE_XR
 		const bool isBelowHorizon = unity_StereoEyeIndex == 0 ?
-			dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0 :
-			dot(input.uv - _HorizonPosNormalRight.xy, _HorizonPosNormalRight.zw) > 0.0;
+			dot(uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0 :
+			dot(uv - _HorizonPosNormalRight.xy, _HorizonPosNormalRight.zw) > 0.0;
 #else // CREST_HANDLE_XR
-		const bool isBelowHorizon = dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0;
+		const bool isBelowHorizon = dot(uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0;
 #endif // CREST_HANDLE_XR
 #else // !_FULL_SCREEN_EFFECT
 		const bool isBelowHorizon = true;
 #endif // !_FULL_SCREEN_EFFECT
-
-		float2 uv = input.screenPosition.xy / input.screenPosition.w;
 
 		const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(uv);
 
@@ -166,8 +172,11 @@ Shader "Crest/Underwater/Post Process"
 #else
 		if (isUnderwater)
 		{
-			const half3 view = normalize(input.viewWS);
-			sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
+			float sceneZ = CrestLinearEyeDepth(sceneZ01);
+#if _GEOMETRY_EFFECT
+			sceneZ -= length(input.viewWS);
+#endif
+			sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, sceneZ, normalize(input.viewWS), isOceanSurface);
 		}
 
 		return half4(wt * sceneColour, 1.0);
@@ -189,7 +198,7 @@ Shader "Crest/Underwater/Post Process"
 			Cull Off ZWrite Off ZTest Always
 
 			CGPROGRAM
-			#pragma vertex FullScreenVertex
+			#pragma vertex Vert
 			#pragma fragment Frag
 
 			struct Attributes
@@ -198,7 +207,7 @@ Shader "Crest/Underwater/Post Process"
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
-			Varyings FullScreenVertex(Attributes input)
+			Varyings Vert(Attributes input)
 			{
 				Varyings output;
 
@@ -230,42 +239,36 @@ Shader "Crest/Underwater/Post Process"
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex Vertex
+			#pragma vertex Vert
 			#pragma fragment Frag
 
 			struct Attributes
 			{
-				float3 positionOS : POSITION;
+				float3 positionOS : SV_POSITION;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
-			Varyings Vertex( Attributes input )
+			Varyings Vert(Attributes input)
 			{
 				Varyings output;
 
-				UNITY_SETUP_INSTANCE_ID( input );
-				UNITY_INITIALIZE_OUTPUT( Varyings, output );
-				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( output );
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_OUTPUT(Varyings, output);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-				// Use actual geo instead of full screen tri
-				output.positionCS = UnityObjectToClipPos( float4(input.positionOS, 1.0) );
-
-				// output.uv = output.positionCS.xy / output.positionCS.w;
-				// output.uv = 0.5 * output.uv + 0.5;
-				// output.uv.y = 1.0 - output.uv.y;
+				// Use actual geometry instead of full screen triangle.
+				output.positionCS = UnityObjectToClipPos(float4(input.positionOS, 1.0));
 				output.screenPosition = ComputeScreenPos(output.positionCS);
-				output.uv = output.screenPosition.xy / output.screenPosition.w;
 
 				// Compute world space view vector - TODO - the below code has XR considerations, and this code does not
 				// work. Usually i'd expect a view vector to be (worldPos-_WorldSpaceCameraPos). And viewVS below appears to
 				// take a view vector from the camera to the far plane, rather than to the geo, which likely is breaking the
 				// rest of the shader...
-				float3 worldPos = mul( UNITY_MATRIX_V, float4(input.positionOS, 1.0) );
+				float3 worldPos = mul(UNITY_MATRIX_M, float4(input.positionOS, 1.0));
 				output.viewWS = _WorldSpaceCameraPos - worldPos;
 
 				return output;
 			}
-
 			ENDCG
 		}
 	}

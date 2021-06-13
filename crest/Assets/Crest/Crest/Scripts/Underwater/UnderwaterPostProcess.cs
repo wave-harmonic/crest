@@ -259,10 +259,12 @@ namespace Crest
 
             if (_waterVolumeBoundaryGeometry == null)
             {
+                _underwaterPostProcessMaterial.DisableKeyword("_GEOMETRY_EFFECT");
                 _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, 0, MeshTopology.Triangles, 3, 1);
             }
             else
             {
+                _underwaterPostProcessMaterial.EnableKeyword("_GEOMETRY_EFFECT");
                 _postProcessCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterPostProcessMaterial,0, 1);
             }
 

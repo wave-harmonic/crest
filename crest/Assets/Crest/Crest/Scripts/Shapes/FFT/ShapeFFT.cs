@@ -220,14 +220,21 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            _matGenerateWaves.SetVector(sp_AxisX, Vector2.right);
+
+            // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
+            // to the geo rotation. If not, the wind direction is already used in the FFT gen.
+            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
+            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
+
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
             ReportMaxDisplacement();
 
+            // If geometry is being used, the ocean input shader will rotate the waves to align to geo
+            var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
             var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, _waveDirectionHeadingAngle * Mathf.Deg2Rad, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame, _waveBuffers);
+            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, windDirRad, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame, _waveBuffers);
 
             // Seems to come unbound when editing shaders at runtime, so rebinding here.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);

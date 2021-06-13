@@ -174,7 +174,7 @@ Shader "Crest/Underwater/Post Process"
 		{
 			float sceneZ = CrestLinearEyeDepth(sceneZ01);
 #if _GEOMETRY_EFFECT
-			sceneZ -= length(input.viewWS);
+			sceneZ -= input.screenPosition.w;
 #endif
 			sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, sceneZ, normalize(input.viewWS), isOceanSurface);
 		}
@@ -221,11 +221,11 @@ Shader "Crest/Underwater/Post Process"
 				// Compute world space view vector
 				{
 					const float2 pixelCS = output.uv * 2 - float2(1.0, 1.0);
-		#if CREST_HANDLE_XR
+#if CREST_HANDLE_XR
 					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
-		#else
+#else
 					const float4x4 InvViewProjection = _InvViewProjection;
-		#endif
+#endif
 					const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
 					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
 					output.viewWS = _WorldSpaceCameraPos - pixelWS;
@@ -244,7 +244,7 @@ Shader "Crest/Underwater/Post Process"
 
 			struct Attributes
 			{
-				float3 positionOS : SV_POSITION;
+				float3 positionOS : POSITION;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
@@ -258,7 +258,9 @@ Shader "Crest/Underwater/Post Process"
 
 				// Use actual geometry instead of full screen triangle.
 				output.positionCS = UnityObjectToClipPos(float4(input.positionOS, 1.0));
+#if _GEOMETRY_EFFECT
 				output.screenPosition = ComputeScreenPos(output.positionCS);
+#endif
 
 				// Compute world space view vector - TODO - the below code has XR considerations, and this code does not
 				// work. Usually i'd expect a view vector to be (worldPos-_WorldSpaceCameraPos). And viewVS below appears to

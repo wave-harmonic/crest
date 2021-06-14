@@ -160,6 +160,11 @@ namespace Crest
                         scratchPoints = tmp;
                     }
                 }
+
+                for (var i = 0; i < sampledPtsOffSpline.Length; i++)
+                {
+                    sampledPtsOffSpline[i].y = sampledPtsOnSpline[i].y;
+                }
             }
 
             return UpdateMesh(transform, sampledPtsOnSpline, sampledPtsOffSpline, customData, spline._closed, ref mesh);

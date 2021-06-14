@@ -160,12 +160,12 @@ namespace Crest
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
         {
-            enabled = false;
+            // enabled = false;
         }
 
         private void ViewerLessThan2mAboveWater(OceanRenderer ocean)
         {
-            enabled = true;
+            // enabled = true;
         }
 
         void OnPreRender()
@@ -212,7 +212,7 @@ namespace Crest
             {
                 OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
                 OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
-                enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
+                // enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
                 _eventsRegistered = true;
             }
 

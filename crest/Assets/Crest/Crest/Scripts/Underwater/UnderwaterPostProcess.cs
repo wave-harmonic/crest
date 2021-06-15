@@ -214,13 +214,12 @@ namespace Crest
             _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture);
             _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, true, Color.black);
             _waterBoundaryGeometryCommandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
+            _waterBoundaryGeometryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture);
 
             if (_waterVolumeBoundaryGeometry != null)
             {
                 _waterBoundaryGeometryCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _waterBoundaryGeometryMaterial, 0, 0);
             }
-
-            _oceanMaskMaterial.SetTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture);
 
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,

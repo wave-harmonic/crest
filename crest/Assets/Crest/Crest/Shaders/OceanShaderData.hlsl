@@ -12,6 +12,7 @@
 
 UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
+UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture);
 
 // NOTE: _Normals is used outside of _APPLYNORMALMAPPING_ON so we cannot surround it here.
 sampler2D _Normals;

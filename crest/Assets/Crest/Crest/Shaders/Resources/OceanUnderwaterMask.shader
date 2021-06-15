@@ -116,12 +116,12 @@ Shader "Crest/Underwater/Ocean Mask"
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.positionWS.xz, cascadeData0, _LD_SliceIndex);
-					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
+					SampleClipY(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
 				}
 				if (wt_biggerLod > 0.001)
 				{
 					const float3 uv_slice_biggerLod = WorldToUV(input.positionWS.xz, cascadeData1, _LD_SliceIndex + 1);
-					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
+					SampleClipY(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
 				}
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges

@@ -34,6 +34,10 @@ namespace Crest
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
         [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;
 
+        [Header("Underwater")]
+
+        public bool applyToUnderwater = false;
+
         public override float Wavelength => 0f;
 
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
@@ -47,6 +51,7 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
+        static int sp_ApplyToUnderwater = Shader.PropertyToID("_ApplyToUnderwater");
 
         private void LateUpdate()
         {
@@ -87,6 +92,8 @@ namespace Crest
 
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
+
+                _mpb.SetFloat(sp_ApplyToUnderwater, applyToUnderwater ? 1f : 0f);
 
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

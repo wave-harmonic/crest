@@ -25,17 +25,3 @@ Transparency requires the following two options to be enabled, *Depth Texture* a
 .. The best they have is /configuring-universalrp-for-use.html#adding-the-asset-to-your-graphics-settings.
 
 Read :link:`Unity's documentation on the {URP} Asset <{URPDocLink}/universalrp-asset.html#general>` for more information on these options.
-
-
-.. only:: html
-
-   .. raw:: html
-
-      <h4>Shadowing</h4>
-
-.. only:: latex
-
-   Shadowing
-   """""""""
-
-To enable shadowing of the water surface which will darken the appearance in shadows, add the *Sample Shadows* Render Feature by following :link:`How to add a Renderer Feature to a Renderer <{URPDocLink}/urp-renderer-feature-how-to-add.html>`.

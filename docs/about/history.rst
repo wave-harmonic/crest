@@ -23,6 +23,12 @@ Breaking
 
       -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
 
+   .. only:: urp
+
+      -  Remove *Sample Shadows* Render Feature as it is now scripted.
+         Unity will raise a missing Render Feature reference error.
+         Remove the missing Render Feature to resolve. `[URP]`
+
 Fixed
 ^^^^^
 .. bullet_list::

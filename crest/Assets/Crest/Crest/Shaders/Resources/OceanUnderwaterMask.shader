@@ -33,6 +33,7 @@ Shader "Crest/Underwater/Ocean Mask"
 				float4 positionCS : SV_POSITION;
 				float3 positionWS : TEXCOORD0;
 				float lodAlpha : TEXCOORD1;
+				float4 screenPosition : TEXCOORD2;
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -48,6 +49,8 @@ Shader "Crest/Underwater/Ocean Mask"
 			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
 			// i'm not sure why cracks are not visible in this case.
 			float _ForceUnderwater;
+
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture);
 
 			Varyings Vert(Attributes v)
 			{
@@ -99,6 +102,7 @@ Shader "Crest/Underwater/Ocean Mask"
 
 				output.positionWS = worldPos;
 				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+				output.screenPosition = ComputeScreenPos(output.positionCS);
 
 				return output;
 			}
@@ -126,6 +130,14 @@ Shader "Crest/Underwater/Ocean Mask"
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
+
+				half3 uv_z = input.screenPosition.xyz/input.screenPosition.w;
+				const float rawClipSurfaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uv_z.xy);
+
+				if (rawClipSurfaceZ < uv_z.z)
+				{
+					discard;
+				}
 
 				if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 				{

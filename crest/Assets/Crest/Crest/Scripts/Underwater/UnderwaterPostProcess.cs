@@ -46,12 +46,15 @@ namespace Crest
         private Camera _mainCamera;
         private RenderTexture _textureMask;
         private RenderTexture _depthBuffer;
+        private RenderTexture _waterBoundaryGeometryTexture;
+        private CommandBuffer _waterBoundaryGeometryCommandBuffer;
         private CommandBuffer _maskCommandBuffer;
         private CommandBuffer _postProcessCommandBuffer;
 
         private Plane[] _cameraFrustumPlanes;
 
         private Material _oceanMaskMaterial = null;
+        private Material _waterBoundaryGeometryMaterial = null;
 
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
 
@@ -63,6 +66,7 @@ namespace Crest
         bool _firstRender = true;
 
         int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
+        int sp_CrestWaterBoundaryGeometryTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryTexture");
 
         // Only one camera is supported.
         public static UnderwaterPostProcess Instance { get; private set; }
@@ -84,6 +88,7 @@ namespace Crest
 
             var maskShader = Shader.Find(SHADER_OCEAN_MASK);
             _oceanMaskMaterial = maskShader ? new Material(maskShader) : null;
+            _waterBoundaryGeometryMaterial = new Material(Shader.Find("Crest/Hidden/Water Boundary Geometry"));
             if (_oceanMaskMaterial == null)
             {
                 Debug.LogError($"Could not create a material with shader {SHADER_OCEAN_MASK}", this);
@@ -182,6 +187,15 @@ namespace Crest
                     CameraEvent.BeforeForwardAlpha,
                     _maskCommandBuffer
                 );
+
+                _waterBoundaryGeometryCommandBuffer = new CommandBuffer()
+                {
+                    name = "Water Boundary Geometry Depth",
+                };
+                _mainCamera.AddCommandBuffer(
+                    CameraEvent.BeforeForwardOpaque,
+                    _waterBoundaryGeometryCommandBuffer
+                );
             }
             else
             {
@@ -194,6 +208,19 @@ namespace Crest
                     : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
 
             InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
+            InitialiseClipSurfaceMaskTextures(descriptor, ref _waterBoundaryGeometryTexture);
+
+            _waterBoundaryGeometryCommandBuffer.Clear();
+            _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture);
+            _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, true, Color.black);
+            _waterBoundaryGeometryCommandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
+
+            if (_waterVolumeBoundaryGeometry != null)
+            {
+                _waterBoundaryGeometryCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _waterBoundaryGeometryMaterial, 0, 0);
+            }
+
+            _oceanMaskMaterial.SetTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture);
 
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,

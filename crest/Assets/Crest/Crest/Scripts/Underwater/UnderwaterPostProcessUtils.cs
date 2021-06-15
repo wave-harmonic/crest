@@ -77,6 +77,30 @@ namespace Crest
             }
         }
 
+        internal static void InitialiseClipSurfaceMaskTextures(RenderTextureDescriptor desc, ref RenderTexture depthBuffer)
+        {
+            // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
+            if (depthBuffer == null || depthBuffer.width != desc.width || depthBuffer.height != desc.height)
+            {
+                // @Performance: We should consider either a temporary RT or use an RTHandle if appropriate
+                // RenderTexture is a "native engine object". We have to release it to avoid memory leaks.
+                if (depthBuffer != null)
+                {
+                    depthBuffer.Release();
+                }
+
+                depthBuffer = new RenderTexture(desc)
+                {
+                    depth = 24,
+                    enableRandomWrite = false,
+                    name = "Clip Surface Mask",
+                    format = RenderTextureFormat.Depth,
+                };
+
+                depthBuffer.Create();
+            }
+        }
+
         // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may
         // be able to avoid this pass completely if we can reuse the camera depth after transparents are rendered.
         internal static void PopulateOceanMask(

@@ -864,7 +864,7 @@ MonoBehaviour:
   _version: 0
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
-  applyToUnderwater: 0
+  applyToUnderwater: 1
 --- !u!65 &530493145
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1054,7 +1054,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &692468586
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1136,7 +1136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &813040251
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -1663,14 +1663,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3190275879643289567, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
-      propertyPath: _viewPostProcessMask
+      propertyPath: _meniscus
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3190275879643289567, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _viewPostProcessMask
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3190275879643289567, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _waterVolumeBoundaryGeometry
       value: 
-      objectReference: {fileID: 530493147}
+      objectReference: {fileID: 692468587}
     - target: {fileID: 6721184188249843587, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_Enabled
@@ -1689,7 +1694,7 @@ PrefabInstance:
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _defaultClippingState
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
@@ -1808,7 +1813,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1043167818
 Transform:
   m_ObjectHideFlags: 0
@@ -1846,7 +1851,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1117252461
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1864,7 +1869,7 @@ MonoBehaviour:
   _version: 0
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
-  applyToUnderwater: 0
+  applyToUnderwater: 1
 --- !u!65 &1117252462
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2611,7 +2616,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1852602535
 Transform:
   m_ObjectHideFlags: 0

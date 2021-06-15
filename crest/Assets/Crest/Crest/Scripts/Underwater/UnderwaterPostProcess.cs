@@ -36,6 +36,9 @@ namespace Crest
         [SerializeField, Tooltip(tooltipMeniscus)]
         bool _meniscus = true;
 
+        public bool overrideFogDensity;
+        public Vector3 fogDensity;
+
         [Header("Debug Options")]
         [SerializeField] bool _viewPostProcessMask = false;
         [SerializeField] bool _disableOceanMask = false;
@@ -262,6 +265,8 @@ namespace Crest
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
                 _horizonSafetyMarginMultiplier,
+                overrideFogDensity,
+                fogDensity,
                 _filterOceanData
             );
 

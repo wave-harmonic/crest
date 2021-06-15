@@ -149,6 +149,8 @@ namespace Crest
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
+            bool overrideFogDensity,
+            Vector3 fogDensity,
             int dataSliceOffset
         )
         {
@@ -157,6 +159,10 @@ namespace Crest
             {
                 // Measured this at approx 0.05ms on dell laptop
                 underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                if (overrideFogDensity)
+                {
+                    underwaterPostProcessMaterial.SetVector("_DepthFogDensity", fogDensity);
+                }
             }
 
             // Enable/Disable meniscus.

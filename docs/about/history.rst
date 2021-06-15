@@ -29,6 +29,7 @@ Fixed
 
    -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
    -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
+   -  Fix shader compile errors on Windows 7.
 
 
 4.11

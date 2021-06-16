@@ -30,7 +30,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
             CGPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
-            #pragma enable_d3d11_debug_symbols
+            // #pragma enable_d3d11_debug_symbols
 
             #include "UnityCG.cginc"
 

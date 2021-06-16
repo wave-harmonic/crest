@@ -23,6 +23,12 @@ Breaking
 
       -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
 
+   .. only:: urp
+
+      -  Remove *Sample Shadows* Render Feature as it is now scripted.
+         Unity will raise a missing Render Feature reference error.
+         Remove the missing Render Feature to resolve. `[URP]`
+
 Changed
 ^^^^^^^
 .. bullet_list::
@@ -35,6 +41,7 @@ Fixed
 
    -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
    -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
+   -  Fix shader compile errors on Windows 7.
 
 
 4.11

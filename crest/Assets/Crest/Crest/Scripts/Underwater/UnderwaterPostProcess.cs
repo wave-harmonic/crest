@@ -23,9 +23,6 @@ namespace Crest
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
 
-        [SerializeField, Tooltip("Assign this to a material that uses shader `Crest/Underwater/Post Process`, with the same features enabled as the ocean surface material(s).")]
-        Material _underwaterPostProcessMaterial;
-
         [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData), Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue)]
         public int _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
 
@@ -49,8 +46,9 @@ namespace Crest
 
         private Material _oceanMaskMaterial = null;
 
-        private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
+        PropertyWrapperMaterial _underwaterPostProcessMaterial;
 
+        const string SHADER_UNDERWATER_EFFECT = "Hidden/Crest/Underwater/Underwater Effect";
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
         UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
@@ -81,12 +79,6 @@ namespace Crest
                 return false;
             }
 
-            if (_underwaterPostProcessMaterial == null)
-            {
-                Debug.LogError("UnderwaterPostProcess must have a post processing material assigned", this);
-                return false;
-            }
-
             var maskShader = Shader.Find(SHADER_OCEAN_MASK);
             _oceanMaskMaterial = maskShader ? new Material(maskShader) : null;
             if (_oceanMaskMaterial == null)
@@ -99,32 +91,25 @@ namespace Crest
             return true;
         }
 
-        bool CheckMaterial()
-        {
-            var success = true;
-
-            var keywords = _underwaterPostProcessMaterial.shaderKeywords;
-            foreach (var keyword in keywords)
-            {
-                if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
-
-                if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(keyword))
-                {
-                    Debug.LogWarning($"Keyword {keyword} was enabled on the underwater material {_underwaterPostProcessMaterial.name} but not on the ocean material {OceanRenderer.Instance.OceanMaterial.name}, underwater appearance may not match ocean surface in standalone builds.", this);
-
-                    success = false;
-                }
-            }
-
-            return success;
-        }
-
         void Awake()
         {
             if (!InitialisedCorrectly())
             {
                 enabled = false;
                 return;
+            }
+
+            if (_underwaterPostProcessMaterial == null)
+            {
+                var shader = Shader.Find(SHADER_UNDERWATER_EFFECT);
+                Debug.Assert
+                (
+                    shader != null,
+                    $"Could not load shader {SHADER_UNDERWATER_EFFECT}." +
+                    " Try right clicking the Crest folder in the Project view and selecting Reimport, and checking for errors.",
+                    OceanRenderer.Instance
+                );
+                _underwaterPostProcessMaterial = new PropertyWrapperMaterial(shader);
             }
 
             if (_postProcessCommandBuffer == null)
@@ -134,10 +119,6 @@ namespace Crest
                     name = "Underwater Pass",
                 };
             }
-
-            // Stop the material from being saved on-edits at runtime
-            _underwaterPostProcessMaterial = new Material(_underwaterPostProcessMaterial);
-            _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
         }
 
         private void OnDestroy()
@@ -234,7 +215,7 @@ namespace Crest
             UpdatePostProcessMaterial(
                 temporaryColorBuffer,
                 _mainCamera,
-                _underwaterPostProcessMaterialWrapper,
+                _underwaterPostProcessMaterial,
                 _sphericalHarmonicsData,
                 _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
@@ -258,10 +239,10 @@ namespace Crest
                 _postProcessCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
 
-            _underwaterPostProcessMaterialWrapper.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
+            _underwaterPostProcessMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 
             _postProcessCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-            _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, -1, MeshTopology.Triangles, 3, 1);
+            _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial.material, -1, MeshTopology.Triangles, 3, 1);
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
 

@@ -2,13 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Underwater/Post Process"
+Shader "Hidden/Crest/Underwater/Underwater Effect"
 {
-	Properties
-	{
-		[Header(Debug Options)]
-		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
-	}
 	SubShader
 	{
 		// No culling or depth

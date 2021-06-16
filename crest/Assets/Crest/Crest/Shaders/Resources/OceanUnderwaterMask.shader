@@ -51,7 +51,6 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			{
 				Varyings output;
 
-
 				UNITY_SETUP_INSTANCE_ID(v);
 				UNITY_INITIALIZE_OUTPUT(Varyings, output);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);

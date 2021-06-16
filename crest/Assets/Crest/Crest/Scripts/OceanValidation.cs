@@ -120,6 +120,7 @@ namespace Crest
                     MessageType.Error, gameObject,
                     FixAttachComponent<MeshRenderer>
                 );
+
                 return false;
             }
 

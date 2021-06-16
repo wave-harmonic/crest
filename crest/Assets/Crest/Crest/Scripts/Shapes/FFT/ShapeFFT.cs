@@ -192,7 +192,7 @@ namespace Crest
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame /*|| (_waveBuffers != null)*/)
+            if (_firstUpdate || updateDataEachFrame)
             {
                 InitBatches();
 
@@ -201,12 +201,19 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
+
+            // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
+            // to the geo rotation. If not, the wind direction is already used in the FFT gen.
+            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
+            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
+
 
             ReportMaxDisplacement();
 
+            // If geometry is being used, the ocean input shader will rotate the waves to align to geo
+            var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
             var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-            var waveData = _compute.GenerateDisplacements(buf, _resolution, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+            var waveData = _compute.GenerateDisplacements(buf, _resolution, _windTurbulence, windSpeedMPS, windDirRad, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
 
             _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
         }

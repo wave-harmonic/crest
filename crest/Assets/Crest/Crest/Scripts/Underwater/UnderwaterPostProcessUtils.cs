@@ -81,17 +81,12 @@ namespace Crest
         // be able to avoid this pass completely if we can reuse the camera depth after transparents are rendered.
         internal static void PopulateOceanMask(
             CommandBuffer commandBuffer, Camera camera, List<OceanChunkRenderer> chunksToRender, Plane[] frustumPlanes,
-            RenderTexture colorBuffer, RenderTexture depthBuffer,
-            Material oceanMaskMaterial,
-            bool debugDisableOceanMask
+            Material oceanMaskMaterial, bool debugDisableOceanMask
         )
         {
-            // Get all ocean chunks and render them using cmd buffer, but with mask shader.
-            // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
-            commandBuffer.SetRenderTarget(colorBuffer.colorBuffer, depthBuffer.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
-            commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
-            commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            GeometryUtility.CalculateFrustumPlanes(camera, frustumPlanes);
 
+            // Get all ocean chunks and render them using cmd buffer, but with mask shader.
             if (!debugDisableOceanMask)
             {
                 // Spends approx 0.2-0.3ms here on dell laptop
@@ -110,10 +105,6 @@ namespace Crest
                     chunk._oceanDataHasBeenBound = false;
                 }
             }
-
-            commandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, colorBuffer);
-            commandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, depthBuffer);
-
         }
 
         internal static void UpdatePostProcessMaterial(

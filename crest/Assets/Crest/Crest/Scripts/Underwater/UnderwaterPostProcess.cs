@@ -39,8 +39,8 @@ namespace Crest
         private Camera _mainCamera;
         private RenderTexture _textureMask;
         private RenderTexture _depthBuffer;
-        private CommandBuffer _maskCommandBuffer;
-        private CommandBuffer _postProcessCommandBuffer;
+        private CommandBuffer _oceanMaskCommandBuffer;
+        private CommandBuffer _underwaterEffectCommandBuffer;
 
         private Plane[] _cameraFrustumPlanes;
 
@@ -53,7 +53,6 @@ namespace Crest
 
         UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
-        bool _eventsRegistered = false;
         bool _firstRender = true;
 
         int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
@@ -87,104 +86,99 @@ namespace Crest
                 _underwaterPostProcessMaterial = new PropertyWrapperMaterial(SHADER_UNDERWATER_EFFECT);
             }
 
-            if (_postProcessCommandBuffer == null)
+            if (_underwaterEffectCommandBuffer == null)
             {
-                _postProcessCommandBuffer = new CommandBuffer()
+                _underwaterEffectCommandBuffer = new CommandBuffer()
                 {
                     name = "Underwater Pass",
                 };
             }
 
-            _mainCamera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
+            if (_oceanMaskCommandBuffer == null)
+            {
+                _oceanMaskCommandBuffer = new CommandBuffer()
+                {
+                    name = "Ocean Mask",
+                };
+            }
+
+            if (_cameraFrustumPlanes == null)
+            {
+                _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_mainCamera);
+            }
+
+            _mainCamera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            _mainCamera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
             Instance = this;
         }
 
         void OnDisable()
         {
-            _mainCamera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
+            _mainCamera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            _mainCamera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
             Instance = null;
-        }
-
-        private void OnDestroy()
-        {
-            if (OceanRenderer.Instance && _eventsRegistered)
-            {
-                OceanRenderer.Instance.ViewerLessThan2mAboveWater -= ViewerLessThan2mAboveWater;
-                OceanRenderer.Instance.ViewerMoreThan2mAboveWater -= ViewerMoreThan2mAboveWater;
-            }
-
-            _eventsRegistered = false;
-        }
-
-        private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
-        {
-            enabled = false;
-        }
-
-        private void ViewerLessThan2mAboveWater(OceanRenderer ocean)
-        {
-            enabled = true;
         }
 
         void OnPreRender()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                OnDisable();
+                return;
+            }
+
+            if (GL.wireframe)
+            {
+                OnDisable();
+                return;
+            }
+
+            if (OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+            {
+                OnDisable();
+                return;
+            }
+
+            if (Instance == null)
+            {
+                OnEnable();
+            }
+
             XRHelpers.Update(_mainCamera);
             XRHelpers.UpdatePassIndex(ref _xrPassIndex);
-
-            // Allocate planes only once
-            if (_cameraFrustumPlanes == null)
-            {
-                _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_mainCamera);
-                _maskCommandBuffer = new CommandBuffer();
-                _maskCommandBuffer.name = "Ocean Mask Command Buffer";
-                _mainCamera.AddCommandBuffer(
-                    CameraEvent.BeforeForwardAlpha,
-                    _maskCommandBuffer
-                );
-            }
-            else
-            {
-                GeometryUtility.CalculateFrustumPlanes(_mainCamera, _cameraFrustumPlanes);
-                _maskCommandBuffer.Clear();
-            }
 
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_mainCamera);
 
             InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
 
-            PopulateOceanMask(
-                _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
-                _textureMask, _depthBuffer,
+            _oceanMaskCommandBuffer.Clear();
+            // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
+            _oceanMaskCommandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
+            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
+            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _textureMask.colorBuffer);
+            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthBuffer.depthBuffer);
+
+            PopulateOceanMask
+            (
+                _oceanMaskCommandBuffer,
+                _mainCamera,
+                OceanRenderer.Instance.Tiles,
+                _cameraFrustumPlanes,
                 _oceanMaskMaterial.material,
                 _disableOceanMask
             );
 
-            if (OceanRenderer.Instance == null)
-            {
-                _eventsRegistered = false;
-                return;
-            }
-
-            if (!_eventsRegistered)
-            {
-                OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
-                OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
-                enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
-                _eventsRegistered = true;
-            }
-
-            if (GL.wireframe)
-            {
-                return;
-            }
-
             descriptor.useDynamicScale = _mainCamera.allowDynamicResolution;
             // Format must be correct for CopyTexture to work. Hopefully this is good enough.
-            if (_mainCamera.allowHDR) descriptor.colorFormat = RenderTextureFormat.DefaultHDR;
+            if (_mainCamera.allowHDR)
+            {
+                descriptor.colorFormat = RenderTextureFormat.DefaultHDR;
+            }
 
             var temporaryColorBuffer = RenderTexture.GetTemporary(descriptor);
 
-            UpdatePostProcessMaterial(
+            UpdatePostProcessMaterial
+            (
                 _mainCamera,
                 _underwaterPostProcessMaterial,
                 _sphericalHarmonicsData,
@@ -196,24 +190,24 @@ namespace Crest
                 _xrPassIndex
             );
 
-            _postProcessCommandBuffer.Clear();
+            _underwaterEffectCommandBuffer.Clear();
 
             if (_mainCamera.allowMSAA)
             {
                 // Use blit if MSAA is active because transparents were not included with CopyTexture.
                 // Not sure if we need an MSAA resolve? Not sure how to do that...
-                _postProcessCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+                _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
             else
             {
                 // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
-                _postProcessCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+                _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
 
             _underwaterPostProcessMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 
-            _postProcessCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-            _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+            _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial.material, -1, MeshTopology.Triangles, 3, 1);
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
 

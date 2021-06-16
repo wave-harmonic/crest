@@ -334,11 +334,6 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-        public delegate void EventHandler(OceanRenderer ocean);
-        public event EventHandler ViewerLessThan2mAboveWater;
-        public event EventHandler ViewerMoreThan2mAboveWater;
-        bool _firstViewerHeightUpdate = true;
-
         public static OceanRenderer Instance { get; private set; }
 
         // A hash of the settings used to generate the ocean, used to regenerate when necessary
@@ -429,8 +424,6 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
-            _firstViewerHeightUpdate = true;
-
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
 
@@ -529,8 +522,6 @@ namespace Crest
 
         private void OnDisable()
         {
-            _firstViewerHeightUpdate = true;
-
 #if UNITY_EDITOR
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -998,7 +989,6 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            var oldViewerHeight = ViewerHeightAboveWater;
             var camera = ViewCamera;
 
             _sampleHeightHelper.Init(camera.transform.position, 0f, true);
@@ -1006,18 +996,6 @@ namespace Crest
             _sampleHeightHelper.Sample(out var waterHeight);
 
             ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
-
-            // _firstViewerHeightUpdate is tracked to always broadcast initial state
-            if ((oldViewerHeight >= 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater < 2f)
-            {
-                ViewerLessThan2mAboveWater?.Invoke(this);
-            }
-            else if ((oldViewerHeight < 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater >= 2f)
-            {
-                ViewerMoreThan2mAboveWater?.Invoke(this);
-            }
-
-            _firstViewerHeightUpdate = false;
         }
 
         void LateUpdateLods()

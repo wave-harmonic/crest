@@ -117,7 +117,6 @@ namespace Crest
         }
 
         internal static void UpdatePostProcessMaterial(
-            RenderTexture source,
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,

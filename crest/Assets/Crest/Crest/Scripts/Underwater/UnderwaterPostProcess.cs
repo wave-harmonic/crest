@@ -213,7 +213,6 @@ namespace Crest
             var temporaryColorBuffer = RenderTexture.GetTemporary(descriptor);
 
             UpdatePostProcessMaterial(
-                temporaryColorBuffer,
                 _mainCamera,
                 _underwaterPostProcessMaterial,
                 _sphericalHarmonicsData,

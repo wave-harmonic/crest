@@ -66,7 +66,6 @@ Shader "Crest/Underwater/Post Process"
 			struct Attributes
 			{
 				uint id : SV_VertexID;
-
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
@@ -75,7 +74,6 @@ Shader "Crest/Underwater/Post Process"
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
 				float3 viewWS : TEXCOORD1;
-
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
@@ -92,7 +90,7 @@ Shader "Crest/Underwater/Post Process"
 
 				// Compute world space view vector
 				{
-					const float2 pixelCS = output.uv * 2 - float2(1.0, 1.0);
+					const float2 pixelCS = output.uv * 2.0 - float2(1.0, 1.0);
 #if CREST_HANDLE_XR
 					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
 #else
@@ -110,9 +108,9 @@ Shader "Crest/Underwater/Post Process"
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
 
-			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
+			half3 ApplyUnderwaterEffect(half3 sceneColour, const float rawDepth, const half3 view, bool isOceanSurface)
 			{
-				const float sceneZ = CrestLinearEyeDepth(sceneZ01);
+				const float sceneZ = CrestLinearEyeDepth(rawDepth);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 				half3 scatterCol = 0.0;
@@ -135,7 +133,7 @@ Shader "Crest/Underwater/Post Process"
 				}
 
 #if _CAUSTICS_ON
-				if (sceneZ01 != 0.0 && !isOceanSurface)
+				if (rawDepth != 0.0 && !isOceanSurface)
 				{
 					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
 				}
@@ -148,9 +146,6 @@ Shader "Crest/Underwater/Post Process"
 			{
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-				float3 viewWS;
-				float farPlanePixelHeight;
 
 #if !_FULL_SCREEN_EFFECT
 				// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
@@ -170,13 +165,13 @@ Shader "Crest/Underwater/Post Process"
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
 
-				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
+				float rawDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
 
 				float mask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace).x;
-				const float oceanDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace);
-				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
+				const float rawOceanDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace);
+				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (rawDepth < rawOceanDepth);
 				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
-				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
+				rawDepth = isOceanSurface ? rawOceanDepth : rawDepth;
 
 				float wt = 1.0;
 
@@ -209,7 +204,7 @@ Shader "Crest/Underwater/Post Process"
 				if (isUnderwater)
 				{
 					const half3 view = normalize(input.viewWS);
-					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
+					sceneColour = ApplyUnderwaterEffect(sceneColour, rawDepth, view, isOceanSurface);
 				}
 
 				return half4(wt * sceneColour, 1.0);

@@ -23,6 +23,14 @@ Breaking
 
       -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
 
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world
+
+
 Fixed
 ^^^^^
 .. bullet_list::

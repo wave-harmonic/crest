@@ -29,6 +29,12 @@ Breaking
          Unity will raise a missing Render Feature reference error.
          Remove the missing Render Feature to resolve. `[URP]`
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
+
 Fixed
 ^^^^^
 .. bullet_list::

@@ -42,6 +42,7 @@ namespace Crest
 
         float _prevWindTurbulence;
         float _prevWindSpeed;
+        float _prevWindDir;
         int _prevResolution;
 
         int _kernelSpectrumInit;
@@ -116,7 +117,7 @@ namespace Crest
         /// <summary>
         /// Computes water surface displacement, with wave components split across slices of the output texture array
         /// </summary>
-        public void GenerateDisplacements(CommandBuffer buf, float windTurbulence, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum, RenderTexture _outputTextureArray)
+        public void GenerateDisplacements(CommandBuffer buf, float windTurbulence, float windSpeed, float windDirRad, float time, OceanWaveSpectrum spectrum, bool updateSpectrum, RenderTexture _outputTextureArray)
         {
             Debug.Assert(_outputTextureArray != null, "FFT: No output texture provided.");
 
@@ -133,15 +134,17 @@ namespace Crest
 
             if (!Mathf.Approximately(_prevWindTurbulence, windTurbulence) ||
                 !Mathf.Approximately(_prevWindSpeed, windSpeed) ||
+                !Mathf.Approximately(_prevWindDir, windDirRad) ||
                 resolution != _prevResolution ||
                 updateSpectrum
                 )
             {
                 _prevWindTurbulence = windTurbulence;
                 _prevWindSpeed = windSpeed;
+                _prevWindDir = windDirRad;
                 _prevResolution = resolution;
 
-                InitializeSpectrum(buf, resolution, windSpeed, windTurbulence, spectrum._gravityScale * Mathf.Abs(Physics.gravity.magnitude));
+                InitializeSpectrum(buf, resolution, windSpeed, windDirRad, windTurbulence, spectrum._gravityScale * Mathf.Abs(Physics.gravity.magnitude));
             }
 
             UpdateSpectrum(buf, resolution, time, spectrum._chop);
@@ -206,12 +209,13 @@ namespace Crest
         /// <summary>
         /// Computes base spectrum values based on wind speed & turbulence & spectrum controls
         /// </summary>
-        void InitializeSpectrum(CommandBuffer buf, int size, float windSpeed, float windTurbulence, float gravity)
+        void InitializeSpectrum(CommandBuffer buf, int size, float windSpeed, float windDirRad, float windTurbulence, float gravity)
         {
             buf.SetComputeIntParam(_shaderSpectrum, "_Size", size);
             buf.SetComputeFloatParam(_shaderSpectrum, "_WindSpeed", windSpeed);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Turbulence", windTurbulence);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Gravity", gravity);
+            buf.SetComputeVectorParam(_shaderSpectrum, "_WindDir", new Vector2(Mathf.Cos(windDirRad), Mathf.Sin(windDirRad)));
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_SpectrumControls", _texSpectrumControls);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_ResultInit", _spectrumInit);
             buf.DispatchCompute(_shaderSpectrum, _kernelSpectrumInit, size / 8, size / 8, CASCADE_COUNT);

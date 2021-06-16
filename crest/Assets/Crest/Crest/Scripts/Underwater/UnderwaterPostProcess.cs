@@ -44,7 +44,7 @@ namespace Crest
 
         private Plane[] _cameraFrustumPlanes;
 
-        private Material _oceanMaskMaterial = null;
+        PropertyWrapperMaterial _oceanMaskMaterial;
 
         PropertyWrapperMaterial _underwaterPostProcessMaterial;
 
@@ -70,46 +70,16 @@ namespace Crest
             _xrPassIndex = -1;
         }
 
-        private bool InitialisedCorrectly()
+        void OnEnable()
         {
-            _mainCamera = GetComponent<Camera>();
-            if (_mainCamera == null)
+            if (_oceanMaskMaterial?.material == null)
             {
-                Debug.LogError("UnderwaterPostProcess must be attached to a camera", this);
-                return false;
+                _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
             }
 
-            var maskShader = Shader.Find(SHADER_OCEAN_MASK);
-            _oceanMaskMaterial = maskShader ? new Material(maskShader) : null;
-            if (_oceanMaskMaterial == null)
+            if (_underwaterPostProcessMaterial?.material == null)
             {
-                Debug.LogError($"Could not create a material with shader {SHADER_OCEAN_MASK}", this);
-                return false;
-            }
-
-            // TODO: Use run-time materials only.
-            return true;
-        }
-
-        void Awake()
-        {
-            if (!InitialisedCorrectly())
-            {
-                enabled = false;
-                return;
-            }
-
-            if (_underwaterPostProcessMaterial == null)
-            {
-                var shader = Shader.Find(SHADER_UNDERWATER_EFFECT);
-                Debug.Assert
-                (
-                    shader != null,
-                    $"Could not load shader {SHADER_UNDERWATER_EFFECT}." +
-                    " Try right clicking the Crest folder in the Project view and selecting Reimport, and checking for errors.",
-                    OceanRenderer.Instance
-                );
-                _underwaterPostProcessMaterial = new PropertyWrapperMaterial(shader);
+                _underwaterPostProcessMaterial = new PropertyWrapperMaterial(SHADER_UNDERWATER_EFFECT);
             }
 
             if (_postProcessCommandBuffer == null)
@@ -119,6 +89,14 @@ namespace Crest
                     name = "Underwater Pass",
                 };
             }
+            Instance = this;
+            _mainCamera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
+        }
+
+        void OnDisable()
+        {
+            Instance = null;
+            _mainCamera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
         }
 
         private void OnDestroy()
@@ -130,18 +108,6 @@ namespace Crest
             }
 
             _eventsRegistered = false;
-        }
-
-        void OnEnable()
-        {
-            Instance = this;
-            _mainCamera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
-        }
-
-        void OnDisable()
-        {
-            Instance = null;
-            _mainCamera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
         }
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
@@ -183,7 +149,7 @@ namespace Crest
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
                 _textureMask, _depthBuffer,
-                _oceanMaskMaterial,
+                _oceanMaskMaterial.material,
                 _disableOceanMask
             );
 

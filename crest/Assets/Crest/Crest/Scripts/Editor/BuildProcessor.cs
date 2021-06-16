@@ -19,7 +19,7 @@ namespace Crest
     class BuildProcessor : IPreprocessShaders, IProcessSceneWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
-        string UnderwaterShaderName => "Crest/Underwater/Post Process";
+        string UnderwaterShaderName => "Hidden/Crest/Underwater/Underwater Effect";
         readonly List<Material> _oceanMaterials = new List<Material>();
 
 #if CREST_DEBUG

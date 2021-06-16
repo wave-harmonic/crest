@@ -49,7 +49,7 @@ namespace Crest
         PropertyWrapperMaterial _underwaterPostProcessMaterial;
 
         const string SHADER_UNDERWATER_EFFECT = "Hidden/Crest/Underwater/Underwater Effect";
-        private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
+        private const string SHADER_OCEAN_MASK = "Hidden/Crest/Underwater/Ocean Mask";
 
         UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
@@ -72,6 +72,11 @@ namespace Crest
 
         void OnEnable()
         {
+            if (_mainCamera == null)
+            {
+                _mainCamera = GetComponent<Camera>();
+            }
+
             if (_oceanMaskMaterial?.material == null)
             {
                 _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
@@ -89,14 +94,15 @@ namespace Crest
                     name = "Underwater Pass",
                 };
             }
-            Instance = this;
+
             _mainCamera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
+            Instance = this;
         }
 
         void OnDisable()
         {
-            Instance = null;
             _mainCamera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _postProcessCommandBuffer);
+            Instance = null;
         }
 
         private void OnDestroy()

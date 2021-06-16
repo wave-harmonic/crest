@@ -268,7 +268,7 @@ namespace Crest
 
 #if ENABLE_VR && ENABLE_VR_MODULE
                 // Disable for XR SPI otherwise input will not have correct world position.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
                     BufCopyShadowMap.DisableShaderKeyword("STEREO_INSTANCING_ON");
                 }
@@ -283,7 +283,7 @@ namespace Crest
 
 #if ENABLE_VR && ENABLE_VR_MODULE
                 // Restore XR SPI as we cannot rely on remaining pipeline to do it for us.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
                     BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
                 }

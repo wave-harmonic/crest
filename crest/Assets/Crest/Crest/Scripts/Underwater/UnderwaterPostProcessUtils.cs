@@ -115,6 +115,7 @@ namespace Crest
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
+            float farPlaneMultiplier,
             int dataSliceOffset,
             int xrPassIndex
         )
@@ -215,14 +216,14 @@ namespace Crest
                 {
                     // ViewportToWorldPoint is bugged in HDRP so we have to set the matrix and not use the eye parameter.
                     camera.projectionMatrix = XRHelpers.LeftEyeProjectionMatrix;
-                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
                 {
                     // ViewportToWorldPoint is bugged in HDRP so we have to set the matrix and not use the eye parameter.
                     camera.projectionMatrix = XRHelpers.RightEyeProjectionMatrix;
-                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
@@ -239,7 +240,7 @@ namespace Crest
                 XRHelpers.SetViewProjectionMatrices(camera, xrPassIndex);
 
                 {
-                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
@@ -269,7 +270,7 @@ namespace Crest
         /// Compute intersection between the frustum far plane and the ocean plane, and return view space pos and normal
         /// for this horizon line.
         /// </summary>
-        static void GetHorizonPosNormal(Camera camera, float seaLevel, float horizonSafetyMarginMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
+        static void GetHorizonPosNormal(Camera camera, float seaLevel, float horizonSafetyMarginMultiplier, float farPlaneMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
         {
             // Set up back points of frustum
             NativeArray<Vector3> v_screenXY_viewZ = new NativeArray<Vector3>(4, Allocator.Temp);
@@ -277,10 +278,11 @@ namespace Crest
             try
             {
 
-                v_screenXY_viewZ[0] = new Vector3(0f, 0f, camera.farClipPlane);
-                v_screenXY_viewZ[1] = new Vector3(0f, 1f, camera.farClipPlane);
-                v_screenXY_viewZ[2] = new Vector3(1f, 1f, camera.farClipPlane);
-                v_screenXY_viewZ[3] = new Vector3(1f, 0f, camera.farClipPlane);
+                var farPlane = camera.farClipPlane * farPlaneMultiplier;
+                v_screenXY_viewZ[0] = new Vector3(0f, 0f, farPlane);
+                v_screenXY_viewZ[1] = new Vector3(0f, 1f, farPlane);
+                v_screenXY_viewZ[2] = new Vector3(1f, 1f, farPlane);
+                v_screenXY_viewZ[3] = new Vector3(1f, 0f, farPlane);
 
                 // Project out to world
                 for (int i = 0; i < v_world.Length; i++)

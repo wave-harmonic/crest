@@ -32,6 +32,15 @@ namespace Crest
         [Header("Debug Options")]
         [SerializeField] bool _viewPostProcessMask = false;
         [SerializeField] bool _disableOceanMask = false;
+
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip("Adjusts the far plane for horizon line calculation. Helps with horizon line issue. (Experimental)")]
+        float _farPlaneMultiplier = 0.68f;
+
+        [SerializeField]
+        [Tooltip("Use the old horizon safety margin multiplier to fix horizon line issues instead of the new experimental far plane multiplier.")]
+        bool _useHorizonSafetyMarginMultiplier = false;
+
         [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipHorizonSafetyMarginMultiplier), Range(0f, 1f)]
         float _horizonSafetyMarginMultiplier = UnderwaterPostProcessUtils.DefaultHorizonSafetyMarginMultiplier;
         // end public debug options
@@ -191,7 +200,10 @@ namespace Crest
                 _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
-                _horizonSafetyMarginMultiplier,
+                 // horizonSafetyMarginMultiplier is added to the horizon, so no-op is zero.
+                 _useHorizonSafetyMarginMultiplier ? _horizonSafetyMarginMultiplier : 0f,
+                 // farPlaneMultiplier is multiplied to the far plane, so no-op is one.
+                 _useHorizonSafetyMarginMultiplier ? 1f : _farPlaneMultiplier,
                 _filterOceanData,
                 _xrPassIndex
             );

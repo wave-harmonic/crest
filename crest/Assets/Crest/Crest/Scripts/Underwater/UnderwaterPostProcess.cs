@@ -144,6 +144,12 @@ namespace Crest
                 OnEnable();
             }
 
+            // Ensure legacy underwater fog is disabled.
+            if (_firstRender)
+            {
+                OceanRenderer.Instance.OceanMaterial.DisableKeyword("_OLD_UNDERWATER");
+            }
+
             XRHelpers.Update(_mainCamera);
             XRHelpers.UpdatePassIndex(ref _xrPassIndex);
 

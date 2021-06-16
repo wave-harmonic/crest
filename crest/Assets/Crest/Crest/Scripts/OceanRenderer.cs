@@ -1248,12 +1248,11 @@ namespace Crest
             }
 
             // UnderwaterEffect
-            // TODO:UnderwaterPostProcessValidation
-            // var underwaters = FindObjectsOfType<UnderwaterPostProcess>();
-            // foreach (var underwater in underwaters)
-            // {
-            //     underwater.Validate(ocean, ValidatedHelper.DebugLog);
-            // }
+            var underwaters = FindObjectsOfType<UnderwaterEffect>();
+            foreach (var underwater in underwaters)
+            {
+                underwater.Validate(ocean, ValidatedHelper.DebugLog);
+            }
 
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();

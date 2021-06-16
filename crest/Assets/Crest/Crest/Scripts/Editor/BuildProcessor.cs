@@ -60,6 +60,11 @@ namespace Crest
             {
                 ProcessUnderwaterShader(shader, data);
             }
+
+            if (shader.name == "Crest/Underwater Curtain")
+            {
+                ProcessUnderwaterShader(shader, data);
+            }
         }
 
         /// <summary>

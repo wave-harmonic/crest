@@ -5,11 +5,10 @@ Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Ocean-Underwater-PostProcess
-  m_Shader: {fileID: 4800000, guid: 21526e2f48db9c74fa5d5800b309c2b0, type: 3}
-  m_ShaderKeywords:
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Ocean_UnderwaterMeniscus
+  m_Shader: {fileID: 4800000, guid: dcb560253b2dacc48b6507eeb72ee5a4, type: 3}
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -57,7 +56,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
-    - _Caustics: 1
     - _CompileShaderWithDebugInfo: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -65,18 +63,14 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Meniscus: 1
+    - _MeniscusWidth: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Shadows: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SubSurfaceScattering: 1
-    - _SubSurfaceShallowColour: 1
-    - _Transparency: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:

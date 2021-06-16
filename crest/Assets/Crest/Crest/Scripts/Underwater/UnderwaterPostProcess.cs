@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-
 using static Crest.UnderwaterPostProcessUtils;
 
 namespace Crest
@@ -61,8 +60,17 @@ namespace Crest
 
         int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
 
+        static int _xrPassIndex = -1;
+
         // Only one camera is supported.
         public static UnderwaterPostProcess Instance { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void InitStatics()
+        {
+            Instance = null;
+            _xrPassIndex = -1;
+        }
 
         private bool InitialisedCorrectly()
         {
@@ -168,6 +176,7 @@ namespace Crest
         void OnPreRender()
         {
             XRHelpers.Update(_mainCamera);
+            XRHelpers.UpdatePassIndex(ref _xrPassIndex);
 
             // Allocate planes only once
             if (_cameraFrustumPlanes == null)
@@ -186,9 +195,7 @@ namespace Crest
                 _maskCommandBuffer.Clear();
             }
 
-            RenderTextureDescriptor descriptor = XRHelpers.IsRunning
-                    ? XRHelpers.EyeRenderTextureDescriptor
-                    : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+            RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_mainCamera);
 
             InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
 
@@ -233,7 +240,8 @@ namespace Crest
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
                 _horizonSafetyMarginMultiplier,
-                _filterOceanData
+                _filterOceanData,
+                _xrPassIndex
             );
 
             _postProcessCommandBuffer.Clear();

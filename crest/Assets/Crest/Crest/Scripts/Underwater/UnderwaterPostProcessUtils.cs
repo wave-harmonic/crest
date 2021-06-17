@@ -191,10 +191,11 @@ namespace Crest
 
                     nearPlaneFrustumWorldHeight = maxY - minY;
                 }
-                // We don't both setting the horizon value if we know we are going to be having to apply the post-processing
-                // effect full-screen anyway.
-                bool forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
-                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
+
+                // We don't both setting the horizon value if we know we are going to be having to apply the effect
+                // full-screen anyway.
+                bool forceFullShader = OceanRenderer.Instance.ViewerHeightAboveWater < -2f ||
+                    (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
                 if (forceFullShader)
                 {
                     underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);

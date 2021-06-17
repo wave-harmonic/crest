@@ -2,18 +2,19 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System.Collections.Generic;
-using Unity.Collections;
-using UnityEngine;
-using UnityEngine.Rendering;
-
 namespace Crest
 {
-    internal static class UnderwaterPostProcessUtils
-    {
-        public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
-        public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
+    using Unity.Collections;
+    using UnityEngine;
+    using UnityEngine.Rendering;
 
+    public partial class UnderwaterRenderer
+    {
+        const string SHADER_UNDERWATER_EFFECT = "Hidden/Crest/Underwater/Underwater Effect";
+        internal const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
+        internal const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
+
+        internal static readonly int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
@@ -21,18 +22,9 @@ namespace Crest
         static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
         static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
 
-        internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
-        internal const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
-        internal const string tooltipMeniscus = "Add a meniscus to the boundary between water and air.";
-
-        // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
-        // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
-        // or below the horizon line itself already.
-        internal const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
-
-        internal const int DefaultFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
-        internal const int MinFilterOceanDataValue = 0;
-        internal const int MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
+        CommandBuffer _underwaterEffectCommandBuffer;
+        PropertyWrapperMaterial _underwaterEffectMaterial;
+        readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -40,69 +32,75 @@ namespace Crest
             internal Vector3[] _shDirections = { new Vector3(0.0f, 0.0f, 0.0f) };
         }
 
-        // This matches const on shader side
-        internal const float UNDERWATER_MASK_NO_MASK = 1.0f;
-        internal const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
-        internal const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
-
-        internal static void InitialiseMaskTextures(RenderTextureDescriptor desc, ref RenderTexture textureMask, ref RenderTexture depthBuffer)
+        void SetupUnderwaterEffect()
         {
-            // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
-            if (textureMask == null || textureMask.width != desc.width || textureMask.height != desc.height)
+            if (_underwaterEffectMaterial?.material == null)
             {
-                // @Performance: We should consider either a temporary RT or use an RTHandle if appropriate
-                // RenderTexture is a "native engine object". We have to release it to avoid memory leaks.
-                if (textureMask != null)
+                _underwaterEffectMaterial = new PropertyWrapperMaterial(SHADER_UNDERWATER_EFFECT);
+            }
+
+            if (_underwaterEffectCommandBuffer == null)
+            {
+                _underwaterEffectCommandBuffer = new CommandBuffer()
                 {
-                    textureMask.Release();
-                    depthBuffer.Release();
-                }
-
-                textureMask = new RenderTexture(desc);
-                textureMask.depth = 0;
-                textureMask.name = "Ocean Mask";
-                // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
-                // We could also potentially try a half res mask as the mensicus could mask res issues.
-                textureMask.format = RenderTextureFormat.RHalf;
-                textureMask.Create();
-
-                depthBuffer = new RenderTexture(desc);
-                depthBuffer.depth = 24;
-                depthBuffer.enableRandomWrite = false;
-                depthBuffer.name = "Ocean Mask Depth";
-                depthBuffer.format = RenderTextureFormat.Depth;
-                depthBuffer.Create();
+                    name = "Underwater Pass",
+                };
             }
         }
 
-        // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may
-        // be able to avoid this pass completely if we can reuse the camera depth after transparents are rendered.
-        internal static void PopulateOceanMask(
-            CommandBuffer commandBuffer, Camera camera, List<OceanChunkRenderer> chunksToRender, Plane[] frustumPlanes,
-            Material oceanMaskMaterial, bool debugDisableOceanMask
-        )
+        void OnPreRenderUnderwaterEffect()
         {
-            GeometryUtility.CalculateFrustumPlanes(camera, frustumPlanes);
-
-            // Get all ocean chunks and render them using cmd buffer, but with mask shader.
-            if (!debugDisableOceanMask)
+            // Ensure legacy underwater fog is disabled.
+            if (_firstRender)
             {
-                // Spends approx 0.2-0.3ms here on dell laptop
-                foreach (OceanChunkRenderer chunk in chunksToRender)
-                {
-                    Renderer renderer = chunk.Rend;
-                    Bounds bounds = renderer.bounds;
-                    if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
-                    {
-                        if ((!chunk._oceanDataHasBeenBound) && chunk.enabled)
-                        {
-                            chunk.BindOceanData(camera);
-                        }
-                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
-                    }
-                    chunk._oceanDataHasBeenBound = false;
-                }
+                OceanRenderer.Instance.OceanMaterial.DisableKeyword("_OLD_UNDERWATER");
             }
+
+            RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
+            descriptor.useDynamicScale = _camera.allowDynamicResolution;
+            // Format must be correct for CopyTexture to work. Hopefully this is good enough.
+            if (_camera.allowHDR)
+            {
+                descriptor.colorFormat = RenderTextureFormat.DefaultHDR;
+            }
+
+            var temporaryColorBuffer = RenderTexture.GetTemporary(descriptor);
+
+            UpdatePostProcessMaterial(
+                _camera,
+                _underwaterEffectMaterial,
+                _sphericalHarmonicsData,
+                meniscus,
+                _firstRender || copyOceanMaterialParamsEachFrame,
+                debug.viewOceanMask,
+                 // horizonSafetyMarginMultiplier is added to the horizon, so no-op is zero.
+                 useHorizonSafetyMarginMultiplier ? horizonSafetyMarginMultiplier : 0f,
+                 // farPlaneMultiplier is multiplied to the far plane, so no-op is one.
+                 useHorizonSafetyMarginMultiplier ? 1f : farPlaneMultiplier,
+                filterOceanData,
+                _xrPassIndex
+            );
+
+            _underwaterEffectCommandBuffer.Clear();
+
+            if (_camera.allowMSAA)
+            {
+                // Use blit if MSAA is active because transparents were not included with CopyTexture.
+                // Not sure if we need an MSAA resolve? Not sure how to do that...
+                _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+            }
+            else
+            {
+                // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
+                _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+            }
+
+            _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
+
+            _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+
+            RenderTexture.ReleaseTemporary(temporaryColorBuffer);
         }
 
         internal static void UpdatePostProcessMaterial(

@@ -51,7 +51,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 			#include "../OceanEmission.hlsl"
 
-			float _OceanHeight;
 			float4x4 _InvViewProjection;
 			float4x4 _InvViewProjectionRight;
 			float4 _HorizonPosNormal;

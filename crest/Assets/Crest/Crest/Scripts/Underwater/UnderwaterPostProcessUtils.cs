@@ -14,10 +14,8 @@ namespace Crest
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
 
-        static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
-        static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
         static readonly int sp_HorizonPosNormal = Shader.PropertyToID("_HorizonPosNormal");
         static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
@@ -147,8 +145,10 @@ namespace Crest
                 underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
+            // We sample shadows at the camera position which will be the first slice.
+            // We also use this for caustics to get the displacement.
             underwaterPostProcessMaterial.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
-            underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
+            underwaterPostProcessMaterial.SetInt(sp_DataSliceOffset, dataSliceOffset);
 
             LodDataMgrAnimWaves.Bind(underwaterPostProcessMaterialWrapper);
             LodDataMgrSeaFloorDepth.Bind(underwaterPostProcessMaterialWrapper);
@@ -165,10 +165,6 @@ namespace Crest
                 {
                     horizonSafetyMarginMultiplier = 0.0f;
                 }
-            }
-            {
-                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
-                underwaterPostProcessMaterial.SetInt(sp_DataSliceOffset, dataSliceOffset);
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraYPosition = camera.transform.position.y;

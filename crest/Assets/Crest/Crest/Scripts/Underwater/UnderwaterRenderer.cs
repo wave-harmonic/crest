@@ -23,8 +23,8 @@ namespace Crest
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
 
-        [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData), Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue)]
-        public int _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
+        [SerializeField, Tooltip(tooltipFilterOceanData), Range(MinFilterOceanDataValue, MaxFilterOceanDataValue)]
+        public int _filterOceanData = DefaultFilterOceanDataValue;
 
         [SerializeField, Tooltip(tooltipMeniscus)]
         bool _meniscus = true;
@@ -41,26 +41,24 @@ namespace Crest
         [Tooltip("Use the old horizon safety margin multiplier to fix horizon line issues instead of the new experimental far plane multiplier.")]
         bool _useHorizonSafetyMarginMultiplier = false;
 
-        [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipHorizonSafetyMarginMultiplier), Range(0f, 1f)]
-        float _horizonSafetyMarginMultiplier = UnderwaterPostProcessUtils.DefaultHorizonSafetyMarginMultiplier;
+        [SerializeField, Tooltip(tooltipHorizonSafetyMarginMultiplier), Range(0f, 1f)]
+        float _horizonSafetyMarginMultiplier = DefaultHorizonSafetyMarginMultiplier;
         // end public debug options
 
+
         private Camera _mainCamera;
+        private Plane[] _cameraFrustumPlanes;
         private RenderTexture _textureMask;
         private RenderTexture _depthBuffer;
         private CommandBuffer _oceanMaskCommandBuffer;
-        private CommandBuffer _underwaterEffectCommandBuffer;
-
-        private Plane[] _cameraFrustumPlanes;
-
         PropertyWrapperMaterial _oceanMaskMaterial;
-
-        PropertyWrapperMaterial _underwaterPostProcessMaterial;
+        private CommandBuffer _underwaterEffectCommandBuffer;
+        PropertyWrapperMaterial _underwaterEffectMaterial;
 
         const string SHADER_UNDERWATER_EFFECT = "Hidden/Crest/Underwater/Underwater Effect";
         private const string SHADER_OCEAN_MASK = "Hidden/Crest/Underwater/Ocean Mask";
 
-        UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
+        readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
         bool _firstRender = true;
 
@@ -90,9 +88,9 @@ namespace Crest
                 _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
             }
 
-            if (_underwaterPostProcessMaterial?.material == null)
+            if (_underwaterEffectMaterial?.material == null)
             {
-                _underwaterPostProcessMaterial = new PropertyWrapperMaterial(SHADER_UNDERWATER_EFFECT);
+                _underwaterEffectMaterial = new PropertyWrapperMaterial(SHADER_UNDERWATER_EFFECT);
             }
 
             if (_underwaterEffectCommandBuffer == null)
@@ -195,7 +193,7 @@ namespace Crest
             UpdatePostProcessMaterial
             (
                 _mainCamera,
-                _underwaterPostProcessMaterial,
+                _underwaterEffectMaterial,
                 _sphericalHarmonicsData,
                 _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
@@ -222,10 +220,10 @@ namespace Crest
                 _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
 
-            _underwaterPostProcessMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
+            _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 
             _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
 

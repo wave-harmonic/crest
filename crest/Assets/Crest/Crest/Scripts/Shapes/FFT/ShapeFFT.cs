@@ -5,7 +5,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
-using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -207,15 +206,13 @@ namespace Crest
             var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
             _matGenerateWaves.SetVector(sp_AxisX, waveDir);
 
-
-            ReportMaxDisplacement();
-
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
             var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
             var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
             var waveData = _compute.GenerateDisplacements(buf, _resolution, _windTurbulence, windSpeedMPS, windDirRad, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
-
             _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
+
+            ReportMaxDisplacement();
         }
 
 #if UNITY_EDITOR

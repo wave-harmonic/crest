@@ -155,6 +155,11 @@ namespace Crest
             LodDataMgrShadow.Bind(underwaterPostProcessMaterialWrapper);
 
             float seaLevel = OceanRenderer.Instance.SeaLevel;
+
+            // We don't both setting the horizon value if we know we are going to be having to apply the effect
+            // full-screen anyway.
+            var forceFullShader = OceanRenderer.Instance.ViewerHeightAboveWater < -2f;
+            if (!forceFullShader)
             {
                 // We only apply the horizon safety margin multiplier to horizon if and only if
                 // concrete height of the camera relative to the water and the height of the camera
@@ -188,18 +193,16 @@ namespace Crest
                     nearPlaneFrustumWorldHeight = maxY - minY;
                 }
 
-                // We don't both setting the horizon value if we know we are going to be having to apply the effect
-                // full-screen anyway.
-                bool forceFullShader = OceanRenderer.Instance.ViewerHeightAboveWater < -2f ||
-                    (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
-                if (forceFullShader)
-                {
-                    underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
-                }
-                else
-                {
-                    underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
-                }
+                forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
+            }
+
+            if (forceFullShader)
+            {
+                underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
+            }
+            else
+            {
+                underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
             }
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function

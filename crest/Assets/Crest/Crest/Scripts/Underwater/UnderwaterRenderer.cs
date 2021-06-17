@@ -45,7 +45,7 @@ namespace Crest
         [Tooltip("Copying params each frame ensures underwater appearance stays consistent with ocean material params. Has a small overhead so should be disabled if not needed.")]
         public bool copyOceanMaterialParamsEachFrame = true;
 
-        [Range(0f, 1f)]
+        [Predicated("useHorizonSafetyMarginMultiplier", inverted: true), Range(0f, 1f)]
         [Tooltip("Adjusts the far plane for horizon line calculation. Helps with horizon line issue. (Experimental)")]
         public float farPlaneMultiplier = 0.68f;
 
@@ -55,10 +55,11 @@ namespace Crest
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
         // or below the horizon line itself already.
-        [Range(0f, 1f)]
+        [Predicated("useHorizonSafetyMarginMultiplier"), Range(0f, 1f)]
         [Tooltip("A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.")]
         public float horizonSafetyMarginMultiplier = 0.01f;
 
+        [Predicated("useHorizonSafetyMarginMultiplier"), DecoratedField]
         [Tooltip("Dynamic resolution can cause the horizon gap issue to widen. Scales the safety margin multiplier to compensate.")]
         public bool scaleSafetyMarginWithDynamicResolution = true;
 

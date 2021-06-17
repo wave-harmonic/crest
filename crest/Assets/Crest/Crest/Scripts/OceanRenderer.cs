@@ -202,8 +202,11 @@ namespace Crest
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
-        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled."), SerializeField, Range(0.000001f, 0.01f)]
+        [SerializeField, Range(UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM)]
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled.")]
         public float _underwaterCullLimit = 0.001f;
+        internal const float UNDERWATER_CULL_LIMIT_MINIMUM = 0.000001f;
+        internal const float UNDERWATER_CULL_LIMIT_MAXIMUM = 0.01f;
 
 
         [Header("Simulation Params")]
@@ -1025,7 +1028,8 @@ namespace Crest
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
                 var density = _material.GetVector("_DepthFogDensity");
                 var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
-                volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
+                var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
+                volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
             }
 
             var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;

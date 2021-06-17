@@ -60,10 +60,8 @@ namespace Crest
         [Tooltip("Dynamic resolution can cause the horizon gap issue to widen. Scales the safety margin multiplier to compensate.")]
         public bool scaleSafetyMarginWithDynamicResolution = true;
 
-
-        [Header("Debug")]
-        public readonly DebugFields debug = new DebugFields();
-
+        [Space(10)]
+        public DebugFields debug = new DebugFields();
         [System.Serializable]
         public class DebugFields
         {

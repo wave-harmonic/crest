@@ -145,12 +145,11 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
 				// intersection line is passed in.
 #if CREST_HANDLE_XR
-				const bool isBelowHorizon = unity_StereoEyeIndex == 0 ?
-					dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0 :
-					dot(input.uv - _HorizonPosNormalRight.xy, _HorizonPosNormalRight.zw) > 0.0;
+				const float4 horizonPositionNormal = unity_StereoEyeIndex == 0 ? _HorizonPosNormal : _HorizonPosNormalRight;
 #else // CREST_HANDLE_XR
-				const bool isBelowHorizon = dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0;
+				const float4 horizonPositionNormal = _HorizonPosNormal;
 #endif // CREST_HANDLE_XR
+				const bool isBelowHorizon = dot(input.uv - horizonPositionNormal.xy, horizonPositionNormal.zw) > 0.0;
 #else // !_FULL_SCREEN_EFFECT
 				const bool isBelowHorizon = true;
 #endif // !_FULL_SCREEN_EFFECT
@@ -171,6 +170,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				float wt = 1.0;
 
 #if CREST_MENISCUS
+#if !_FULL_SCREEN_EFFECT
 				// Render meniscus by checking mask in opposite direction of surface normal.
 				// If the sample is different than the current mask, apply meniscus.
 				// Skip the meniscus beyond one unit to prevent numerous artefacts.
@@ -179,11 +179,12 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 					float wt_mul = 0.9;
 					// Adding the mask value will flip the UV when mask is below surface.
 					// Apply the horizon normal so it works with any orientation.
-					float2 dy = (float2(-1.0 + mask, -1.0 + mask) / _ScreenParams.y) * -_HorizonPosNormal.zw;
+					float2 dy = (float2(-1.0 + mask, -1.0 + mask) / _ScreenParams.y) * -horizonPositionNormal.zw;
 					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy * 1.0).x != mask) ? wt_mul : 1.0;
 					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy * 2.0).x != mask) ? wt_mul : 1.0;
 					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy * 3.0).x != mask) ? wt_mul : 1.0;
 				}
+#endif
 #endif // CREST_MENISCUS
 
 #if _DEBUG_VIEW_OCEAN_MASK

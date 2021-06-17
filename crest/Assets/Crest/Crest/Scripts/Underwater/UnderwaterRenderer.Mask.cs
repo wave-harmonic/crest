@@ -110,7 +110,7 @@ namespace Crest
             // Get all ocean chunks and render them using cmd buffer, but with mask shader.
             if (!debugDisableOceanMask)
             {
-                // Spends approx 0.2-0.3ms here on dell laptop
+                // Spends approx 0.2-0.3ms here on 2018 Dell XPS 15.
                 foreach (OceanChunkRenderer chunk in chunksToRender)
                 {
                     Renderer renderer = chunk.Rend;

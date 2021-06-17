@@ -75,7 +75,7 @@ namespace Crest
 
         Camera _camera;
         bool _firstRender = true;
-        static int _xrPassIndex = -1;
+        static int s_xrPassIndex = -1;
 
         // Use instance to denote whether this is active or not. Only one camera is supported.
         public static UnderwaterRenderer Instance { get; private set; }
@@ -84,7 +84,7 @@ namespace Crest
         static void InitStatics()
         {
             Instance = null;
-            _xrPassIndex = -1;
+            s_xrPassIndex = -1;
         }
 
         void OnEnable()
@@ -149,7 +149,7 @@ namespace Crest
             }
 
             XRHelpers.Update(_camera);
-            XRHelpers.UpdatePassIndex(ref _xrPassIndex);
+            XRHelpers.UpdatePassIndex(ref s_xrPassIndex);
 
             OnPreRenderOceanMask();
             OnPreRenderUnderwaterEffect();

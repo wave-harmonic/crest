@@ -78,7 +78,7 @@ namespace Crest
                  // farPlaneMultiplier is multiplied to the far plane, so no-op is one.
                  useHorizonSafetyMarginMultiplier ? 1f : farPlaneMultiplier,
                 filterOceanData,
-                _xrPassIndex
+                s_xrPassIndex
             );
 
             _underwaterEffectCommandBuffer.Clear();

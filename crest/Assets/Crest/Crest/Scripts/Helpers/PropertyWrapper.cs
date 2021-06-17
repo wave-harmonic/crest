@@ -23,7 +23,7 @@ namespace Crest
 
     static class PropertyWrapperConstants
     {
-        internal const string NO_SHADER_MESSAGE = "Cannot create required material because shader {0} could not be found or loaded."
+        internal const string NO_SHADER_MESSAGE = "Crest.PropertyWrapper: Cannot create required material because shader {0} could not be found or loaded."
             + " Try right clicking the Crest folder in the Project view and selecting Reimport, and checking for errors.";
     }
 
@@ -33,7 +33,7 @@ namespace Crest
         public PropertyWrapperMaterial(Material target) { material = target; }
         public PropertyWrapperMaterial(Shader shader)
         {
-            Debug.Assert(shader != null, "Cannot create required material because shader is null");
+            Debug.Assert(shader != null, "Crest.PropertyWrapper: Cannot create required material because shader is null");
             material = new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave,

@@ -67,6 +67,7 @@ namespace Crest
         {
             public bool viewOceanMask = false;
             public bool disableOceanMask = false;
+            public bool disableHeightAboveWaterOptimization = false;
         }
 
         Camera _camera;
@@ -133,7 +134,7 @@ namespace Crest
                 return;
             }
 
-            if (OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+            if (!debug.disableHeightAboveWaterOptimization && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
             {
                 OnDisable();
                 return;

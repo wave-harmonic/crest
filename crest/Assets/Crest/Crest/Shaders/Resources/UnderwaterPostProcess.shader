@@ -103,9 +103,8 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
 
-			half3 ApplyUnderwaterEffect(half3 sceneColour, const float rawDepth, const half3 view, bool isOceanSurface)
+			half3 ApplyUnderwaterEffect(half3 sceneColour, const float rawDepth, const float sceneZ, const half3 view, bool isOceanSurface)
 			{
-				const float sceneZ = CrestLinearEyeDepth(rawDepth);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 				half3 scatterCol = 0.0;
@@ -167,22 +166,23 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (rawDepth < rawOceanDepth);
 				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 				rawDepth = isOceanSurface ? rawOceanDepth : rawDepth;
+				const float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float wt = 1.0;
 
 #if CREST_MENISCUS
-				// Detect water to no water transitions which happen if mask values on below pixels are less than this mask
-				if (mask <= 1.0)
+				// Render meniscus by checking mask in opposite direction of surface normal.
+				// If the sample is different than the current mask, apply meniscus.
+				// Skip the meniscus beyond one unit to prevent numerous artefacts.
+				if (mask != UNDERWATER_MASK_NO_MASK && sceneZ < 1.0)
 				{
-					// Looks at pixels below this pixel and if there is a transition from above to below, darken the pixel
-					// to emulate a meniscus effect. It does a few to get a thicker line than 1 pixel. The line it produces is
-					// smooth on the top side and sharp at the bottom. It might be possible to detect where the edge is and do
-					// a calculation to get it smooth both above and below, but might be more complex.
 					float wt_mul = 0.9;
-					float4 dy = float4(0.0, -1.0, -2.0, -3.0) / _ScreenParams.y;
-					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xy).x > mask) ? wt_mul : 1.0;
-					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
-					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
+					// Adding the mask value will flip the UV when mask is below surface.
+					// Apply the horizon normal so it works with any orientation.
+					float2 dy = (float2(-1.0 + mask, -1.0 + mask) / _ScreenParams.y) * -_HorizonPosNormal.zw;
+					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy * 1.0).x != mask) ? wt_mul : 1.0;
+					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy * 2.0).x != mask) ? wt_mul : 1.0;
+					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy * 3.0).x != mask) ? wt_mul : 1.0;
 				}
 #endif // CREST_MENISCUS
 
@@ -199,7 +199,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				if (isUnderwater)
 				{
 					const half3 view = normalize(input.viewWS);
-					sceneColour = ApplyUnderwaterEffect(sceneColour, rawDepth, view, isOceanSurface);
+					sceneColour = ApplyUnderwaterEffect(sceneColour, rawDepth, sceneZ, view, isOceanSurface);
 				}
 
 				return half4(wt * sceneColour, 1.0);

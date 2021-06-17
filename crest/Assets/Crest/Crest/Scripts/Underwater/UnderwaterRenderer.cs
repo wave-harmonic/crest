@@ -32,49 +32,54 @@ namespace Crest
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
         // data in/out), as more filtering was better in testing.
-        [Range(0, LodDataMgr.MAX_LOD_COUNT - 2)]
+        [SerializeField, Range(0, LodDataMgr.MAX_LOD_COUNT - 2)]
         [Tooltip("How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.")]
-        public int filterOceanData = LodDataMgr.MAX_LOD_COUNT - 2;
+        internal int _filterOceanData = LodDataMgr.MAX_LOD_COUNT - 2;
 
+        [SerializeField]
         [Tooltip("Add a meniscus to the boundary between water and air.")]
-        public bool meniscus = true;
+        internal bool _meniscus = true;
 
 
         [Header("Advanced")]
 
+        [SerializeField]
         [Tooltip("Copying params each frame ensures underwater appearance stays consistent with ocean material params. Has a small overhead so should be disabled if not needed.")]
-        public bool copyOceanMaterialParamsEachFrame = true;
+        internal bool _copyOceanMaterialParamsEachFrame = true;
 
-        [Predicated("useHorizonSafetyMarginMultiplier", inverted: true), Range(0f, 1f)]
+        [SerializeField, Predicated("useHorizonSafetyMarginMultiplier", inverted: true), Range(0f, 1f)]
         [Tooltip("Adjusts the far plane for horizon line calculation. Helps with horizon line issue. (Experimental)")]
-        public float farPlaneMultiplier = 0.68f;
+        internal float _farPlaneMultiplier = 0.68f;
 
-        [Tooltip("Use the old horizon safety margin multiplier to fix horizon line issues instead of the new experimental far plane multiplier.")]
-        public bool useHorizonSafetyMarginMultiplier = false;
+        [SerializeField, Tooltip("Use the old horizon safety margin multiplier to fix horizon line issues instead of the new experimental far plane multiplier.")]
+        internal bool _useHorizonSafetyMarginMultiplier = false;
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
         // or below the horizon line itself already.
-        [Predicated("useHorizonSafetyMarginMultiplier"), Range(0f, 1f)]
+        [SerializeField, Predicated("useHorizonSafetyMarginMultiplier"), Range(0f, 1f)]
         [Tooltip("A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.")]
-        public float horizonSafetyMarginMultiplier = 0.01f;
+        internal float _horizonSafetyMarginMultiplier = 0.01f;
 
-        [Predicated("useHorizonSafetyMarginMultiplier"), DecoratedField]
+        [SerializeField, Predicated("useHorizonSafetyMarginMultiplier"), DecoratedField]
         [Tooltip("Dynamic resolution can cause the horizon gap issue to widen. Scales the safety margin multiplier to compensate.")]
-        public bool scaleSafetyMarginWithDynamicResolution = true;
+        internal bool _scaleSafetyMarginWithDynamicResolution = true;
 
         [Space(10)]
-        public DebugFields debug = new DebugFields();
+
+        [SerializeField]
+        internal DebugFields _debug = new DebugFields();
         [System.Serializable]
         public class DebugFields
         {
-            public bool viewOceanMask = false;
-            public bool disableOceanMask = false;
-            public bool disableHeightAboveWaterOptimization = false;
+            public bool _viewOceanMask = false;
+            public bool _disableOceanMask = false;
+            public bool _disableHeightAboveWaterOptimization = false;
         }
 
         Camera _camera;
         bool _firstRender = true;
+        // XR MP will create two instances of this class so it needs to be static to track the pass/eye.
         static int s_xrPassIndex = -1;
 
         // Use instance to denote whether this is active or not. Only one camera is supported.
@@ -137,7 +142,7 @@ namespace Crest
                 return;
             }
 
-            if (!debug.disableHeightAboveWaterOptimization && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+            if (!_debug._disableHeightAboveWaterOptimization && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
             {
                 OnDisable();
                 return;
@@ -160,6 +165,6 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(UnderwaterRenderer))]
-    public class UnderwaterRendererEditor : Editor {}
+    public class UnderwaterRendererEditor : Editor { }
 #endif
 }

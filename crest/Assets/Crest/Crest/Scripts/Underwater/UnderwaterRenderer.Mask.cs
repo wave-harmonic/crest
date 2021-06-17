@@ -60,7 +60,7 @@ namespace Crest
                 OceanRenderer.Instance.Tiles,
                 _cameraFrustumPlanes,
                 _oceanMaskMaterial.material,
-                debug.disableOceanMask
+                _debug._disableOceanMask
             );
         }
 

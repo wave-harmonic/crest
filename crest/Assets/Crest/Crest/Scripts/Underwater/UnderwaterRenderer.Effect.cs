@@ -70,14 +70,14 @@ namespace Crest
                 _camera,
                 _underwaterEffectMaterial,
                 _sphericalHarmonicsData,
-                meniscus,
-                _firstRender || copyOceanMaterialParamsEachFrame,
-                debug.viewOceanMask,
-                 // horizonSafetyMarginMultiplier is added to the horizon, so no-op is zero.
-                 useHorizonSafetyMarginMultiplier ? horizonSafetyMarginMultiplier : 0f,
-                 // farPlaneMultiplier is multiplied to the far plane, so no-op is one.
-                 useHorizonSafetyMarginMultiplier ? 1f : farPlaneMultiplier,
-                filterOceanData,
+                _meniscus,
+                _firstRender || _copyOceanMaterialParamsEachFrame,
+                _debug._viewOceanMask,
+                // horizonSafetyMarginMultiplier is added to the horizon, so no-op is zero.
+                _useHorizonSafetyMarginMultiplier ? _horizonSafetyMarginMultiplier : 0f,
+                // farPlaneMultiplier is multiplied to the far plane, so no-op is one.
+                _useHorizonSafetyMarginMultiplier ? 1f : _farPlaneMultiplier,
+                _filterOceanData,
                 s_xrPassIndex
             );
 

@@ -1015,7 +1015,7 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            var isUnderwaterActive = UnderwaterPostProcess.Instance != null;
+            var isUnderwaterActive = UnderwaterRenderer.Instance != null;
 
             var definitelyUnderwater = false;
             var volumeExtinctionLength = 0f;

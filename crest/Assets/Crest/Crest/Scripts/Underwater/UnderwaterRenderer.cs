@@ -18,7 +18,7 @@ namespace Crest
     /// specific features such as enabling the meniscus.
     /// </summary>
     [RequireComponent(typeof(Camera))]
-    public class UnderwaterPostProcess : MonoBehaviour
+    public class UnderwaterRenderer : MonoBehaviour
     {
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
@@ -69,7 +69,7 @@ namespace Crest
         static int _xrPassIndex = -1;
 
         // Only one camera is supported.
-        public static UnderwaterPostProcess Instance { get; private set; }
+        public static UnderwaterRenderer Instance { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()
@@ -234,7 +234,7 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(UnderwaterPostProcess))]
-    public class UnderwaterPostProcessEditor : Editor {}
+    [CustomEditor(typeof(UnderwaterRenderer))]
+    public class UnderwaterRendererEditor : Editor {}
 #endif
 }

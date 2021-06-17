@@ -20,6 +20,7 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
+    [System.Obsolete("No longer supported. UnderwaterEffect has been replaced with UnderwaterRenderer.")]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Effect")]
     public partial class UnderwaterEffect : MonoBehaviour
     {
@@ -328,7 +329,9 @@ namespace Crest
         }
     }
 
+#pragma warning disable 0618
     [CustomEditor(typeof(UnderwaterEffect)), CanEditMultipleObjects]
     class UnderwaterEffectEditor : ValidatedEditor { }
+#pragma warning restore 0618
 #endif
 }

@@ -1247,12 +1247,14 @@ namespace Crest
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+#pragma warning disable 0618
             // UnderwaterEffect
             var underwaters = FindObjectsOfType<UnderwaterEffect>();
             foreach (var underwater in underwaters)
             {
                 underwater.Validate(ocean, ValidatedHelper.DebugLog);
             }
+#pragma warning restore 0618
 
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();

@@ -59,7 +59,7 @@ Shader "Crest/Copy Depth Buffer Into Cache"
 
 			float4 frag(Varyings input) : SV_Target
 			{
-				float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CamDepthBuffer, input.uv);
+				float deviceDepth = tex2D(_CamDepthBuffer, input.uv);
 				float linear01Z = CustomLinear01Depth(deviceDepth);
 
 				float altitude;

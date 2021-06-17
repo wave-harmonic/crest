@@ -174,7 +174,6 @@ namespace Crest
                 float cameraYPosition = camera.transform.position.y;
                 float nearPlaneFrustumWorldHeight;
                 {
-
                     float current = camera.ViewportToWorldPoint(new Vector3(0f, 0f, camera.nearClipPlane)).y;
                     float maxY = current, minY = current;
 
@@ -204,7 +203,6 @@ namespace Crest
                 {
                     underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
                 }
-
             }
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function

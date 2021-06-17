@@ -19,8 +19,16 @@ namespace Crest
     class BuildProcessor : IPreprocessShaders, IProcessSceneWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
-        string UnderwaterShaderName => "Crest/Underwater Curtain";
         readonly List<Material> _oceanMaterials = new List<Material>();
+
+        bool IsUnderwaterShader(string shaderName)
+        {
+            // According to the docs it's possible to change RP at runtime, so I guess all relevant
+            // shaders should be built.
+            return shaderName == "Crest/Underwater Curtain"
+                || shaderName == "Hidden/Crest/Underwater/Underwater Effect"
+                || shaderName == "Hidden/Crest/Underwater/Post Process HDRP";
+        }
 
 #if CREST_DEBUG
         int shaderVariantCount = 0;
@@ -50,13 +58,13 @@ namespace Crest
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
 #if CREST_DEBUG
-            if (shader.name.StartsWith("Crest"))
+            if (shader.name.StartsWith("Crest") || shader.name.StartsWith("Hidden/Crest"))
             {
                 shaderVariantCount += data.Count;
             }
 #endif
 
-            if (shader.name == UnderwaterShaderName)
+            if (IsUnderwaterShader(shader.name))
             {
                 ProcessUnderwaterShader(shader, data);
             }

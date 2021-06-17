@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 859114834902481750}
   - component: {fileID: 859114834902481751}
   - component: {fileID: 859114834902481747}
+  - component: {fileID: 8981585090060889922}
   m_Layer: 0
   m_Name: DemoCameraCore
   m_TagString: MainCamera
@@ -46,9 +47,10 @@ Camera:
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.22794116, g: 0.22794116, b: 0.22794116, a: 1}
   m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_GateFitMode: 2
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -96,6 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93632dc736a214a419a990743badcde2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   _lerpAlpha: 0.01
   _targetPos: {fileID: 0}
   _targetLookatPos: {fileID: 0}
@@ -113,8 +116,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
+  _debug:
+    disableCameraRollPrevention: 0
+    disableOcclusionMesh: 0
+    occlusionMeshScale: 1
+--- !u!114 &8981585090060889922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859114834902481749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b0c0a69611596146aceb2f60532940c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _version: 0
+  filterOceanData: 13
+  meniscus: 1
+  copyOceanMaterialParamsEachFrame: 1
+  farPlaneMultiplier: 0.68
+  useHorizonSafetyMarginMultiplier: 0
+  horizonSafetyMarginMultiplier: 0.01
+  scaleSafetyMarginWithDynamicResolution: 1
+  debug:
+    viewOceanMask: 0
+    disableOceanMask: 0
+    disableHeightAboveWaterOptimization: 0

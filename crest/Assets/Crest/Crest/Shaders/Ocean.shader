@@ -500,6 +500,7 @@ Shader "Crest/Ocean"
 				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
+				half3 lightCol = _LightColor0;
 				// Soft shadow, hard shadow
 				fixed2 shadow = (fixed2)1.0
 				#if _SHADOWS_ON
@@ -550,7 +551,7 @@ Shader "Crest/Ocean"
 				// Compute color of ocean - in-scattered light + refracted scene
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
-				half3 scatterCol = ScatterColour(AmbientLight(), input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				half3 scatterCol = ScatterColour(AmbientLight(), input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface

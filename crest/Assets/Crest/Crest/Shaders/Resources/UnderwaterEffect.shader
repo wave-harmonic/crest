@@ -105,6 +105,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			half3 ApplyUnderwaterEffect(half3 sceneColour, const float rawDepth, const float sceneZ, const half3 view, bool isOceanSurface)
 			{
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
+				const half3 lightCol = _LightColor0;
 
 				half3 scatterCol = 0.0;
 				int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
@@ -121,7 +122,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 					{
 						const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
 						const float baseCascadeScale = _CrestCascadeData[0]._scale;
-						scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
+						scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
 					}
 				}
 

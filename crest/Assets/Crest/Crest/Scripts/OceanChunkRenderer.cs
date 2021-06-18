@@ -160,6 +160,12 @@ namespace Crest
                 _currentCamera = Camera.current;
             }
 
+            // If only the game view is visible, this reference will be dropped for SRP on recompile.
+            if (_currentCamera == null)
+            {
+                return;
+            }
+
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 

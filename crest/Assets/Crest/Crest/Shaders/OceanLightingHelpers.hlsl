@@ -5,6 +5,7 @@
 #ifndef CREST_OCEAN_LIGHTING_HELPERS_H
 #define CREST_OCEAN_LIGHTING_HELPERS_H
 
+#if defined(LIGHTING_INCLUDED)
 float3 WorldSpaceLightDir(float3 worldPos)
 {
 	float3 lightDir = _WorldSpaceLightPos0.xyz;
@@ -15,6 +16,7 @@ float3 WorldSpaceLightDir(float3 worldPos)
 	}
 	return lightDir;
 }
+#endif
 
 half3 AmbientLight()
 {

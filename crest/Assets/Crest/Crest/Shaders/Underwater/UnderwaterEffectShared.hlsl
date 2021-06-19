@@ -61,7 +61,7 @@ half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const f
 		wt *= (MeniscusSampleOceanMask(uvScreenSpace, dy, 2.0) != mask) ? wt_mul : 1.0;
 		wt *= (MeniscusSampleOceanMask(uvScreenSpace, dy, 3.0) != mask) ? wt_mul : 1.0;
 	}
-#endif
+#endif // _FULL_SCREEN_EFFECT
 #endif // CREST_MENISCUS
 	return wt;
 }
@@ -101,13 +101,18 @@ void GetOceanSurfaceAndUnderwaterData(
 	sceneZ = CrestLinearEyeDepth(rawDepth);
 }
 
-// Lighting.cginc
-#ifdef LIGHTING_INCLUDED
-half3 ApplyUnderwaterEffect(half3 sceneColour, const float rawDepth, const float sceneZ, const half3 view, bool isOceanSurface)
+#ifdef CREST_OCEAN_EMISSION_INCLUDED
+half3 ApplyUnderwaterEffect(
+	const float3 scenePos,
+	half3 sceneColour,
+	const half3 lightCol,
+	const float3 lightDir,
+	const float rawDepth,
+	const float sceneZ,
+	const half3 view,
+	bool isOceanSurface
+)
 {
-	const float3 lightDir = _WorldSpaceLightPos0.xyz;
-	const half3 lightCol = _LightColor0;
-
 	half3 scatterCol = 0.0;
 	int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
 	{
@@ -130,12 +135,12 @@ half3 ApplyUnderwaterEffect(half3 sceneColour, const float rawDepth, const float
 #if _CAUSTICS_ON
 	if (rawDepth != 0.0 && !isOceanSurface)
 	{
-		ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
+		ApplyCaustics(scenePos, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
 	}
 #endif // _CAUSTICS_ON
 
 	return lerp(sceneColour, scatterCol, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneZ)));
 }
-#endif
+#endif // CREST_OCEAN_EMISSION_INCLUDED
 
 #endif // CREST_UNDERWATER_EFFECT_SHARED_INCLUDED

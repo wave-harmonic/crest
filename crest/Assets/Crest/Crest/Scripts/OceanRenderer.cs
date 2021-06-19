@@ -725,6 +725,13 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+            // If running a build, don't assert any requirements at all. Requirements are for
+            // the runtime, not for making builds.
+            if (BuildPipeline.isBuildingPlayer)
+            {
+                return true;
+            }
+
             if (!RunningWithoutGPU)
             {
                 if (Application.platform == RuntimePlatform.WebGLPlayer)

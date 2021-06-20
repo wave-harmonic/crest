@@ -8,6 +8,7 @@
 
 #define MIN_DT 0.00001
 
+#include "../OceanConstants.hlsl"
 #include "HLSLSupport.cginc"
 
 #include "../OceanGlobals.hlsl"

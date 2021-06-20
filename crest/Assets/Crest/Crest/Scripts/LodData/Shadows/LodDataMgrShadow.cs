@@ -6,7 +6,9 @@ using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace Crest
 {
@@ -265,13 +267,10 @@ namespace Crest
                 }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-                // Disable single pass double-wide stereo rendering for these commands since we are rendering to
-                // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
-                // appears to be a Unity bug only for the legacy VR system.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                // Disable for XR SPI otherwise input will not have correct world position.
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
-                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
-                    BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                    BufCopyShadowMap.DisableShaderKeyword("STEREO_INSTANCING_ON");
                 }
 #endif
 
@@ -283,11 +282,10 @@ namespace Crest
                 }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-                // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                // Restore XR SPI as we cannot rely on remaining pipeline to do it for us.
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
-                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
-                    BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                    BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
                 }
 #endif
             }

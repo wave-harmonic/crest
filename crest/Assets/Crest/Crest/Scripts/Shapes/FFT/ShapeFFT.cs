@@ -5,7 +5,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
-using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -98,9 +97,9 @@ namespace Crest
 
         Mesh _meshForDrawingWaves;
 
-        int _resolutionOld;
         float _windTurbulenceOld;
         float _windSpeedOld;
+        float _windDirRadOld;
         OceanWaveSpectrum _spectrumOld;
 
         public class FFTBatch : ILodDataInput
@@ -186,7 +185,7 @@ namespace Crest
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame /*|| (_waveBuffers != null)*/)
+            if (_firstUpdate || updateDataEachFrame)
             {
                 InitBatches();
 
@@ -195,26 +194,31 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
 
-            ReportMaxDisplacement();
+            // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
+            // to the geo rotation. If not, the wind direction is already used in the FFT gen.
+            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
+            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
 
+            // If geometry is being used, the ocean input shader will rotate the waves to align to geo
+            var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
             var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
 
             // Don't create tons of generators when values are varying. Notify so that existing generators may be adapted.
-            if (_resolutionOld != _resolution || _windTurbulenceOld != _windTurbulence || _windSpeedOld != windSpeedMPS || _spectrumOld != _spectrum)
+            if (_windTurbulenceOld != _windTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _spectrum)
             {
-                FFTCompute.OnGenerationDataUpdated(_resolutionOld, _windTurbulenceOld, _windSpeedOld, _spectrumOld, _resolution, _windTurbulence, windSpeedMPS, _spectrum);
+                FFTCompute.OnGenerationDataUpdated(_resolution, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _spectrum);
             }
 
-            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, _windTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
 
-            _resolutionOld = _resolution;
             _windTurbulenceOld = _windTurbulence;
+            _windDirRadOld = windDirRad;
             _windSpeedOld = windSpeedMPS;
             _spectrumOld = _spectrum;
-
             _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
+
+            ReportMaxDisplacement();
         }
 
 #if UNITY_EDITOR
@@ -349,8 +353,9 @@ namespace Crest
         {
             if (_debugDrawSlicesInEditor)
             {
+                var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
                 var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-                FFTCompute.OnGUI(_resolution, _windTurbulence, windSpeedMPS, _activeSpectrum);
+                FFTCompute.OnGUI(_resolution, _windTurbulence, windDirRad, windSpeedMPS, _activeSpectrum);
             }
         }
 

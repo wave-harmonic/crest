@@ -55,17 +55,19 @@ namespace Crest
         int _resolution;
         float _windSpeed;
         float _windTurbulence;
+        float _windDirRad;
         OceanWaveSpectrum _spectrum;
 
         float _generationTime = -1f;
 
-        public FFTCompute(int resolution, float windSpeed, float windTurbulence, OceanWaveSpectrum spectrum)
+        public FFTCompute(int resolution, float windSpeed, float windTurbulence, float windDirRad, OceanWaveSpectrum spectrum)
         {
             Debug.Assert(Mathf.NextPowerOfTwo(resolution) == resolution, "FFTCompute resolution must be power of 2");
 
             _resolution = resolution;
             _windSpeed = windSpeed;
             _windTurbulence = windTurbulence;
+            _windDirRad = windDirRad;
             _spectrum = spectrum;
         }
 
@@ -162,12 +164,13 @@ namespace Crest
 
         static Dictionary<int, FFTCompute> _generators = new Dictionary<int, FFTCompute>();
 
-        static int CalculateWaveConditionsHash(int resolution, float windTurbulence, float windSpeed, OceanWaveSpectrum spectrum)
+        static int CalculateWaveConditionsHash(int resolution, float windTurbulence, float windDirRad, float windSpeed, OceanWaveSpectrum spectrum)
         {
             var conditionsHash = Hashy.CreateHash();
             Hashy.AddInt(resolution, ref conditionsHash);
             Hashy.AddFloat(windSpeed, ref conditionsHash);
             Hashy.AddFloat(windTurbulence, ref conditionsHash);
+            Hashy.AddFloat(windDirRad, ref conditionsHash);
             if (spectrum != null)
             {
                 Hashy.AddObject(spectrum, ref conditionsHash);
@@ -178,15 +181,15 @@ namespace Crest
         /// <summary>
         /// Computes water surface displacement, with wave components split across slices of the output texture array
         /// </summary>
-        public static RenderTexture GenerateDisplacements(CommandBuffer buf, int resolution, float windTurbulence, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum)
+        public static RenderTexture GenerateDisplacements(CommandBuffer buf, int resolution, float windTurbulence, float windDirRad, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum)
         {
             // All static data arguments should be hashed here and passed to the generator constructor
-            var conditionsHash = CalculateWaveConditionsHash(resolution, windTurbulence, windSpeed, spectrum);
+            var conditionsHash = CalculateWaveConditionsHash(resolution, windTurbulence, windDirRad, windSpeed, spectrum);
             FFTCompute generator;
             if (!_generators.TryGetValue(conditionsHash, out generator))
             {
                 // No generator for these params - create one
-                generator = new FFTCompute(resolution, windSpeed, windTurbulence, spectrum);
+                generator = new FFTCompute(resolution, windSpeed, windTurbulence, windDirRad, spectrum);
                 _generators.Add(conditionsHash, generator);
             }
 
@@ -230,16 +233,16 @@ namespace Crest
         /// Changing wave gen data can result in creating lots of new generators. This gives a way to notify
         /// that a parameter has changed. If there is no generator for the new param values
         /// </summary>
-        public static void OnGenerationDataUpdated(
-            int resolutionOld, float windTurbulenceOld, float windSpeedOld, OceanWaveSpectrum spectrumOld,
-            int resolutionNew, float windTurbulenceNew, float windSpeedNew, OceanWaveSpectrum spectrumNew)
+        public static void OnGenerationDataUpdated(int resolution,
+            float windTurbulenceOld, float windDirRadOld, float windSpeedOld, OceanWaveSpectrum spectrumOld,
+            float windTurbulenceNew, float windDirRadNew, float windSpeedNew, OceanWaveSpectrum spectrumNew)
         {
             // Check if no generator exists for new values
-            var newHash = CalculateWaveConditionsHash(resolutionNew, windTurbulenceNew, windSpeedNew, spectrumNew);
+            var newHash = CalculateWaveConditionsHash(resolution, windTurbulenceNew, windDirRadNew, windSpeedNew, spectrumNew);
             if (!_generators.TryGetValue(newHash, out _))
             {
                 // Try to adapt an existing generator rather than default to creating a new one
-                var oldHash = CalculateWaveConditionsHash(resolutionOld, windTurbulenceOld, windSpeedOld, spectrumOld);
+                var oldHash = CalculateWaveConditionsHash(resolution, windTurbulenceOld, windDirRadOld, windSpeedOld, spectrumOld);
                 FFTCompute generator;
                 if (_generators.TryGetValue(oldHash, out generator))
                 {
@@ -247,8 +250,8 @@ namespace Crest
                     _generators.Remove(oldHash);
 
                     // Update params
-                    generator._resolution = resolutionNew;
                     generator._windTurbulence = windTurbulenceNew;
+                    generator._windDirRad = windDirRadNew;
                     generator._windSpeed = windSpeedNew;
                     generator._spectrum = spectrumNew;
 
@@ -260,7 +263,7 @@ namespace Crest
             {
                 // There is already a new generator which will be used. Remove the previous one - if it really is needed
                 // then it will be created later.
-                var oldHash = CalculateWaveConditionsHash(resolutionOld, windTurbulenceOld, windSpeedOld, spectrumOld);
+                var oldHash = CalculateWaveConditionsHash(resolution, windTurbulenceOld, windDirRadOld, windSpeedOld, spectrumOld);
                 _generators.Remove(oldHash);
             }
         }
@@ -333,6 +336,7 @@ namespace Crest
             buf.SetComputeFloatParam(_shaderSpectrum, "_WindSpeed", _windSpeed);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Turbulence", _windTurbulence);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Gravity", _spectrum._gravityScale * Mathf.Abs(Physics.gravity.magnitude));
+            buf.SetComputeVectorParam(_shaderSpectrum, "_WindDir", new Vector2(Mathf.Cos(_windDirRad), Mathf.Sin(_windDirRad)));
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_SpectrumControls", _texSpectrumControls);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_ResultInit", _spectrumInit);
             buf.DispatchCompute(_shaderSpectrum, _kernelSpectrumInit, _resolution / 8, _resolution / 8, CASCADE_COUNT);
@@ -376,9 +380,9 @@ namespace Crest
             buf.DispatchCompute(_shaderFFT, kernelOffset + 1, _resolution, 1, CASCADE_COUNT);
         }
 
-        public static void OnGUI(int resolution, float windTurbulence, float windSpeed, OceanWaveSpectrum spectrum)
+        public static void OnGUI(int resolution, float windTurbulence, float windDirRad , float windSpeed, OceanWaveSpectrum spectrum)
         {
-            _generators.TryGetValue(CalculateWaveConditionsHash(resolution, windTurbulence, windSpeed, spectrum), out var generator);
+            _generators.TryGetValue(CalculateWaveConditionsHash(resolution, windTurbulence, windDirRad, windSpeed, spectrum), out var generator);
             generator?.OnGUIInternal();
         }
 

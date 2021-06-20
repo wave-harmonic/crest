@@ -213,11 +213,8 @@ namespace Crest
             if (!_spectrumInitialised || updateSpectrum)
             {
                 InitialiseSpectrumHandControls();
-            }
-
-            if (updateSpectrum)
-            {
                 InitializeSpectrum(buf);
+                _spectrumInitialised = true;
             }
 
             UpdateSpectrum(buf, time);
@@ -254,6 +251,9 @@ namespace Crest
                     generator._windDirRad = windDirRadNew;
                     generator._windSpeed = windSpeedNew;
                     generator._spectrum = spectrumNew;
+
+                    // Trigger generator to re-init the spectrum
+                    generator._spectrumInitialised = false;
 
                     // Re-add with new hash
                     _generators.Add(newHash, generator);
@@ -323,8 +323,6 @@ namespace Crest
 
             _texSpectrumControls.SetPixels(_spectrumDataScratch);
             _texSpectrumControls.Apply();
-
-            _spectrumInitialised = true;
         }
 
         /// <summary>
@@ -380,7 +378,7 @@ namespace Crest
             buf.DispatchCompute(_shaderFFT, kernelOffset + 1, _resolution, 1, CASCADE_COUNT);
         }
 
-        public static void OnGUI(int resolution, float windTurbulence, float windDirRad , float windSpeed, OceanWaveSpectrum spectrum)
+        public static void OnGUI(int resolution, float windTurbulence, float windDirRad, float windSpeed, OceanWaveSpectrum spectrum)
         {
             _generators.TryGetValue(CalculateWaveConditionsHash(resolution, windTurbulence, windDirRad, windSpeed, spectrum), out var generator);
             generator?.OnGUIInternal();

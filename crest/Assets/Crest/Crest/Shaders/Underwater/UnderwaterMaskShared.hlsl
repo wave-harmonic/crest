@@ -32,7 +32,7 @@ float _ForceUnderwater;
 
 Varyings Vert(Attributes v)
 {
-	Varyings output = (Varyings)0.0;
+	Varyings output = (Varyings)0;
 
 	UNITY_SETUP_INSTANCE_ID(v);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
@@ -71,8 +71,8 @@ Varyings Vert(Attributes v)
 	}
 
 	// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-	const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;
-	const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
+	const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
+	const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 	// Sample displacement textures, add results to current world pos / normal / foam
 	const float2 positionWS_XZ_before = worldPos.xz;
 

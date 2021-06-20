@@ -66,7 +66,7 @@ half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const f
 	return wt;
 }
 
-void GetHorizonData(const float2 uv, inout float4 horizonPositionNormal, inout bool isBelowHorizon)
+void GetHorizonData(const float2 uv, out float4 horizonPositionNormal, out bool isBelowHorizon)
 {
 #if !_FULL_SCREEN_EFFECT
 	// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
@@ -110,7 +110,7 @@ half3 ApplyUnderwaterEffect(
 	const float rawDepth,
 	const float sceneZ,
 	const half3 view,
-	bool isOceanSurface
+	const bool isOceanSurface
 )
 {
 	half3 scatterCol = 0.0;

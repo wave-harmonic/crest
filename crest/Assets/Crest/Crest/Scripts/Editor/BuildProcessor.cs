@@ -112,7 +112,7 @@ namespace Crest
                 var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
 
                 // These keywords will not be on ocean material.
-                if (shaderKeywordName.Contains("_MENISCUS") || shaderKeywordName.Contains("_FULL_SCREEN_EFFECT"))
+                if (shaderKeywordName.Contains("CREST_MENISCUS") || shaderKeywordName.Contains("_FULL_SCREEN_EFFECT"))
                 {
                     usedShaderKeywords.Add(shaderKeyword);
                     continue;

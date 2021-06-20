@@ -212,7 +212,8 @@ Shader "Crest/Underwater Curtain"
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
+					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
+					ApplyCaustics(scenePos, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
 				}
 #endif // _CAUSTICS_ON
 

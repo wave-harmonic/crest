@@ -321,6 +321,8 @@ namespace Crest
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
 
+            // TODO this is probably only useful for testing, and actually wants to be kicked off via a button/UI
+            // in the SimSettingsAnimWaves, or from a separate editor window or such
             if (_UseThisFFTForHeightQueries)
             {
                 FFTBaker.Bake(this, 256, 32, 16, 16);

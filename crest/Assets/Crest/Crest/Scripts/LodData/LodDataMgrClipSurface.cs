@@ -60,11 +60,14 @@ namespace Crest
                 return;
             }
 
+            // Clear
+            buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
+            var defaultToClip = OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
+            buf.ClearRenderTarget(false, true, defaultToClip ? Color.white : Color.black);
+
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                var defaultToClip = OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
-                buf.ClearRenderTarget(false, true, defaultToClip ? Color.white : Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }

@@ -234,12 +234,15 @@ namespace Crest
                 gerstner.CrestUpdate(buf);
             }
 
-            // lod-dependent data
+            // Clear
+            buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, -1);
+            buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
+
+            // Lod-dependent data
             _filterWavelength._lodCount = lodCount;
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
 
                 // draw any data with lod preference
                 _filterWavelength._lodIdx = lodIdx;

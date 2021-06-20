@@ -44,6 +44,7 @@ namespace Crest
                 return;
             }
 
+            // Clear
             buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
             buf.ClearRenderTarget(false, true, s_nullColor);
 

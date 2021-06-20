@@ -193,8 +193,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
-		float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0.0, 0.0, 1.0));
-		float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
+		float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
 		ApplyCaustics(scenePos, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour, cascadeData0, cascadeData1);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);

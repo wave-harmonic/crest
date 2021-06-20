@@ -34,6 +34,7 @@ Changed
 .. bullet_list::
 
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
+   -  Optimisation - water simulation data texture arrays cleared in a single call.
 
 Fixed
 ^^^^^

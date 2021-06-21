@@ -32,6 +32,7 @@ namespace Crest
                 sRGB = false,
             };
             var wavePatchData = new RenderTexture(desc);
+            var stagingTexture = new Texture2D(desc.width, desc.height, TextureFormat.RFloat, false, true);
 
             var buf = new CommandBuffer();
 
@@ -57,8 +58,11 @@ namespace Crest
                 // Readback data to CPU
                 // what was the trick to doing this again? copy the render texture to a normal texture then read it back? urgh
                 //var data = wavePatchData.GetPixels();
+                RenderTexture.active = wavePatchData;
+                stagingTexture.ReadPixels(new Rect(0, 0, wavePatchData.width, wavePatchData.height), 0, 0); // is this correct??
 
-                // store data somehow/somewhere
+                // data[i].r should have height values. store data somehow/somewhere..
+                var data = stagingTexture.GetPixels();
             }
 
             // Save the data for each slice to disk - in some format?

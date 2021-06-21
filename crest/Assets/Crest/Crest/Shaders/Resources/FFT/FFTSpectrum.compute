@@ -23,6 +23,7 @@ uint _Size;
 float _WindSpeed;
 float _Turbulence;
 float _Gravity;
+float _Period;
 
 uint _RngState;
 
@@ -62,9 +63,7 @@ void DeepDispersion(float k, out float w, out float dwdk)
 {
 	w = sqrt(abs(_Gravity * k));
 
-	// lets say the waves should repeat ever 16s.
-	// TODO: drive this from outside to whatever period is needed.
-	const float globalPeriod = 16;
+	const float globalPeriod = _Period;
 	float thisPeriod = PI2 / w;
 	float loops = globalPeriod / thisPeriod;
 	// make sure loops integral number of times

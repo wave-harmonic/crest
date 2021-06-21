@@ -23,8 +23,6 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
-        public bool _UseThisFFTForHeightQueries = false;
-
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.
@@ -98,6 +96,14 @@ namespace Crest
         float _maxVerticalDisplacement = 10f;
         [Tooltip("Maximum amount a point on the surface will be displaced horizontally by waves from its rest position. Increase this if gaps appear at sides of screen."), SerializeField]
         float _maxHorizontalDisplacement = 15f;
+
+        [Header("Baking")]
+        [SerializeField]
+        int _spaceResolution = 256;
+        [SerializeField]
+        int _timeResolution = 32;
+        [SerializeField]
+        float _wavePatchWidth = 16; 
 
         Mesh _meshForDrawingWaves;
 
@@ -320,13 +326,6 @@ namespace Crest
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
-
-            // TODO this is probably only useful for testing, and actually wants to be kicked off via a button/UI
-            // in the SimSettingsAnimWaves, or from a separate editor window or such
-            if (_UseThisFFTForHeightQueries)
-            {
-                FFTBaker.Bake(this, 256, 32, 16, 16);
-            }
         }
 
         void OnDisable()
@@ -372,6 +371,11 @@ namespace Crest
         {
             DrawMesh();
         }
+
+        public void Bake()
+        {
+            FFTBaker.Bake(this, _spaceResolution, _timeResolution, _wavePatchWidth);
+        }
 #endif
     }
 
@@ -398,6 +402,16 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeFFT))]
-    public class ShapeFFTEditor : ValidatedEditor { }
+    public class ShapeFFTEditor : ValidatedEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            if (GUILayout.Button("Bake and save to file"))
+            {
+                ((ShapeFFT) target).Bake();
+            }
+        }
+    }
 #endif
 }

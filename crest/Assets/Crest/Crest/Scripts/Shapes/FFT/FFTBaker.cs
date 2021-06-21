@@ -11,7 +11,7 @@ namespace Crest
 {
     public class FFTBaker
     {
-        public static bool Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float period, float wavePatchWidth)
+        public static bool Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchWidth)
         {
             // TODO: assert wavePatchWidth is a power of 2
             // TODO: probably assert period and resolutions are powers of 2 as well. would not hurt..
@@ -38,7 +38,7 @@ namespace Crest
 
             for (int timeIndex = 0; timeIndex < resolutionTime; timeIndex++)
             {
-                float t = period * timeIndex / (float)resolutionTime;
+                float t = fftWaves._spectrum._period * timeIndex / (float)resolutionTime;
 
                 buf.Clear();
 

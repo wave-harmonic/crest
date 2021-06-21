@@ -334,6 +334,7 @@ namespace Crest
             buf.SetComputeFloatParam(_shaderSpectrum, "_WindSpeed", _windSpeed);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Turbulence", _windTurbulence);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Gravity", _spectrum._gravityScale * Mathf.Abs(Physics.gravity.magnitude));
+            buf.SetComputeFloatParam(_shaderSpectrum, "_Period", _spectrum._period);
             buf.SetComputeVectorParam(_shaderSpectrum, "_WindDir", new Vector2(Mathf.Cos(_windDirRad), Mathf.Sin(_windDirRad)));
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_SpectrumControls", _texSpectrumControls);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_ResultInit", _spectrumInit);
@@ -347,6 +348,7 @@ namespace Crest
         {
             buf.SetComputeFloatParam(_shaderSpectrum, "_Time", time);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Chop", _spectrum._chop);
+            buf.SetComputeFloatParam(_shaderSpectrum, "_Period", _spectrum._period);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_Init0", _spectrumInit);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_ResultHeight", _spectrumHeight);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_ResultDisplaceX", _spectrumDisplaceX);

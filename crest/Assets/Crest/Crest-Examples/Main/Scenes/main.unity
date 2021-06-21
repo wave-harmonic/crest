@@ -200,7 +200,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &774452945
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,6 +233,9 @@ MonoBehaviour:
   _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
+  _spaceResolution: 256
+  _timeResolution: 32
+  _wavePatchWidth: 16
 --- !u!4 &774452946
 Transform:
   m_ObjectHideFlags: 0
@@ -296,6 +299,9 @@ MonoBehaviour:
   _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
+  _spaceResolution: 256
+  _timeResolution: 32
+  _wavePatchWidth: 16
 --- !u!4 &876047018
 Transform:
   m_ObjectHideFlags: 0

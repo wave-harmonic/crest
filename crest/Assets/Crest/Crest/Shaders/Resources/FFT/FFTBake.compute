@@ -1,0 +1,48 @@
+// Crest Ocean System
+
+// Copyright 2021 Wave Harmonic Ltd
+
+#pragma kernel FFTBake
+
+// Must match CASCADE_COUNT in FFTCompute.cs
+#define CASCADE_COUNT 16
+
+Texture2DArray<float3> _InFFTWaves;
+SamplerState sampler_linear_repeat;
+
+RWTexture2D<float> _OutHeights;
+
+float _WavePatchSize = 16.0;
+
+[numthreads(8, 8, 1)]
+void FFTBake(uint3 id : SV_DispatchThreadID)
+{
+	float dimX, dimY;
+	int fftSlices;
+	{
+		_OutHeights.GetDimensions( dimX, dimY );
+		int dummyi;
+		_InFFTWaves.GetDimensions( dummyi, dummyi, fftSlices );
+	}
+
+	const float2 uv = (id.xy + 0.5) / float2(dimX, dimY);
+	const float2 worldPosXZ = uv * _WavePatchSize;
+
+	float resultHeight = 0.0;
+
+	for( int slice = 0.0; slice < fftSlices; slice++ )
+	{
+		const float sliceWorldSize = 0.5f * (1 << slice);
+		// FFT slices that are larger than our output patch won't tile spatially
+		if( sliceWorldSize > _WavePatchSize ) break;
+
+		const float3 waveUV = float3(worldPosXZ / sliceWorldSize, slice);
+		const float3 data = _InFFTWaves.SampleLevel( sampler_linear_repeat, waveUV, 0 );
+
+		// TODO - convert to heightmap
+
+		resultHeight += data.y;
+	}
+
+	_OutHeights[id.xy] = resultHeight;
+}

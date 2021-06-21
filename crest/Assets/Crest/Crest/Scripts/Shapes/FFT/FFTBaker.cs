@@ -11,10 +11,11 @@ namespace Crest
 {
     public class FFTBaker
     {
-        public static bool Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchWidth)
+        public static bool Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize)
         {
-            // TODO: assert wavePatchWidth is a power of 2
-            // TODO: probably assert period and resolutions are powers of 2 as well. would not hurt..
+            Debug.Assert(Mathf.IsPowerOfTwo(resolutionSpace), "Crest: Spatial resolution must be power of 2");
+            Debug.Assert(Mathf.IsPowerOfTwo(resolutionTime), "Crest: Temporal resolution must be power of 2");
+            Debug.Assert(Mathf.IsPowerOfTwo((int)wavePatchSize), "Crest: Spatial path size must be power of 2");
 
             // create the staging texture wavePatchData that is written to then downloaded from the GPU
             var desc = new RenderTextureDescriptor
@@ -25,16 +26,17 @@ namespace Crest
                 autoGenerateMips = false,
                 colorFormat = RenderTextureFormat.ARGBFloat,
                 enableRandomWrite = true,
-                dimension = UnityEngine.Rendering.TextureDimension.Tex2D,
+                dimension = TextureDimension.Tex2D,
                 depthBufferBits = 0,
-                sRGB = false
+                msaaSamples = 1,
+                sRGB = false,
             };
             var wavePatchData = new RenderTexture(desc);
 
             var buf = new CommandBuffer();
 
-            // TODO
-            var waveCombineShader = Resources.Load("some compute shader (see below)");
+            var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");
+            var kernel = waveCombineShader.FindKernel("FFTBake");
 
             for (int timeIndex = 0; timeIndex < resolutionTime; timeIndex++)
             {
@@ -42,29 +44,21 @@ namespace Crest
 
                 buf.Clear();
 
-                // generate multi-res FFT into a texture array
+                // Generate multi-res FFT into a texture array
                 var fftWaveDataTA = FFTCompute.GenerateDisplacements(buf, fftWaves._resolution, fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeedForFFT, t, fftWaves._spectrum, true);
 
-                // Create a compute shader that generates the final waves:
-                // - takes the fftWaveDataTA texture as input.
-                // - outputs to the wavePatchData staging texture
-                // - for each texel:
-                //    - compute world position using UV and wavePatchWidth
-                //    - initialise output to 0
-                //    - loop over each slice in the wave data, compute slice UV. Similar to computation in AnimWavesGerstner.shader.
-                //    - sample displacements from the slice and add them to the result. using Wrap sampling.
-                //       - could convert to heightfield here, and only store a single value
-                //       - some slices will be too high res. could omit, or maybe it doesnt matter.
-                //buf.SetComputeTextureParam(waveCombineShader, "input", fftWaveDataTA);
-                //buf.SetComputeTextureParam(waveCombineShader, "output", wavePatchData);
-                // ...
-                //buf.DispatchCompute();
-
+                // Compute shader generates the final waves
+                buf.SetComputeFloatParam(waveCombineShader, "_WavePatchSize", wavePatchSize);
+                buf.SetComputeTextureParam(waveCombineShader, kernel, "_InFFTWaves", fftWaveDataTA);
+                buf.SetComputeTextureParam(waveCombineShader, kernel, "_OutHeights", wavePatchData);
+                buf.DispatchCompute(waveCombineShader, kernel, resolutionSpace / 8, resolutionSpace / 8, 1);
                 Graphics.ExecuteCommandBuffer(buf);
 
-                // readback data to CPU
+                // Readback data to CPU
                 // what was the trick to doing this again? copy the render texture to a normal texture then read it back? urgh
                 //var data = wavePatchData.GetPixels();
+
+                // store data somehow/somewhere
             }
 
             // Save the data for each slice to disk - in some format?

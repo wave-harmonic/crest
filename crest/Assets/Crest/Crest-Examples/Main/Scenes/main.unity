@@ -1669,7 +1669,7 @@ PrefabInstance:
     - target: {fileID: 3190275879643289567, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _viewPostProcessMask
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3190275879643289567, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}

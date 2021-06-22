@@ -21,8 +21,8 @@ namespace Crest
         Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
-        RenderTexture _textureMask;
-        RenderTexture _depthBuffer;
+        RenderTexture _maskTexture;
+        RenderTexture _depthTexture;
 
         void SetupOceanMask()
         {
@@ -38,6 +38,11 @@ namespace Crest
                     name = "Ocean Mask",
                 };
             }
+
+            if (_cameraFrustumPlanes == null)
+            {
+                _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
+            }
         }
 
         void OnPreRenderOceanMask()
@@ -45,14 +50,14 @@ namespace Crest
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
             descriptor.useDynamicScale = _camera.allowDynamicResolution;
 
-            InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
+            InitialiseMaskTextures(descriptor, ref _maskTexture, ref _depthTexture);
 
             _oceanMaskCommandBuffer.Clear();
             // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
-            _oceanMaskCommandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
+            _oceanMaskCommandBuffer.SetRenderTarget(_maskTexture.colorBuffer, _depthTexture.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
             _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
-            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _textureMask.colorBuffer);
-            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthBuffer.depthBuffer);
+            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTexture.colorBuffer);
+            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTexture.depthBuffer);
 
             PopulateOceanMask(
                 _oceanMaskCommandBuffer,

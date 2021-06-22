@@ -80,7 +80,7 @@ namespace Crest
         Camera _camera;
         bool _firstRender = true;
         // XR MP will create two instances of this class so it needs to be static to track the pass/eye.
-        static int s_xrPassIndex = -1;
+        internal static int s_xrPassIndex = -1;
 
         // Use instance to denote whether this is active or not. Only one camera is supported.
         public static UnderwaterRenderer Instance { get; private set; }
@@ -92,16 +92,29 @@ namespace Crest
             s_xrPassIndex = -1;
         }
 
+        internal bool IsActive
+        {
+            get
+            {
+                if (OceanRenderer.Instance == null)
+                {
+                    return false;
+                }
+
+                if (!_debug._disableHeightAboveWaterOptimization && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
         void OnEnable()
         {
             if (_camera == null)
             {
                 _camera = GetComponent<Camera>();
-            }
-
-            if (_cameraFrustumPlanes == null)
-            {
-                _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
             }
 
             Enable();
@@ -130,19 +143,13 @@ namespace Crest
 
         void OnPreRender()
         {
-            if (OceanRenderer.Instance == null)
+            if (!IsActive)
             {
                 OnDisable();
                 return;
             }
 
             if (GL.wireframe)
-            {
-                OnDisable();
-                return;
-            }
-
-            if (!_debug._disableHeightAboveWaterOptimization && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
             {
                 OnDisable();
                 return;

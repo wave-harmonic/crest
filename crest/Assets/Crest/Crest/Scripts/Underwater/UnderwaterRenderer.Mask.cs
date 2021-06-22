@@ -38,11 +38,6 @@ namespace Crest
                     name = "Ocean Mask",
                 };
             }
-
-            if (_cameraFrustumPlanes == null)
-            {
-                _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
-            }
         }
 
         void OnPreRenderOceanMask()

@@ -117,6 +117,12 @@ namespace Crest
                 _camera = GetComponent<Camera>();
             }
 
+            // Setup here because it is the same across pipelines.
+            if (_cameraFrustumPlanes == null)
+            {
+                _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
+            }
+
             Enable();
             Instance = this;
         }

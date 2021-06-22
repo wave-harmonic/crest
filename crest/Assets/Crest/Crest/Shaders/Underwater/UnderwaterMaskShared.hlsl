@@ -21,6 +21,8 @@ struct Attributes
 struct Varyings
 {
 	float4 positionCS : SV_POSITION;
+	float3 positionWS : TEXCOORD0;
+	float lodAlpha : TEXCOORD1;
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -29,6 +31,11 @@ struct Varyings
 // cause here might be imprecision or numerical issues at ocean tile boundaries, although
 // i'm not sure why cracks are not visible in this case.
 float _ForceUnderwater;
+
+void SampleClipY(in Texture2DArray i_oceanClipSurfaceSampler, in float3 i_uv_slice, in float i_wt, inout half io_clipValue)
+{
+	io_clipValue += i_wt * (i_oceanClipSurfaceSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).y);
+}
 
 Varyings Vert(Attributes v)
 {
@@ -94,6 +101,8 @@ Varyings Vert(Attributes v)
 	worldPos.xz -= _WorldSpaceCameraPos.xz;
 #endif
 
+	output.lodAlpha = lodAlpha;
+	output.positionWS = worldPos;
 	output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 
 	return output;
@@ -101,6 +110,28 @@ Varyings Vert(Attributes v)
 
 half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 {
+	const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+	const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
+	const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
+
+	const float wt_smallerLod = (1.0 - input.lodAlpha) * cascadeData0._weight;
+	const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
+	// Clip surface
+	half clipVal = 0.0;
+	if (wt_smallerLod > 0.001)
+	{
+		const float3 uv_slice_smallerLod = WorldToUV(input.positionWS.xz, cascadeData0, _LD_SliceIndex);
+		SampleClipY(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
+	}
+	if (wt_biggerLod > 0.001)
+	{
+		const float3 uv_slice_biggerLod = WorldToUV(input.positionWS.xz, cascadeData1, _LD_SliceIndex + 1);
+		SampleClipY(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
+	}
+	clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
+	// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+	clip(-clipVal + 0.5);
+
 	if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 	{
 		return (half4)UNDERWATER_MASK_WATER_SURFACE_BELOW;

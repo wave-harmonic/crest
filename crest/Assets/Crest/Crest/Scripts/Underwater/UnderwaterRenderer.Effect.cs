@@ -194,6 +194,9 @@ namespace Crest
                 forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
             }
 
+            // Force full shader off if clipping the mask.
+            forceFullShader = false;
+
             if (forceFullShader)
             {
                 underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);

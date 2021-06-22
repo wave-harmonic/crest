@@ -129,15 +129,15 @@ Shader "Crest/Underwater/Ocean Mask"
 				}
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
-				// clip(-clipVal + 0.5);
+				clip(-clipVal + 0.5);
 
-				half3 uv_z = input.screenPosition.xyz / input.screenPosition.w;
-				const float rawClipSurfaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uv_z.xy);
-
-				if (rawClipSurfaceZ != 0 && rawClipSurfaceZ < uv_z.z)
-				{
-					discard;
-				}
+				// half3 uv_z = input.screenPosition.xyz / input.screenPosition.w;
+				// const float rawClipSurfaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uv_z.xy);
+				//
+				// if (rawClipSurfaceZ != 0 && rawClipSurfaceZ < uv_z.z)
+				// {
+				// 	discard;
+				// }
 
 				if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 				{

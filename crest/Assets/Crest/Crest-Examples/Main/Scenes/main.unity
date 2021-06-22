@@ -1675,7 +1675,7 @@ PrefabInstance:
         type: 3}
       propertyPath: _waterVolumeBoundaryGeometry
       value: 
-      objectReference: {fileID: 692468587}
+      objectReference: {fileID: 0}
     - target: {fileID: 6721184188249843587, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_Enabled

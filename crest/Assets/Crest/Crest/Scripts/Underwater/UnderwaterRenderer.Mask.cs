@@ -18,7 +18,7 @@ namespace Crest
         // This matches const on shader side.
         internal const float UNDERWATER_MASK_NO_MASK = 1.0f;
 
-        Plane[] _cameraFrustumPlanes;
+        internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
         RenderTexture _maskTexture;

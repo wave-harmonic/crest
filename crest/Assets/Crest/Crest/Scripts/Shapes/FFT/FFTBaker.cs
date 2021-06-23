@@ -4,7 +4,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.IO;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,7 +16,7 @@ namespace Crest
         public static bool Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize)
         {
             Debug.Assert(Mathf.IsPowerOfTwo(resolutionSpace), "Crest: Spatial resolution must be power of 2");
-            Debug.Assert(Mathf.IsPowerOfTwo(resolutionTime), "Crest: Temporal resolution must be power of 2");
+            // Debug.Assert(Mathf.IsPowerOfTwo(resolutionTime), "Crest: Temporal resolution must be power of 2"); // seems unnecessary
             Debug.Assert(Mathf.IsPowerOfTwo((int)wavePatchSize), "Crest: Spatial path size must be power of 2");
 
             // create the staging texture wavePatchData that is written to then downloaded from the GPU
@@ -39,9 +41,17 @@ namespace Crest
             var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");
             var kernel = waveCombineShader.FindKernel("FFTBake");
 
-            for (int timeIndex = 0; timeIndex < resolutionTime; timeIndex++)
+            const string directoryName = "BakedWave";
+            if (Directory.Exists(directoryName))
             {
-                float t = fftWaves._spectrum._period * timeIndex / (float)resolutionTime;
+                Directory.Delete(directoryName, true);
+            }
+            
+            Directory.CreateDirectory(directoryName);
+
+            for (int timeIndex = 0; timeIndex < resolutionTime * fftWaves._spectrum._period; timeIndex++) // this means resolutionTime is actually FPS
+            {
+                float t = timeIndex / (float)resolutionTime;
 
                 buf.Clear();
 
@@ -62,7 +72,11 @@ namespace Crest
                 stagingTexture.ReadPixels(new Rect(0, 0, wavePatchData.width, wavePatchData.height), 0, 0); // is this correct??
 
                 // data[i].r should have height values. store data somehow/somewhere..
-                var data = stagingTexture.GetPixels();
+                // var data = stagingTexture.GetPixels();
+
+                var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
+                
+                File.WriteAllBytes($"{directoryName}/test_{timeIndex}.exr", encodedTexture);
             }
 
             // Save the data for each slice to disk - in some format?

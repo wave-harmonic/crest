@@ -30,4 +30,10 @@
 // Water rendered from below
 #define UNDERWATER_MASK_WATER_SURFACE_BELOW 2.0
 
+#if defined(STEREO_INSTANCING_ON) || defined(STEREO_MULTIVIEW_ON)
+#define CREST_HANDLE_XR 1
+#else
+#define CREST_HANDLE_XR 0
+#endif
+
 #endif // CREST_CONSTANTS_H

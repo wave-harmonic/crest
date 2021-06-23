@@ -42,17 +42,23 @@ public class CamController : MonoBehaviour
     Camera camera;
 #pragma warning restore CS0108
 
+    [Space(10)]
+
+    [SerializeField]
+    DebugFields _debug = new DebugFields();
+
     [System.Serializable]
     class DebugFields
     {
+        [Tooltip("Allows the camera to roll (rotating on the z axis).")]
+        public bool _enableCameraRoll = false;
+
         [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
-        public bool disableOcclusionMesh = false;
+        public bool _disableOcclusionMesh = false;
 
         [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), UnityEngine.Range(1f, 2f)]
-        public float occlusionMeshScale = 1f;
+        public float _occlusionMeshScale = 1f;
     }
-
-    [SerializeField] DebugFields _debug = new DebugFields();
 
     void Awake()
     {
@@ -70,8 +76,8 @@ public class CamController : MonoBehaviour
         {
             // Seems like the best place to put this for now. Most XR debugging happens using this component.
             // @FixMe: useOcclusionMesh doesn't work anymore. Might be a Unity bug.
-            XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
-            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
+            XRSettings.useOcclusionMesh = !_debug._disableOcclusionMesh;
+            XRSettings.occlusionMaskScale = _debug._occlusionMeshScale;
         }
 #endif
     }
@@ -97,13 +103,13 @@ public class CamController : MonoBehaviour
         if (XRSettings.enabled)
         {
             // Check if property has changed.
-            if (XRSettings.useOcclusionMesh == _debug.disableOcclusionMesh)
+            if (XRSettings.useOcclusionMesh == _debug._disableOcclusionMesh)
             {
                 // @FixMe: useOcclusionMesh doesn't work anymore. Might be a Unity bug.
-                XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+                XRSettings.useOcclusionMesh = !_debug._disableOcclusionMesh;
             }
 
-            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
+            XRSettings.occlusionMaskScale = _debug._occlusionMeshScale;
         }
 #endif
     }
@@ -220,6 +226,7 @@ public class CamController : MonoBehaviour
 
     void UpdateKillRoll()
     {
+        if (_debug._enableCameraRoll) return;
         Vector3 ea = _targetTransform.eulerAngles;
         ea.z = 0f;
         transform.eulerAngles = ea;

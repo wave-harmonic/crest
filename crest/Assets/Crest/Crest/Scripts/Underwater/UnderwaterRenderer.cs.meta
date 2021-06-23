@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1b0c0a69611596146aceb2f60532940c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _underwaterPostProcessMaterial: {fileID: 2100000, guid: 95ea0c2815f0aa798beeb370980c6614,
+      type: 2}
+  - _oceanMaskMaterial: {fileID: 2100000, guid: 2ddd9bab6a9ad7542a419bcaeff337a8,
+      type: 2}
+  executionOrder: 202
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

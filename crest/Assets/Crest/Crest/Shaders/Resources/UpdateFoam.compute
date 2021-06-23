@@ -4,6 +4,7 @@
 
 #pragma kernel UpdateFoam
 
+#include "../OceanConstants.hlsl"
 #include "HLSLSupport.cginc"
 
 #include "../OceanGlobals.hlsl"

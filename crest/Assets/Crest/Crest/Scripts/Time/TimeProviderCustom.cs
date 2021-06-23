@@ -30,12 +30,12 @@ namespace Crest
         public bool _paused = false;
 
         [Tooltip("Override time used for ocean simulation to value below.")]
-        public bool _overrideTime = true;
+        public bool _overrideTime = false;
         [Predicated("_overrideTime"), DecoratedField]
         public float _time = 0f;
 
-        [Tooltip("Override delta time used for ocean simulation to value below.")]
-        public bool _overrideDeltaTime = true;
+        [Tooltip("Override delta time used for ocean simulation to value below. This in particular affects dynamic elements of the simulation like the foam simulation and the ripple simulation.")]
+        public bool _overrideDeltaTime = false;
         [Predicated("_overrideDeltaTime"), DecoratedField]
         public float _deltaTime = 0f;
 

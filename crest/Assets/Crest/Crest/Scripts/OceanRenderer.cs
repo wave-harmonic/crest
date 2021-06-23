@@ -202,6 +202,12 @@ namespace Crest
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
+        [SerializeField, Range(UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM)]
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled.")]
+        public float _underwaterCullLimit = 0.001f;
+        internal const float UNDERWATER_CULL_LIMIT_MINIMUM = 0.000001f;
+        internal const float UNDERWATER_CULL_LIMIT_MAXIMUM = 0.01f;
+
 
         [Header("Simulation Params")]
 
@@ -327,6 +333,7 @@ namespace Crest
         List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
+        public List<OceanChunkRenderer> Tiles => _oceanChunkRenderers;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
@@ -1011,12 +1018,21 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            // If there are local bodies of water, this will do overlap tests between the ocean tiles
-            // and the water bodies and turn off any that don't overlap.
-            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
+            var isUnderwaterActive = UnderwaterRenderer.Instance != null && UnderwaterRenderer.Instance.IsActive;
+
+            var definitelyUnderwater = false;
+            var volumeExtinctionLength = 0f;
+
+            if (isUnderwaterActive)
             {
-                return;
+                definitelyUnderwater = ViewerHeightAboveWater < -5f;
+                var density = _material.GetVector("_DepthFogDensity");
+                var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+                var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
+                volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
             }
+
+            var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
@@ -1025,24 +1041,39 @@ namespace Crest
                     continue;
                 }
 
-                var chunkBounds = tile.Rend.bounds;
+                var isCulled = false;
 
-                var overlappingOne = false;
-                foreach (var body in WaterBody.WaterBodies)
+                // If there are local bodies of water, this will do overlap tests between the ocean tiles
+                // and the water bodies and turn off any that don't overlap.
+                if (!canSkipCulling)
                 {
-                    var bounds = body.AABB;
+                    var chunkBounds = tile.Rend.bounds;
 
-                    bool overlapping =
-                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
-                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
-                    if (overlapping)
+                    var overlappingOne = false;
+                    foreach (var body in WaterBody.WaterBodies)
                     {
-                        overlappingOne = true;
-                        break;
+                        var bounds = body.AABB;
+
+                        bool overlapping =
+                            bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                            bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
+                        if (overlapping)
+                        {
+                            overlappingOne = true;
+                            break;
+                        }
                     }
+
+                    isCulled = !overlappingOne && WaterBody.WaterBodies.Count > 0;
                 }
 
-                tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
+                // Cull tiles the viewer cannot see through the underwater fog.
+                if (!isCulled && isUnderwaterActive)
+                {
+                    isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
+                }
+
+                tile.Rend.enabled = !isCulled;
             }
 
             // Can skip culling next time around if water body count stays at 0
@@ -1220,12 +1251,14 @@ namespace Crest
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+#pragma warning disable 0618
             // UnderwaterEffect
             var underwaters = FindObjectsOfType<UnderwaterEffect>();
             foreach (var underwater in underwaters)
             {
                 underwater.Validate(ocean, ValidatedHelper.DebugLog);
             }
+#pragma warning restore 0618
 
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();

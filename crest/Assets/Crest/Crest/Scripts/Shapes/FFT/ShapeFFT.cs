@@ -312,8 +312,6 @@ namespace Crest
                 enabled = false;
                 return;
             }
-
-            _activeSpectrum.Upgrade();
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);

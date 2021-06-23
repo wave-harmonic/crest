@@ -175,7 +175,6 @@ namespace Crest
             // Initialise with spectrum.
             _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
             _spectrum.name = "Default Waves (auto)";
-            _spectrum.Upgrade();
         }
 #endif
 
@@ -188,11 +187,6 @@ namespace Crest
             {
                 enabled = false;
                 return;
-            }
-
-            if (_spectrum != null)
-            {
-                _spectrum.Upgrade();
             }
 #endif
 

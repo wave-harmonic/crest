@@ -34,6 +34,7 @@ Changed
 .. bullet_list::
 
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
+   -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
 
 Fixed
 ^^^^^

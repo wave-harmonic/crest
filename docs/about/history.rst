@@ -35,6 +35,7 @@ Changed
 
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
    -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
+   -  *CustomTimeProvider* override time/delta time functions are now defaulted to opt-in instead of opt-out.
 
 Fixed
 ^^^^^

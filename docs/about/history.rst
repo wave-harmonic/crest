@@ -33,6 +33,8 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
+   -  FFT generator count added to debug GUI.
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
    -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
    -  *CustomTimeProvider* override time/delta time functions are now defaulted to opt-in instead of opt-out.

@@ -65,6 +65,18 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
 
+#if !UNITY_EDITOR
+        void Awake()
+        {
+            // If it is version zero, and we are in a build, then it must be the default.
+            if (_version == 0)
+            {
+                // Reset is called in the editor only so manually call here for standalone builds.
+                Reset();
+            }
+        }
+#endif
+
         void Reset()
         {
             // Auto-upgrade any new data objects directly to v1. This is in lieu of simply

@@ -12,27 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
   m_Name: WavesWhirlpool
   m_EditorClassIdentifier: 
-  _version: 1
+  _windSpeed: 4.7222223
   _fetch: 500000
   _waveDirectionVariance: 90
   _gravityScale: 1
   _smallWavelengthMultiplier: 1
   _multiplier: 1
   _powerLog:
-  - -7.39794
-  - -7.39794
-  - -6.0613065
-  - -6.0305524
-  - -4.7010894
-  - -3.8374424
-  - -3.4301524
-  - -1.8573954
-  - -1.321467
-  - -1.1234515
-  - -0.86166644
-  - -0.36967784
-  - 0.042389195
-  - -7.39794
+  - -6
+  - -6
+  - -4.6633663
+  - -4.632612
+  - -3.3031495
+  - -2.4395025
+  - -2.0322125
+  - -0.4594554
+  - 0.076472946
+  - 0.27448857
+  - 0.53627354
+  - 1.0282621
+  - 1.4403292
+  - -6
   _powerDisabled: 0000000000000000000000000000
   _chopScales:
   - 1

@@ -345,7 +345,7 @@ MonoBehaviour:
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _spaceResolution: 256
-  _timeResolution: 2
+  _timeResolution: 8
   _wavePatchWidth: 16
 --- !u!4 &876047018
 Transform:

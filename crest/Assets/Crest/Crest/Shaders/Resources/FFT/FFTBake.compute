@@ -12,7 +12,7 @@ SamplerState sampler_linear_repeat;
 
 RWTexture2D<float> _OutHeights;
 
-float _WavePatchSize = 16.0;
+float _WavePatchSize;
 
 [numthreads(8, 8, 1)]
 void FFTBake(uint3 id : SV_DispatchThreadID)

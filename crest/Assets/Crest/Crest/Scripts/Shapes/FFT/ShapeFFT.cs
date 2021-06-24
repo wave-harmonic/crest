@@ -407,7 +407,7 @@ namespace Crest
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            if (GUILayout.Button("Bake and save to file"))
+            if (GUILayout.Button("Bake to asset"))
             {
                 ((ShapeFFT) target).Bake();
             }

@@ -5,12 +5,15 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.IO;
+using Unity.Collections;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
+    // TODO: there's a bug somewhere, frame 0 is black
     public class FFTBaker
     {
         public static bool Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize)
@@ -41,15 +44,19 @@ namespace Crest
             var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");
             var kernel = waveCombineShader.FindKernel("FFTBake");
 
-            const string directoryName = "BakedWave";
-            if (Directory.Exists(directoryName))
+            const string folderName = "BakedWave";
+            if (Directory.Exists(folderName))
             {
-                Directory.Delete(directoryName, true);
+                Directory.Delete(folderName, true);
             }
             
-            Directory.CreateDirectory(directoryName);
+            Directory.CreateDirectory(folderName);
+            
+            var period = fftWaves._spectrum._period;
+            var frameCount = (int)(resolutionTime * period); // not so sure about this
+            var frames = new float[frameCount][];
 
-            for (int timeIndex = 0; timeIndex < resolutionTime * fftWaves._spectrum._period; timeIndex++) // this means resolutionTime is actually FPS
+            for (int timeIndex = 0; timeIndex < frameCount; timeIndex++) // this means resolutionTime is actually FPS
             {
                 float t = timeIndex / (float)resolutionTime;
 
@@ -74,10 +81,17 @@ namespace Crest
                 // data[i].r should have height values. store data somehow/somewhere..
                 // var data = stagingTexture.GetPixels();
 
+                frames[timeIndex] = stagingTexture.GetRawTextureData<float>().ToArray();
                 var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
                 
-                File.WriteAllBytes($"{directoryName}/test_{timeIndex}.exr", encodedTexture);
+                File.WriteAllBytes($"{folderName}/test_{timeIndex}.exr", encodedTexture);
             }
+            
+            var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
+            bakedDataSO.Initialize(period, resolutionTime, frames, resolutionSpace);
+            
+            SaveBakedDataToAsset(folderName, bakedDataSO);
+            // AssetDatabase.Refresh();
 
             // Save the data for each slice to disk - in some format?
 
@@ -85,6 +99,19 @@ namespace Crest
             // selecting this provider type, and also have a field for selecting the exported data.
 
             return true;
+        }
+
+        private static void SaveBakedDataToAsset(string folderName, FFTBakedData bakedDataSO)
+        {
+            var bakedDataDirectory = $"Assets/{folderName}";
+            if (!AssetDatabase.IsValidFolder(bakedDataDirectory))
+            {
+                Debug.Log("Folder not found, creating");
+                AssetDatabase.CreateFolder("Assets", folderName);
+            }
+
+            AssetDatabase.CreateAsset(bakedDataSO, $"{bakedDataDirectory}/bakedTest.asset");
+            // AssetDatabase.SaveAssets();
         }
     }
 }

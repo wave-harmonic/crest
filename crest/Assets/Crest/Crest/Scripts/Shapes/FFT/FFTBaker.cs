@@ -82,13 +82,15 @@ namespace Crest
                 // var data = stagingTexture.GetPixels();
 
                 frames[timeIndex] = stagingTexture.GetRawTextureData<float>().ToArray();
+
                 var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
-                
-                File.WriteAllBytes($"{folderName}/test_{timeIndex}.exr", encodedTexture);
+                var path = $"{folderName}/test_{timeIndex}.exr";
+                File.WriteAllBytes(path, encodedTexture);
+                Debug.Log($"Baked {folderName}/test_{timeIndex}.exr");
             }
             
             var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
-            bakedDataSO.Initialize(period, resolutionTime, frames, resolutionSpace);
+            bakedDataSO.Initialize(period, resolutionTime, frames, resolutionSpace, wavePatchSize);
             
             SaveBakedDataToAsset(folderName, bakedDataSO);
             // AssetDatabase.Refresh();

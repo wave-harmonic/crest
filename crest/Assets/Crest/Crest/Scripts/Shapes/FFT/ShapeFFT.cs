@@ -100,7 +100,7 @@ namespace Crest
         [Header("Baking")]
         [SerializeField]
         int _spaceResolution = 256;
-        [SerializeField]
+        [SerializeField, Tooltip("FPS")]
         int _timeResolution = 32;
         [SerializeField]
         float _wavePatchWidth = 16; 

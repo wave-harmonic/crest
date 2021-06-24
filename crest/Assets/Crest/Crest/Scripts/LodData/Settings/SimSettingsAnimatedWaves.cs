@@ -28,6 +28,7 @@ namespace Crest
             None,
             GerstnerWavesCPU,
             ComputeShaderQueries,
+            BakedFFT
         }
 
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
@@ -42,6 +43,9 @@ namespace Crest
         [Tooltip("Whether to use a graphics shader for combining the wave cascades together. Disabling this uses a compute shader instead which doesn't need to copy back and forth between targets, but it may not work on some GPUs, in particular pre-DX11.3 hardware, which do not support typed UAV loads. The fail behaviour is a flat ocean."), SerializeField]
         bool _pingPongCombinePass = true;
         public bool PingPongCombinePass => _pingPongCombinePass;
+
+        [Predicated("_collisionSource", true, 3), DecoratedField]
+        public FFTBakedData _bakedFFTData;
 
         /// <summary>
         /// Provides ocean shape to CPU.
@@ -67,6 +71,9 @@ namespace Crest
                     {
                         Debug.LogError("Crest: Compute shader queries not supported in headless/batch mode. To resolve, assign an Animated Wave Settings asset to the OceanRenderer component and set the Collision Source to be a CPU option.");
                     }
+                    break;
+                case CollisionSources.BakedFFT:
+                    result = new CollProviderBakedFFT(_bakedFFTData);
                     break;
             }
 

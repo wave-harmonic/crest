@@ -49,12 +49,14 @@ namespace Crest
 
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
+            var t = OceanRenderer.Instance.CurrentTime;
+            var seaLevel = OceanRenderer.Instance.SeaLevel;
+
             if (o_resultHeights != null)
             {
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
-                    // TODO 
-                    o_resultHeights[i] = Mathf.Sin(i);
+                    o_resultHeights[i] = seaLevel + 10f * _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t);
                 }
             }
 

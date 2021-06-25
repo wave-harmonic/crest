@@ -25,8 +25,7 @@ Preview
 ^^^^^^^
 .. bullet_list::
 
-   -  `FFT` wave simulation added via new Shape `FFT` component.
-      Read :ref:`shape-fft-section` for more information.
+   -  `FFT` wave simulation added via new ShapeFFT component.
 
 Changed
 ^^^^^^^

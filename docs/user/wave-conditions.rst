@@ -7,9 +7,9 @@ The following sections describe how to define the wave conditions.
 
 .. tip::
 
-    It is useful to see the animated ocean surface while tweaking the wave conditions.
+   It is useful to see the animated ocean surface while tweaking the wave conditions.
 
-    .. include:: includes/_animated-materials.rst
+   .. include:: includes/_animated-materials.rst
 
 
 Wave Systems
@@ -17,9 +17,13 @@ Wave Systems
 
 There are a few different systems that generate waves in Crest:
 
--  *ShapeGerstnerBatch* - the original system that manually adds together 'Gerstner' waves. This component is inefficient, and does not support the 'wave spline' tech, and has lower quality waves. It is about to be deprecated.
--  *ShapeGerstner* - high quality 'Gerstner'-based system. Best choice for if running with *nographics* (no GPU).
--  *ShapeFFT* - high quality 'FFT'-based system. Best choice for maximum detail/realism. Our innovative FFT tech supports waves at all scales and is also extremely efficient.
+-  *ShapeGerstnerBatch* - the original system that manually adds together 'Gerstner' waves.
+   This component is inefficient, and does not support the 'wave spline' tech, and has lower quality waves.
+   It is about to be deprecated.
+-  *ShapeGerstner* - high quality 'Gerstner'-based system.
+   Best choice for if running with *nographics* (no GPU).
+-  *ShapeFFT* - high quality 'FFT'-based system. Best choice for maximum detail/realism.
+   Our innovative FFT tech supports waves at all scales and is also extremely efficient.
 
 .. _wave-authoring-section:
 
@@ -50,9 +54,9 @@ The model can be disabled afterwards which will unlock the spectrum power slider
 
 .. tip::
 
-    Notice how the empirical spectrum places the power slider handles along a line.
-    This is typical of real world wave conditions which will have linear power spectrums on average.
-    However actual conditions can vary significantly based on wind conditions, land masses, etc, and we encourage experimentation to obtain visually interesting wave conditions, or conditions that work best for gameplay.
+   Notice how the empirical spectrum places the power slider handles along a line.
+   This is typical of real world wave conditions which will have linear power spectrums on average.
+   However actual conditions can vary significantly based on wind conditions, land masses, etc, and we encourage experimentation to obtain visually interesting wave conditions, or conditions that work best for gameplay.
 
 
 Together these controls give the flexibility to express the great variation one can observe in real world seascapes.

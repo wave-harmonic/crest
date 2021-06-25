@@ -6,7 +6,7 @@ In some situations it is useful to control this time, such as an in-game pause o
 This is achieved through what we call *TimeProviders*, and a few use cases are described below.
 
 .. note::
-    The :ref:`dynamic-waves-section` simulation must progress frame by frame and can not be set to use a specific time, and also cannot be synchronised accurately over a network.
+   The :ref:`dynamic-waves-section` simulation must progress frame by frame and can not be set to use a specific time, and also cannot be synchronised accurately over a network.
 
 
 Supporting Pause

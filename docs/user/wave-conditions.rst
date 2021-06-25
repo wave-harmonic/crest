@@ -17,7 +17,7 @@ Wave Systems
 
 There are a few different systems that generate waves in Crest:
 
--  *ShapeGerstnerBatch* component - the original system that manually adds together 'Gerstner' waves. This component is inefficient, and does not support the 'wave spline' tech, and has lower quality waves. It is about to be deprecated.
+-  *ShapeGerstnerBatch* - the original system that manually adds together 'Gerstner' waves. This component is inefficient, and does not support the 'wave spline' tech, and has lower quality waves. It is about to be deprecated.
 -  *ShapeGerstner* - high quality 'Gerstner'-based system. Best choice for if running with *nographics* (no GPU).
 -  *ShapeFFT* - high quality 'FFT'-based system. Best choice for maximum detail/realism. Our innovative FFT tech supports waves at all scales and is also extremely efficient.
 

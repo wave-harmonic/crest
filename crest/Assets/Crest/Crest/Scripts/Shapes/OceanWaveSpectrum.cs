@@ -65,6 +65,18 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
 
+#if !UNITY_EDITOR
+        void Awake()
+        {
+            // If it is version zero, and we are in a build, then it must be the default.
+            if (_version == 0)
+            {
+                // Reset is called in the editor only so manually call here for standalone builds.
+                Reset();
+            }
+        }
+#endif
+
         void Reset()
         {
             // Auto-upgrade any new data objects directly to v1. This is in lieu of simply
@@ -269,16 +281,6 @@ namespace Crest
             var phillipsConstant = 8.1e-3f;
             return AlphaSpectrum(phillipsConstant, gravity, w);
         }
-
-#if UNITY_EDITOR
-        public void Upgrade()
-        {
-            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _chopScales, 1f);
-            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _gravityScales, 1f);
-            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _powerDisabled, false);
-            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _powerLog, MIN_POWER_LOG);
-        }
-#endif
     }
 
 #if UNITY_EDITOR
@@ -290,37 +292,6 @@ namespace Crest
             "Select an option to author waves using a spectrum model.",
             "Fully developed sea with infinite fetch.",
         };
-
-        public static void UpgradeSpectrum(SerializedProperty prop, float defaultValue)
-        {
-            while (prop.arraySize < OceanWaveSpectrum.NUM_OCTAVES)
-            {
-                prop.InsertArrayElementAtIndex(0);
-                prop.GetArrayElementAtIndex(0).floatValue = defaultValue;
-            }
-        }
-        public static void UpgradeSpectrum(SerializedProperty prop, bool defaultValue)
-        {
-            while (prop.arraySize < OceanWaveSpectrum.NUM_OCTAVES)
-            {
-                prop.InsertArrayElementAtIndex(0);
-                prop.GetArrayElementAtIndex(0).boolValue = defaultValue;
-            }
-        }
-        public static void UpgradeSpectrum(ref float[] values, float defaultValue)
-        {
-            while (values.Length < OceanWaveSpectrum.NUM_OCTAVES)
-            {
-                ArrayUtility.Insert(ref values, 0, defaultValue);
-            }
-        }
-        public static void UpgradeSpectrum(ref bool[] values, bool defaultValue)
-        {
-            while (values.Length < OceanWaveSpectrum.NUM_OCTAVES)
-            {
-                ArrayUtility.Insert(ref values, 0, defaultValue);
-            }
-        }
 
         static void Upgrade(SerializedObject soSpectrum)
         {
@@ -363,7 +334,6 @@ namespace Crest
             EditorGUILayout.Space();
 
             var spDisabled = serializedObject.FindProperty("_powerDisabled");
-            UpgradeSpectrum(spDisabled, false);
             EditorGUILayout.BeginHorizontal();
             bool allEnabled = true;
             for (int i = 0; i < spDisabled.arraySize; i++)
@@ -384,11 +354,8 @@ namespace Crest
             var spec = target as OceanWaveSpectrum;
 
             var spPower = serializedObject.FindProperty("_powerLog");
-            UpgradeSpectrum(spPower, OceanWaveSpectrum.MIN_POWER_LOG);
             var spChopScales = serializedObject.FindProperty("_chopScales");
-            UpgradeSpectrum(spChopScales, 1f);
             var spGravScales = serializedObject.FindProperty("_gravityScales");
-            UpgradeSpectrum(spGravScales, 1f);
 
             // Disable sliders if authoring with model.
             var canEditSpectrum = spectrumModel != OceanWaveSpectrum.SpectrumModel.None;

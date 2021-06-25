@@ -4,7 +4,9 @@
 
 // Inspired by https://github.com/speps/GX-EncinoWaves
 
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
@@ -33,6 +35,11 @@ namespace Crest
 
         Texture2D _texButterfly;
 
+        /// <summary>
+        /// Generated 'raw', uncombined, wave data. Input for putting into AnimWaves data before combine pass.
+        /// </summary>
+        RenderTexture _waveBuffers;
+
         Texture2D _texSpectrumControls;
         bool _spectrumInitialised = false;
         Color[] _spectrumDataScratch = new Color[OceanWaveSpectrum.NUM_OCTAVES];
@@ -42,6 +49,7 @@ namespace Crest
 
         float _prevWindTurbulence;
         float _prevWindSpeed;
+        float _prevWindDir;
         int _prevResolution;
 
         int _kernelSpectrumInit;
@@ -59,6 +67,21 @@ namespace Crest
             if (_tempFFT2 != null) _tempFFT2.Release();
             if (_tempFFT3 != null) _tempFFT3.Release();
 
+            if (_waveBuffers != null)
+            {
+#if UNITY_EDITOR
+                if (!EditorApplication.isPlaying)
+                {
+                    Object.DestroyImmediate(_waveBuffers);
+                }
+                else
+#endif
+                {
+                    Object.Destroy(_waveBuffers);
+                }
+                _waveBuffers = null;
+            }
+
             _prevWindTurbulence = -1;
             _prevWindSpeed = -1;
             _prevResolution = -1;
@@ -67,6 +90,8 @@ namespace Crest
 
         void InitializeTextures(int resolution, OceanWaveSpectrum spectrum)
         {
+            Debug.Assert(Mathf.NextPowerOfTwo(resolution) == resolution, "FFTCompute resolution must be power of 2");
+
             Release();
 
             _shaderSpectrum = Resources.Load<ComputeShader>("FFT/FFTSpectrum");
@@ -106,6 +131,19 @@ namespace Crest
             _tempFFT3 = new RenderTexture(rtd);
             _tempFFT3.Create();
 
+            // Raw wave data buffer
+            _waveBuffers = new RenderTexture(resolution, resolution, 0, GraphicsFormat.R16G16B16A16_SFloat);
+            _waveBuffers.wrapMode = TextureWrapMode.Repeat;
+            _waveBuffers.antiAliasing = 1;
+            _waveBuffers.filterMode = FilterMode.Bilinear;
+            _waveBuffers.anisoLevel = 0;
+            _waveBuffers.useMipMap = false;
+            _waveBuffers.name = "FFTCascades";
+            _waveBuffers.dimension = TextureDimension.Tex2DArray;
+            _waveBuffers.volumeDepth = CASCADE_COUNT;
+            _waveBuffers.enableRandomWrite = true;
+            _waveBuffers.Create();
+
             InitializeButterfly(resolution);
 
             InitialiseSpectrumHandControls(spectrum);
@@ -116,12 +154,9 @@ namespace Crest
         /// <summary>
         /// Computes water surface displacement, with wave components split across slices of the output texture array
         /// </summary>
-        public void GenerateDisplacements(CommandBuffer buf, float windTurbulence, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum, RenderTexture _outputTextureArray)
+        public RenderTexture GenerateDisplacements(CommandBuffer buf, int resolution, float windTurbulence, float windSpeed, float windDirRad, float time, OceanWaveSpectrum spectrum, bool updateSpectrum)
         {
-            Debug.Assert(_outputTextureArray != null, "FFT: No output texture provided.");
-
-            var resolution = _outputTextureArray.width;
-            if (!_isInitialised || _spectrumHeight == null || _spectrumHeight.width != resolution)
+            if (!_isInitialised || _spectrumHeight == null || _waveBuffers.width != resolution)
             {
                 InitializeTextures(resolution, spectrum);
             }
@@ -133,20 +168,24 @@ namespace Crest
 
             if (!Mathf.Approximately(_prevWindTurbulence, windTurbulence) ||
                 !Mathf.Approximately(_prevWindSpeed, windSpeed) ||
+                !Mathf.Approximately(_prevWindDir, windDirRad) ||
                 resolution != _prevResolution ||
                 updateSpectrum
                 )
             {
                 _prevWindTurbulence = windTurbulence;
                 _prevWindSpeed = windSpeed;
+                _prevWindDir = windDirRad;
                 _prevResolution = resolution;
 
-                InitializeSpectrum(buf, resolution, windSpeed, windTurbulence, spectrum._gravityScale * Mathf.Abs(Physics.gravity.magnitude));
+                InitializeSpectrum(buf, resolution, windSpeed, windDirRad, windTurbulence, spectrum._gravityScale * Mathf.Abs(Physics.gravity.magnitude));
             }
 
             UpdateSpectrum(buf, resolution, time, spectrum._chop);
 
-            DispatchFFT(buf, resolution, _outputTextureArray);
+            DispatchFFT(buf, resolution);
+
+            return _waveBuffers;
         }
 
         /// <summary>
@@ -206,12 +245,13 @@ namespace Crest
         /// <summary>
         /// Computes base spectrum values based on wind speed & turbulence & spectrum controls
         /// </summary>
-        void InitializeSpectrum(CommandBuffer buf, int size, float windSpeed, float windTurbulence, float gravity)
+        void InitializeSpectrum(CommandBuffer buf, int size, float windSpeed, float windDirRad, float windTurbulence, float gravity)
         {
             buf.SetComputeIntParam(_shaderSpectrum, "_Size", size);
             buf.SetComputeFloatParam(_shaderSpectrum, "_WindSpeed", windSpeed);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Turbulence", windTurbulence);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Gravity", gravity);
+            buf.SetComputeVectorParam(_shaderSpectrum, "_WindDir", new Vector2(Mathf.Cos(windDirRad), Mathf.Sin(windDirRad)));
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_SpectrumControls", _texSpectrumControls);
             buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_ResultInit", _spectrumInit);
             buf.DispatchCompute(_shaderSpectrum, _kernelSpectrumInit, size / 8, size / 8, CASCADE_COUNT);
@@ -234,7 +274,7 @@ namespace Crest
         /// <summary>
         /// FFT the spectrum into surface displacements
         /// </summary>
-        void DispatchFFT(CommandBuffer buf, int resolution, RenderTexture output)
+        void DispatchFFT(CommandBuffer buf, int resolution)
         {
             var kernelOffset = 2 * Mathf.RoundToInt(Mathf.Log(resolution / FFT_KERNEL_0_RESOLUTION, 2f));
 
@@ -251,12 +291,14 @@ namespace Crest
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputX", _tempFFT2);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputZ", _tempFFT3);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputButterfly", _texButterfly);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_Output", output);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_Output", _waveBuffers);
             buf.DispatchCompute(_shaderFFT, kernelOffset + 1, resolution, 1, CASCADE_COUNT);
         }
 
         internal void OnGUI()
         {
+            OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f, 20f);
+
             GUI.DrawTexture(new Rect(0f, 0f, 100f, 10f), _texSpectrumControls);
         }
     }

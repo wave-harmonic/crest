@@ -65,7 +65,15 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 	// Normal
 	float3 n;
 	{
-		n = normalize(cross(disp_z - disp, disp_x - disp));
+		float3 crossProd = cross(disp_z - disp, disp_x - disp);
+
+		// Situation could arise where cross returns 0, prob when arguments are two aligned vectors. This
+		// resulted in NaNs and flashing screen in HDRP. Force normal to point upwards as the only time
+		// it should point downwards is for underwater (handled elsewhere) or in surface inversions which
+		// should not happen for well tweaked waves, and look broken anyway.
+		crossProd.y = max(crossProd.y, 0.0001);
+
+		n = normalize(crossProd);
 	}
 
 	// SSS - based off pinch
@@ -190,6 +198,11 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 
 	// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 	clip(-clipValue + 0.5);
+}
+
+bool IsUnderwater(const bool i_isFrontFace, const float i_forceUnderwater)
+{
+	return !i_isFrontFace || i_forceUnderwater > 0.0;
 }
 
 #endif // CREST_OCEAN_HELPERS_H

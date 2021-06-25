@@ -5,7 +5,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
-using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -96,11 +95,6 @@ namespace Crest
         [Tooltip("Maximum amount a point on the surface will be displaced horizontally by waves from its rest position. Increase this if gaps appear at sides of screen."), SerializeField]
         float _maxHorizontalDisplacement = 15f;
 
-        /// <summary>
-        /// 'Raw', uncombined, wave data. Input for putting into AnimWaves data before combine pass.
-        /// </summary>
-        RenderTexture _waveBuffers;
-
         Mesh _meshForDrawingWaves;
 
         public class FFTBatch : ILodDataInput
@@ -167,20 +161,6 @@ namespace Crest
 
         void InitData()
         {
-            // Raw wave data buffer
-            _waveBuffers = new RenderTexture(_resolution, _resolution, 0, GraphicsFormat.R16G16B16A16_SFloat);
-            _waveBuffers.wrapMode = TextureWrapMode.Repeat;
-            _waveBuffers.antiAliasing = 1;
-            _waveBuffers.filterMode = FilterMode.Bilinear;
-            _waveBuffers.anisoLevel = 0;
-            _waveBuffers.useMipMap = false;
-            _waveBuffers.name = "FFTCascades";
-            _waveBuffers.dimension = TextureDimension.Tex2DArray;
-            _waveBuffers.volumeDepth = CASCADE_COUNT;
-            _waveBuffers.enableRandomWrite = true;
-            _waveBuffers.Create();
-
-            Debug.Assert(Mathf.NextPowerOfTwo(_resolution) == _resolution, "Resolution must be power of 2");
             _compute = new FFTCompute();
         }
 
@@ -201,7 +181,7 @@ namespace Crest
             UpdateEditorOnly();
 #endif
 
-            if (_compute == null || _waveBuffers == null || _resolution != _waveBuffers.width)
+            if (_compute == null)
             {
                 InitData();
             }
@@ -211,7 +191,7 @@ namespace Crest
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame || (_waveBuffers != null))
+            if (_firstUpdate || updateDataEachFrame)
             {
                 InitBatches();
 
@@ -220,17 +200,19 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
-            // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
+
+            // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
+            // to the geo rotation. If not, the wind direction is already used in the FFT gen.
+            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
+            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
+
+            // If geometry is being used, the ocean input shader will rotate the waves to align to geo
+            var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
+            var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
+            var waveData = _compute.GenerateDisplacements(buf, _resolution, _windTurbulence, windSpeedMPS, windDirRad, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+            _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
 
             ReportMaxDisplacement();
-
-            var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame, _waveBuffers);
-
-            // Seems to come unbound when editing shaders at runtime, so rebinding here.
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }
 
 #if UNITY_EDITOR
@@ -311,20 +293,19 @@ namespace Crest
             {
                 _activeSpectrum = _spectrum;
             }
-#if UNITY_EDITOR
+
             if (_activeSpectrum == null)
             {
                 _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _activeSpectrum.name = "Default Waves (auto)";
             }
 
+#if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
             }
-
-            _activeSpectrum.Upgrade();
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
@@ -350,21 +331,6 @@ namespace Crest
                 _compute.Release();
                 _compute = null;
             }
-
-            if (_waveBuffers != null)
-            {
-#if UNITY_EDITOR
-                if (!EditorApplication.isPlaying)
-                {
-                    DestroyImmediate(_waveBuffers);
-                }
-                else
-#endif
-                {
-                    Destroy(_waveBuffers);
-                }
-                _waveBuffers = null;
-            }
         }
 
 #if UNITY_EDITOR
@@ -386,9 +352,6 @@ namespace Crest
         {
             if (_debugDrawSlicesInEditor && _compute != null)
             {
-                OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f, 20f);
-                //OceanDebugGUI.DrawTextureArray(_compute.spectrumHeight, 9, 0.5f, 120f);
-
                 _compute.OnGUI();
             }
         }

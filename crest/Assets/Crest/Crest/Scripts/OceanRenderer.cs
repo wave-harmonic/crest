@@ -12,8 +12,8 @@ using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
-#if !UNITY_2019_4_OR_NEWER
-#error This version of Crest requires Unity 2019.4 or later.
+#if !UNITY_2020_3_OR_NEWER
+#error This version of Crest requires Unity 2020.3 or later.
 #endif
 
 namespace Crest
@@ -37,7 +37,7 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f, power: 2f)]
-        public float _globalWindSpeed = 150f;
+        public float _globalWindSpeed = 10f;
 
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
@@ -202,6 +202,12 @@ namespace Crest
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
+        [SerializeField, Range(UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM)]
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled.")]
+        public float _underwaterCullLimit = 0.001f;
+        internal const float UNDERWATER_CULL_LIMIT_MINIMUM = 0.000001f;
+        internal const float UNDERWATER_CULL_LIMIT_MAXIMUM = 0.01f;
+
 
         [Header("Simulation Params")]
 
@@ -327,6 +333,7 @@ namespace Crest
         List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
+        public List<OceanChunkRenderer> Tiles => _oceanChunkRenderers;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
@@ -762,9 +769,7 @@ namespace Crest
             }
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
@@ -1013,12 +1018,21 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            // If there are local bodies of water, this will do overlap tests between the ocean tiles
-            // and the water bodies and turn off any that don't overlap.
-            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
+            var isUnderwaterActive = UnderwaterRenderer.Instance != null && UnderwaterRenderer.Instance.IsActive;
+
+            var definitelyUnderwater = false;
+            var volumeExtinctionLength = 0f;
+
+            if (isUnderwaterActive)
             {
-                return;
+                definitelyUnderwater = ViewerHeightAboveWater < -5f;
+                var density = _material.GetVector("_DepthFogDensity");
+                var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+                var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
+                volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
             }
+
+            var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
@@ -1027,24 +1041,39 @@ namespace Crest
                     continue;
                 }
 
-                var chunkBounds = tile.Rend.bounds;
+                var isCulled = false;
 
-                var overlappingOne = false;
-                foreach (var body in WaterBody.WaterBodies)
+                // If there are local bodies of water, this will do overlap tests between the ocean tiles
+                // and the water bodies and turn off any that don't overlap.
+                if (!canSkipCulling)
                 {
-                    var bounds = body.AABB;
+                    var chunkBounds = tile.Rend.bounds;
 
-                    bool overlapping =
-                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
-                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
-                    if (overlapping)
+                    var overlappingOne = false;
+                    foreach (var body in WaterBody.WaterBodies)
                     {
-                        overlappingOne = true;
-                        break;
+                        var bounds = body.AABB;
+
+                        bool overlapping =
+                            bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                            bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
+                        if (overlapping)
+                        {
+                            overlappingOne = true;
+                            break;
+                        }
                     }
+
+                    isCulled = !overlappingOne && WaterBody.WaterBodies.Count > 0;
                 }
 
-                tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
+                // Cull tiles the viewer cannot see through the underwater fog.
+                if (!isCulled && isUnderwaterActive)
+                {
+                    isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
+                }
+
+                tile.Rend.enabled = !isCulled;
             }
 
             // Can skip culling next time around if water body count stays at 0
@@ -1222,12 +1251,14 @@ namespace Crest
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+#pragma warning disable 0618
             // UnderwaterEffect
             var underwaters = FindObjectsOfType<UnderwaterEffect>();
             foreach (var underwater in underwaters)
             {
                 underwater.Validate(ocean, ValidatedHelper.DebugLog);
             }
+#pragma warning restore 0618
 
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();
@@ -1395,7 +1426,7 @@ namespace Crest
                 var sceneView = SceneView.lastActiveSceneView;
 
                 // Validate "Animated Materials".
-                if (ocean != null && !ocean._showOceanProxyPlane && !sceneView.sceneViewState.showMaterialUpdate)
+                if (ocean != null && !ocean._showOceanProxyPlane && !sceneView.sceneViewState.alwaysRefresh)
                 {
                     showMessage
                     (
@@ -1404,7 +1435,7 @@ namespace Crest
                         ValidatedHelper.MessageType.Info, ocean,
                         _ =>
                         {
-                            SceneView.lastActiveSceneView.sceneViewState.showMaterialUpdate = true;
+                            SceneView.lastActiveSceneView.sceneViewState.alwaysRefresh = true;
                             // Required after changing sceneViewState according to:
                             // https://docs.unity3d.com/ScriptReference/SceneView.SceneViewState.html
                             SceneView.RepaintAll();

@@ -13,6 +13,42 @@ Release Notes
 |version|
 ---------
 
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Set minimum Unity version to 2020.3.10.
+
+   .. only:: hdrp or urp
+
+      -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
+
+   .. only:: urp
+
+      -  Remove *Sample Shadows* Render Feature as it is now scripted.
+         Unity will raise a missing Render Feature reference error.
+         Remove the missing Render Feature to resolve. `[URP]`
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
+   -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
+   -  *CustomTimeProvider* override time/delta time functions are now defaulted to opt-in instead of opt-out.
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
+   -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
+   -  Fix shader compile errors on Windows 7.
+
+
+4.11
+----
+
 .. important::
 
    This will be the last version which supports Unity 2019 LTS.

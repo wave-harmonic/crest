@@ -38,7 +38,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma enable_d3d11_debug_symbols
+            // #pragma enable_d3d11_debug_symbols
 
             #include "UnityCG.cginc"
 

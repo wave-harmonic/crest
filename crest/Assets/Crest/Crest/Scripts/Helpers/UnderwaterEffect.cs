@@ -20,6 +20,7 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
+    [System.Obsolete("No longer supported. UnderwaterEffect has been replaced with UnderwaterRenderer.")]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Effect")]
     public partial class UnderwaterEffect : MonoBehaviour
     {
@@ -91,6 +92,14 @@ namespace Crest
             ConfigureMaterial();
         }
 
+        void OnDisable()
+        {
+            if (OceanRenderer.Instance != null)
+            {
+                OceanRenderer.Instance.OceanMaterial.DisableKeyword("_OLD_UNDERWATER");
+            }
+        }
+
         void ConfigureMaterial()
         {
             if (OceanRenderer.Instance == null) return;
@@ -137,6 +146,8 @@ namespace Crest
                 {
                     _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
+
+                OceanRenderer.Instance.OceanMaterial.EnableKeyword("_OLD_UNDERWATER");
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)
@@ -318,7 +329,9 @@ namespace Crest
         }
     }
 
+#pragma warning disable 0618
     [CustomEditor(typeof(UnderwaterEffect)), CanEditMultipleObjects]
     class UnderwaterEffectEditor : ValidatedEditor { }
+#pragma warning restore 0618
 #endif
 }

@@ -22,7 +22,7 @@ project = "Crest"
 organization = "Wave Harmonic"
 author = f"{organization} & Contributors"
 copyright = f"2021, {author}"
-version = "4.11"
+version = "4.12"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
 sponsor_link = "https://github.com/sponsors/wave-harmonic"
@@ -187,11 +187,11 @@ rst_prolog = f"""
 .. set:: SponsorLink {sponsor_link}
 """
 rst_prolog = rst_prolog + """
-.. set:: RPMinVersion 7.6
+.. set:: RPMinVersion 10.5
 .. set:: UPMDocLinkBase \https://docs.unity3d.com/Packages
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
-.. set:: UnityMinVersionShort 2019.4
-.. set:: UnityMinVersion {UnityMinVersionShort}.24
+.. set:: UnityMinVersionShort 2020.3
+.. set:: UnityMinVersion {UnityMinVersionShort}.10
 .. set:: UnityDocsLinkBase https://docs.unity3d.com/{UnityMinVersionShort}/Documentation
 .. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
 .. set:: UnityDocScriptLink {UnityDocsLinkBase}/ScriptReference
@@ -237,6 +237,7 @@ rst_prolog = rst_prolog + """
 .. set:: SMAA :abbr:`SMAA (Subpixel Morphological Anti-Aliasing)`
 .. set:: SPI :abbr:`SPI (Single Pass Instanced)`
 .. set:: FFT :abbr:`FFT (Fast Fourier Transform)`
+.. set:: GC :abbr:`GC (Garbage Collector)`
 
 .. set:: DWP2 :abbr:`DWP2 (Dynamic Water Physics 2)`
 

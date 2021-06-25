@@ -60,6 +60,7 @@ Shader "Crest/Underwater Curtain"
 			#include "../OceanShaderData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "../OceanShaderHelpers.hlsl"
+			#include "../OceanLightingHelpers.hlsl"
 			#include "UnderwaterShared.hlsl"
 
 			#include "../OceanEmission.hlsl"
@@ -193,6 +194,7 @@ Shader "Crest/Underwater Curtain"
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
+				const half3 lightCol = _LightColor0;
 				const half3 n_pixel = 0.0;
 				const half3 bubbleCol = 0.0;
 
@@ -203,14 +205,15 @@ Shader "Crest/Underwater Curtain"
 
 				const float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
-				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				const half3 scatterCol = ScatterColour(AmbientLight(), depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
+					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
+					ApplyCaustics(scenePos, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
 				}
 #endif // _CAUSTICS_ON
 

@@ -12,7 +12,7 @@ namespace Crest
     public class FFTBakedDataPreview : ObjectPreview
     {
         private Texture2D _previewTexture;
-        private int _previousFrame;
+        private int _previousFrame = -1;
         private Object _previousTarget;
 
         public override bool HasPreviewGUI()

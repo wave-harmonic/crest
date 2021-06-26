@@ -1,10 +1,7 @@
-using System.Diagnostics;
 using System.Linq;
-using Crest;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Crest
 {
@@ -40,7 +37,7 @@ namespace Crest
                 // rescale for benefit of visualisation. lug i'm sure you have a much fancier way of doing this
                 for (int i = 0; i < rawData.Length; i++)
                 {
-                    var scale = 0.05f;
+                    var scale = 0.6f;
                     rawData[i] = 0.5f + scale * rawData[i];
                 }
 

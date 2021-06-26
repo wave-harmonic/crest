@@ -36,6 +36,14 @@ namespace Crest
                 var singleFrameSize = allFramesAllPixels.Length / targetBakedData._frameCount;
 
                 var rawData = allFramesAllPixels.Skip(targetBakedData._frameToPreview * singleFrameSize).Take(singleFrameSize).ToArray();
+
+                // rescale for benefit of visualisation. lug i'm sure you have a much fancier way of doing this
+                for (int i = 0; i < rawData.Length; i++)
+                {
+                    var scale = 0.05f;
+                    rawData[i] = 0.5f + scale * rawData[i];
+                }
+
                 var rawDataNative = new NativeArray<float>(rawData, Allocator.Temp);
 
                 _previewTexture ??= new Texture2D(targetBakedData._textureResolution, targetBakedData._textureResolution,
@@ -48,7 +56,6 @@ namespace Crest
             GUI.DrawTexture(r, _previewTexture, ScaleMode.ScaleToFit, false);
             _previousFrame = targetBakedData._frameToPreview;
             _previousTarget = target;
-            
         }
     }
 }

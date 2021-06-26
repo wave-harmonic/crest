@@ -15,6 +15,7 @@ namespace Crest
 
         public CollProviderBakedFFT(FFTBakedData data)
         {
+            Debug.Assert(data != null, "Crest: Baked data should not be null.");
             _data = data;
         }
 
@@ -49,6 +50,8 @@ namespace Crest
 
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
+            if (_data == null) return 1;
+
             var t = OceanRenderer.Instance.CurrentTime;
             var seaLevel = OceanRenderer.Instance.SeaLevel;
 
@@ -56,7 +59,7 @@ namespace Crest
             {
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
-                    o_resultHeights[i] = seaLevel + 10f * _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t);
+                    o_resultHeights[i] = seaLevel + _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t);
                 }
             }
 
@@ -84,7 +87,7 @@ namespace Crest
 
         public bool RetrieveSucceeded(int queryStatus)
         {
-            return true;
+            return queryStatus == 0;
         }
 
         public void UpdateQueries()

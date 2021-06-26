@@ -16,7 +16,7 @@ namespace Crest
     // TODO: there's a bug somewhere, frame 0 is black
     public class FFTBaker
     {
-        public static bool Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize)
+        public static FFTBakedData Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize)
         {
             Debug.Assert(Mathf.IsPowerOfTwo(resolutionSpace), "Crest: Spatial resolution must be power of 2");
             // Debug.Assert(Mathf.IsPowerOfTwo(resolutionTime), "Crest: Temporal resolution must be power of 2"); // seems unnecessary
@@ -83,10 +83,10 @@ namespace Crest
 
                 frames[timeIndex] = stagingTexture.GetRawTextureData<float>().ToArray();
 
-                var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
-                var path = $"{folderName}/test_{timeIndex}.exr";
-                File.WriteAllBytes(path, encodedTexture);
-                Debug.Log($"Baked {folderName}/test_{timeIndex}.exr");
+                //var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
+                //var path = $"{folderName}/test_{timeIndex}.exr";
+                //File.WriteAllBytes(path, encodedTexture);
+                //Debug.Log($"Baked {folderName}/test_{timeIndex}.exr");
             }
             
             var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
@@ -100,7 +100,7 @@ namespace Crest
             // Separately there should be a FFTCollisionProvider and the SimSettingsAnimWaves should allow
             // selecting this provider type, and also have a field for selecting the exported data.
 
-            return true;
+            return bakedDataSO;
         }
 
         private static void SaveBakedDataToAsset(string folderName, FFTBakedData bakedDataSO)

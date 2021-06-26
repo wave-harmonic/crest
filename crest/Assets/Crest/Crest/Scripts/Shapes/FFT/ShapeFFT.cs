@@ -372,9 +372,14 @@ namespace Crest
             DrawMesh();
         }
 
-        public void Bake()
+        public FFTBakedData Bake()
         {
-            FFTBaker.Bake(this, _spaceResolution, _timeResolution, _wavePatchWidth);
+            var baked = FFTBaker.Bake(this, _spaceResolution, _timeResolution, _wavePatchWidth);
+
+            // Prob should not merge..?
+            OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;
+
+            return baked;
         }
 #endif
     }
@@ -409,7 +414,12 @@ namespace Crest
             base.OnInspectorGUI();
             if (GUILayout.Button("Bake to asset"))
             {
-                ((ShapeFFT) target).Bake();
+                Selection.activeObject = ((ShapeFFT) target).Bake();
+            }
+
+            if (GUILayout.Button("Selected currently assigned bake"))
+            {
+                Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData;
             }
         }
     }

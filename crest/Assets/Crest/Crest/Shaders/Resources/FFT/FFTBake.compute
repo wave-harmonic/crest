@@ -13,6 +13,7 @@ SamplerState sampler_linear_repeat;
 RWTexture2D<float> _OutHeights;
 
 float _WavePatchSize;
+float _BakeTime;
 
 [numthreads(8, 8, 1)]
 void FFTBake(uint3 id : SV_DispatchThreadID)
@@ -45,4 +46,5 @@ void FFTBake(uint3 id : SV_DispatchThreadID)
 	}
 
 	_OutHeights[id.xy] = resultHeight;
+	_OutHeights[id.xy] = 4.0 * sin( 2.0f * 3.141593f * uv.x - 2. * _BakeTime );
 }

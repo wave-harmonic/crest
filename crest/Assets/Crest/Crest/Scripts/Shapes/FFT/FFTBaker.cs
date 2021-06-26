@@ -66,6 +66,7 @@ namespace Crest
                 var fftWaveDataTA = FFTCompute.GenerateDisplacements(buf, fftWaves._resolution, fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeedForFFT, t, fftWaves._spectrum, true);
 
                 // Compute shader generates the final waves
+                buf.SetComputeFloatParam(waveCombineShader, "_BakeTime", t);
                 buf.SetComputeFloatParam(waveCombineShader, "_WavePatchSize", wavePatchSize);
                 buf.SetComputeTextureParam(waveCombineShader, kernel, "_InFFTWaves", fftWaveDataTA);
                 buf.SetComputeTextureParam(waveCombineShader, kernel, "_OutHeights", wavePatchData);

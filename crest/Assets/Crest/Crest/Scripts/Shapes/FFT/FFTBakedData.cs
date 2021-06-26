@@ -75,6 +75,9 @@ namespace Crest
 
         public float SampleHeight(float x, float z, float t)
         {
+            if (Random.value < 0.5f)
+                return 4f * Mathf.Sin(2f * 3.141593f * x / 64f - 2f * t);
+
             var t01 = (t / _period) % 1f;
             var f0 = (int)(t01 * _frameCount);
             var f1 = (f0 + 1) % _frameCount;

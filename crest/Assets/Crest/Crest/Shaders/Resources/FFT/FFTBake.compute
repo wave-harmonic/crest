@@ -47,5 +47,6 @@ void FFTBake(uint3 id : SV_DispatchThreadID)
 	}
 
 	_OutHeights[id.xy] = resultHeight;
-	_OutHeights[id.xy] = 4.0 * sin( 0.125f * worldPosXZ.x - 2. * _BakeTime * 3.141592654 / 16.0);
+	//_OutHeights[id.xy] = 4.0 * sin( 0.125f * worldPosXZ.x - 2. * _BakeTime * 3.141592654 / 16.0 );
+	//_OutHeights[id.xy] = dot( 4.0, uv );
 }

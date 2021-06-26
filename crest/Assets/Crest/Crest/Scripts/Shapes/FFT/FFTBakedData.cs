@@ -33,13 +33,26 @@ namespace Crest
             AssetDatabase.Refresh();
         }
 
+        float SampleHeight2(float x, float z, int frameIndex)
+        {
+            // 0-1 uv
+            var u = (x / _worldSize) % 1f;
+            if (u < 0f) u += 1f;
+            var v = (z / _worldSize) % 1f;
+            if (v < 0f) v += 1f;
+            //v = 1f - v;
+
+            return 4f * u + 4f * v;
+        }
+
         float SampleHeight(float x, float z, int frameIndex)
         {
             // 0-1 uv
-            var u = x / _worldSize % 1f;
+            var u = (x / _worldSize) % 1f;
             if (u < 0f) u += 1f;
-            var v = z / _worldSize % 1f;
+            var v = (z / _worldSize) % 1f;
             if (v < 0f) v += 1f;
+            v = 1f - v;
 
             // uv in texels
             var uTexels = u * _textureResolution;
@@ -75,9 +88,8 @@ namespace Crest
 
         public float SampleHeight(float x, float z, float t)
         {
-            //if (Random.value < 0.5f)
-            if (z < 0f)
-                return 4f * Mathf.Sin(0.125f * x - 2f * t * Mathf.PI / 16f + Mathf.PI);
+            //if (z < 0f)
+            //    return 4f * Mathf.Sin(0.125f * x - 2f * t * Mathf.PI / 16f);// + Mathf.PI);
 
             var t01 = (t / _period) % 1f;
             var f0 = (int)(t01 * _frameCount);
@@ -86,6 +98,9 @@ namespace Crest
 
             var h0 = SampleHeight(x, z, f0);
             var h1 = SampleHeight(x, z, f1);
+            if (Random.value < -1.5f)
+                //if (z<0f)
+                h0 = SampleHeight2(x, z, f0);
 
             return Mathf.Lerp(h0, h1, alphaT);
         }

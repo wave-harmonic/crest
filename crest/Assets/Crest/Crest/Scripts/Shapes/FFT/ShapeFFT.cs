@@ -98,9 +98,9 @@ namespace Crest
         float _maxHorizontalDisplacement = 15f;
 
         [Header("Collision Data Baking")]
-        [SerializeField, Tooltip("Frames per second of baked data. Larger values increase baked data size.")]
+        [SerializeField, Tooltip("Frames per second of baked data. Larger values generate more frames and increase baked data size.")]
         int _timeResolution = 32;
-        [SerializeField, Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Larger values increase baked data size.")]
+        [SerializeField, Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size.")]
         float _smallestWavelengthRequired = 2f;
 
         Mesh _meshForDrawingWaves;
@@ -424,7 +424,7 @@ namespace Crest
 
             if (requiredRes > 512)
             {
-                Debug.LogWarning("Desired res too high {requiredRes}, clamped at 512.", this);
+                Debug.LogWarning("Crest: Desired res too high {requiredRes}, clamped at 512.", this);
                 requiredRes = 512;
             }
 

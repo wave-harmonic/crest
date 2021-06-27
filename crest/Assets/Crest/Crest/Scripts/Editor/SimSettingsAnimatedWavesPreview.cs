@@ -21,9 +21,12 @@ namespace Crest
 
         public override void OnPreviewSettings()
         {
+            EditorGUILayout.BeginHorizontal(GUILayout.Width(30f));
             GUILayout.Label("Frame");
+
             var lastFrame = _targetBakedData != null ? _targetBakedData._frameCount - 1 : 0;
             _frameToPreview = EditorGUILayout.IntSlider(_frameToPreview, 0, lastFrame);
+            EditorGUILayout.EndHorizontal();
         }
 
         public override string GetInfoString()

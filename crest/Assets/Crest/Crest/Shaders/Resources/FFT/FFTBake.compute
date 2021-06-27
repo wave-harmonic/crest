@@ -15,6 +15,21 @@ RWTexture2D<float> _OutHeights;
 float _WavePatchSize;
 float _BakeTime;
 
+float3 CalculateDisplacement( float2 worldPosXZ, int fftSlices )
+{
+	float3 result = 0.0;
+	for( int slice = 0.0; slice < fftSlices; slice++ )
+	{
+		const float sliceWorldSize = 0.5f * (1 << slice);
+		// FFT slices that are larger than our output patch won't tile spatially
+		if( sliceWorldSize > _WavePatchSize ) break;
+
+		const float3 waveUV = float3(worldPosXZ / sliceWorldSize, slice);
+		result += _InFFTWaves.SampleLevel( sampler_linear_repeat, waveUV, 0 );
+	}
+	return result;
+}
+
 [numthreads(8, 8, 1)]
 void FFTBake(uint3 id : SV_DispatchThreadID)
 {
@@ -26,27 +41,19 @@ void FFTBake(uint3 id : SV_DispatchThreadID)
 		_InFFTWaves.GetDimensions( dummyi, dummyi, fftSlices );
 	}
 
-	float2 uv = (id.xy + 0.5) / float2(dimX, dimY);
-	//uv.y *= -1.0;
-	float2 worldPosXZ = uv * _WavePatchSize;
+	const float2 uv = (id.xy + 0.5) / float2(dimX, dimY);
+	const float2 worldPosXZ = uv * _WavePatchSize;
 
-	float resultHeight = 0.0;
+	float2 curPosXZ = worldPosXZ;
+	float3 disp = CalculateDisplacement( worldPosXZ, fftSlices );
 
-	for( int slice = 0.0; slice < fftSlices; slice++ )
+	for( int i = 0; i < 8; i++ )
 	{
-		const float sliceWorldSize = 0.5f * (1 << slice);
-		// FFT slices that are larger than our output patch won't tile spatially
-		if( sliceWorldSize > _WavePatchSize ) break;
-
-		const float3 waveUV = float3(worldPosXZ / sliceWorldSize, slice);
-		const float3 data = _InFFTWaves.SampleLevel( sampler_linear_repeat, waveUV, 0 );
-
-		// TODO - convert to heightmap
-
-		resultHeight += data.y;
+		curPosXZ -= (curPosXZ + disp.xz - worldPosXZ);
+		disp = CalculateDisplacement( curPosXZ, fftSlices );
 	}
 
-	_OutHeights[id.xy] = resultHeight;
+	_OutHeights[id.xy] = disp.y;
 	//_OutHeights[id.xy] = 4.0 * sin( 2. * 3.141592654 * (worldPosXZ.y - _BakeTime * 8.0f) / _WavePatchSize );
 	//_OutHeights[id.xy] = dot( 4.0, uv );
 }

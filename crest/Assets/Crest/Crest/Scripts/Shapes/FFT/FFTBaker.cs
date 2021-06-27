@@ -37,8 +37,9 @@ namespace Crest
                 sRGB = false,
             };
             var wavePatchData = new RenderTexture(desc);
-            var stagingTexture = new Texture2D(desc.width, desc.height, TextureFormat.RFloat, false, true);
+            wavePatchData.Create();
 
+            var stagingTexture = new Texture2D(desc.width, desc.height, TextureFormat.RFloat, false, true);
             var buf = new CommandBuffer();
 
             var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");

@@ -28,7 +28,9 @@ namespace Crest
 
         public override string GetInfoString()
         {
-            return $"{(target as SimSettingsAnimatedWaves)?._bakedFFTData.name}, frame: {_frameToPreview}";
+            var data = (target as SimSettingsAnimatedWaves)?._bakedFFTData;
+            if (data == null) return "";
+            return $"{data.name}, {data._textureResolution}x{data._textureResolution}, frame: {_frameToPreview}";
         }
 
         public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)

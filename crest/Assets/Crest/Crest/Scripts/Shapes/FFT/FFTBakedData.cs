@@ -18,8 +18,10 @@ namespace Crest
         /*[HideInInspector]*/ public int _frameCount;
         /*[HideInInspector]*/ public int _textureResolution;
         public float _worldSize;
+        [HideInInspector] public float _smallestValue;
+        [HideInInspector] public float _largestValue;
 
-        public int _frameToPreview = 0;
+        // public int _frameToPreview = 0;
 
         public void Initialize(float period, float timeResolution, float[][] frames, int textureResolution, float worldSize)
         {
@@ -29,6 +31,8 @@ namespace Crest
             _worldSize = worldSize;
             _framesFlattened = frames.SelectMany(x => x).ToArray();
             _frameCount = frames.Length;
+            _smallestValue = _framesFlattened.Min();
+            _largestValue = _framesFlattened.Max();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }

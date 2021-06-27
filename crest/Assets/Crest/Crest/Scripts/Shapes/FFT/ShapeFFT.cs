@@ -472,13 +472,13 @@ namespace Crest
                 var result = ((ShapeFFT)target).Bake();
                 if (result != null)
                 {
-                    Selection.activeObject = result;
+                    Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
                 }
             }
 
             if (GUILayout.Button("Selected currently assigned bake"))
             {
-                Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData;
+                Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
             }
         }
     }

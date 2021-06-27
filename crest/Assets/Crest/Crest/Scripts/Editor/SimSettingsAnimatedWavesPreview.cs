@@ -16,7 +16,7 @@ namespace Crest
 
         public override bool HasPreviewGUI()
         {
-            return _targetBakedData != null;
+            return _targetAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.BakedFFT && _targetBakedData != null;
         }
 
         public override void OnPreviewSettings()

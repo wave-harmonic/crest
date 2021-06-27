@@ -102,8 +102,6 @@ namespace Crest
         int _spaceResolution = 256;
         [SerializeField, Tooltip("FPS")]
         int _timeResolution = 32;
-        [SerializeField]
-        float _wavePatchWidth = 16; 
 
         Mesh _meshForDrawingWaves;
 
@@ -374,7 +372,8 @@ namespace Crest
 
         public FFTBakedData Bake()
         {
-            var baked = FFTBaker.Bake(this, _spaceResolution, _timeResolution, _wavePatchWidth);
+            var patchSize = 8f * _resolution;
+            var baked = FFTBaker.Bake(this, _spaceResolution, _timeResolution, patchSize);
 
             // Prob should not merge..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;

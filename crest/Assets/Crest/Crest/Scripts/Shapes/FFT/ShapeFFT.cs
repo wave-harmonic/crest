@@ -97,11 +97,11 @@ namespace Crest
         [Tooltip("Maximum amount a point on the surface will be displaced horizontally by waves from its rest position. Increase this if gaps appear at sides of screen."), SerializeField]
         float _maxHorizontalDisplacement = 15f;
 
-        [Header("Baking")]
+        [Header("Collision Data Baking")]
         [SerializeField, Tooltip("Frames per second of baked data. Larger values increase baked data size.")]
         int _timeResolution = 32;
-        [SerializeField, Tooltip("Horizontal resolution of baked data. Larger values increase baked data size.")]
-        int _spatialResolution = 64;
+        [SerializeField, Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Larger values increase baked data size.")]
+        float _smallestWavelengthRequired = 2f;
 
         Mesh _meshForDrawingWaves;
 
@@ -372,17 +372,24 @@ namespace Crest
 
         public FFTBakedData Bake()
         {
-            var largestOctaveRequired = -1f;
+            var smallestOctaveRequired = -1;
+            var largestOctaveRequired = -1;
             for (var i = 0; i < OceanWaveSpectrum.NUM_OCTAVES; i++)
             {
                 var pow = _spectrum._powerDisabled[i] ? 0f : Mathf.Pow(10f, _spectrum._powerLog[i]);
                 if (pow > Mathf.Pow(10f, OceanWaveSpectrum.MIN_POWER_LOG))
                 {
+                    float minWL = Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + i);
+                    if (smallestOctaveRequired == -1 && minWL >= _smallestWavelengthRequired)
+                    {
+                        smallestOctaveRequired = i;
+                    }
+
                     largestOctaveRequired = i;
                 }
             }
 
-            if (largestOctaveRequired == -1f)
+            if (largestOctaveRequired == -1 || smallestOctaveRequired == -1 || smallestOctaveRequired > largestOctaveRequired)
             {
                 Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", this);
                 return null;
@@ -392,26 +399,37 @@ namespace Crest
             var maxWavelength = 2f * Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + largestOctaveRequired);
             //Debug.Log($"Max wl: {maxWavelength}");
 
-            int requiredCascadeCount = 0;
-            for (; requiredCascadeCount < FFTCompute.CASCADE_COUNT; requiredCascadeCount++)
+            int largestCascade = -1;
+            for (var cascadeIdx = 0; cascadeIdx < FFTCompute.CASCADE_COUNT; cascadeIdx++)
             {
                 // Used everywhere as the size of a wave gen cascade
-                var size = 0.5f * (1 << requiredCascadeCount);
+                var size = 0.5f * (1 << cascadeIdx);
                 // Nyquist limit
                 var maxWavesAcross = _resolution / 2f;
                 // How many waves can fit across this cascade
                 var maxSupportedWavelength = size / maxWavesAcross;
                 // Break when this cascade is sufficient (>= because waves wont quite reach maxWavelength, see
                 // note above)
-                if (maxSupportedWavelength >= maxWavelength)
-                    break;
+                if (maxSupportedWavelength >= maxWavelength && largestCascade == -1)
+                {
+                    largestCascade = cascadeIdx;
+                }
             }
 
-            //Debug.Log($"Max supported: {requiredCascadeCount}");
+            // At minimum, required res of FFT
+            var requiredRes = _resolution * 2;
+            // However we are also baking out some number of smaller cascades, each has double the resolution
+            requiredRes *= 1 << (largestOctaveRequired - smallestOctaveRequired);
+            //Debug.Log($"Start res {_resolution}, doubled {2 * _resolution}, multiplied {requiredRes}");
 
-            var patchSize = 0.5f * (1 << requiredCascadeCount);
+            if (requiredRes > 512)
+            {
+                Debug.LogWarning("Desired res too high {requiredRes}, clamped at 512.", this);
+                requiredRes = 512;
+            }
 
-            var baked = FFTBaker.Bake(this, _spatialResolution, _timeResolution, patchSize);
+            var patchSize = 0.5f * (1 << largestCascade);
+            var baked = FFTBaker.Bake(this, requiredRes, _timeResolution, patchSize);
 
             // Prob should not merge..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;

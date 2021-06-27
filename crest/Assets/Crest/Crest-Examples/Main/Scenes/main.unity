@@ -283,7 +283,7 @@ MonoBehaviour:
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _timeResolution: 32
-  _spatialResolution: 64
+  _smallestWavelengthRequired: 2
 --- !u!4 &774452946
 Transform:
   m_ObjectHideFlags: 0
@@ -348,7 +348,7 @@ MonoBehaviour:
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _timeResolution: 4
-  _spatialResolution: 256
+  _smallestWavelengthRequired: 2
 --- !u!4 &876047018
 Transform:
   m_ObjectHideFlags: 0

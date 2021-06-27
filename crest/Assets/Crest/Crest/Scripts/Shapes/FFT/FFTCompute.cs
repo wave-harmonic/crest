@@ -22,7 +22,7 @@ namespace Crest
         const int FFT_KERNEL_0_RESOLUTION = 8;
 
         // Must match CASCADE_COUNT in FFTCompute.compute
-        const int CASCADE_COUNT = 16;
+        public const int CASCADE_COUNT = 16;
 
         bool _isInitialised = false;
 

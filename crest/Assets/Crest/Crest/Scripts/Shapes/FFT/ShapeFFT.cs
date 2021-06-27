@@ -98,10 +98,10 @@ namespace Crest
         float _maxHorizontalDisplacement = 15f;
 
         [Header("Baking")]
-        [SerializeField, Tooltip("If the highest value slider being used in the spectrum is '16', set this to 16. Higher values increase baked data size.")]
-        int _largestSpectrumWavelength = 16;
         [SerializeField, Tooltip("Frames per second of baked data. Larger values increase baked data size.")]
         int _timeResolution = 32;
+        [SerializeField, Tooltip("Horizontal resolution of baked data. Larger values increase baked data size.")]
+        int _spatialResolution = 64;
 
         Mesh _meshForDrawingWaves;
 
@@ -372,11 +372,44 @@ namespace Crest
 
         public FFTBakedData Bake()
         {
+            var largestOctaveRequired = -1f;
+            for (var i = 0; i < OceanWaveSpectrum.NUM_OCTAVES; i++)
+            {
+                var pow = _spectrum._powerDisabled[i] ? 0f : Mathf.Pow(10f, _spectrum._powerLog[i]);
+                if (pow > Mathf.Pow(10f, OceanWaveSpectrum.MIN_POWER_LOG))
+                {
+                    largestOctaveRequired = i;
+                }
+            }
+
+            if (largestOctaveRequired == -1f)
+            {
+                Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", this);
+                return null;
+            }
+
+            // Max wavelength is upper bound, waves would scale up to this value but not quite hitting it
+            var maxWavelength = 2f * Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + largestOctaveRequired);
+            Debug.Log($"Max wl: {maxWavelength}");
+
+            int requiredCascadeCount = 0;
+            for (; requiredCascadeCount < FFTCompute.CASCADE_COUNT; requiredCascadeCount++)
+            {
+                var size = 0.5f * (1 << requiredCascadeCount);
+                var maxWavesAcross = _resolution / 2f;
+                var maxSupportedWavelength = size / maxWavesAcross;
+                if (maxSupportedWavelength >= maxWavelength)
+                    break;
+            }
+
+            Debug.Log($"Max supported: {requiredCascadeCount}");
+
+            var patchSize = 0.5f * (1 << requiredCascadeCount);
+
             // TODO - _largestSpectrumWavelength could simply be computed by inspecting the spectrum power values.
             // should we automatically use it, but warn if data will be large?
-            var resolution = _largestSpectrumWavelength * _largestSpectrumWavelength;
-            var patchSize = 8f * _resolution;
-            var baked = FFTBaker.Bake(this, resolution, _timeResolution, patchSize);
+            //var resolution = _largestSpectrumWavelength * _largestSpectrumWavelength;
+            var baked = FFTBaker.Bake(this, _spatialResolution, _timeResolution, patchSize);
 
             // Prob should not merge..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;
@@ -416,7 +449,11 @@ namespace Crest
             base.OnInspectorGUI();
             if (GUILayout.Button("Bake to asset"))
             {
-                Selection.activeObject = ((ShapeFFT) target).Bake();
+                var result = ((ShapeFFT)target).Bake();
+                if (result != null)
+                {
+                    Selection.activeObject = result;
+                }
             }
 
             if (GUILayout.Button("Selected currently assigned bake"))

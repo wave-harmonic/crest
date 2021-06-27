@@ -98,9 +98,9 @@ namespace Crest
         float _maxHorizontalDisplacement = 15f;
 
         [Header("Baking")]
-        [SerializeField]
-        int _spaceResolution = 256;
-        [SerializeField, Tooltip("FPS")]
+        [SerializeField, Tooltip("If the highest value slider being used in the spectrum is '16', set this to 16. Higher values increase baked data size.")]
+        int _largestSpectrumWavelength = 16;
+        [SerializeField, Tooltip("Frames per second of baked data. Larger values increase baked data size.")]
         int _timeResolution = 32;
 
         Mesh _meshForDrawingWaves;
@@ -372,8 +372,9 @@ namespace Crest
 
         public FFTBakedData Bake()
         {
+            var resolution = _largestSpectrumWavelength * _largestSpectrumWavelength;
             var patchSize = 8f * _resolution;
-            var baked = FFTBaker.Bake(this, _spaceResolution, _timeResolution, patchSize);
+            var baked = FFTBaker.Bake(this, resolution, _timeResolution, patchSize);
 
             // Prob should not merge..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;

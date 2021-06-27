@@ -282,9 +282,8 @@ MonoBehaviour:
   _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
-  _spaceResolution: 256
+  _largestSpectrumWavelength: 16
   _timeResolution: 32
-  _wavePatchWidth: 16
 --- !u!4 &774452946
 Transform:
   m_ObjectHideFlags: 0
@@ -339,7 +338,7 @@ MonoBehaviour:
   _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
-  _resolution: 8
+  _resolution: 16
   _debugDrawSlicesInEditor: 0
   _overrideSplineSettings: 0
   _radius: 50
@@ -348,9 +347,8 @@ MonoBehaviour:
   _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
-  _spaceResolution: 256
-  _timeResolution: 8
-  _wavePatchWidth: 64
+  _largestSpectrumWavelength: 16
+  _timeResolution: 4
 --- !u!4 &876047018
 Transform:
   m_ObjectHideFlags: 0

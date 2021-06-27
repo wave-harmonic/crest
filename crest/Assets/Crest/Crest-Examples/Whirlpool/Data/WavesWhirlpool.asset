@@ -65,6 +65,6 @@ MonoBehaviour:
   - 1
   - 1
   _chop: 0
-  _period: 16
+  _period: 64
   _showAdvancedControls: 0
   _model: 0

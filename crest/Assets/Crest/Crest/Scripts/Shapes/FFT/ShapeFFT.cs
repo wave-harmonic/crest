@@ -390,25 +390,27 @@ namespace Crest
 
             // Max wavelength is upper bound, waves would scale up to this value but not quite hitting it
             var maxWavelength = 2f * Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + largestOctaveRequired);
-            Debug.Log($"Max wl: {maxWavelength}");
+            //Debug.Log($"Max wl: {maxWavelength}");
 
             int requiredCascadeCount = 0;
             for (; requiredCascadeCount < FFTCompute.CASCADE_COUNT; requiredCascadeCount++)
             {
+                // Used everywhere as the size of a wave gen cascade
                 var size = 0.5f * (1 << requiredCascadeCount);
+                // Nyquist limit
                 var maxWavesAcross = _resolution / 2f;
+                // How many waves can fit across this cascade
                 var maxSupportedWavelength = size / maxWavesAcross;
+                // Break when this cascade is sufficient (>= because waves wont quite reach maxWavelength, see
+                // note above)
                 if (maxSupportedWavelength >= maxWavelength)
                     break;
             }
 
-            Debug.Log($"Max supported: {requiredCascadeCount}");
+            //Debug.Log($"Max supported: {requiredCascadeCount}");
 
             var patchSize = 0.5f * (1 << requiredCascadeCount);
 
-            // TODO - _largestSpectrumWavelength could simply be computed by inspecting the spectrum power values.
-            // should we automatically use it, but warn if data will be large?
-            //var resolution = _largestSpectrumWavelength * _largestSpectrumWavelength;
             var baked = FFTBaker.Bake(this, _spatialResolution, _timeResolution, patchSize);
 
             // Prob should not merge..?

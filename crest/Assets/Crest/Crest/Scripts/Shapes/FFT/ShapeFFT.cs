@@ -372,6 +372,8 @@ namespace Crest
 
         public FFTBakedData Bake()
         {
+            // TODO - _largestSpectrumWavelength could simply be computed by inspecting the spectrum power values.
+            // should we automatically use it, but warn if data will be large?
             var resolution = _largestSpectrumWavelength * _largestSpectrumWavelength;
             var patchSize = 8f * _resolution;
             var baked = FFTBaker.Bake(this, resolution, _timeResolution, patchSize);

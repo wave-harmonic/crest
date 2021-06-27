@@ -36,7 +36,7 @@ void FFTBake(uint3 id : SV_DispatchThreadID)
 	{
 		const float sliceWorldSize = 0.5f * (1 << slice);
 		// FFT slices that are larger than our output patch won't tile spatially
-		//if( sliceWorldSize > 8.0*_WavePatchSize ) break;
+		if( sliceWorldSize > _WavePatchSize ) break;
 
 		const float3 waveUV = float3(worldPosXZ / sliceWorldSize, slice);
 		const float3 data = _InFFTWaves.SampleLevel( sampler_linear_repeat, waveUV, 0 );
@@ -47,6 +47,6 @@ void FFTBake(uint3 id : SV_DispatchThreadID)
 	}
 
 	_OutHeights[id.xy] = resultHeight;
-	//_OutHeights[id.xy] = 4.0 * sin( 0.125f * worldPosXZ.x - 2. * _BakeTime * 3.141592654 / 16.0 );
+	//_OutHeights[id.xy] = 4.0 * sin( 2. * 3.141592654 * (worldPosXZ.y - _BakeTime * 8.0f) / _WavePatchSize );
 	//_OutHeights[id.xy] = dot( 4.0, uv );
 }

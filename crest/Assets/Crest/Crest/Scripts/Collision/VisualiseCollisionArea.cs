@@ -24,12 +24,15 @@ namespace Crest
         [SerializeField]
         float _objectWidth = 0f;
 
-        float[] _resultHeights = new float[s_steps * s_steps];
+        [SerializeField]
+        float _stepSize = 5f;
 
-        static readonly float s_radius = 5f;
-        static readonly int s_steps = 10;
+        [SerializeField]
+        int _steps = 10;
 
-        Vector3[] _samplePositions = new Vector3[s_steps * s_steps];
+        float[] _resultHeights;
+
+        Vector3[] _samplePositions;
 
         void Update()
         {
@@ -38,28 +41,37 @@ namespace Crest
                 return;
             }
 
+            if (_resultHeights == null || _resultHeights.Length != _steps * _steps)
+            {
+                _resultHeights = new float[_steps * _steps];
+            }
+            if (_samplePositions == null || _samplePositions.Length != _steps * _steps)
+            {
+                _samplePositions = new Vector3[_steps * _steps];
+            }
+
             var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-            for (int i = 0; i < s_steps; i++)
+            for (int i = 0; i < _steps; i++)
             {
-                for (int j = 0; j < s_steps; j++)
+                for (int j = 0; j < _steps; j++)
                 {
-                    _samplePositions[j * s_steps + i] = new Vector3(((i + 0.5f) - s_steps / 2f) * s_radius, 0f, ((j + 0.5f) - s_steps / 2f) * s_radius);
-                    _samplePositions[j * s_steps + i].x += transform.position.x;
-                    _samplePositions[j * s_steps + i].z += transform.position.z;
+                    _samplePositions[j * _steps + i] = new Vector3(((i + 0.5f) - _steps / 2f) * _stepSize, 0f, ((j + 0.5f) - _steps / 2f) * _stepSize);
+                    _samplePositions[j * _steps + i].x += transform.position.x;
+                    _samplePositions[j * _steps + i].z += transform.position.z;
                 }
             }
 
             if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, null, null)))
             {
-                for (int i = 0; i < s_steps; i++)
+                for (int i = 0; i < _steps; i++)
                 {
-                    for (int j = 0; j < s_steps; j++)
+                    for (int j = 0; j < _steps; j++)
                     {
-                        var result = _samplePositions[j * s_steps + i];
-                        result.y = _resultHeights[j * s_steps + i];
+                        var result = _samplePositions[j * _steps + i];
+                        result.y = _resultHeights[j * _steps + i];
 
-                        DebugDrawCross(result, 1f, Color.green);
+                        DebugDrawCross(result, Mathf.Min(_stepSize / 4f, 1f), Color.green);
                     }
                 }
             }

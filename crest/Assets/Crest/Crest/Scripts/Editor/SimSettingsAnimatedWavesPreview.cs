@@ -31,9 +31,9 @@ namespace Crest
 
         public override string GetInfoString()
         {
-            var data = (target as SimSettingsAnimatedWaves)?._bakedFFTData;
+            var data = _targetBakedData;
             if (data == null) return "";
-            return $"{data.name}, {data._textureResolution}x{data._textureResolution}, frame: {_frameToPreview}";
+            return $"{data.name}, {data._textureResolution}x{data._textureResolution}, {_frameToPreview+1}/{data._frameCount}";
         }
 
         public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
@@ -43,22 +43,25 @@ namespace Crest
             if (_targetBakedData == null)
                 return;
 
+            if (Mathf.Approximately(r.width, 1f))
+                return;
+
             if (target != _previousTarget)
             {
                 var allFramesAllPixels = _targetBakedData._framesFlattened;
                 var singleFrameSize = allFramesAllPixels.Length / _targetBakedData._frameCount;
 
-                var rawData = allFramesAllPixels.Skip(_frameToPreview * singleFrameSize).Take(singleFrameSize).ToArray();
-                if (rawData.Length == 0)
+                var rawData = allFramesAllPixels.Skip(_frameToPreview * singleFrameSize).Take(singleFrameSize);
+                if (!rawData.Any())
                     return;
 
-                var rawDataNativeGray = new NativeArray<float>(rawData.Length * 4, Allocator.Temp);
+                var rawDataNativeGray = new NativeArray<float>(singleFrameSize * 4, Allocator.Temp);
                 
-                for (int i = 0; i < rawData.Length; i++)
+                for (int i = 0; i < singleFrameSize; i++)
                 {
                     // map to 0-1 range for visualisation purposes
-                    var alpha = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, rawData[i]);
-                    rawData[i] = Mathf.Lerp(0f, 1f, alpha);
+                    var alpha = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, rawData.ElementAt(i));
+                    var mappedValue = Mathf.Lerp(0f, 1f, alpha);
 
                     // convert to grayscale (if there's a prettier way, feel free)
                     var nativeIndex = i * 4;
@@ -66,7 +69,7 @@ namespace Crest
                         rawDataNativeGray[nativeIndex + 1] =
                             rawDataNativeGray[nativeIndex + 2] =
                                 rawDataNativeGray[nativeIndex + 3] =
-                                    rawData[i];
+                                    mappedValue;
                 }
 
                 _previewTexture ??= new Texture2D(_targetBakedData._textureResolution, _targetBakedData._textureResolution,

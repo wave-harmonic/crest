@@ -29,6 +29,12 @@ Breaking
          Unity will raise a missing Render Feature reference error.
          Remove the missing Render Feature to resolve. `[URP]`
 
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  Add new Underwater Renderer component which executes a fullscreen pass between transparent and post-processing pass.
+
 Changed
 ^^^^^^^
 .. bullet_list::
@@ -39,6 +45,10 @@ Changed
    -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
    -  *CustomTimeProvider* override time/delta time functions are now defaulted to opt-in instead of opt-out.
 
+   .. only:: hdrp
+
+      -  Improve meniscus rendering by also rendering below ocean surface line. `HDRP`
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -46,6 +56,13 @@ Fixed
    -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
    -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
    -  Fix shader compile errors on Windows 7.
+
+   .. only:: hdrp
+
+      -  Fix underwater breaking for XR `SPI`. `HDRP`
+      -  Fix underwater artefacts for XR `MP`. `HDRP`
+      -  Fix meniscus rendering incorrectly when camera is rotated. `HDRP`
+
 
 
 4.11

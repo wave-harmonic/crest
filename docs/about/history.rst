@@ -47,22 +47,35 @@ Changed
 
    .. only:: hdrp
 
-      -  Improve meniscus rendering by also rendering below ocean surface line. `HDRP`
+      -  Improve meniscus rendering by also rendering below ocean surface line. `[HDRP]`
 
 Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
+   -  Fix case where normal could be NaN, which could make screen flash black in `[HDRP]`.
    -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
    -  Fix shader compile errors on Windows 7.
 
    .. only:: hdrp
 
-      -  Fix underwater breaking for XR `SPI`. `HDRP`
-      -  Fix underwater artefacts for XR `MP`. `HDRP`
-      -  Fix meniscus rendering incorrectly when camera is rotated. `HDRP`
+      -  Fix underwater breaking for XR `SPI`. `[HDRP]`
+      -  Fix underwater artefacts for XR `MP`. `[HDRP]`
+      -  Fix meniscus rendering incorrectly when camera is rotated. `[HDRP]`
 
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
+
+   .. only:: birp or urp
+
+      -  The *Underwater Effect* component (including *UnderWaterCurtainGeom.prefab* and *UnderWaterMeniscus.prefab*) has been superseded by the *Underwater Renderer*.
+         Please see :ref:`underwater` for more information. `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  The *Underwater Post-Process* effect has been superseded by the *Underwater Renderer*.
+         Please see :ref:`underwater` for more information. `[HDRP]`
 
 
 4.11

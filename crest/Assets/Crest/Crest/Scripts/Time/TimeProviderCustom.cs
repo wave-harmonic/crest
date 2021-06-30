@@ -11,7 +11,7 @@ namespace Crest
     /// This time provider fixes the ocean time at a custom value which is usable for testing/debugging.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Custom Time Provider")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "other-features.html" + Internal.Constants.HELP_URL_RP + "#time-providers")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "time-providers.html" + Internal.Constants.HELP_URL_RP + "#supporting-pause")]
     public class TimeProviderCustom : TimeProviderBase
     {
         /// <summary>

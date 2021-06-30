@@ -7,99 +7,60 @@ The following sections describe how to define the wave conditions.
 
 .. tip::
 
-    It is useful to see the animated ocean surface while tweaking the wave conditions.
+   It is useful to see the animated ocean surface while tweaking the wave conditions.
 
-    .. include:: includes/_animated-materials.rst
+   .. include:: includes/_animated-materials.rst
 
+
+Wave Systems
+============
+
+There are a few different systems that generate waves in Crest:
+
+-  *ShapeGerstnerBatch* - the original system that manually adds together 'Gerstner' waves.
+   This component is inefficient, and does not support the 'wave spline' tech, and has lower quality waves.
+   It is about to be deprecated.
+-  *ShapeGerstner* - high quality 'Gerstner'-based system.
+   Best choice for if running with *nographics* (no GPU).
+-  *ShapeFFT* - high quality 'FFT'-based system. Best choice for maximum detail/realism.
+   Our innovative FFT tech supports waves at all scales and is also extremely efficient.
 
 .. _wave-authoring-section:
 
 Authoring
 ---------
 
-To add waves, add the *ShapeGerstner* component to a GameObject.
+To add waves, add the *ShapeGerstner* or *ShapeFFT* component to a GameObject (comparison of the two options above).
 
 The appearance and shape of the waves is determined by a *Wave Spectrum*.
 A default wave spectrum will be created if none is specified.
-To change the waves, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum*, and assign the new asset to the *Spectrum* property of the *ShapeGerstner* script.
+To author wave conditions, click the *Create Asset* button next to the *Spectrum* field. The resulting spectrum can then be edited by expanding this field.
 
+The spectrum can be freely edited in Edit mode, and is locked by default in Play mode to save evaluating the spectrum every frame (this optimisation can be disabled using the *Spectrum Fixed At Runtime* toggle).
 The spectrum has sliders for each wavelength to control contribution of different scales of waves.
 To control the contribution of 2m wavelengths, use the slider labelled '2'.
+Note that the wind speed may need to be increased on the *OceanRenderer* component in order for large wavelengths to be visible.
 
-The *Wave Direction Variance* controls the spread of wave directions.
-This controls how aligned the waves are to the wind direction.
+There is also control over how aligned waves are to the wind direction.
+When using the *ShapeGerstner* system, this is controlled via the *Wave Direction Variance* control within the spectrum.
+When using the *ShapeFFT* system, this is controlled via the *Wind Turbulence* control on the *ShapeFFT* component.
 
-The *Chop* parameter scales the horizontal displacement.
+Another key control is the *Chop* parameter which scales the horizontal displacement.
 Higher chop gives crisper wave crests but can result in self-intersections or 'inversions' if set too high, so it needs to be balanced.
 
-To aid in tweaking the spectrum values we provide implementations of common wave spectra from the literature.
-Select one of the spectra by toggling the button, and then tweak the spectra inputs, and the spectrum values will be set according to the selected model.
-When done, toggle the button off to stop overriding the spectrum.
+To aid in tweaking the spectrum, we provide a standard empirical wave spectrum model from the literature, called the 'Pierson-Moskowitz' model.
+To apply this model to a spectrum, select it in the *Empirical Spectra* section of the spectrum editor which will lock the spectrum to this model.
+The model can be disabled afterwards which will unlock the spectrum power sliders for hand tweaking.
+
+.. tip::
+
+   Notice how the empirical spectrum places the power slider handles along a line.
+   This is typical of real world wave conditions which will have linear power spectrums on average.
+   However actual conditions can vary significantly based on wind conditions, land masses, etc, and we encourage experimentation to obtain visually interesting wave conditions, or conditions that work best for gameplay.
+
 
 Together these controls give the flexibility to express the great variation one can observe in real world seascapes.
 
-
-.. _local-waves-section:
-
-Local Waves
------------
-
-By default the Gerstner waves will apply everywhere throughout the world, so 'globally'.
-They can also be applied 'locally' - in a limited area of the world.
-
-This is done by setting the *Mode* to *Geometry*.
-In this case the system will look for a *MeshFilter/MeshRenderer* on the same GameObject and it will generate waves over the area of the geometry.
-The geometry must be 'face up' - it must be visible from a top-down perspective in order to generate the waves.
-It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Batch Geometry* shader applied.
-
-For a concrete example, see the *GerstnerPatch* object in *boat.unity*.
-It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up.
-It has a *MeshRenderer* component with a material assigned with a Gerstner material.
-
-The material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
-A more general solution is to scale the waves based on vertex colour so weights can be painted - this is provided through the *Weight from vertex colour (red channel)* option.
-This allows different wave conditions in different areas of the world with smooth blending.
-
-
-ShapeGerstnerBatched
---------------------
-
-.. deprecated:: 4.9
-
-    *ShapeGerstnerBatched* will be replaced by the much improved *ShapeGerstner*.
-
-
-.. _shape-gerstner-section:
-
-ShapeGerstner (preview)
------------------------
-
-A new Gerstner wave system has been added, intended to replace the current system.
-It can be tested by adding a *ShapeGerstner* component to a GameObject.
-The settings and behaviour are quite similar to the current system (described above).
-The new system has the following advantages:
-
--  Much lower ocean update CPU cost per-frame (35% reduction in our tests for just one Gerstner component).
-   Part of this efficiency comes from not recalculating the wave spectrum at run-time by default as toggled by the *Spectrum is static* option on the *ShapeGerstner* component.
-   When this optimisation is enabled, *waves must be edited in edit mode (not in play mode)*.
--  Lower GPU cost (0.12ms saved for wave generation in our tests)
--  Wave foam generation works much better in background thanks to a new wave variance statistic
--  Support for wave splines (see below)
-
-After more testing we will switch over to this new system and deprecate the *ShapeGerstnerBatched* component.
-
-
-.. _shape-fft-section:
-
-ShapeFFT (preview)
-------------------
-
-A wave simulation based on the `FFT` technique.
-
-The usage is very similar to the *ShapeGerstner* component.
-Add the *ShapeFFT* component to a GameObject, and follow the authoring instructions above to modify the wave conditions.
-
-This simulation type adds more wave components together than the *ShapeGerstner* component and can produce more realistic water waves, at a similar performance cost.
 
 .. _wave-splines-section:
 
@@ -110,9 +71,10 @@ Wave Splines (preview)
 
    Wave Splines
 
-While it is possible to use the above steps to place localised waves in the world, we added a new system we call *Wave Splines* to make it easier and faster.
+Wave Splines allow flexible and fast authoring of how waves manifest in the world.
+A couple of use cases are demonstrated in the video above.
 
-As part of this system, we added a generic *Spline* component which is in itself a useful spline tool which could be re-used for other purposes.
-
-If the *Spline* component is attached to the same GameObject as a *ShapeGerstner* component, the waves will be generated along the spline.
+If the *Spline* component is attached to the same GameObject as a *ShapeGerstner* or *ShapeFFT* component, the waves will be generated along the spline.
 This allows for quick experimentation with placing and orienting waves in different areas of the environment.
+
+The *Spline* component can also be combined with the *RegisterHeightInput* to make the water level follow the spline, and with the *RegisterFlowInput* to make water move along the spline.

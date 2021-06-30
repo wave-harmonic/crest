@@ -725,6 +725,15 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+#if UNITY_EDITOR
+            // If running a build, don't assert any requirements at all. Requirements are for
+            // the runtime, not for making builds.
+            if (BuildPipeline.isBuildingPlayer)
+            {
+                return true;
+            }
+#endif
+
             if (!RunningWithoutGPU)
             {
                 if (Application.platform == RuntimePlatform.WebGLPlayer)

@@ -188,10 +188,13 @@ rst_prolog = f"""
 """
 rst_prolog = rst_prolog + """
 .. set:: RPMinVersion 10.5
+.. set:: UPMDocLinkBase \https://docs.unity3d.com/Packages
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
 .. set:: UnityMinVersionShort 2020.3
 .. set:: UnityMinVersion {UnityMinVersionShort}.10
+.. set:: UnityDocsLinkBase https://docs.unity3d.com/{UnityMinVersionShort}/Documentation
 .. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
+.. set:: UnityDocScriptLink {UnityDocsLinkBase}/ScriptReference
 .. set:: UnityIssueLink https://issuetracker.unity3d.com/product/unity/issues/guid
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
 .. set:: DocLinkBase https://crest.readthedocs.io/en
@@ -238,6 +241,11 @@ rst_prolog = rst_prolog + """
 .. set:: GC :abbr:`GC (Garbage Collector)`
 
 .. set:: DWP2 :abbr:`DWP2 (Dynamic Water Physics 2)`
+
+.. set:: Time.time :link:`Time.time <{UnityDocScriptLink}/Time-time.html>`
+.. set:: Time.timeScale :link:`Time.timeScale <{UnityDocScriptLink}/Time-timeScale.html>`
+.. set:: Timeline :link:`Timeline <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/tl_about.html>`
+.. set:: Playable Director :link:`Playable Director <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/play_director.html>`
 """
 
 # -- Debugging ---------------------------------------------------------------

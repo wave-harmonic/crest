@@ -99,6 +99,11 @@ Setup
    Underwater Post-Process `[HDRP]`
    --------------------------------
 
+   .. admonition:: Deprecated
+
+      The *Underwater Post-Process* will be removed in a future Crest version.
+      It has been replaced by the *Underwater Renderer*.
+
    Renders the underwater effect at the beginning of the post-processing stack.
 
    .. _underwater_pp_setup:

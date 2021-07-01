@@ -33,7 +33,6 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
-   -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
    -  FFT generator count added to debug GUI.
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
    -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
@@ -43,9 +42,18 @@ Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
+   -  Fix case where normal could be NaN, which could make screen flash black in `[HDRP]`.
    -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
    -  Fix shader compile errors on Windows 7.
+   -  Fix ocean depth cache shader compile error.
+   -  Fix ocean not rendering on *Unity Cloud Build* (unconfirmed).
+   -  Fix ShapeGerstner and ShapeFFT having no default spectrum in builds.
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
 
 
 4.11

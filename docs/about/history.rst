@@ -23,6 +23,10 @@ Breaking
 
       -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
 
+   .. only:: hdrp
+
+      -  *Underwater Post-Processing* is disabled by default which means it will be inactive if the *Underwater Volume Override* is not present in the scene. `[HDRP]`
+
    .. only:: urp
 
       -  Remove *Sample Shadows* Render Feature as it is now scripted.

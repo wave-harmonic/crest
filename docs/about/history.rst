@@ -37,7 +37,7 @@ Preview
 ^^^^^^^
 .. bullet_list::
 
-   -  Add new Underwater Renderer component which executes a fullscreen pass between transparent and post-processing pass.
+   -  Add new *Underwater Renderer* component which executes a fullscreen pass between transparent and post-processing pass.
 
 Changed
 ^^^^^^^

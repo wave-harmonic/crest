@@ -34,7 +34,7 @@ Underwater Renderer
 
    .. admonition:: Bug
 
-      Due to a Unity bug, the Underwater Renderer does not support XR SPI for URP.
+      Due to a :link:`Unity bug <{UnityIssueLink}/1335524>`, the *Underwater Renderer* does not support XR `SPI` for `URP`.
 
 
 The *Underwater Renderer* component executes a fullscreen underwater effect between the transparent pass and post-processing pass.

@@ -426,7 +426,9 @@ namespace Crest
 
         // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
         // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
+#pragma warning disable 414
         static bool s_IsPrefabStage = false;
+#pragma warning restore 414
 
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()

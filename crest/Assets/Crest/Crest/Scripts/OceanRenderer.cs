@@ -424,9 +424,22 @@ namespace Crest
 
         PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
 
+        // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
+        // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
+        static bool s_IsPrefabStage = false;
+
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+#if UNITY_EDITOR
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                s_IsPrefabStage = true;
+                return;
+            }
+#endif
+
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
 
@@ -438,14 +451,6 @@ namespace Crest
             {
                 PushTimeProvider(_timeProvider);
             }
-
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-#if UNITY_EDITOR
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                return;
-            }
-#endif
 
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
             {
@@ -529,6 +534,14 @@ namespace Crest
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
+                // We have just left a prefab scene on the stack and are now in another prefab scene.
+                return;
+            }
+            else if (s_IsPrefabStage)
+            {
+                // We have left the last prefab scene and are now back to a normal scene. We do not want to disable the
+                // OceanRenderer.
+                s_IsPrefabStage = false;
                 return;
             }
 #endif

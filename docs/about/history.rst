@@ -72,6 +72,10 @@ Performance
 
    -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
 
+   .. only:: hdrp
+
+      -  Underwater ocean mask now deactives when the underwater effect is not active. `[HDRP]`
+
 Deprecated
 ^^^^^^^^^^
 .. bullet_list::

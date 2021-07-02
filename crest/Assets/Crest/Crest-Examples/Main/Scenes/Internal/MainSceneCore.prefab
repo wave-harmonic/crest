@@ -56,6 +56,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -80,6 +81,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &2055442730583753477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -94,6 +96,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _checkShaderName: 1
   _disableRenderer: 1
+  _overrideSplineSettings: 0
+  _radius: 20
+  _subdivisions: 1
+  _smoothingIterations: 0
+  _version: 0
   _octaveWavelength: 11
   _followHorizontalMotion: 1
   _maxDisplacementVertical: 0
@@ -200,6 +207,7 @@ MonoBehaviour:
   _lodDataResolution: 384
   _geometryDownSampleFactor: 4
   _lodCount: 7
+  _underwaterCullLimit: 0.001
   _simSettingsAnimatedWaves: {fileID: 11400000, guid: 62a7ebcba67387043b90226c6ee957b7,
     type: 2}
   _createSeaFloorDepthData: 1
@@ -216,6 +224,8 @@ MonoBehaviour:
   _showOceanProxyPlane: 0
   _editModeFPS: 30
   _followSceneCamera: 1
+  _forceBatchMode: 0
+  _forceNoGPU: 0
   _attachDebugGUI: 1
   _hideOceanTileGameObjects: 1
   _uniformTiles: 0
@@ -311,6 +321,7 @@ MeshRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -335,6 +346,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &1976205943932006336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -347,6 +359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6727809da6522a4a851af2b1e732088, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   _drawBounds: 0
 --- !u!1 &4381411965147487613
 GameObject:
@@ -391,6 +404,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   _mode: 0
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
   _windDirectionAngle: 0
@@ -448,6 +462,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5be4155a909a5ef47bdaaf1422602735, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   _type: 0
   _refreshMode: 0
   _layers:
@@ -472,6 +487,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2c593ea1d4904804b05ef10faba0af2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
   _weight: 1
 --- !u!1 &6592570429775873657
 GameObject:

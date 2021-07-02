@@ -48,6 +48,7 @@ Fixed
    -  Fix ocean depth cache shader compile error.
    -  Fix ocean not rendering on *Unity Cloud Build* (unconfirmed).
    -  Fix ShapeGerstner and ShapeFFT having no default spectrum in builds.
+   -  Fix "missing custom editor" error for *Whirlpool* component.
 
 Performance
 ^^^^^^^^^^^

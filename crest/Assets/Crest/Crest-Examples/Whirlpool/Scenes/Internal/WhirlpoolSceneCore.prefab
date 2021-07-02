@@ -257,6 +257,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde37eff0f7685f41902f400d1de0c6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _version: 0
+  _globalWindSpeed: 150
   _viewpoint: {fileID: 0}
   _timeProvider: {fileID: 0}
   _primaryLight: {fileID: 0}

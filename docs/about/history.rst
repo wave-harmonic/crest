@@ -33,16 +33,12 @@ Breaking
          Unity will raise a missing Render Feature reference error.
          Remove the missing Render Feature to resolve. `[URP]`
 
-Preview
-^^^^^^^
-.. bullet_list::
-
-   -  Add new *Underwater Renderer* component which executes a fullscreen pass between transparent and post-processing pass.
-
 Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add new *Underwater Renderer* component which executes a fullscreen pass between transparent and post-processing pass.
+      Please see :ref:`underwater` for more information.
    -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
    -  FFT generator count added to debug GUI.
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.

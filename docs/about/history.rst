@@ -39,7 +39,6 @@ Changed
 
    -  Add new *Underwater Renderer* component which executes a fullscreen pass between transparent and post-processing pass.
       Please see :ref:`underwater` for more information.
-   -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
    -  FFT generator count added to debug GUI.
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
    -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
@@ -56,12 +55,22 @@ Fixed
    -  Fix case where normal could be NaN, which could make screen flash black in `[HDRP]`.
    -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
    -  Fix shader compile errors on Windows 7.
+   -  Fix ocean depth cache shader compile error.
+   -  Fix ocean not rendering on *Unity Cloud Build* (unconfirmed).
+   -  Fix ShapeGerstner and ShapeFFT having no default spectrum in builds.
+   -  Fix "missing custom editor" error for *Whirlpool* component.
 
    .. only:: hdrp
 
       -  Fix underwater breaking for XR `SPI`. `[HDRP]`
       -  Fix underwater artefacts for XR `MP`. `[HDRP]`
       -  Fix meniscus rendering incorrectly when camera is rotated. `[HDRP]`
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
 
 Deprecated
 ^^^^^^^^^^

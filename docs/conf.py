@@ -235,7 +235,8 @@ rst_prolog = rst_prolog + """
 
 .. set:: TAA :abbr:`TAA (Temporal Anti-Aliasing)`
 .. set:: SMAA :abbr:`SMAA (Subpixel Morphological Anti-Aliasing)`
-.. set:: SPI :abbr:`SPI (Single Pass Instanced)`
+.. set:: SPI :abbr:`SPI (Single-Pass Instanced)`
+.. set:: MP :abbr:`MP (Multi-Pass)`
 .. set:: FFT :abbr:`FFT (Fast Fourier Transform)`
 .. set:: GC :abbr:`GC (Garbage Collector)`
 

@@ -23,6 +23,10 @@ Breaking
 
       -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
 
+   .. only:: hdrp
+
+      -  *Underwater Post-Processing* is disabled by default which means it will be inactive if the *Underwater Volume Override* is not present in the scene. `[HDRP]`
+
    .. only:: urp
 
       -  Remove *Sample Shadows* Render Feature as it is now scripted.
@@ -33,10 +37,16 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add new *Underwater Renderer* component which executes a fullscreen pass between transparent and post-processing pass.
+      Please see :ref:`underwater` for more information.
    -  FFT generator count added to debug GUI.
    -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
    -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
    -  *CustomTimeProvider* override time/delta time functions are now defaulted to opt-in instead of opt-out.
+
+   .. only:: hdrp
+
+      -  Improve meniscus rendering by also rendering below ocean surface line. `[HDRP]`
 
 Fixed
 ^^^^^
@@ -50,11 +60,35 @@ Fixed
    -  Fix ShapeGerstner and ShapeFFT having no default spectrum in builds.
    -  Fix "missing custom editor" error for *Whirlpool* component.
 
+   .. only:: hdrp
+
+      -  Fix underwater breaking for XR `SPI`. `[HDRP]`
+      -  Fix underwater artefacts for XR `MP`. `[HDRP]`
+      -  Fix meniscus rendering incorrectly when camera is rotated. `[HDRP]`
+
 Performance
 ^^^^^^^^^^^
 .. bullet_list::
 
    -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
+
+   .. only:: hdrp
+
+      -  Underwater ocean mask now deactives when the underwater effect is not active. `[HDRP]`
+
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
+
+   .. only:: birp or urp
+
+      -  The *Underwater Effect* component (including *UnderWaterCurtainGeom.prefab* and *UnderWaterMeniscus.prefab*) has been superseded by the *Underwater Renderer*.
+         Please see :ref:`underwater` for more information. `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  The *Underwater Post-Process* effect has been superseded by the *Underwater Renderer*.
+         Please see :ref:`underwater` for more information. `[HDRP]`
 
 
 4.11

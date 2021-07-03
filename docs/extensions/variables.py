@@ -94,8 +94,17 @@ def brace_substitution_text(text):
 def brace_substitution_node(text):
     # Text substitution outputting as nodes for the text content. Also uses braces.
     node_list = []
-    for part in re.split(r"[{}]", text):
-        if part in dictionary:
+    # Make sure we only do substitutions when we are within a brace. We do NOT support nested braces.
+    is_within_brace = False
+    # Use () to keep the delimiters.
+    for part in re.split(r"([{}])", text):
+        if text is "{":
+            is_within_brace = True
+            continue
+        elif text is "}":
+            is_within_brace = False
+            continue
+        if is_within_brace and part in dictionary:
             node_list += dictionary[part]
         else:
             # This part will be just text so created a node.

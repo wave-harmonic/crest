@@ -30,7 +30,7 @@ This can be specified using an offset between the clients `Time.time` and that o
 
 This is supported by attaching a *TimeProviderNetworked.cs* component to a GameObject, assigning it to the *Time Provider* parameter on the *OceanRenderer* component, and at run-time setting *TimeProviderNetworked.TimeOffsetToServer* to the time difference between the client and the server.
 
-If using the :link:`{Mirror} <https://assetstore.unity.com/packages/tools/network/mirror-129321?aid=1011lic2K>` network system, set this property to the :link:`network time offset <https://mirror-networking.com/docs/api/Mirror.NetworkTime.html#Mirror_NetworkTime_offset>`.
+If using the :link:`Mirror <https://assetstore.unity.com/packages/tools/network/mirror-129321?aid=1011lic2K>` network system, set this property to the :link:`network time offset <https://mirror-networking.com/docs/api/Mirror.NetworkTime.html#Mirror_NetworkTime_offset>`.
 
 
 Timelines and cutscenes

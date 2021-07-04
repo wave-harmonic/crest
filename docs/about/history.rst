@@ -75,7 +75,7 @@ Performance
 
    .. only:: hdrp
 
-      -  Underwater ocean mask now deactives when the underwater effect is not active. `[HDRP]`
+      -  Underwater ocean mask now deactivates when the underwater effect is not active. `[HDRP]`
 
 Deprecated
 ^^^^^^^^^^

@@ -37,7 +37,17 @@ namespace Crest
             AssetDatabase.Refresh();
         }
 
-        float SampleHeight(float x, float z, int frameIndex)
+        struct SpatialInterpolationData
+        {
+            public float _alphaU;
+            public float _alphaV;
+            public int _U0;
+            public int _V0;
+            public int _U1;
+            public int _V1;
+        }
+
+        void CalculateSamplingData(float x, float z, ref SpatialInterpolationData lerpData)
         {
             // 0-1 uv
             var u = x / _worldSize;
@@ -72,26 +82,29 @@ namespace Crest
             if (uTexels < 0f) uTexels += _textureResolution;
             if (vTexels < 0f) vTexels += _textureResolution;
 
-            var alphaU = uTexels % 1f;
-            var alphaV = vTexels % 1f;
-            var iU0 = (int)uTexels;
-            var iV0 = (int)vTexels;
-            var iU1 = (iU0 + 1) % _textureResolution;
-            var iV1 = (iV0 + 1) % _textureResolution;
+            lerpData._alphaU = uTexels % 1f;
+            lerpData._alphaV = vTexels % 1f;
+            lerpData._U0 = (int)uTexels;
+            lerpData._V0 = (int)vTexels;
+            lerpData._U1 = (lerpData._U0 + 1) % _textureResolution;
+            lerpData._V1 = (lerpData._V0 + 1) % _textureResolution;
+        }
 
+        float SampleHeight(ref SpatialInterpolationData lerpData, int frameIndex)
+        {
             // lookup 4 values
             var indexBase = frameIndex * _textureResolution * _textureResolution;
-            var h00 = _framesFlattened[indexBase + iV0 * _textureResolution + iU0];
-            var h10 = _framesFlattened[indexBase + iV0 * _textureResolution + iU1];
-            var h01 = _framesFlattened[indexBase + iV1 * _textureResolution + iU0];
-            var h11 = _framesFlattened[indexBase + iV1 * _textureResolution + iU1];
+            var h00 = _framesFlattened[indexBase + lerpData._V0 * _textureResolution + lerpData._U0];
+            var h10 = _framesFlattened[indexBase + lerpData._V0 * _textureResolution + lerpData._U1];
+            var h01 = _framesFlattened[indexBase + lerpData._V1 * _textureResolution + lerpData._U0];
+            var h11 = _framesFlattened[indexBase + lerpData._V1 * _textureResolution + lerpData._U1];
 
             // lerp u direction first
-            var h_0 = Mathf.Lerp(h00, h10, alphaU);
-            var h_1 = Mathf.Lerp(h01, h11, alphaU);
+            var h_0 = Mathf.Lerp(h00, h10, lerpData._alphaU);
+            var h_1 = Mathf.Lerp(h01, h11, lerpData._alphaU);
 
             // lerp v direction
-            return Mathf.Lerp(h_0, h_1, alphaV);
+            return Mathf.Lerp(h_0, h_1, lerpData._alphaV);
         }
 
         public float SampleHeight(float x, float z, float t)
@@ -102,13 +115,18 @@ namespace Crest
             //if (z < 0f)
             //    return 4f * Mathf.Sin(2f * (x - t * 8f) * Mathf.PI / _worldSize);
 
+            // Temporal lerp data
             var t01 = (t / _period) % 1f;
             var f0 = (int)(t01 * _frameCount);
             var f1 = (f0 + 1) % _frameCount;
             var alphaT = t01 * _frameCount - f0;
 
-            var h0 = SampleHeight(x, z, f0);
-            var h1 = SampleHeight(x, z, f1);
+            // Spatial lerp data
+            SpatialInterpolationData lerpData = new SpatialInterpolationData();
+            CalculateSamplingData(x, z, ref lerpData);
+
+            var h0 = SampleHeight(ref lerpData, f0);
+            var h1 = SampleHeight(ref lerpData, f1);
 
             return Mathf.Lerp(h0, h1, alphaT);
         }

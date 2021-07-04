@@ -39,11 +39,13 @@ float ComputeWaveSpeed(float wavelength, float g)
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
 	const float sliceIndex = id.z;
-	const float sliceIndexSource = id.z + _LODChange;
 	float width; float height; float depth;
 	{
 		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
 	}
+	// Slice to sample previous frames data from. LOD change takes into account shifting of the cascades in scale.
+	const float sliceIndexSource = clamp(id.z + _LODChange, 0.0, depth - 1.0);
+
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const CascadeParams cascadeData = _CrestCascadeData[sliceIndex];
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, cascadeData);

@@ -52,9 +52,9 @@ namespace Crest
                     float h_x = _data.SampleHeight(i_queryPoints[i].x + s_finiteDiffDx, i_queryPoints[i].z, t);
                     float h_z = _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z + s_finiteDiffDx, t);
 
-                    o_resultNorms[i].x = (h - h_x) / s_finiteDiffDx;
-                    o_resultNorms[i].y = 1f;
-                    o_resultNorms[i].z = (h - h_z) / s_finiteDiffDx;
+                    o_resultNorms[i].x = h - h_x;
+                    o_resultNorms[i].y = s_finiteDiffDx;
+                    o_resultNorms[i].z = h - h_z;
                     o_resultNorms[i].Normalize();
                 }
             }
@@ -64,8 +64,8 @@ namespace Crest
                 for (int i = 0; i < o_resultVels.Length; i++)
                 {
                     o_resultVels[i] = Vector3.zero;
-                    o_resultVels[i].y = _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t + s_finiteDiffDx)
-                        - _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t);
+                    o_resultVels[i].y = (_data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t)
+                        - _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t - s_finiteDiffDt)) / s_finiteDiffDt;
                 }
             }
 
@@ -95,9 +95,9 @@ namespace Crest
                     float h_x = _data.SampleHeight(i_queryPoints[i].x + s_finiteDiffDx, i_queryPoints[i].z, t);
                     float h_z = _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z + s_finiteDiffDx, t);
 
-                    o_resultNorms[i].x = (h - h_x) / s_finiteDiffDx;
-                    o_resultNorms[i].y = 1f;
-                    o_resultNorms[i].z = (h - h_z) / s_finiteDiffDx;
+                    o_resultNorms[i].x = h - h_x;
+                    o_resultNorms[i].y = s_finiteDiffDx;
+                    o_resultNorms[i].z = h - h_z;
                     o_resultNorms[i].Normalize();
                 }
             }
@@ -108,8 +108,8 @@ namespace Crest
                 {
                     // 3D velocities not available (if we only bake height)
                     o_resultVels[i].x = 0f;
-                    o_resultVels[i].y = _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t)
-                        - _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t - s_finiteDiffDt);
+                    o_resultVels[i].y = (_data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t)
+                        - _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t - s_finiteDiffDt)) / s_finiteDiffDt;
                     o_resultVels[i].z = 0f;
                 }
             }

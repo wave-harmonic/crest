@@ -5,15 +5,12 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.IO;
-using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
-    // TODO: there's a bug somewhere, frame 0 is black
     public class FFTBaker
     {
         public static FFTBakedData Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize)

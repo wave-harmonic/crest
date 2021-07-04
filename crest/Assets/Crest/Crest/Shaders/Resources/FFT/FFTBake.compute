@@ -4,9 +4,6 @@
 
 #pragma kernel FFTBake
 
-// Must match CASCADE_COUNT in FFTCompute.cs
-#define CASCADE_COUNT 16
-
 Texture2DArray<float3> _InFFTWaves;
 SamplerState sampler_linear_repeat;
 
@@ -18,12 +15,9 @@ float _BakeTime;
 float3 CalculateDisplacement( float2 worldPosXZ, int fftSlices )
 {
 	float3 result = 0.0;
-	for( int slice = 0.0; slice < fftSlices; slice++ )
+	for( int slice = 0; slice < fftSlices; slice++ )
 	{
-		const float sliceWorldSize = 0.5f * (1 << slice);
-		// FFT slices that are larger than our output patch won't tile spatially
-		if( sliceWorldSize > _WavePatchSize ) break;
-
+		const float sliceWorldSize = 0.5 * (1 << slice);
 		const float3 waveUV = float3(worldPosXZ / sliceWorldSize, slice);
 		result += _InFFTWaves.SampleLevel( sampler_linear_repeat, waveUV, 0 );
 	}
@@ -47,6 +41,7 @@ void FFTBake(uint3 id : SV_DispatchThreadID)
 	float2 curPosXZ = worldPosXZ;
 	float3 disp = CalculateDisplacement( worldPosXZ, fftSlices );
 
+	// Fixed point iteration with large iteration count.
 	for( int i = 0; i < 8; i++ )
 	{
 		curPosXZ -= (curPosXZ + disp.xz - worldPosXZ);

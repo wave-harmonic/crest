@@ -15,8 +15,10 @@ namespace Crest
         [SerializeField] private float _period;
         [SerializeField] private float _timeResolution;
         [HideInInspector] public float[] _framesFlattened;
-        /*[HideInInspector]*/ public int _frameCount;
-        /*[HideInInspector]*/ public int _textureResolution;
+        /*[HideInInspector]*/
+        public int _frameCount;
+        /*[HideInInspector]*/
+        public int _textureResolution;
         public float _worldSize;
         [HideInInspector] public float _smallestValue;
         [HideInInspector] public float _largestValue;

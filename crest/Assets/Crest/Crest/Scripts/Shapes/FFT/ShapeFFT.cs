@@ -98,8 +98,8 @@ namespace Crest
         float _maxHorizontalDisplacement = 15f;
 
         [Header("Collision Data Baking")]
-        [Tooltip("Enable running this FFT with baked data. This makes the FFT periodic (repeating in time)."), SerializeField]
-        bool _enableBakedCollision = false;
+        [Tooltip("Enable running this FFT with baked data. This makes the FFT periodic (repeating in time).")]
+        public bool _enableBakedCollision = false;
         [Tooltip("Frames per second of baked data. Larger values generate more frames and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
         public int _timeResolution = 32;
         [Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
@@ -527,8 +527,28 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
-            BakeHelpBox(target as ShapeFFT);
+            var fft = target as ShapeFFT;
 
+            bool bakingEnabled = fft._enableBakedCollision;
+
+            if (bakingEnabled)
+            {
+                if (fft._spectrum == null)
+                {
+                    EditorGUILayout.HelpBox("A spectrum must be assigned to enable collision baking.", MessageType.Error);
+                    return;
+                }
+
+                BakeHelpBox(fft);
+            }
+
+            GUI.enabled = bakingEnabled;
+            OnInspectorGUIBaking();
+            GUI.enabled = true;
+        }
+
+        void OnInspectorGUIBaking()
+        {
             if (GUILayout.Button("Bake to asset"))
             {
                 var result = ((ShapeFFT)target).Bake();

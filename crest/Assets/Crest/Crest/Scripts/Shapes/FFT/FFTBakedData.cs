@@ -52,31 +52,31 @@ namespace Crest
         void CalculateSamplingData(float x, float z, ref SpatialInterpolationData lerpData)
         {
             // 0-1 uv
-            var u = x / _worldSize;
-            if (u >= 0f)
+            var u01 = x / _worldSize;
+            if (u01 >= 0f)
             {
-                u = u % 1f;
+                u01 = u01 % 1f;
             }
             else
             {
-                u = 1f - (Mathf.Abs(u) % 1f);
+                u01 = 1f - (Mathf.Abs(u01) % 1f);
             }
 
-            var v = z / _worldSize;
-            if (v >= 0f)
+            var v01 = z / _worldSize;
+            if (v01 >= 0f)
             {
                 // Inversion differs compared to u, because cpu texture data stored from top left,
                 // rather than gpu (top right)
-                v = 1f - (v % 1f);
+                v01 = 1f - (v01 % 1f);
             }
             else
             {
-                v = Mathf.Abs(v) % 1f;
+                v01 = Mathf.Abs(v01) % 1f;
             }
 
             // uv in texels
-            var uTexels = u * _textureResolution;
-            var vTexels = v * _textureResolution;
+            var uTexels = u01 * _textureResolution;
+            var vTexels = v01 * _textureResolution;
 
             // offset for texel center
             uTexels -= 0.5f;
@@ -117,8 +117,16 @@ namespace Crest
             //if (z < 0f)
             //    return 4f * Mathf.Sin(2f * (x - t * 8f) * Mathf.PI / _worldSize);
 
-            // Temporal lerp data
-            var t01 = (t / _period) % 1f;
+            // Temporal lerp
+            var t01 = t / _period;
+            if (t01 >= 0f)
+            {
+                t01 = t01 % 1f;
+            }
+            else
+            {
+                t01 = 1f - (Mathf.Abs(t01) % 1f);
+            }
             var f0 = (int)(t01 * _frameCount);
             var f1 = (f0 + 1) % _frameCount;
             var alphaT = t01 * _frameCount - f0;

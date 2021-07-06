@@ -13,7 +13,7 @@ namespace Crest
 {
     public class FFTBaker
     {
-        public static FFTBakedData Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize)
+        public static FFTBakedData Bake(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize, float loopPeriod)
         {
             Debug.Assert(Mathf.IsPowerOfTwo(resolutionSpace), "Crest: Spatial resolution must be power of 2");
             // Debug.Assert(Mathf.IsPowerOfTwo(resolutionTime), "Crest: Temporal resolution must be power of 2"); // seems unnecessary
@@ -50,8 +50,7 @@ namespace Crest
             
             Directory.CreateDirectory(folderName);
             
-            var period = fftWaves._spectrum._period;
-            var frameCount = (int)(resolutionTime * period); // not so sure about this
+            var frameCount = (int)(resolutionTime * loopPeriod);
             var frames = new float[frameCount][];
 
             for (int timeIndex = 0; timeIndex < frameCount; timeIndex++) // this means resolutionTime is actually FPS
@@ -61,7 +60,7 @@ namespace Crest
                 buf.Clear();
 
                 // Generate multi-res FFT into a texture array
-                var fftWaveDataTA = FFTCompute.GenerateDisplacements(buf, fftWaves._resolution, fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeedForFFT, t, fftWaves._spectrum, true);
+                var fftWaveDataTA = FFTCompute.GenerateDisplacements(buf, fftWaves._resolution, loopPeriod, fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeedForFFT, t, fftWaves._spectrum, true);
 
                 // Compute shader generates the final waves
                 buf.SetComputeFloatParam(waveCombineShader, "_BakeTime", t);
@@ -89,7 +88,7 @@ namespace Crest
             }
             
             var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
-            bakedDataSO.Initialize(period, resolutionTime, frames, resolutionSpace, wavePatchSize);
+            bakedDataSO.Initialize(loopPeriod, resolutionTime, frames, resolutionSpace, wavePatchSize);
             
             SaveBakedDataToAsset(folderName, bakedDataSO);
             // AssetDatabase.Refresh();

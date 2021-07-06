@@ -98,10 +98,16 @@ namespace Crest
         float _maxHorizontalDisplacement = 15f;
 
         [Header("Collision Data Baking")]
-        [Tooltip("Frames per second of baked data. Larger values generate more frames and increase baked data size.")]
+        [Tooltip("Enable running this FFT with baked data. This makes the FFT periodic (repeating in time)."), SerializeField]
+        bool _enableBakedCollision = false;
+        [Tooltip("Frames per second of baked data. Larger values generate more frames and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
         public int _timeResolution = 32;
-        [Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size.")]
+        [Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
         public float _smallestWavelengthRequired = 2f;
+        [Tooltip("FFT waves will loop with a periodic of this many seconds."), DecoratedField, Predicated("_enableBakedCollision"), Range(4f, 128f), Delayed]
+        public float _timeLoopLength = 32f;
+
+        float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
 
         Mesh _meshForDrawingWaves;
 
@@ -211,14 +217,15 @@ namespace Crest
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
             var windDirRad = WindDirRadForFFT;
             var windSpeedMPS = WindSpeedForFFT;
+            float loopPeriod = LoopPeriod;
 
             // Don't create tons of generators when values are varying. Notify so that existing generators may be adapted.
             if (_windTurbulenceOld != _windTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _spectrum)
             {
-                FFTCompute.OnGenerationDataUpdated(_resolution, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _spectrum);
+                FFTCompute.OnGenerationDataUpdated(_resolution, loopPeriod, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _spectrum);
             }
 
-            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, _windTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, loopPeriod, _windTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
 
             _windTurbulenceOld = _windTurbulence;
             _windDirRadOld = windDirRad;
@@ -361,7 +368,7 @@ namespace Crest
         {
             if (_debugDrawSlicesInEditor)
             {
-                FFTCompute.OnGUI(_resolution, _windTurbulence, WindDirRadForFFT, WindSpeedForFFT, _activeSpectrum);
+                FFTCompute.OnGUI(_resolution, LoopPeriod, _windTurbulence, WindDirRadForFFT, WindSpeedForFFT, _activeSpectrum);
             }
         }
 
@@ -442,7 +449,7 @@ namespace Crest
             }
 
             var patchSize = CalculateWaveCascadeSize(wavelengthUpperBound);
-            var baked = FFTBaker.Bake(this, requiredRes, _timeResolution, patchSize);
+            var baked = FFTBaker.Bake(this, requiredRes, _timeResolution, patchSize, LoopPeriod);
 
             // TODO: Prob should not merge in master..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;

@@ -63,14 +63,17 @@ void DeepDispersion(float k, out float w, out float dwdk)
 {
 	w = sqrt(abs(_Gravity * k));
 
-	const float globalPeriod = _Period;
-	float thisPeriod = PI2 / w;
-	float loops = globalPeriod / thisPeriod;
-	// make sure loops integral number of times
-	loops = ceil( loops );
-	// work our way back to frequency
-	thisPeriod = globalPeriod / loops;
-	w = PI2 / thisPeriod;
+	// Allow FFT to loop in time
+	if( _Period > 0.0 )
+	{
+		float thisPeriod = PI2 / w;
+		float loops = _Period / thisPeriod;
+		// Make sure loops integral number of times
+		loops = ceil( loops );
+		// Work our way back to frequency
+		thisPeriod = _Period / loops;
+		w = PI2 / thisPeriod;
+	}
 
 	dwdk = _Gravity / (2.0f * w);
 }

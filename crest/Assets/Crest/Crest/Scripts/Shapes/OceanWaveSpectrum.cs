@@ -65,10 +65,6 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
 
-        // TODO: suggest reasonable values for period in the tooltip
-        [Tooltip("Period after which the wave repeats itself. Necessary for baking.")]
-        public float _period = 100000f;
-
         void Reset()
         {
             // Auto-upgrade any new data objects directly to v1. This is in lieu of simply

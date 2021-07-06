@@ -76,9 +76,6 @@ namespace Crest
                 RenderTexture.active = wavePatchData;
                 stagingTexture.ReadPixels(new Rect(0, 0, wavePatchData.width, wavePatchData.height), 0, 0); // is this correct??
 
-                // data[i].r should have height values. store data somehow/somewhere..
-                // var data = stagingTexture.GetPixels();
-
                 frames[timeIndex] = stagingTexture.GetRawTextureData<float>().ToArray();
 
                 //var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);

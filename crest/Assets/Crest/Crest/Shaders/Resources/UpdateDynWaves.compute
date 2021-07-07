@@ -6,11 +6,9 @@
 
 #pragma kernel UpdateDynWaves
 
-#define MIN_DT 0.00001
-
-#include "../OceanConstants.hlsl"
 #include "HLSLSupport.cginc"
 
+#include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"

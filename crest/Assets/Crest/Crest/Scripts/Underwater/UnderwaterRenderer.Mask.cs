@@ -24,11 +24,18 @@ namespace Crest
         RenderTexture _maskTexture;
         RenderTexture _depthTexture;
 
+        Material _oceanMaskObjectsMaterial;
+
         void SetupOceanMask()
         {
             if (_oceanMaskMaterial?.material == null)
             {
                 _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
+            }
+
+            if (_oceanMaskObjectsMaterial == null)
+            {
+                _oceanMaskObjectsMaterial = new Material(Shader.Find("Hidden/Crest/Underwater/Ocean Mask Objects"));
             }
 
             if (_oceanMaskCommandBuffer == null)

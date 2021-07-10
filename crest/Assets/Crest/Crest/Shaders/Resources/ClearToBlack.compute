@@ -1,0 +1,15 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel ClearToBlack
+
+#include "../OceanConstants.hlsl"
+
+RWTexture2DArray<float> _LD_TexArray_Target;
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
+void ClearToBlack(uint3 id : SV_DispatchThreadID)
+{
+	_LD_TexArray_Target[id] = 0.0;
+}

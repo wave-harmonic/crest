@@ -19,6 +19,12 @@ Fixed
 
    -  Fix ocean not rendering on Xbox One and Xbox Series X.
 
+   .. only:: hdrp
+
+      -  Fix ocean disappearing when viewed from an area clipped by a clip surface input. `[HDRP]`
+      -  Fix shadows breaking builds when XR package is present. `[HDRP]`
+      -  Fix shadows not working with XR `SPI`. `[HDRP]`
+
 
 4.12
 ----

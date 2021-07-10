@@ -13,9 +13,11 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: TODO
+Fixed
+^^^^^
+.. bullet_list::
 
-   This section is a work in progress.
+   -  Fix ocean not rendering on Xbox One and Xbox Series X.
 
 
 4.12

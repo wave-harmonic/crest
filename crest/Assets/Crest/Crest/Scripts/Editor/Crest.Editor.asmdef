@@ -1,7 +1,9 @@
 {
     "name": "Crest.Helpers.Editor",
+    "rootNamespace": "",
     "references": [
-        "GUID:5b35af79ebbe89647a157055d52c59d3"
+        "GUID:5b35af79ebbe89647a157055d52c59d3",
+        "GUID:d8b63aba1907145bea998dd612889d6b"
     ],
     "includePlatforms": [
         "Editor"

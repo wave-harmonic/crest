@@ -211,7 +211,7 @@ namespace Crest
             public NativeArray<float3> _queryPoints;
 
             [ReadOnly]
-            public NativeArray<float> _framesFlattened;
+            public NativeArray<half> _framesFlattened;
 
             [ReadOnly]
             public float _t;

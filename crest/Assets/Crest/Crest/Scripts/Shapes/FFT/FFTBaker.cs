@@ -84,7 +84,7 @@ namespace Crest
             SaveFramesToFile(framesFileName, framesFlattened);
             
             var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
-            var framesAsFloats = framesFlattened.Select(x => math.f16tof32(x.value));
+            var framesAsFloats = framesFlattened.Select(x => (float)x.value);
             bakedDataSO.Initialize(
                 loopPeriod,
                 resolutionSpace,

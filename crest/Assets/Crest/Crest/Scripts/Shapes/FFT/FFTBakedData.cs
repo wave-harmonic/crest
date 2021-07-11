@@ -98,41 +98,29 @@ namespace Crest
 
         struct SpatialInterpolationData
         {
-            public float _alphaU;
-            public float _alphaV;
-            public int _U0;
-            public int _V0;
-            public int _U1;
-            public int _V1;
+            public float4 _alphaU;
+            public float4 _alphaV;
+            public int4 _U0;
+            public int4 _V0;
+            public int4 _U1;
+            public int4 _V1;
         }
 
         // 0.462ms - 4096
         // 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void CalculateSamplingData(float x, float z, ref SpatialInterpolationData lerpData, in FFTBakedDataParameters parameters)
+        static void CalculateSamplingData(float4 x, float4 z, ref SpatialInterpolationData lerpData, in FFTBakedDataParameters parameters)
         {
             // 0-1 uv
             var u01 = x / parameters._worldSize;
-            if (u01 >= 0f)
-            {
-                u01 = u01 % 1f;
-            }
-            else
-            {
-                u01 = 1f - (math.abs(u01) % 1f);
-            }
+
+            u01 = math.select(u01 % 1f, 1f - (math.abs(u01) % 1f), u01 >= 0f);
 
             var v01 = z / parameters._worldSize;
-            if (v01 >= 0f)
-            {
-                // Inversion differs compared to u, because cpu texture data stored from top left,
-                // rather than gpu (top right)
-                v01 = 1f - (v01 % 1f);
-            }
-            else
-            {
-                v01 = math.abs(v01) % 1f;
-            }
+
+            // Inversion differs compared to u, because cpu texture data stored from top left,
+            // rather than gpu (top right)
+            v01 = math.select(1f - (v01 % 1f), math.abs(v01) % 1f, v01 >= 0f);
 
             // uv in texels
             var uTexels = u01 * parameters._textureResolution;
@@ -141,26 +129,26 @@ namespace Crest
             // offset for texel center
             uTexels -= 0.5f;
             vTexels -= 0.5f;
-            if (uTexels < 0f) uTexels += parameters._textureResolution;
-            if (vTexels < 0f) vTexels += parameters._textureResolution;
+            uTexels = math.select(uTexels + parameters._textureResolution, uTexels, uTexels < 0f);
+            vTexels = math.select(vTexels + parameters._textureResolution, vTexels, vTexels < 0f);
 
             lerpData._alphaU = uTexels % 1f;
             lerpData._alphaV = vTexels % 1f;
-            lerpData._U0 = (int)uTexels;
-            lerpData._V0 = (int)vTexels;
+            lerpData._U0 = (int4)uTexels;
+            lerpData._V0 = (int4)vTexels;
             lerpData._U1 = (lerpData._U0 + 1) % parameters._textureResolution;
             lerpData._V1 = (lerpData._V0 + 1) % parameters._textureResolution;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        float SampleHeight(ref SpatialInterpolationData lerpData, int frameIndex)
+        float4 SampleHeight(ref SpatialInterpolationData lerpData, int frameIndex)
         {
             // lookup 4 values
             var indexBase = frameIndex * _parameters._textureResolution * _parameters._textureResolution;
-            var h00 = _framesFlattenedNative[indexBase + lerpData._V0 * _parameters._textureResolution + lerpData._U0];
-            var h10 = _framesFlattenedNative[indexBase + lerpData._V0 * _parameters._textureResolution + lerpData._U1];
-            var h01 = _framesFlattenedNative[indexBase + lerpData._V1 * _parameters._textureResolution + lerpData._U0];
-            var h11 = _framesFlattenedNative[indexBase + lerpData._V1 * _parameters._textureResolution + lerpData._U1];
+            var h00 = ElementsAt(_framesFlattenedNative, indexBase + lerpData._V0 * _parameters._textureResolution + lerpData._U0);
+            var h10 = ElementsAt(_framesFlattenedNative, indexBase + lerpData._V0 * _parameters._textureResolution + lerpData._U1);
+            var h01 = ElementsAt(_framesFlattenedNative, indexBase + lerpData._V1 * _parameters._textureResolution + lerpData._U0);
+            var h11 = ElementsAt(_framesFlattenedNative, indexBase + lerpData._V1 * _parameters._textureResolution + lerpData._U1);
 
             // lerp u direction first
             var h_0 = math.lerp(h00, h10, lerpData._alphaU);
@@ -169,9 +157,9 @@ namespace Crest
             // lerp v direction
             return math.lerp(h_0, h_1, lerpData._alphaV);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float SampleHeight(float x, float z, float t)
+        public float4 SampleHeight(float x, float z, float t)
         {
             // Validation sine waves
             //if (x < 0f)
@@ -204,19 +192,13 @@ namespace Crest
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float SampleHeightBurst(float x, float z, float t, FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened)
+        public static float4 SampleHeightBurst(float4 x, float4 z, float4 t, FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened)
         {
             // Temporal lerp
             var t01 = t / parameters._period;
-            if (t01 >= 0f)
-            {
-                t01 = t01 % 1f;
-            }
-            else
-            {
-                t01 = 1f - (math.abs(t01) % 1f);
-            }
-            var f0 = (int)(t01 * parameters._frameCount);
+
+            t01 = math.select(t01 % 1f, 1f - (math.abs(t01) % 1f), t01 >= 0f);
+            var f0 = (int4)(t01 * parameters._frameCount);
             var f1 = (f0 + 1) % parameters._frameCount;
             var alphaT = t01 * parameters._frameCount - f0;
         
@@ -231,14 +213,14 @@ namespace Crest
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static float SampleHeightBurst(ref SpatialInterpolationData lerpData, int frameIndex, int textureResolution, in NativeArray<half> framesFlattened)
+        static float4 SampleHeightBurst(ref SpatialInterpolationData lerpData, int4 frameIndex, int textureResolution, in NativeArray<half> framesFlattened)
         {
             // lookup 4 values
             var indexBase = frameIndex * textureResolution * textureResolution;
-            var h00 = framesFlattened[indexBase + lerpData._V0 * textureResolution + lerpData._U0];
-            var h10 = framesFlattened[indexBase + lerpData._V0 * textureResolution + lerpData._U1];
-            var h01 = framesFlattened[indexBase + lerpData._V1 * textureResolution + lerpData._U0];
-            var h11 = framesFlattened[indexBase + lerpData._V1 * textureResolution + lerpData._U1];
+            var h00 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * textureResolution + lerpData._U0);
+            var h10 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * textureResolution + lerpData._U1);
+            var h01 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * textureResolution + lerpData._U0);
+            var h11 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * textureResolution + lerpData._U1);
 
             // lerp u direction first
             var h_0 = math.lerp(h00, h10, lerpData._alphaU);
@@ -247,5 +229,9 @@ namespace Crest
             // lerp v direction
             return math.lerp(h_0, h_1, lerpData._alphaV);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static half4 ElementsAt(NativeArray<half> array, int4 indices) => 
+            new half4(array[indices[0]], array[indices[1]], array[indices[2]], array[indices[3]]);
     }
 }

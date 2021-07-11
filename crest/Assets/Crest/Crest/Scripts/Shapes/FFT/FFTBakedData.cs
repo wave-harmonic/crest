@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -28,7 +29,7 @@ namespace Crest
     {
         public FFTBakedDataParameters _parameters;
         [NonSerialized] public NativeArray<float> _framesFlattenedNative;
-        [HideInInspector] public string _framesFileName;
+        public string _framesFileName;
         
         [HideInInspector] public float _smallestValue;
         [HideInInspector] public float _largestValue;
@@ -103,6 +104,8 @@ namespace Crest
             public int _V1;
         }
 
+        // 0.462ms - 4096
+        // 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void CalculateSamplingData(float x, float z, ref SpatialInterpolationData lerpData, in FFTBakedDataParameters parameters)
         {
@@ -114,7 +117,7 @@ namespace Crest
             }
             else
             {
-                u01 = 1f - (Mathf.Abs(u01) % 1f);
+                u01 = 1f - (math.abs(u01) % 1f);
             }
 
             var v01 = z / parameters._worldSize;
@@ -126,7 +129,7 @@ namespace Crest
             }
             else
             {
-                v01 = Mathf.Abs(v01) % 1f;
+                v01 = math.abs(v01) % 1f;
             }
 
             // uv in texels
@@ -158,11 +161,11 @@ namespace Crest
             var h11 = _framesFlattenedNative[indexBase + lerpData._V1 * _parameters._textureResolution + lerpData._U1];
 
             // lerp u direction first
-            var h_0 = Mathf.Lerp(h00, h10, lerpData._alphaU);
-            var h_1 = Mathf.Lerp(h01, h11, lerpData._alphaU);
+            var h_0 = math.lerp(h00, h10, lerpData._alphaU);
+            var h_1 = math.lerp(h01, h11, lerpData._alphaU);
 
             // lerp v direction
-            return Mathf.Lerp(h_0, h_1, lerpData._alphaV);
+            return math.lerp(h_0, h_1, lerpData._alphaV);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -182,7 +185,7 @@ namespace Crest
             }
             else
             {
-                t01 = 1f - (Mathf.Abs(t01) % 1f);
+                t01 = 1f - (math.abs(t01) % 1f);
             }
             var f0 = (int)(t01 * _parameters._frameCount);
             var f1 = (f0 + 1) % _parameters._frameCount;
@@ -195,7 +198,7 @@ namespace Crest
             var h0 = SampleHeight(ref lerpData, f0);
             var h1 = SampleHeight(ref lerpData, f1);
 
-            return Mathf.Lerp(h0, h1, alphaT);
+            return math.lerp(h0, h1, alphaT);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -209,7 +212,7 @@ namespace Crest
             }
             else
             {
-                t01 = 1f - (Mathf.Abs(t01) % 1f);
+                t01 = 1f - (math.abs(t01) % 1f);
             }
             var f0 = (int)(t01 * parameters._frameCount);
             var f1 = (f0 + 1) % parameters._frameCount;
@@ -222,7 +225,7 @@ namespace Crest
             var h0 = SampleHeightBurst(ref lerpData, f0, parameters._textureResolution, in framesFlattened);
             var h1 = SampleHeightBurst(ref lerpData, f1, parameters._textureResolution, in framesFlattened);
         
-            return Mathf.Lerp(h0, h1, alphaT);
+            return math.lerp(h0, h1, alphaT);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -236,11 +239,11 @@ namespace Crest
             var h11 = framesFlattened[indexBase + lerpData._V1 * textureResolution + lerpData._U1];
 
             // lerp u direction first
-            var h_0 = Mathf.Lerp(h00, h10, lerpData._alphaU);
-            var h_1 = Mathf.Lerp(h01, h11, lerpData._alphaU);
+            var h_0 = math.lerp(h00, h10, lerpData._alphaU);
+            var h_1 = math.lerp(h01, h11, lerpData._alphaU);
 
             // lerp v direction
-            return Mathf.Lerp(h_0, h_1, lerpData._alphaV);
+            return math.lerp(h_0, h_1, lerpData._alphaV);
         }
     }
 }

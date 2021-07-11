@@ -1,8 +1,11 @@
 {
     "name": "Crest",
+    "rootNamespace": "",
     "references": [
         "Unity.Postprocessing.Runtime",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Mathematics",
+        "Unity.Burst"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

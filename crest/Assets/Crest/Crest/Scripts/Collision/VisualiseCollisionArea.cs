@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Crest
@@ -41,6 +43,8 @@ namespace Crest
                 return;
             }
 
+            var cp = OceanRenderer.Instance.CollisionProvider as CollProviderBakedFFT;
+
             if (_resultHeights == null || _resultHeights.Length != _steps * _steps)
             {
                 _resultHeights = new float[_steps * _steps];
@@ -62,7 +66,13 @@ namespace Crest
                 }
             }
 
-            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, null, null)))
+            //NativeArray<float3> na = new NativeArray<float3>(_samplePositions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            //for (int i = 0; i < _samplePositions.Length; i++)
+            //{
+            //    na[i] = _samplePositions[i];
+            //}
+            //NativeArray<float> results = new NativeArray<float>(_resultHeights.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            if (collProvider.RetrieveSucceeded(cp.QueryBurst(GetHashCode()/*, _objectWidth*/, _samplePositions, _resultHeights)))
             {
                 for (int i = 0; i < _steps; i++)
                 {

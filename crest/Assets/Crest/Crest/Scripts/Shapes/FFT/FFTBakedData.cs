@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -27,11 +28,11 @@ namespace Crest
     public class FFTBakedData : ScriptableObject 
     {
         public FFTBakedDataParameters _parameters;
-        [NonSerialized] public NativeArray<float> _framesFlattenedNative;
+        [NonSerialized] public NativeArray<half> _framesFlattenedNative;
         [HideInInspector] public string _framesFileName;
         
-        [HideInInspector] public float _smallestValue;
-        [HideInInspector] public float _largestValue;
+         public half _smallestValue;
+         public half _largestValue;
 
         public void OnEnable()
         {
@@ -46,7 +47,7 @@ namespace Crest
         {
             if (_framesFlattenedNative.Length > 0) // already loaded
                 return;
-
+            
             var asset = Resources.Load(_framesFileName) as TextAsset; // TextAsset is used for custom binary data
             if (asset == null)
                 Debug.LogError("Failed to load baked frames from Resources");
@@ -55,13 +56,15 @@ namespace Crest
 
             using (BinaryReader reader = new BinaryReader(stream))
             {
-                var fileSize = _parameters._textureResolution * _parameters._textureResolution * _parameters._frameCount * sizeof(float);
+                // half uses ushort for its value under the hood
+                var fileSize = _parameters._textureResolution * _parameters._textureResolution * _parameters._frameCount * sizeof(ushort); 
                 var bytesArray = reader.ReadBytes(fileSize);
-                _framesFlattenedNative = new NativeArray<byte>(bytesArray, Allocator.Persistent).Reinterpret<float>(sizeof(byte));
+                _framesFlattenedNative = new NativeArray<byte>(bytesArray, Allocator.Persistent).Reinterpret<half>(sizeof(byte));
             }
+            Resources.UnloadAsset(asset);
         }
 
-        public void Initialize(float period, int textureResolution, float worldSize, int frameCount, float smallestValue, float largestValue, string framesFileName)
+        public void Initialize(float period, int textureResolution, float worldSize, int frameCount, half smallestValue, half largestValue, string framesFileName)
         {
             _parameters = new FFTBakedDataParameters()
             {
@@ -199,7 +202,7 @@ namespace Crest
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float SampleHeightBurst(float x, float z, float t, FFTBakedDataParameters parameters, in NativeArray<float> framesFlattened)
+        public static float SampleHeightBurst(float x, float z, float t, FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened)
         {
             // Temporal lerp
             var t01 = t / parameters._period;
@@ -226,7 +229,7 @@ namespace Crest
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static float SampleHeightBurst(ref SpatialInterpolationData lerpData, int frameIndex, int textureResolution, in NativeArray<float> framesFlattened)
+        static float SampleHeightBurst(ref SpatialInterpolationData lerpData, int frameIndex, int textureResolution, in NativeArray<half> framesFlattened)
         {
             // lookup 4 values
             var indexBase = frameIndex * textureResolution * textureResolution;

@@ -6,7 +6,7 @@
 
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -39,14 +39,14 @@ namespace Crest
             var wavePatchData = new RenderTexture(desc);
             wavePatchData.Create();
 
-            var stagingTexture = new Texture2D(desc.width, desc.height, TextureFormat.RFloat, false, true);
+            var stagingTexture = new Texture2D(desc.width, desc.height, TextureFormat.RHalf, false, true);
             var buf = new CommandBuffer();
 
             var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");
             var kernel = waveCombineShader.FindKernel("FFTBake");
 
             var frameCount = (int) (resolutionTime * loopPeriod);
-            var frames = new float[frameCount][];
+            var frames = new half[frameCount][];
 
             for (int timeIndex = 0; timeIndex < frameCount; timeIndex++) // this means resolutionTime is actually FPS
             {
@@ -74,7 +74,7 @@ namespace Crest
                 stagingTexture.ReadPixels(new Rect(0, 0, wavePatchData.width, wavePatchData.height), 0,
                     0); // is this correct??
 
-                frames[timeIndex] = stagingTexture.GetRawTextureData<float>().ToArray();
+                frames[timeIndex] = stagingTexture.GetRawTextureData<half>().ToArray();
             }
 
             var framesFlattened = frames.SelectMany(x => x).ToArray();
@@ -84,13 +84,14 @@ namespace Crest
             SaveFramesToFile(framesFileName, framesFlattened);
             
             var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
+            var framesAsFloats = framesFlattened.Select(x => math.f16tof32(x.value));
             bakedDataSO.Initialize(
                 loopPeriod,
                 resolutionSpace,
                 wavePatchSize,
                 frames.Length,
-                framesFlattened.Min(),
-                framesFlattened.Max(),
+                new half(framesAsFloats.Min()),
+                new half(framesAsFloats.Max()),
                 framesFileName);
 
             SaveBakedDataAsset(bakedDataSO, folderName);
@@ -98,7 +99,7 @@ namespace Crest
             return bakedDataSO;
         }
 
-        private static void SaveFramesToFile(string framesFileName, float[] framesFlattened)
+        private static void SaveFramesToFile(string framesFileName, half[] framesFlattened)
         {
             #if UNITY_EDITOR
             if (!AssetDatabase.IsValidFolder("Assets/Resources"))
@@ -111,7 +112,7 @@ namespace Crest
             {
                 foreach (var frame in framesFlattened)
                 {
-                    writer.Write(frame);
+                    writer.Write(frame.value);
                 }
             }
             #endif

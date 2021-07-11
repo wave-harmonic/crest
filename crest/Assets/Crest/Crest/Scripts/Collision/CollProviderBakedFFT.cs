@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Crest
@@ -124,7 +125,7 @@ namespace Crest
             ref NativeArray<Vector3> o_resultNorms,
             ref NativeArray<Vector3> o_resultVels,
             in FFTBakedDataParameters bakedDataParameters,
-            in NativeArray<float> framesFlattened, 
+            in NativeArray<half> framesFlattened, 
             float t, 
             float seaLevel)
         {

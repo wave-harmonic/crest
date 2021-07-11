@@ -114,13 +114,13 @@ namespace Crest
             // 0-1 uv
             var u01 = x / parameters._worldSize;
 
-            u01 = math.select(u01 % 1f, 1f - (math.abs(u01) % 1f), u01 >= 0f);
+            u01 = math.select(1f - (math.abs(u01) % 1f), u01 % 1f, u01 >= 0f);
 
             var v01 = z / parameters._worldSize;
 
             // Inversion differs compared to u, because cpu texture data stored from top left,
             // rather than gpu (top right)
-            v01 = math.select(1f - (v01 % 1f), math.abs(v01) % 1f, v01 >= 0f);
+            v01 = math.select(math.abs(v01) % 1f, 1f - (v01 % 1f), v01 >= 0f);
 
             // uv in texels
             var uTexels = u01 * parameters._textureResolution;
@@ -129,8 +129,8 @@ namespace Crest
             // offset for texel center
             uTexels -= 0.5f;
             vTexels -= 0.5f;
-            uTexels = math.select(uTexels + parameters._textureResolution, uTexels, uTexels < 0f);
-            vTexels = math.select(vTexels + parameters._textureResolution, vTexels, vTexels < 0f);
+            uTexels = math.select(uTexels, uTexels + parameters._textureResolution, uTexels < 0f);
+            vTexels = math.select(vTexels, vTexels + parameters._textureResolution, vTexels < 0f);
 
             lerpData._alphaU = uTexels % 1f;
             lerpData._alphaV = vTexels % 1f;
@@ -197,7 +197,7 @@ namespace Crest
             // Temporal lerp
             var t01 = t / parameters._period;
 
-            t01 = math.select(t01 % 1f, 1f - (math.abs(t01) % 1f), t01 >= 0f);
+            t01 = math.select(1f - (math.abs(t01) % 1f), t01 % 1f, t01 >= 0f);
             var f0 = (int4)(t01 * parameters._frameCount);
             var f1 = (f0 + 1) % parameters._frameCount;
             var alphaT = t01 * parameters._frameCount - f0;

@@ -150,7 +150,7 @@ namespace Crest
 
             if (o_resultHeights.Length > 0)
             {
-                var results = new NativeArray<float>(4 * (o_resultHeights.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var results = new NativeArray<float4>((o_resultHeights.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
                 new MyJob
                 {
@@ -164,7 +164,7 @@ namespace Crest
 
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
-                    o_resultHeights[i] = results[i];
+                    o_resultHeights[i] = results[i / 4][i % 4];
                 }
 
                 results.Dispose();
@@ -223,7 +223,7 @@ namespace Crest
             public float _seaLevel;
 
             [WriteOnly]
-            public NativeArray<float> _output;
+            public NativeArray<float4> _output;
 
             public void Execute(int index)
             {
@@ -233,11 +233,7 @@ namespace Crest
                 var x = new float4(_queryPoints[idx].x, _queryPoints[idx + 1].x, _queryPoints[idx + 2].x, _queryPoints[idx + 3].x);
                 var z = new float4(_queryPoints[idx].z, _queryPoints[idx + 1].z, _queryPoints[idx + 2].z, _queryPoints[idx + 3].z);
 
-                var result = _seaLevel + FFTBakedData.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
-                _output[idx] = result.x;
-                _output[idx + 1] = result.y;
-                _output[idx + 2] = result.z;
-                _output[idx + 3] = result.w;
+                _output[index] = _seaLevel + FFTBakedData.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
             }
         }
 

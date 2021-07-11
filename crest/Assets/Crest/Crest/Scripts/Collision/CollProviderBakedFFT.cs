@@ -142,7 +142,7 @@ namespace Crest
             var seaLevel = OceanRenderer.Instance.SeaLevel;
 
             // could be avoided if query api is changed to use NAs
-            var queryPoints = new NativeArray<float3>(i_queryPoints.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var queryPoints = new NativeArray<float3>(4 * (i_queryPoints.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < i_queryPoints.Length; i++)
             {
                 queryPoints[i] = i_queryPoints[i];
@@ -150,7 +150,7 @@ namespace Crest
 
             if (o_resultHeights.Length > 0)
             {
-                var results = new NativeArray<float>(o_resultHeights.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var results = new NativeArray<float>(4 * (o_resultHeights.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
                 new MyJob
                 {
@@ -160,7 +160,7 @@ namespace Crest
                     _seaLevel = seaLevel,
                     _t = t,
                     _params = _data._parameters,
-                }.Schedule(i_queryPoints.Length, 16).Complete();
+                }.Schedule(i_queryPoints.Length / 4, 16).Complete();
 
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
@@ -227,9 +227,17 @@ namespace Crest
 
             public void Execute(int index)
             {
-                if (index >= _queryPoints.Length) return;
+                var idx = index * 4;
+                if (idx + 3 >= _queryPoints.Length) return;
 
-                _output[index] = _seaLevel + FFTBakedData.SampleHeightBurst(_queryPoints[index].x, _queryPoints[index].z, _t, _params, in _framesFlattened);
+                var x = new float4(_queryPoints[idx].x, _queryPoints[idx + 1].x, _queryPoints[idx + 2].x, _queryPoints[idx + 3].x);
+                var z = new float4(_queryPoints[idx].z, _queryPoints[idx + 1].z, _queryPoints[idx + 2].z, _queryPoints[idx + 3].z);
+
+                var result = _seaLevel + FFTBakedData.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
+                _output[idx] = result.x;
+                _output[idx + 1] = result.y;
+                _output[idx + 2] = result.z;
+                _output[idx + 3] = result.w;
             }
         }
 

@@ -141,8 +141,12 @@ namespace Crest
             var t = OceanRenderer.Instance.CurrentTime;
             var seaLevel = OceanRenderer.Instance.SeaLevel;
 
-            // could be avoided if query api is changed to use NAs
-            var queryPoints = new NativeArray<float3>(4 * (i_queryPoints.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            // Queries processed in groups of 4 for SIMD - 'quads'
+            var numQueryQuads = (o_resultHeights.Length + 3) / 4;
+            var queryCountRoundedUp = 4 * numQueryQuads;
+            var queryPoints = new NativeArray<float3>(queryCountRoundedUp, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+            // Copy input data. Could be avoided if query api is changed to use NAs.
             for (int i = 0; i < i_queryPoints.Length; i++)
             {
                 queryPoints[i] = i_queryPoints[i];
@@ -150,18 +154,24 @@ namespace Crest
 
             if (o_resultHeights.Length > 0)
             {
-                var results = new NativeArray<float4>((o_resultHeights.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                // One thread per quad - per group of 4 queries
+                var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-                new MyJob
+                // Tested 8 and 32 but 16 got the best timing
+                var batchSize = 16;
+
+                // Run height sample job synchronously
+                new JobSampleHeightFromFFTData
                 {
                     _queryPoints = queryPoints,
                     _framesFlattened = _data._framesFlattenedNative,
-                    _output = results,
-                    _seaLevel = seaLevel,
                     _t = t,
                     _params = _data._parameters,
-                }.Schedule(i_queryPoints.Length / 4, 16).Complete();
+                    _seaLevel = seaLevel,
+                    _output = results,
+                }.Schedule(numQueryQuads, batchSize).Complete();
 
+                // Copy results to output. Could be avoided if query api was changed to NAs.
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
                     o_resultHeights[i] = results[i / 4][i % 4];
@@ -169,8 +179,6 @@ namespace Crest
 
                 results.Dispose();
             }
-
-            queryPoints.Dispose();
 
             //if (o_resultNorms.Length > 0)
             //{
@@ -198,14 +206,18 @@ namespace Crest
             //    }
             //}
 
+            queryPoints.Dispose();
+
             return (int)QueryStatus.Success;
         }
 
-        // Using BurstCompile to compile a Job with Burst
+        /// <summary>
+        /// Job to 
+        /// </summary>
         // Set CompileSynchronously to true to make sure that the method will not be compiled asynchronously
         // but on the first schedule
         [BurstCompile(CompileSynchronously = true)]
-        private struct MyJob : IJobParallelFor
+        private struct JobSampleHeightFromFFTData : IJobParallelFor
         {
             [ReadOnly]
             public NativeArray<float3> _queryPoints;
@@ -225,15 +237,16 @@ namespace Crest
             [WriteOnly]
             public NativeArray<float4> _output;
 
-            public void Execute(int index)
+            public void Execute(int quadIndex)
             {
-                var idx = index * 4;
-                if (idx + 3 >= _queryPoints.Length) return;
+                var baseQueryIndex = quadIndex * 4;
+                if (baseQueryIndex + 3 >= _queryPoints.Length) return;
 
-                var x = new float4(_queryPoints[idx].x, _queryPoints[idx + 1].x, _queryPoints[idx + 2].x, _queryPoints[idx + 3].x);
-                var z = new float4(_queryPoints[idx].z, _queryPoints[idx + 1].z, _queryPoints[idx + 2].z, _queryPoints[idx + 3].z);
+                // Read data for 4 queries
+                var x = new float4(_queryPoints[baseQueryIndex].x, _queryPoints[baseQueryIndex + 1].x, _queryPoints[baseQueryIndex + 2].x, _queryPoints[baseQueryIndex + 3].x);
+                var z = new float4(_queryPoints[baseQueryIndex].z, _queryPoints[baseQueryIndex + 1].z, _queryPoints[baseQueryIndex + 2].z, _queryPoints[baseQueryIndex + 3].z);
 
-                _output[index] = _seaLevel + FFTBakedData.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
+                _output[quadIndex] = _seaLevel + FFTBakedData.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
             }
         }
 

@@ -212,14 +212,14 @@ namespace Crest
                 {
                     // ViewportToWorldPoint is bugged in HDRP so we have to set the matrix and not use the eye parameter.
                     camera.projectionMatrix = XRHelpers.LeftEyeProjectionMatrix;
-                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
                 {
                     // ViewportToWorldPoint is bugged in HDRP so we have to set the matrix and not use the eye parameter.
                     camera.projectionMatrix = XRHelpers.RightEyeProjectionMatrix;
-                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
@@ -236,7 +236,7 @@ namespace Crest
                 XRHelpers.SetViewProjectionMatrices(camera, xrPassIndex);
 
                 {
-                    GetHorizonPosNormal(camera, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
@@ -266,7 +266,7 @@ namespace Crest
         /// Compute intersection between the frustum far plane and the ocean plane, and return view space pos and normal
         /// for this horizon line.
         /// </summary>
-        static void GetHorizonPosNormal(Camera camera, float seaLevel, float horizonSafetyMarginMultiplier, float farPlaneMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
+        static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, float horizonSafetyMarginMultiplier, float farPlaneMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
         {
             // Set up back points of frustum
             NativeArray<Vector3> v_screenXY_viewZ = new NativeArray<Vector3>(4, Allocator.Temp);
@@ -285,7 +285,7 @@ namespace Crest
                 {
                     // Eye parameter works for BIRP. With it we could skip setting matrices.
                     // In HDRP it doesn't work for XR MP. And completely breaks horizon in XR SPI.
-                    v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i]);
+                    v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i], eye);
                 }
 
                 NativeArray<Vector2> intersectionsScreen = new NativeArray<Vector2>(2, Allocator.Temp);

@@ -233,7 +233,15 @@ namespace Crest
 
             ForceDistanceCulling(_farClipPlane);
 
-            _camReflections.Render();
+            try
+            {
+                _camReflections.Render();
+            }
+            catch
+            {
+                // This will never happen...
+                Debug.LogError($"We have caught the exception.");
+            }
 
             GL.invertCulling = oldCulling;
 

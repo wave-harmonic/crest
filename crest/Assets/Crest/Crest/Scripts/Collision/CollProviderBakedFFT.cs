@@ -143,13 +143,14 @@ namespace Crest
 
             // Queries processed in groups of 4 for SIMD - 'quads'
             var numQueryQuads = (o_resultHeights.Length + 3) / 4;
-            var queryCountRoundedUp = 4 * numQueryQuads;
-            var queryPoints = new NativeArray<float3>(queryCountRoundedUp, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             // Copy input data. Could be avoided if query api is changed to use NAs.
-            for (int i = 0; i < i_queryPoints.Length; i++)
+            for (int i = 0; i < numQueryQuads; i++)
             {
-                queryPoints[i] = i_queryPoints[i];
+                queryPointsX[i] = new float4(i_queryPoints[i * 4].x, i_queryPoints[i * 4 + 1].x, i_queryPoints[i * 4 + 2].x, i_queryPoints[i * 4 + 3].x);
+                queryPointsZ[i] = new float4(i_queryPoints[i * 4].z, i_queryPoints[i * 4 + 1].z, i_queryPoints[i * 4 + 2].z, i_queryPoints[i * 4 + 3].z);
             }
 
             if (o_resultHeights.Length > 0)
@@ -157,13 +158,14 @@ namespace Crest
                 // One thread per quad - per group of 4 queries
                 var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-                // Tested 8 and 32 but 16 got the best timing
-                var batchSize = 16;
+                // Seems to work fairly well in my tests
+                var batchSize = 12;
 
                 // Run height sample job synchronously
                 new JobSampleHeightFromFFTData
                 {
-                    _queryPoints = queryPoints,
+                    _queryPointsX = queryPointsX,
+                    _queryPointsZ = queryPointsZ,
                     _framesFlattened = _data._framesFlattenedNative,
                     _t = t,
                     _params = _data._parameters,
@@ -206,7 +208,8 @@ namespace Crest
             //    }
             //}
 
-            queryPoints.Dispose();
+            queryPointsX.Dispose();
+            queryPointsZ.Dispose();
 
             return (int)QueryStatus.Success;
         }
@@ -220,7 +223,9 @@ namespace Crest
         private struct JobSampleHeightFromFFTData : IJobParallelFor
         {
             [ReadOnly]
-            public NativeArray<float3> _queryPoints;
+            public NativeArray<float4> _queryPointsX;
+            [ReadOnly]
+            public NativeArray<float4> _queryPointsZ;
 
             [ReadOnly]
             public NativeArray<half> _framesFlattened;
@@ -239,14 +244,9 @@ namespace Crest
 
             public void Execute(int quadIndex)
             {
-                var baseQueryIndex = quadIndex * 4;
-                if (baseQueryIndex + 3 >= _queryPoints.Length) return;
+                if (quadIndex >= _queryPointsX.Length) return;
 
-                // Read data for 4 queries
-                var x = new float4(_queryPoints[baseQueryIndex].x, _queryPoints[baseQueryIndex + 1].x, _queryPoints[baseQueryIndex + 2].x, _queryPoints[baseQueryIndex + 3].x);
-                var z = new float4(_queryPoints[baseQueryIndex].z, _queryPoints[baseQueryIndex + 1].z, _queryPoints[baseQueryIndex + 2].z, _queryPoints[baseQueryIndex + 3].z);
-
-                _output[quadIndex] = _seaLevel + FFTBakedData.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
+                _output[quadIndex] = _seaLevel + FFTBakedData.SampleHeightBurst(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened);
             }
         }
 

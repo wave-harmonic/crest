@@ -267,9 +267,12 @@ To turn on this feature, enable the *Create Clip Surface Data* option on the *Oc
 
 The data contains 0-1 values. Holes are carved into the surface when the values is greater than 0.5.
 
-Overlapping meshes will not work correctly in all cases.
-There will be cases where one mesh will overwrite another resulting in ocean surface appearing where it should not.
-Overlapping boxes aligned on the axes will work well whilst spheres may have issues.
+Overlapping or adjacent meshes will not work correctly in most cases.
+There will be cases where one mesh will overwrite another resulting in the ocean surface appearing where it should not.
+The mesh is rendered from a top-down perspective.
+The back faces add clip surface data and the front faces remove from it which creates the convex hull.
+With an overlapping mesh, the front faces of the sides of one mesh will clear the clipping data creating by the other mesh.
+Overlapping boxes which are not rotated on the X or Z axes will work well whilst spheres will have issues.
 
 Clip areas can be added by adding geometry that covers the desired hole area to the scene and then assigning the *RegisterClipSurfaceInput* script.
 See the *FloatingOpenContainer* object in the *boat.unity* scene for an example usage.

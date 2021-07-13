@@ -25,6 +25,10 @@ Fixed
       -  Fix shadows breaking builds when XR package is present. `[HDRP]`
       -  Fix shadows not working with XR `SPI`. `[HDRP]`
 
+   .. only:: urp
+
+      -  Remove sample shadow scriptable render feature error. `[URP]`
+
 
 4.12
 ----

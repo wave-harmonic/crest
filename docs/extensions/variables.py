@@ -98,10 +98,10 @@ def brace_substitution_node(text):
     is_within_brace = False
     # Use () to keep the delimiters.
     for part in re.split(r"([{}])", text):
-        if text is "{":
+        if part == "{":
             is_within_brace = True
             continue
-        elif text is "}":
+        elif part == "}":
             is_within_brace = False
             continue
         if is_within_brace and part in dictionary:

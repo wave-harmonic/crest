@@ -74,7 +74,7 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
-	const float half_period = 1;
+	const float half_period = 4;
 	const float period = half_period * 2;
 	float sample1_offset = fmod(_CrestTime, period);
 	float sample1_weight = sample1_offset / half_period;

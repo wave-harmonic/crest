@@ -40,7 +40,7 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha, in const Casca
 
 void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAlpha, in const CascadeParams cascadeData, in const PerCascadeInstanceData instanceData, inout float3 io_n)
 {
-	const float half_period = 1;
+	const float half_period = 4;
 	const float period = half_period * 2;
 	float sample1_offset = fmod(_CrestTime, period);
 	float sample1_weight = sample1_offset / half_period;

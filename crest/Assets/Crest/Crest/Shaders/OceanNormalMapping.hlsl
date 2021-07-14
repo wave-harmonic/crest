@@ -7,9 +7,6 @@
 
 #if _APPLYNORMALMAPPING_ON
 
-uniform half _NormalsStrength;
-uniform half _NormalsScale;
-
 half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha, in const CascadeParams cascadeData, in const PerCascadeInstanceData instanceData)
 {
 	const float lodDataGridSize = cascadeData._texelWidth;
@@ -41,7 +38,7 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha, in const Casca
 	return _NormalsStrength * norm;
 }
 
-void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAlpha, in const CascadeParams cascadeData, in const PerCascadeInstanceData instanceData, inout half3 io_n)
+void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAlpha, in const CascadeParams cascadeData, in const PerCascadeInstanceData instanceData, inout float3 io_n)
 {
 	const float half_period = 1;
 	const float period = half_period * 2;
@@ -50,6 +47,8 @@ void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAl
 	if (sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
 	float sample2_offset = fmod(_CrestTime + half_period, period);
 	float sample2_weight = 1.0 - sample1_weight;
+	sample1_offset -= 0.5 * period;
+	sample2_offset -= 0.5 * period;
 
 	// In order to prevent flow from distorting the UVs too much,
 	// we fade between two samples of normal maps so that for each
@@ -58,7 +57,6 @@ void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAl
 	half2 io_n_2 = SampleNormalMaps(worldXZUndisplaced - (flow * sample2_offset), lodAlpha, cascadeData, instanceData);
 	io_n.xz += sample1_weight * io_n_1;
 	io_n.xz += sample2_weight * io_n_2;
-	io_n = normalize(io_n);
 }
 
 #endif // _APPLYNORMALMAPPING_ON

@@ -19,10 +19,21 @@ namespace Crest
     class BuildProcessor : IPreprocessShaders, IProcessSceneWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
+        readonly List<Material> _oceanMaterials = new List<Material>();
+
+        bool IsUnderwaterShader(string shaderName)
+        {
+            // According to the docs it's possible to change RP at runtime, so I guess all relevant
+            // shaders should be built.
+            return shaderName == "Crest/Underwater Curtain"
+                || shaderName == "Hidden/Crest/Underwater/Underwater Effect"
+                || shaderName == "Hidden/Crest/Underwater/Post Process HDRP";
+        }
+
+#if CREST_DEBUG
         int shaderVariantCount = 0;
         int shaderVarientStrippedCount = 0;
-        string UnderwaterShaderName => "Crest/Underwater Curtain";
-        readonly List<Material> _oceanMaterials = new List<Material>();
+#endif
 
         public void OnProcessScene(Scene scene, BuildReport report)
         {
@@ -35,7 +46,7 @@ namespace Crest
             // Resources.FindObjectsOfTypeAll will get all materials that are used for this scene.
             foreach (var material in Resources.FindObjectsOfTypeAll<Material>())
             {
-                if (material.shader.name != "Crest/Ocean")
+                if (material.shader.name != "Crest/Ocean" && material.shader.name != "Crest/Ocean URP" && material.shader.name != "Crest/Framework")
                 {
                     continue;
                 }
@@ -46,12 +57,14 @@ namespace Crest
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
-            if (shader.name.StartsWith("Crest"))
+#if CREST_DEBUG
+            if (shader.name.StartsWith("Crest") || shader.name.StartsWith("Hidden/Crest"))
             {
                 shaderVariantCount += data.Count;
             }
+#endif
 
-            if (shader.name == UnderwaterShaderName)
+            if (IsUnderwaterShader(shader.name))
             {
                 ProcessUnderwaterShader(shader, data);
             }
@@ -68,8 +81,10 @@ namespace Crest
                 return;
             }
 
+#if CREST_DEBUG
             var shaderVariantCount = data.Count;
             var shaderVarientStrippedCount = 0;
+#endif
 
             // Collect all shader keywords.
             var unusedShaderKeywords = new HashSet<ShaderKeyword>();
@@ -96,8 +111,15 @@ namespace Crest
                 // GetKeywordName will work for both global and local keywords.
                 var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
 
-                // Meniscus shader keyword will not be on ocean material.
-                if (shaderKeywordName.Contains("MENISCUS"))
+                // These keywords will not be on ocean material.
+                if (shaderKeywordName.Contains("CREST_MENISCUS") || shaderKeywordName.Contains("_FULL_SCREEN_EFFECT"))
+                {
+                    usedShaderKeywords.Add(shaderKeyword);
+                    continue;
+                }
+
+                // TODO: Strip this once post-processing is more unified.
+                if (shaderKeywordName.Contains("_DEBUG_VIEW_OCEAN_MASK"))
                 {
                     usedShaderKeywords.Add(shaderKeyword);
                     continue;
@@ -124,14 +146,16 @@ namespace Crest
                     if (data[index].shaderKeywordSet.IsEnabled(unusedShaderKeyword))
                     {
                         data.RemoveAt(index--);
+#if CREST_DEBUG
                         shaderVarientStrippedCount++;
+#endif
+                        break;
                     }
                 }
             }
 
-            this.shaderVarientStrippedCount += shaderVarientStrippedCount;
-
 #if CREST_DEBUG
+            this.shaderVarientStrippedCount += shaderVarientStrippedCount;
             Debug.Log($"Crest: {shaderVarientStrippedCount} shader variants stripped of {shaderVariantCount} from {shader.name}.");
 #endif
         }

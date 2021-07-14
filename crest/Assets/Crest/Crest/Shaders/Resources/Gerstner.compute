@@ -1,0 +1,120 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// Computes a set of patches of waves, one for each scale.
+
+#pragma kernel Gerstner
+
+#include "HLSLSupport.cginc"
+
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanHelpersNew.hlsl"
+
+float _TextureRes;
+uint _FirstCascadeIndex;
+
+struct GerstnerCascadeParams
+{
+	int _startIndex;
+	float _cumulativeVariance;
+};
+StructuredBuffer<GerstnerCascadeParams> _GerstnerCascadeParams;
+
+struct GerstnerWaveComponent4
+{
+	float4 _twoPiOverWavelength;
+	float4 _amp;
+	float4 _waveDirX;
+	float4 _waveDirZ;
+	float4 _omega;
+	float4 _phase;
+	float4 _chopAmp;
+	// Waves are generated in pairs, these values are for the second in the pair
+	float4 _amp2;
+	float4 _chopAmp2;
+	float4 _phase2;
+};
+StructuredBuffer<GerstnerWaveComponent4> _GerstnerWaveData;
+
+RWTexture2DArray<half4> _WaveBuffer;
+
+void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4 data, inout float3 result )
+{
+	// direction
+	half4 Dx = data._waveDirX;
+	half4 Dz = data._waveDirZ;
+
+	// wave number
+	half4 k = data._twoPiOverWavelength;
+
+	half4 kx = k * Dx;
+	half4 kz = k * Dz;
+
+	// spatial location
+	float4 x = kx * worldPosXZ.x + kz * worldPosXZ.y;
+
+	// Compute a pair of waves, travelling in opposite directions (see
+	// sign in front of data._omega). This matches how FFT wave gen works
+	// and produces waves that have a time varying amplitude, resulting in
+	// a more dynamic surface appearance.
+	half4 resultx, resulty, resultz;
+	{
+		half4 angle = x + data._phase - data._omega * _CrestTime;
+
+		half4 sinangle, cosangle;
+		sincos( angle, sinangle, cosangle );
+
+		half4 disp = data._chopAmp * sinangle;
+		resultx = disp * Dx;
+		resultz = disp * Dz;
+
+		resulty = data._amp * cosangle;
+	}
+
+	{
+		half4 angle = x + data._phase2 + data._omega * _CrestTime;
+
+		half4 sinangle, cosangle;
+		sincos( angle, sinangle, cosangle );
+
+		half4 disp = data._chopAmp2 * sinangle;
+		resultx += disp * Dx;
+		resultz += disp * Dz;
+
+		resulty += data._amp2 * cosangle;
+	}
+
+	// sum the vector results
+	result.x += dot( resultx, 1.0 );
+	result.y += dot( resulty, 1.0 );
+	result.z += dot( resultz, 1.0 );
+}
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
+void Gerstner(uint3 id : SV_DispatchThreadID)
+{
+	const uint cascadeIndex = id.z + _FirstCascadeIndex;
+	const float worldSize = 0.5f * (1 << cascadeIndex);
+
+	// Each cascade lies on XZ plane and starts from the origin
+	const float texelWidth = worldSize / _TextureRes;
+	const float2 worldPosXZ = (id.xy + 0.5) * texelWidth;
+
+	float3 result = 0.0;
+
+	const int startIndex = _GerstnerCascadeParams[cascadeIndex]._startIndex;
+	const int endIndex = _GerstnerCascadeParams[cascadeIndex + 1]._startIndex;
+	for( int i = startIndex; i < endIndex; i++ )
+	{
+		// Sum up waves from another buffer
+		ComputeGerstner( worldPosXZ, worldSize, _GerstnerWaveData[i], result );
+	}
+
+	// Get variance term up until just before this cascade. Gives a statistical measure of wave content
+	// in lower cascades.
+	float _cumulativeVarianceBeforeThisCascade = cascadeIndex > 0 ? _GerstnerCascadeParams[cascadeIndex - 1]._cumulativeVariance : 0.0;
+
+	_WaveBuffer[uint3(id.xy, cascadeIndex)] = float4(result, _cumulativeVarianceBeforeThisCascade);
+}

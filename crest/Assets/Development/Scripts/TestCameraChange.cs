@@ -4,6 +4,9 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.SceneManagement;
 
 namespace Crest
@@ -37,7 +40,11 @@ namespace Crest
 
         void Update()
         {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current.cKey.wasReleasedThisFrame)
+#else
             if (Input.GetKeyUp(KeyCode.C))
+#endif
             {
                 // Cycle camera
                 Camera previous = _cameras[_cameras.Count - 1];

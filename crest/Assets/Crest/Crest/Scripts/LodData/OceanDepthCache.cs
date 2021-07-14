@@ -88,13 +88,30 @@ namespace Crest
         Camera _camDepthCache;
         Material _copyDepthMaterial;
 
+        OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
+
+        void Awake()
+        {
+            _oceanRendererLifeCycle = new OceanRendererLifeCycleHelper(this);
+        }
+
+        void OnEnable()
+        {
+            _oceanRendererLifeCycle.OnEnable();
+        }
+
+        void OnDisable()
+        {
+            _oceanRendererLifeCycle.OnDisable();
+        }
+
+        void OnDestroy()
+        {
+            _oceanRendererLifeCycle.OnDestroy();
+        }
+
         void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && _runValidationOnStart)

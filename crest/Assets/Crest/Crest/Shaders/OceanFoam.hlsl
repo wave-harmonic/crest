@@ -10,8 +10,8 @@
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
 	half ft = lerp(
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*cascadeData0._texelWidth*_FoamScale)).r,
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*cascadeData1._texelWidth*_FoamScale)).r,
+		tex2D(_FoamTexture, (1.25 * i_worldXZUndisplaced + _CrestTime / 10.0) / (4.0 * cascadeData0._texelWidth * _FoamScale)).r,
+		tex2D(_FoamTexture, (1.25 * i_worldXZUndisplaced + _CrestTime / 10.0) / (4.0 * cascadeData1._texelWidth * _FoamScale)).r,
 		lodVal);
 
 	// black point fade
@@ -71,16 +71,35 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 	o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;
 }
 
-void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol,
+void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half4 o_bubbleCol, out half4 o_whiteFoamCol,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
-	const float half_period = 4;
-	const float period = half_period * 2;
-	float sample1_offset = fmod(_CrestTime, period);
+	const float wt_smallerLod = (1.0 - lodVal) * cascadeData0._weight;
+	const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
+
+	float scale = 0.0;
+
+	if (wt_smallerLod > 0.001)
+	{
+		scale += cascadeData0._scale;
+	}
+
+	if (wt_biggerLod > 0.001)
+	{
+		scale += cascadeData1._scale;
+	}
+
+	const float2 half_period = 4 / flow * scale;
+	const float2 period = half_period * 2;
+	float2 sample1_offset = fmod(_CrestTime, period);
 	float sample1_weight = sample1_offset / half_period;
 	if (sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
-	float sample2_offset = fmod(_CrestTime + half_period, period);
+	float2 sample2_offset = fmod(_CrestTime + half_period, period);
 	float sample2_weight = 1.0 - sample1_weight;
+
+	// For testing
+	sample1_weight = 1;
+	sample2_weight = 1;
 
 	// In order to prevent flow from distorting the UVs too much,
 	// we fade between two samples of normal maps so that for each
@@ -92,8 +111,8 @@ void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, f
 
 	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol1, o_whiteFoamCol1, cascadeData0, cascadeData1);
 	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol2, o_whiteFoamCol2, cascadeData0, cascadeData1);
-	o_bubbleCol = (sample1_weight * o_bubbleCol1) + (sample2_weight * o_bubbleCol2);
-	o_whiteFoamCol = (sample1_weight * o_whiteFoamCol1) + (sample2_weight * o_whiteFoamCol2);
+	o_bubbleCol = (sample2_weight * o_whiteFoamCol2);
+	o_whiteFoamCol = (sample1_weight * o_whiteFoamCol1);
 }
 
 #endif // _FOAM_ON

@@ -538,13 +538,14 @@ Shader "Crest/Ocean"
 				if (underwater) n_pixel = -n_pixel;
 
 				// Foam - underwater bubbles and whitefoam
-				half3 bubbleCol = (half3)0.;
+				half4 bubbleCol = 0.0;
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
 				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#else
 				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				return half4(whiteFoamCol.r * whiteFoamCol.a, bubbleCol.r * bubbleCol.a, 0.0, 1.0);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 

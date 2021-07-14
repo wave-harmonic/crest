@@ -239,6 +239,7 @@ rst_prolog = rst_prolog + """
 .. set:: MP :abbr:`MP (Multi-Pass)`
 .. set:: FFT :abbr:`FFT (Fast Fourier Transform)`
 .. set:: GC :abbr:`GC (Garbage Collector)`
+.. set:: SSR :abbr:`SSR (Screen-Space Reflections)`
 
 .. set:: DWP2 :abbr:`DWP2 (Dynamic Water Physics 2)`
 

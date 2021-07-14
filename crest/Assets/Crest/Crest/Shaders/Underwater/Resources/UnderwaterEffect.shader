@@ -109,7 +109,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				if (isUnderwater)
 				{
 					const half3 view = normalize(input.viewWS);
-					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._13_23_33, -view);
+					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
 					const float3 lightDir = _WorldSpaceLightPos0.xyz;
 					const half3 lightCol = _LightColor0;
 					sceneColour = ApplyUnderwaterEffect(scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);

@@ -227,8 +227,8 @@ namespace Crest
                 camera.projectionMatrix = projectionMatrix;
 
                 // NOTE: Not needed for HDRP.
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, XRHelpers.LeftEyeInverseViewProjectionMatrix);
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, XRHelpers.RightEyeInverseViewProjectionMatrix);
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
             }
             else
             {
@@ -241,7 +241,7 @@ namespace Crest
                 }
 
                 // NOTE: Not needed for HDRP.
-                var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+                var inverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(camera.projectionMatrix, false) * camera.worldToCameraMatrix).inverse;
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
             }
 
@@ -285,7 +285,7 @@ namespace Crest
                 {
                     // Eye parameter works for BIRP. With it we could skip setting matrices.
                     // In HDRP it doesn't work for XR MP. And completely breaks horizon in XR SPI.
-                    v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i], eye);
+                    v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i]);
                 }
 
                 NativeArray<Vector2> intersectionsScreen = new NativeArray<Vector2>(2, Allocator.Temp);

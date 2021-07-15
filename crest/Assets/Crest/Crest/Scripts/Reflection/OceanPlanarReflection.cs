@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -125,7 +126,7 @@ namespace Crest
         const int CULL_DISTANCE_COUNT = 32;
         float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
-        OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
+        internal OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
 
         private void Awake()
         {
@@ -414,4 +415,25 @@ namespace Crest
             _oceanRendererLifeCycle.OnDestroy();
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(OceanPlanarReflection)), CanEditMultipleObjects]
+    public class OceanPlanarReflectionEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            var target = this.target as OceanPlanarReflection;
+
+            if (OceanRenderer.Instance == null && target._oceanRendererLifeCycle._enabledValueSetByTheUser)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The component is disabled as there is no active OceanRenderer in " +
+                    "the scene. It will be enabled once there is one.", MessageType.Info);
+                EditorGUILayout.Space();
+            }
+
+            base.OnInspectorGUI();
+        }
+    }
+#endif
 }

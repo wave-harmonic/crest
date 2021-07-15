@@ -90,6 +90,8 @@ namespace Crest
 
         OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
 
+        bool _isInitialized = false;
+
         void Awake()
         {
             _oceanRendererLifeCycle = new OceanRendererLifeCycleHelper(this);
@@ -128,11 +130,18 @@ namespace Crest
             {
                 PopulateCache();
             }
+
+            _isInitialized = true;
         }
 
 #if UNITY_EDITOR
         void Update()
         {
+            if (!_isInitialized)
+            {
+                Start();
+            }
+
             // We need to switch the quad texture if the user changes the cache type in the editor.
             InitCacheQuad();
 

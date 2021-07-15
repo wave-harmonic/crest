@@ -7,8 +7,8 @@ namespace Crest
     using UnityEngine;
 
     /// <summary>
-    /// Enables/disables a component based on the OceanRenderer's life cycle. It will allow a component to initialise
-    /// after the OceanRenderer has initialised (i.e. delayed initialisation).
+    /// Enables/disables a component based on the OceanRenderer's life cycle. It will allow a component that depend on
+    /// the OceanRenderer to initialise after the OceanRenderer has initialised (i.e. delayed initialisation).
     ///
     /// It stores the "enabled" state set by the user as it enables or disables the component if the OceanRenderer is
     /// enabled or disabled respectively using event subscription broadcasted from the OceanRenderer.

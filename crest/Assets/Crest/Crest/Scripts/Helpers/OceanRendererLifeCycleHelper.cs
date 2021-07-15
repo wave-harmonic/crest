@@ -71,6 +71,8 @@ namespace Crest
             }
 #endif
 
+            // This will be "false" when we know when the user has not changed the state which is something we can
+            // more easily determine like when we change the state ourselves.
             if (_isStateChangeFromUser)
             {
                 // Flip value as it could be either the user enabling or disabling the component. For the case where the

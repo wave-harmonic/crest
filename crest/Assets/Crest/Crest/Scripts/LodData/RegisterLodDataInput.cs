@@ -400,7 +400,7 @@ namespace Crest
         protected virtual string MaterialFeatureDisabledError => null;
         protected virtual string MaterialFeatureDisabledFix => null;
 
-        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = ValidatedHelper.ValidateInputMesh(RendererRequired, gameObject, showMessage);
 

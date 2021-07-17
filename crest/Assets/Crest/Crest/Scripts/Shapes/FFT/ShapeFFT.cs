@@ -161,7 +161,7 @@ namespace Crest
             }
         }
 
-        const int CASCADE_COUNT = 16;
+        public const int CASCADE_COUNT = 16;
 
         FFTBatch[] _batches = null;
 

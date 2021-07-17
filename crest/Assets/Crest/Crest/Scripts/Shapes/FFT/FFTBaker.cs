@@ -97,6 +97,48 @@ namespace Crest
             return bakedDataSO;
         }
 
+        public static FFTBakedData BakeMultiRes(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize,
+            float loopPeriod)
+        {
+            // Need min scale, maybe max too - unlikely to need 16 orders of magnitude
+
+            // Need to decide how many time samples to take. As first step can just divide
+            // loopPeriod evenly like before. Probably always taking eg 16 samples per period
+            // works well. So we can take 16 slices, and in the future we know that the period
+            // of a bunch of the lods was much smaller, so we could take much denser samples.
+
+            var buf = new CommandBuffer();
+
+            var firstSlice = 3;
+            var sliceCount = 4;
+            var stagingTexture = new Texture2D(fftWaves._resolution, fftWaves._resolution * sliceCount, TextureFormat.RHalf, false, true);
+
+            var frameCount = (int)(resolutionTime * loopPeriod);
+            var frames = new half[frameCount][];
+
+            for (int timeIndex = 0; timeIndex < frameCount; timeIndex++) // this means resolutionTime is actually FPS
+            {
+                float t = timeIndex / (float)resolutionTime;
+
+                buf.Clear();
+
+                // Generate multi-res FFT into a texture array
+                var fftWaveDataTA = FFTCompute.GenerateDisplacements(buf, fftWaves._resolution, loopPeriod,
+                    fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeedForFFT, t,
+                    fftWaves._spectrum, true);
+
+                // Readback data to CPU
+                RenderTexture.active = fftWaveDataTA;
+                stagingTexture.ReadPixels(new Rect(0, firstSlice * fftWaves._resolution, stagingTexture.width, sliceCount * fftWaves._resolution), 0, 0);
+
+                frames[timeIndex] = stagingTexture.GetRawTextureData<half>().ToArray();
+            }
+
+            // TODO - write frames to SO. the textures are no longer square. maybe best to create a new SO.
+
+            return null;
+        }
+
         private static void SaveFramesToFile(string framesFileName, half[] framesFlattened)
         {
             #if UNITY_EDITOR

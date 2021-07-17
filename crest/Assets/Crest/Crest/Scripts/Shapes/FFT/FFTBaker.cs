@@ -68,8 +68,6 @@ namespace Crest
                 Graphics.ExecuteCommandBuffer(buf);
 
                 // Readback data to CPU
-                // what was the trick to doing this again? copy the render texture to a normal texture then read it back? urgh
-                //var data = wavePatchData.GetPixels();
                 RenderTexture.active = wavePatchData;
                 stagingTexture.ReadPixels(new Rect(0, 0, wavePatchData.width, wavePatchData.height), 0,
                     0); // is this correct??

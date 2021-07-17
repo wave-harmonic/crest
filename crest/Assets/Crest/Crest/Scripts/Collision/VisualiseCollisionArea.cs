@@ -43,8 +43,6 @@ namespace Crest
                 return;
             }
 
-            var cp = OceanRenderer.Instance.CollisionProvider as CollProviderBakedFFT;
-
             if (_resultHeights == null || _resultHeights.Length != _steps * _steps)
             {
                 _resultHeights = new float[_steps * _steps];
@@ -66,7 +64,7 @@ namespace Crest
                 }
             }
 
-            if (collProvider.RetrieveSucceeded(cp.QueryBurst(GetHashCode()/*, _objectWidth*/, _samplePositions, _resultHeights, null, null)))
+            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, null, null)))
             {
                 for (int i = 0; i < _steps; i++)
                 {

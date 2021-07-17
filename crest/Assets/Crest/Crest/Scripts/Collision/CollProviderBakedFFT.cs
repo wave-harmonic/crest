@@ -124,7 +124,8 @@ namespace Crest
         public int QueryBurst(
             int i_ownerHash,
             Vector3[] i_queryPoints,
-            float[] o_resultHeights
+            float[] o_resultHeights,
+            Vector3[] o_resultNorms
             //ref NativeArray<float3> i_queryPoints,
             //ref NativeArray<float> o_resultHeights
             //ref NativeArray<float3> o_resultNorms,
@@ -162,7 +163,7 @@ namespace Crest
                 var batchSize = 12;
 
                 // Run height sample job synchronously
-                new JobSampleHeightFromFFTData
+                new JobSampleHeight
                 {
                     _queryPointsX = queryPointsX,
                     _queryPointsZ = queryPointsZ,
@@ -182,6 +183,27 @@ namespace Crest
                 results.Dispose();
             }
 
+            if (o_resultNorms != null)
+            {
+                var results = new NativeArray<float3>(4 * (o_resultNorms.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+                new JobComputeNormal
+                {
+                    _queryPointsX = queryPointsX,
+                    _queryPointsZ = queryPointsZ,
+                    _framesFlattened = _data._framesFlattenedNative,
+                    _output = results,
+                    _t = t,
+                    _params = _data._parameters,
+                }.Schedule(i_queryPoints.Length / 4, 16).Complete();
+
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    o_resultNorms[i] = results[i];
+                }
+
+                results.Dispose();
+            }
             //if (o_resultNorms.Length > 0)
             //{
             //    for (int i = 0; i < o_resultNorms.Length; i++)
@@ -215,12 +237,10 @@ namespace Crest
         }
 
         /// <summary>
-        /// Job to 
+        /// Job to compute height queries
         /// </summary>
-        // Set CompileSynchronously to true to make sure that the method will not be compiled asynchronously
-        // but on the first schedule
         [BurstCompile(CompileSynchronously = true)]
-        private struct JobSampleHeightFromFFTData : IJobParallelFor
+        private struct JobSampleHeight : IJobParallelFor
         {
             [ReadOnly]
             public NativeArray<float4> _queryPointsX;
@@ -247,6 +267,47 @@ namespace Crest
                 if (quadIndex >= _queryPointsX.Length) return;
 
                 _output[quadIndex] = _seaLevel + FFTBakedData.SampleHeightBurst(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened);
+            }
+        }
+
+        /// <summary>
+        /// Job to compute surface normal queries
+        /// </summary>
+        [BurstCompile(CompileSynchronously = true)]
+        private struct JobComputeNormal : IJobParallelFor
+        {
+            [ReadOnly]
+            public NativeArray<float4> _queryPointsX;
+            [ReadOnly]
+            public NativeArray<float4> _queryPointsZ;
+
+            [ReadOnly]
+            public NativeArray<half> _framesFlattened;
+
+            [ReadOnly]
+            public float _t;
+
+            [ReadOnly]
+            public FFTBakedDataParameters _params;
+
+            [WriteOnly]
+            public NativeArray<float3> _output;
+
+            public void Execute(int quadIndex)
+            {
+                if (quadIndex >= _queryPointsX.Length) return;
+
+                var x = _queryPointsX[quadIndex];
+                var z = _queryPointsZ[quadIndex];
+
+                var height = FFTBakedData.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
+                var height_dx = height - FFTBakedData.SampleHeightBurst(x + s_finiteDiffDx, z, _t, _params, in _framesFlattened);
+                var height_dz = height - FFTBakedData.SampleHeightBurst(x, z + s_finiteDiffDx, _t, _params, in _framesFlattened);
+                
+                _output[math.mad(quadIndex, 4, 0)] = math.normalize(new float3(height_dx.x, s_finiteDiffDx, height_dz.x));
+                _output[math.mad(quadIndex, 4, 1)] = math.normalize(new float3(height_dx.y, s_finiteDiffDx, height_dz.y));
+                _output[math.mad(quadIndex, 4, 2)] = math.normalize(new float3(height_dx.z, s_finiteDiffDx, height_dz.z));
+                _output[math.mad(quadIndex, 4, 3)] = math.normalize(new float3(height_dx.w, s_finiteDiffDx, height_dz.w));
             }
         }
 

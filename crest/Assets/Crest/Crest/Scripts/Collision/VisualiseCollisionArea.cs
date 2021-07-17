@@ -66,13 +66,7 @@ namespace Crest
                 }
             }
 
-            //NativeArray<float3> na = new NativeArray<float3>(_samplePositions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            //for (int i = 0; i < _samplePositions.Length; i++)
-            //{
-            //    na[i] = _samplePositions[i];
-            //}
-            //NativeArray<float> results = new NativeArray<float>(_resultHeights.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            if (collProvider.RetrieveSucceeded(cp.QueryBurst(GetHashCode()/*, _objectWidth*/, _samplePositions, _resultHeights)))
+            if (collProvider.RetrieveSucceeded(cp.QueryBurst(GetHashCode()/*, _objectWidth*/, _samplePositions, _resultHeights, null)))
             {
                 for (int i = 0; i < _steps; i++)
                 {

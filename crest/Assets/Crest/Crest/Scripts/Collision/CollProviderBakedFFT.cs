@@ -25,6 +25,7 @@ namespace Crest
 
         const float s_finiteDiffDx = 0.1f;
         const float s_finiteDiffDt = 0.06f;
+        const int s_jobBatchSize = 12;
 
         public CollProviderBakedFFT(FFTBakedData data)
         {
@@ -125,15 +126,8 @@ namespace Crest
             int i_ownerHash,
             Vector3[] i_queryPoints,
             float[] o_resultHeights,
-            Vector3[] o_resultNorms
-            //ref NativeArray<float3> i_queryPoints,
-            //ref NativeArray<float> o_resultHeights
-            //ref NativeArray<float3> o_resultNorms,
-            //ref NativeArray<float3> o_resultVels
-            //in FFTBakedDataParameters bakedDataParameters,
-            //in NativeArray<float> framesFlattened, 
-            //float t,
-            //float seaLevel
+            Vector3[] o_resultNorms,
+            Vector3[] o_resultVels
             )
         {
             if (_data == null || _data._framesFlattenedNative.Length == 0) 
@@ -154,15 +148,12 @@ namespace Crest
                 queryPointsZ[i] = new float4(i_queryPoints[i * 4].z, i_queryPoints[i * 4 + 1].z, i_queryPoints[i * 4 + 2].z, i_queryPoints[i * 4 + 3].z);
             }
 
-            if (o_resultHeights.Length > 0)
+            if (o_resultHeights != null)
             {
                 // One thread per quad - per group of 4 queries
                 var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-                // Seems to work fairly well in my tests
-                var batchSize = 12;
-
-                // Run height sample job synchronously
+                // Run job synchronously
                 new JobSampleHeight
                 {
                     _queryPointsX = queryPointsX,
@@ -172,7 +163,7 @@ namespace Crest
                     _params = _data._parameters,
                     _seaLevel = seaLevel,
                     _output = results,
-                }.Schedule(numQueryQuads, batchSize).Complete();
+                }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
 
                 // Copy results to output. Could be avoided if query api was changed to NAs.
                 for (int i = 0; i < o_resultHeights.Length; i++)
@@ -185,8 +176,10 @@ namespace Crest
 
             if (o_resultNorms != null)
             {
+                // One thread per quad - per group of 4 queries
                 var results = new NativeArray<float3>(4 * (o_resultNorms.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
+                // Run job synchronously
                 new JobComputeNormal
                 {
                     _queryPointsX = queryPointsX,
@@ -195,8 +188,9 @@ namespace Crest
                     _output = results,
                     _t = t,
                     _params = _data._parameters,
-                }.Schedule(i_queryPoints.Length / 4, 16).Complete();
+                }.Schedule(i_queryPoints.Length / 4, s_jobBatchSize).Complete();
 
+                // Copy results to output. Could be avoided if query api was changed to NAs.
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
                     o_resultNorms[i] = results[i];
@@ -204,32 +198,35 @@ namespace Crest
 
                 results.Dispose();
             }
-            //if (o_resultNorms.Length > 0)
-            //{
-            //    for (int i = 0; i < o_resultNorms.Length; i++)
-            //    {
-            //        float h = FFTBakedData.SampleHeightBurst(i_queryPoints[i].x, i_queryPoints[i].z, t, bakedDataParameters, framesFlattened);
-            //        float h_x = FFTBakedData.SampleHeightBurst(i_queryPoints[i].x + s_finiteDiffDx, i_queryPoints[i].z, t, bakedDataParameters, in framesFlattened);
-            //        float h_z = FFTBakedData.SampleHeightBurst(i_queryPoints[i].x, i_queryPoints[i].z + s_finiteDiffDx, t, bakedDataParameters, in framesFlattened);
 
-            //        var normal = new Vector3(h - h_x, s_finiteDiffDx, h - h_z);
-            //        normal.Normalize();
-            //        o_resultNorms[i] = normal;
-            //    }
-            //}
+            if (o_resultVels != null)
+            {
+                // One thread per quad - per group of 4 queries
+                var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-            //if (o_resultVels.Length > 0)
-            //{
-            //    for (int i = 0; i < o_resultVels.Length; i++)
-            //    {
-            //        // 3D velocities not available (if we only bake height)
-            //        o_resultVels[i] = new Vector3(0f, 
-            //            (FFTBakedData.SampleHeightBurst(i_queryPoints[i].x, i_queryPoints[i].z, t, bakedDataParameters, in framesFlattened)
-            //             - FFTBakedData.SampleHeightBurst(i_queryPoints[i].x, i_queryPoints[i].z, t - s_finiteDiffDt, bakedDataParameters, in framesFlattened)) / s_finiteDiffDt,
-            //            0f);
-            //    }
-            //}
+                // Run job synchronously
+                new JobComputeVerticalVelocity
+                {
+                    _queryPointsX = queryPointsX,
+                    _queryPointsZ = queryPointsZ,
+                    _framesFlattened = _data._framesFlattenedNative,
+                    _t = t,
+                    _params = _data._parameters,
+                    _output = results,
+                }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
 
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                for (int i = 0; i < o_resultHeights.Length; i++)
+                {
+                    o_resultVels[i].y = results[i / 4][i % 4];
+
+                    o_resultVels[i].x = o_resultVels[i].z = 0f;
+                }
+
+                results.Dispose();
+            }
+
+            // Clean up query points
             queryPointsX.Dispose();
             queryPointsZ.Dispose();
 
@@ -308,6 +305,40 @@ namespace Crest
                 _output[math.mad(quadIndex, 4, 1)] = math.normalize(new float3(height_dx.y, s_finiteDiffDx, height_dz.y));
                 _output[math.mad(quadIndex, 4, 2)] = math.normalize(new float3(height_dx.z, s_finiteDiffDx, height_dz.z));
                 _output[math.mad(quadIndex, 4, 3)] = math.normalize(new float3(height_dx.w, s_finiteDiffDx, height_dz.w));
+            }
+        }
+
+        /// <summary>
+        /// Job to compute surface velocity, vertical only as we have height maps
+        /// </summary>
+        [BurstCompile(CompileSynchronously = true)]
+        private struct JobComputeVerticalVelocity : IJobParallelFor
+        {
+            [ReadOnly]
+            public NativeArray<float4> _queryPointsX;
+            [ReadOnly]
+            public NativeArray<float4> _queryPointsZ;
+
+            [ReadOnly]
+            public NativeArray<half> _framesFlattened;
+
+            [ReadOnly]
+            public float _t;
+
+            [ReadOnly]
+            public FFTBakedDataParameters _params;
+
+            [WriteOnly]
+            public NativeArray<float4> _output;
+
+            public void Execute(int quadIndex)
+            {
+                if (quadIndex >= _queryPointsX.Length) return;
+
+                _output[quadIndex] =
+                    (FFTBakedData.SampleHeightBurst(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened)
+                    - FFTBakedData.SampleHeightBurst(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t - s_finiteDiffDt, _params, in _framesFlattened))
+                    / s_finiteDiffDt;
             }
         }
 

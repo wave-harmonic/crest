@@ -66,7 +66,7 @@ namespace Crest
                 }
             }
 
-            if (collProvider.RetrieveSucceeded(cp.QueryBurst(GetHashCode()/*, _objectWidth*/, _samplePositions, _resultHeights, null)))
+            if (collProvider.RetrieveSucceeded(cp.QueryBurst(GetHashCode()/*, _objectWidth*/, _samplePositions, _resultHeights, null, null)))
             {
                 for (int i = 0; i < _steps; i++)
                 {

@@ -67,21 +67,8 @@ namespace Crest
         public static void RegisterUpdatable(IShapeUpdatable updatable) => _updatables.Add(updatable);
         public static void DeregisterUpdatable(IShapeUpdatable updatable) => _updatables.RemoveAll(candidate => candidate == updatable);
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsAnimatedWaves != null) return _ocean._simSettingsAnimatedWaves;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsAnimatedWaves : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
         {

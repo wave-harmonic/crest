@@ -59,6 +59,25 @@ namespace Crest
 
         protected OceanRenderer _ocean;
 
+        // Implement in any sub-class which supports having an asset file for settings. This is used for polymorphic
+        // operations. A sub-class will also implement an alternative for the specialised type called Settings.
+        public virtual SimSettingsBase SettingsBase => null;
+        SimSettingsBase _defaultSettings;
+
+        /// <summary>
+        /// Returns the default value of the settings asset for the provided type.
+        /// </summary>
+        protected SettingsType GetDefaultSettings<SettingsType>() where SettingsType : SimSettingsBase
+        {
+            if (_defaultSettings == null)
+            {
+                _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                _defaultSettings.name = SimName + " Auto-generated Settings";
+            }
+
+            return (SettingsType)_defaultSettings;
+        }
+
         public LodDataMgr(OceanRenderer ocean)
         {
             _ocean = ocean;

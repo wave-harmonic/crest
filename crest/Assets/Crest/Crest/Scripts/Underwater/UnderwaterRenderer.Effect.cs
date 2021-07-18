@@ -207,24 +207,24 @@ namespace Crest
             if (XRHelpers.IsSinglePass)
             {
                 // Store projection matrix to restore later.
-                var projectionMatrix = camera.projectionMatrix;
+                // var projectionMatrix = camera.projectionMatrix;
 
                 {
                     // ViewportToWorldPoint is bugged in HDRP so we have to set the matrix and not use the eye parameter.
-                    camera.projectionMatrix = XRHelpers.LeftEyeProjectionMatrix;
+                    // camera.projectionMatrix = XRHelpers.LeftEyeProjectionMatrix;
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
                 {
                     // ViewportToWorldPoint is bugged in HDRP so we have to set the matrix and not use the eye parameter.
-                    camera.projectionMatrix = XRHelpers.RightEyeProjectionMatrix;
+                    // camera.projectionMatrix = XRHelpers.RightEyeProjectionMatrix;
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
                 // Restore projection matrix.
-                camera.projectionMatrix = projectionMatrix;
+                // camera.projectionMatrix = projectionMatrix;
 
                 // NOTE: Not needed for HDRP.
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
@@ -233,10 +233,10 @@ namespace Crest
             else
             {
                 // NOTE: Needed for HDRP.
-                XRHelpers.SetViewProjectionMatrices(camera, xrPassIndex);
+                // XRHelpers.SetViewProjectionMatrices(camera, xrPassIndex);
 
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, xrPassIndex == -1 ? Camera.MonoOrStereoscopicEye.Mono : (Camera.MonoOrStereoscopicEye)xrPassIndex, seaLevel, horizonSafetyMarginMultiplier, farPlaneMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
@@ -285,7 +285,7 @@ namespace Crest
                 {
                     // Eye parameter works for BIRP. With it we could skip setting matrices.
                     // In HDRP it doesn't work for XR MP. And completely breaks horizon in XR SPI.
-                    v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i]);
+                    v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i], eye);
                 }
 
                 NativeArray<Vector2> intersectionsScreen = new NativeArray<Vector2>(2, Allocator.Temp);

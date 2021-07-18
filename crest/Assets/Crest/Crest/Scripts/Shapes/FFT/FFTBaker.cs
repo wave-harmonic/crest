@@ -112,7 +112,7 @@ namespace Crest
             var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");
             var kernel = waveCombineShader.FindKernel("FFTBakeMultiRes");
 
-            var bakedWaves = new RenderTexture(fftWaves._resolution, fftWaves._resolution * lodCount, 1, RenderTextureFormat.RHalf);
+            var bakedWaves = new RenderTexture(fftWaves._resolution, fftWaves._resolution * lodCount, 1, RenderTextureFormat.RFloat, 0);
             bakedWaves.enableRandomWrite = true;
             bakedWaves.Create();
 

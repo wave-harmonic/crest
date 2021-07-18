@@ -167,14 +167,6 @@ void ComputeFFT(uint3 id : SV_DispatchThreadID)
 #else
 	const float sign = ((id.x + id.y) % 2) == 1 ? -1.0 : 1.0;
 	const float3 res = float3(sign * resultX.x, sign * resultH.x, sign * resultZ.x);
-	float3 result = float3(sign * resultX.x, sign * resultH.x, sign * resultZ.x);
-	// output different value to each slice. looks fine on debug display wave buffers,
-	// looks like trash in baked data.
-	result = -0.0625 + id.z / 64.0;
-	//if( id.z == 0 ) result = -1.0;
-	//if( id.z == 1 ) result =  0.0;
-	//if( id.z == 2 ) result =  1.0;
-	//if( id.z == 3 ) result = sin( id.x );
-	_Output[id] = result;
+	_Output[id] = float3(sign * resultX.x, sign * resultH.x, sign * resultZ.x);
 #endif
 }

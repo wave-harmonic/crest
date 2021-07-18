@@ -40,13 +40,18 @@ namespace Crest
 
         public const float DEPTH_OUTSCATTER_CONSTANT = 0.25f;
 
+        OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
         bool _isInitialised = false;
+
+        void Awake()
+        {
+            _oceanRendererLifeCycle = new OceanRendererLifeCycleHelper(this);
+        }
 
         void OnEnable()
         {
-            if (OceanRenderer.Instance == null)
+            if (!_oceanRendererLifeCycle.OnEnable())
             {
-                enabled = false;
                 return;
             }
 
@@ -76,6 +81,8 @@ namespace Crest
 
         void OnDisable()
         {
+            _oceanRendererLifeCycle.OnDisable();
+
             if (!_isInitialised)
             {
                 return;
@@ -91,6 +98,11 @@ namespace Crest
             RenderSettings.fogDensity = _fogDensity;
 
             _isInitialised = false;
+        }
+
+        void OnDestroy()
+        {
+            _oceanRendererLifeCycle.OnDestroy();
         }
 
         void LateUpdate()

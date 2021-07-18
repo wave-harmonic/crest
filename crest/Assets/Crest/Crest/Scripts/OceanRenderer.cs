@@ -338,6 +338,8 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
+        public static System.Action OnOceanRendererEnabled;
+        public static System.Action OnOceanRendererDisabled;
 
         // A hash of the settings used to generate the ocean, used to regenerate when necessary
         int _generatedSettingsHash = 0;
@@ -528,6 +530,8 @@ namespace Crest
             }
 
             _canSkipCulling = false;
+
+            OnOceanRendererEnabled?.Invoke();
         }
 
         private void OnDisable()
@@ -547,6 +551,8 @@ namespace Crest
                 return;
             }
 #endif
+
+            OnOceanRendererDisabled?.Invoke();
 
             CleanUp();
 

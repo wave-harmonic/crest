@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -125,11 +126,17 @@ namespace Crest
         const int CULL_DISTANCE_COUNT = 32;
         float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
-        private void Start()
+        internal OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
+
+        private void Awake()
         {
-            if (OceanRenderer.Instance == null)
+            _oceanRendererLifeCycle = new OceanRendererLifeCycleHelper(this);
+        }
+
+        private void OnEnable()
+        {
+            if (!_oceanRendererLifeCycle.OnEnable())
             {
-                enabled = false;
                 return;
             }
 
@@ -383,6 +390,8 @@ namespace Crest
 
         private void OnDisable()
         {
+            _oceanRendererLifeCycle.OnDisable();
+
             if (_camViewpoint != null)
             {
                 PreparedReflections.Remove(_camViewpoint.GetHashCode());
@@ -400,5 +409,31 @@ namespace Crest
                 _camReflections = null;
             }
         }
+
+        private void OnDestroy()
+        {
+            _oceanRendererLifeCycle.OnDestroy();
+        }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(OceanPlanarReflection)), CanEditMultipleObjects]
+    public class OceanPlanarReflectionEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            var target = this.target as OceanPlanarReflection;
+
+            if (OceanRenderer.Instance == null && target._oceanRendererLifeCycle._enabledValueSetByTheUser)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The component is disabled as there is no active OceanRenderer in " +
+                    "the scene. It will be enabled once there is one.", MessageType.Info);
+                EditorGUILayout.Space();
+            }
+
+            base.OnInspectorGUI();
+        }
+    }
+#endif
 }

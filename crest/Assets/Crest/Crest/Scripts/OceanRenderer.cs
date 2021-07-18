@@ -497,7 +497,6 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
-            _generatedSettingsHash = CalculateSettingsHash();
 
             // Make sure we have correct defaults in case simulations are not enabled.
             LodDataMgrClipSurface.BindNullToGraphicsShaders();
@@ -528,6 +527,8 @@ namespace Crest
             }
 
             _canSkipCulling = false;
+
+            _generatedSettingsHash = CalculateSettingsHash();
         }
 
         private void OnDisable()
@@ -834,6 +835,16 @@ namespace Crest
 #pragma warning disable 0618
             Hashy.AddObject(_layerName, ref settingsHash);
 #pragma warning restore 0618
+
+            // Also include anything from the simulation settings for rebuilding.
+            foreach (var lod in _lodDatas)
+            {
+                // Null means it does not support settings.
+                if (lod.SettingsBase != null)
+                {
+                    lod.SettingsBase.AddToSettingsHash(ref settingsHash);
+                }
+            }
 
             return settingsHash;
         }

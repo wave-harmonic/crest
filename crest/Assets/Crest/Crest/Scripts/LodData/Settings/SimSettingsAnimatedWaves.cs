@@ -4,10 +4,12 @@
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsAnimatedWaves", menuName = "Crest/Animated Waves Sim Settings", order = 10000)]
+    [HelpURL(k_HelpURL)]
     public partial class SimSettingsAnimatedWaves : SimSettingsBase
     {
         /// <summary>
@@ -18,6 +20,8 @@ namespace Crest
 #pragma warning disable 414
         int _version = 0;
 #pragma warning restore 414
+
+        public const string k_HelpURL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves-settings";
 
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
         float _attenuationInShallows = 0.95f;
@@ -42,6 +46,15 @@ namespace Crest
         [Tooltip("Whether to use a graphics shader for combining the wave cascades together. Disabling this uses a compute shader instead which doesn't need to copy back and forth between targets, but it may not work on some GPUs, in particular pre-DX11.3 hardware, which do not support typed UAV loads. The fail behaviour is a flat ocean."), SerializeField]
         bool _pingPongCombinePass = true;
         public bool PingPongCombinePass => _pingPongCombinePass;
+
+        [Tooltip("The render texture format to use for the wave simulation. It should only be changed if you need more precision. See the documentation for information.")]
+        public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+
+        public override void AddToSettingsHash(ref int settingsHash)
+        {
+            base.AddToSettingsHash(ref settingsHash);
+            Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
+        }
 
         /// <summary>
         /// Provides ocean shape to CPU.
@@ -136,5 +149,23 @@ namespace Crest
             }
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(SimSettingsAnimatedWaves), true), CanEditMultipleObjects]
+    class SimSettingsAnimatedWavesEditor : SimSettingsBaseEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Open Online Help Page"))
+            {
+                Application.OpenURL(SimSettingsAnimatedWaves.k_HelpURL);
+            }
+            EditorGUILayout.Space();
+
+            base.OnInspectorGUI();
+        }
+    }
+#endif
 #endif
 }

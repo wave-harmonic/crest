@@ -36,10 +36,6 @@ namespace Crest
         public static Matrix4x4 RightEyeProjectionMatrix { get; private set; }
         public static Matrix4x4 LeftEyeViewMatrix { get; private set; }
         public static Matrix4x4 RightEyeViewMatrix { get; private set; }
-        public static Matrix4x4 LeftEyeViewProjectionMatrix { get; private set; }
-        public static Matrix4x4 RightEyeViewProjectionMatrix { get; private set; }
-        public static Matrix4x4 LeftEyeInverseViewProjectionMatrix { get; private set; }
-        public static Matrix4x4 RightEyeInverseViewProjectionMatrix { get; private set; }
 
         public static bool IsRunning
         {
@@ -139,10 +135,6 @@ namespace Crest
             RightEyeViewMatrix = xrRightEye.view;
             LeftEyeProjectionMatrix = xrLeftEye.projection;
             RightEyeProjectionMatrix = xrRightEye.projection;
-            LeftEyeViewProjectionMatrix = LeftEyeProjectionMatrix * LeftEyeViewMatrix;
-            RightEyeViewProjectionMatrix = RightEyeProjectionMatrix * RightEyeViewMatrix;
-            LeftEyeInverseViewProjectionMatrix = LeftEyeViewProjectionMatrix.inverse;
-            RightEyeInverseViewProjectionMatrix = RightEyeViewProjectionMatrix.inverse;
 #endif
         }
     }

@@ -25,6 +25,10 @@ Fixed
       -  Fix shadows breaking builds when XR package is present. `[HDRP]`
       -  Fix shadows not working with XR `SPI`. `[HDRP]`
 
+   .. only:: birp or urp
+
+      -  Fix caustics jittering in XR for some devices. `[BIRP] [URP]`
+
    .. only:: urp
 
       -  Remove sample shadow scriptable render feature error. `[URP]`

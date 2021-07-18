@@ -465,9 +465,7 @@ namespace Crest
             // 2 ^ idx = sliceRes * _smallestWavelengthRequired;
             // idx = log2(sliceRes * _smallestWavelengthRequired);
             var firstLod = Mathf.RoundToInt(Mathf.Log(_smallestWavelengthRequired * _resolution, 2f));
-            firstLod += 1;
-            firstLod = 0;
-            Debug.Log("First lod: " + firstLod);
+            //Debug.Log("First lod: " + firstLod);
             var baked = FFTBaker.BakeMultiRes(this, firstLod, 8, _timeResolution, patchSize, LoopPeriod);
 
             // TODO: Prob should not merge in master..?

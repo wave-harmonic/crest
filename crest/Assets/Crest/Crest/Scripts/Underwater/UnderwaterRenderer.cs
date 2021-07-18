@@ -75,6 +75,7 @@ namespace Crest
             public bool _viewOceanMask = false;
             public bool _disableOceanMask = false;
             public bool _disableHeightAboveWaterOptimization = false;
+            public bool _disableHorizonLineFixes = false;
         }
 
         Camera _camera;

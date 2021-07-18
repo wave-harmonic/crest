@@ -74,9 +74,9 @@ namespace Crest
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _debug._viewOceanMask,
                 // horizonSafetyMarginMultiplier is added to the horizon, so no-op is zero.
-                _useHorizonSafetyMarginMultiplier ? _horizonSafetyMarginMultiplier : 0f,
+                _useHorizonSafetyMarginMultiplier && !_debug._disableHorizonLineFixes ? _horizonSafetyMarginMultiplier : 0f,
                 // farPlaneMultiplier is multiplied to the far plane, so no-op is one.
-                _useHorizonSafetyMarginMultiplier ? 1f : _farPlaneMultiplier,
+                _useHorizonSafetyMarginMultiplier || _debug._disableHorizonLineFixes ? 1f : _farPlaneMultiplier,
                 _filterOceanData,
                 s_xrPassIndex
             );

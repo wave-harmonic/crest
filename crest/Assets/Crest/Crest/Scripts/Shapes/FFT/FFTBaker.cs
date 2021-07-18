@@ -4,6 +4,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+//#define CREST_DEBUG_DUMP_EXRS
+
 using System.IO;
 using System.Linq;
 using Unity.Mathematics;
@@ -121,6 +123,16 @@ namespace Crest
             var frameCount = (int)(resolutionTime * loopPeriod);
             var frames = new half[frameCount][];
 
+            const string folderName = "BakedWave";
+
+#if CREST_DEBUG_DUMP_EXRS
+            if (Directory.Exists(folderName))
+            {
+                Directory.Delete(folderName, true);
+            }
+            Directory.CreateDirectory(folderName);
+#endif
+
             for (int timeIndex = 0; timeIndex < frameCount; timeIndex++) // this means resolutionTime is actually FPS
             {
                 float t = timeIndex / (float)resolutionTime;
@@ -145,12 +157,16 @@ namespace Crest
                 RenderTexture.active = bakedWaves;
                 stagingTexture.ReadPixels(new Rect(0, 0, bakedWaves.width, bakedWaves.height), 0, 0);
 
+#if CREST_DEBUG_DUMP_EXRS
+                var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
+                File.WriteAllBytes($"{folderName}/test_{timeIndex}.exr", encodedTexture);
+#endif
+
                 frames[timeIndex] = stagingTexture.GetRawTextureData<half>().ToArray();
             }
 
             var framesFlattened = frames.SelectMany(x => x).ToArray();
             var framesFileName = "frames";
-            const string folderName = "BakedWave";
 
             SaveFramesToFile(framesFileName, framesFlattened);
 

@@ -10,24 +10,41 @@ namespace Crest
 {
     // TODO: these fields are useful in the inspector, but they should be read only (grayed out), how? property drawer?
     // Huw: there's something for this in crest, my collaborator dale will know.
-    //[Serializable]
-    //public struct FFTBakedDataParameters
-    //{
-    //    public float _period;
-    //    public int _frameCount;
-    //    public int _textureResolution;
-    //    public float _worldSize;
-    //}
-    
-    [PreferBinarySerialization]
-    public class FFTBakedData : ScriptableObject 
+    [Serializable]
+    public struct FFTBakedDataParametersMultiRes
     {
+        public float _period;
+        public int _frameCount;
+        public int _textureResolution;
+        public int _firstLod;
+        public int _lodCount;
+        public float _worldSize;
+    }
+
+    [PreferBinarySerialization]
+    public class FFTBakedDataMultiRes : ScriptableObject
+    {
+        // One frame contains multiple levels of detail
+        //   width = _textureResolution
+        //   height = _textureResolution * _lodCount
+        // -------
+        // | LOD |
+        // |  0  |
+        // |-----|
+        // | LOD |
+        // |  1  |
+        // |-----|
+        // ~     ~
+        // |-----|
+        // | LOD | N == _lodCount
+        // |  N  |
+        // -------
         public FFTBakedDataParametersMultiRes _parameters;
         [NonSerialized] public NativeArray<half> _framesFlattenedNative;
         public string _framesFileName;
-        
-         public half _smallestValue;
-         public half _largestValue;
+
+        public half _smallestValue;
+        public half _largestValue;
 
         public void OnEnable()
         {
@@ -36,46 +53,48 @@ namespace Crest
 
             LoadFrames();
         }
-        
+
         // Note that this is called when entering play mode, so it has to be as fast as possible
         private void LoadFrames()
         {
             if (_framesFlattenedNative.Length > 0) // already loaded
                 return;
-            
+
             var asset = Resources.Load(_framesFileName) as TextAsset; // TextAsset is used for custom binary data
             if (asset == null)
                 Debug.LogError("Failed to load baked frames from Resources");
-            
+
             var stream = new MemoryStream(asset.bytes);
 
             using (BinaryReader reader = new BinaryReader(stream))
             {
                 // half uses ushort for its value under the hood
-                var fileSize = _parameters._textureResolution * _parameters._textureResolution * _parameters._frameCount * sizeof(ushort); 
+                var fileSize = _parameters._textureResolution * _parameters._textureResolution * _parameters._lodCount * _parameters._frameCount * sizeof(ushort);
                 var bytesArray = reader.ReadBytes(fileSize);
                 _framesFlattenedNative = new NativeArray<byte>(bytesArray, Allocator.Persistent).Reinterpret<half>(sizeof(byte));
             }
             Resources.UnloadAsset(asset);
         }
 
-        public void Initialize(float period, int textureResolution, float worldSize, int frameCount, half smallestValue, half largestValue, string framesFileName)
+        public void Initialize(float period, int textureResolution, int firstLod, int lodCount, float worldSize, int frameCount, half smallestValue, half largestValue, string framesFileName)
         {
             _parameters = new FFTBakedDataParametersMultiRes()
             {
                 _period = period,
                 _frameCount = frameCount,
                 _textureResolution = textureResolution,
+                _firstLod = firstLod,
+                _lodCount = lodCount,
                 _worldSize = worldSize
             };
 
             _framesFileName = framesFileName;
             _smallestValue = smallestValue;
             _largestValue = largestValue;
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            #endif
+#endif
             LoadFrames();
         }
 
@@ -185,7 +204,7 @@ namespace Crest
 
             return math.lerp(h0, h1, alphaT);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float4 SampleHeightBurst(float4 x, float4 z, float4 t, FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened)
         {
@@ -196,14 +215,14 @@ namespace Crest
             var f0 = (int4)(t01 * parameters._frameCount);
             var f1 = (f0 + 1) % parameters._frameCount;
             var alphaT = t01 * parameters._frameCount - f0;
-        
+
             // Spatial lerp data
             SpatialInterpolationData lerpData = new SpatialInterpolationData();
             CalculateSamplingData(x, z, ref lerpData, in parameters);
-        
+
             var h0 = SampleHeightBurst(ref lerpData, f0, parameters._textureResolution, in framesFlattened);
             var h1 = SampleHeightBurst(ref lerpData, f1, parameters._textureResolution, in framesFlattened);
-        
+
             return math.lerp(h0, h1, alphaT);
         }
 
@@ -224,9 +243,9 @@ namespace Crest
             // lerp v direction
             return math.lerp(h_0, h_1, lerpData._alphaV);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static half4 ElementsAt(NativeArray<half> array, int4 indices) => 
+        static half4 ElementsAt(NativeArray<half> array, int4 indices) =>
             new half4(array[indices[0]], array[indices[1]], array[indices[2]], array[indices[3]]);
     }
 }

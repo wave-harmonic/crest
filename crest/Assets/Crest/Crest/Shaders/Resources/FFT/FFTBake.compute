@@ -3,6 +3,7 @@
 // Copyright 2021 Wave Harmonic Ltd
 
 #pragma kernel FFTBake
+#pragma kernel FFTBakeMultiRes
 
 Texture2DArray<float3> _InFFTWaves;
 SamplerState sampler_linear_repeat;
@@ -49,4 +50,45 @@ void FFTBake(uint3 id : SV_DispatchThreadID)
 	}
 
 	_OutHeights[id.xy] = disp.y;
+}
+
+int _MinSlice;
+
+[numthreads( 8, 8, 1 )]
+void FFTBakeMultiRes( uint3 id : SV_DispatchThreadID )
+{
+	int fftRes;
+	int fftSlices;
+	{
+		int dummyi;
+		_InFFTWaves.GetDimensions( fftRes, dummyi, fftSlices );
+	}
+
+	int outHeight;
+	{
+		int dummyi;
+		_OutHeights.GetDimensions( dummyi, outHeight );
+	}
+
+	// Flip slices so that lod 0 is at top of texture, same as "debug wave buffers"
+	// option on fft component, for my sanity.
+	int slice = _MinSlice + (outHeight - 1 - id.y) / fftRes;
+
+	_OutHeights[id.xy] = _InFFTWaves[uint3(id.x, id.y % fftRes, slice)].y;
+	//if( _OutHeights[id.xy] < 0. )_OutHeights[id.xy] = 0.;
+
+	//const float2 uv = (id.xy + 0.5) / float2(dimX, dimY);
+	//const float2 worldPosXZ = uv * _WavePatchSize;
+
+	//float2 curPosXZ = worldPosXZ;
+	//float3 disp = CalculateDisplacement( worldPosXZ, fftSlices );
+
+	//// Fixed point iteration with large iteration count.
+	//for( int i = 0; i < 8; i++ )
+	//{
+	//	curPosXZ -= (curPosXZ + disp.xz - worldPosXZ);
+	//	disp = CalculateDisplacement( curPosXZ, fftSlices );
+	//}
+
+	//_OutHeights[id.xy] = disp.y;
 }

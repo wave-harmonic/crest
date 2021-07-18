@@ -65,12 +65,12 @@ namespace Crest
                 buf.SetComputeTextureParam(waveCombineShader, kernel, "_InFFTWaves", fftWaveDataTA);
                 buf.SetComputeTextureParam(waveCombineShader, kernel, "_OutHeights", wavePatchData);
                 buf.DispatchCompute(waveCombineShader, kernel, resolutionSpace / 8, resolutionSpace / 8, 1);
+
                 Graphics.ExecuteCommandBuffer(buf);
 
                 // Readback data to CPU
                 RenderTexture.active = wavePatchData;
-                stagingTexture.ReadPixels(new Rect(0, 0, wavePatchData.width, wavePatchData.height), 0,
-                    0); // is this correct??
+                stagingTexture.ReadPixels(new Rect(0, 0, wavePatchData.width, wavePatchData.height), 0, 0);
 
                 frames[timeIndex] = stagingTexture.GetRawTextureData<half>().ToArray();
             }
@@ -97,7 +97,7 @@ namespace Crest
             return bakedDataSO;
         }
 
-        public static FFTBakedData BakeMultiRes(ShapeFFT fftWaves, int resolutionSpace, int resolutionTime, float wavePatchSize,
+        public static FFTBakedDataMultiRes BakeMultiRes(ShapeFFT fftWaves, int firstLod, int lodCount, int resolutionTime, float wavePatchSize,
             float loopPeriod)
         {
             // Need min scale, maybe max too - unlikely to need 16 orders of magnitude
@@ -109,9 +109,14 @@ namespace Crest
 
             var buf = new CommandBuffer();
 
-            var firstSlice = 3;
-            var sliceCount = 4;
-            var stagingTexture = new Texture2D(fftWaves._resolution, fftWaves._resolution * sliceCount, TextureFormat.RHalf, false, true);
+            var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");
+            var kernel = waveCombineShader.FindKernel("FFTBakeMultiRes");
+
+            var bakedWaves = new RenderTexture(fftWaves._resolution, fftWaves._resolution * lodCount, 1, RenderTextureFormat.RHalf);
+            bakedWaves.enableRandomWrite = true;
+            bakedWaves.Create();
+
+            var stagingTexture = new Texture2D(fftWaves._resolution, fftWaves._resolution * lodCount, TextureFormat.RHalf, false, true);
 
             var frameCount = (int)(resolutionTime * loopPeriod);
             var frames = new half[frameCount][];
@@ -127,16 +132,44 @@ namespace Crest
                     fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeedForFFT, t,
                     fftWaves._spectrum, true);
 
+                // Compute shader generates the final waves
+                buf.SetComputeFloatParam(waveCombineShader, "_BakeTime", t);
+                buf.SetComputeIntParam(waveCombineShader, "_MinSlice", firstLod);
+                buf.SetComputeTextureParam(waveCombineShader, kernel, "_InFFTWaves", fftWaveDataTA);
+                buf.SetComputeTextureParam(waveCombineShader, kernel, "_OutHeights", bakedWaves);
+                buf.DispatchCompute(waveCombineShader, kernel, bakedWaves.width / 8, bakedWaves.height / 8, 1);
+
+                Graphics.ExecuteCommandBuffer(buf);
+
                 // Readback data to CPU
-                RenderTexture.active = fftWaveDataTA;
-                stagingTexture.ReadPixels(new Rect(0, firstSlice * fftWaves._resolution, stagingTexture.width, sliceCount * fftWaves._resolution), 0, 0);
+                RenderTexture.active = bakedWaves;
+                stagingTexture.ReadPixels(new Rect(0, 0, bakedWaves.width, bakedWaves.height), 0, 0);
 
                 frames[timeIndex] = stagingTexture.GetRawTextureData<half>().ToArray();
             }
 
-            // TODO - write frames to SO. the textures are no longer square. maybe best to create a new SO.
+            var framesFlattened = frames.SelectMany(x => x).ToArray();
+            var framesFileName = "frames";
+            const string folderName = "BakedWave";
 
-            return null;
+            SaveFramesToFile(framesFileName, framesFlattened);
+
+            var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedDataMultiRes>();
+            var framesAsFloats = framesFlattened.Select(x => (float)x);
+            bakedDataSO.Initialize(
+                loopPeriod,
+                fftWaves._resolution,
+                firstLod,
+                lodCount,
+                wavePatchSize,
+                frames.Length,
+                new half(framesAsFloats.Min()),
+                new half(framesAsFloats.Max()),
+                framesFileName);
+
+            SaveBakedDataAsset(bakedDataSO, folderName);
+
+            return bakedDataSO;
         }
 
         private static void SaveFramesToFile(string framesFileName, half[] framesFlattened)
@@ -158,7 +191,7 @@ namespace Crest
             #endif
         }
 
-        private static void SaveBakedDataAsset(FFTBakedData bakedDataSO, string folderName)
+        private static void SaveBakedDataAsset(ScriptableObject bakedDataSO, string folderName)
         {
 #if UNITY_EDITOR
             var bakedDataDirectory = $"Assets/{folderName}";

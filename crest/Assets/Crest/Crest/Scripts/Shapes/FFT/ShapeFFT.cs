@@ -426,15 +426,15 @@ namespace Crest
             return requiredRes;
         }
 
-        public FFTBakedData Bake()
+        public FFTBakedDataMultiRes Bake()
         {
             ComputeRequiredOctaves(_spectrum, _smallestWavelengthRequired, out var smallestOctaveRequired, out var largestOctaveRequired);
 
-            if (largestOctaveRequired == -1 || smallestOctaveRequired == -1 || smallestOctaveRequired > largestOctaveRequired)
-            {
-                Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", this);
-                return null;
-            }
+            //if (largestOctaveRequired == -1 || smallestOctaveRequired == -1 || smallestOctaveRequired > largestOctaveRequired)
+            //{
+            //    Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", this);
+            //    return null;
+            //}
 
             // Max wavelength is upper bound, waves would scale up to this value but not quite hitting it
             var wavelengthUpperBound = 2f * Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + largestOctaveRequired);
@@ -448,8 +448,27 @@ namespace Crest
                 requiredRes = 512;
             }
 
+            // slice size = 0.5 * 2^idx
             var patchSize = CalculateWaveCascadeSize(wavelengthUpperBound);
-            var baked = FFTBaker.Bake(this, requiredRes, _timeResolution, patchSize, LoopPeriod);
+            //var baked = FFTBaker.Bake(this, requiredRes, _timeResolution, patchSize, LoopPeriod);
+
+            // TODO - work out which slices
+            // min WL is _smallestWavelengthRequired
+            // slice width 4m
+            // slice res 16
+            // 2 samples is 2 * 4 / 16 = 0.5m
+            // smallest WL is 0.5m
+            // largest WL is 1.0m
+            // _smallestWavelengthRequired = 2 * sliceWidth / sliceRes;
+            // sliceWidth = sliceRes * _smallestWavelengthRequired / 2f;
+            // 0.5 * 2 ^ idx = sliceRes * _smallestWavelengthRequired / 2f;
+            // 2 ^ idx = sliceRes * _smallestWavelengthRequired;
+            // idx = log2(sliceRes * _smallestWavelengthRequired);
+            var firstLod = Mathf.RoundToInt(Mathf.Log(_smallestWavelengthRequired * _resolution, 2f));
+            firstLod += 1;
+            firstLod = 0;
+            Debug.Log("First lod: " + firstLod);
+            var baked = FFTBaker.BakeMultiRes(this, firstLod, 8, _timeResolution, patchSize, LoopPeriod);
 
             // TODO: Prob should not merge in master..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;

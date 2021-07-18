@@ -1,4 +1,3 @@
-using System.Linq;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
@@ -12,7 +11,7 @@ namespace Crest
         private int _frameToPreview = 0;
         private Object _previousTarget;
         private SimSettingsAnimatedWaves _targetAnimatedWaves => target as SimSettingsAnimatedWaves;
-        private FFTBakedData _targetBakedData => _targetAnimatedWaves?._bakedFFTData;
+        private FFTBakedDataMultiRes _targetBakedData => _targetAnimatedWaves?._bakedFFTData;
     
         public override bool HasPreviewGUI()
         {
@@ -33,7 +32,7 @@ namespace Crest
         {
             var data = _targetBakedData;
             if (data == null) return "";
-            return $"{data.name}, {data._parameters._textureResolution}x{data._parameters._textureResolution}, {_frameToPreview+1}/{data._parameters._frameCount}";
+            return $"{data.name}, {data._parameters._textureResolution}x({data._parameters._textureResolution}x{data._parameters._lodCount}), {_frameToPreview+1}/{data._parameters._frameCount}";
         }
     
         public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
@@ -72,7 +71,9 @@ namespace Crest
                 if (rawDataNativeGray.Length == 0)
                     return;
     
-                _previewTexture ??= new Texture2D(_targetBakedData._parameters._textureResolution, _targetBakedData._parameters._textureResolution,
+                _previewTexture ??= new Texture2D(
+                    _targetBakedData._parameters._textureResolution,
+                    _targetBakedData._parameters._textureResolution * _targetBakedData._parameters._lodCount,
                     TextureFormat.RGBAFloat, false, true);
     
                 _previewTexture.LoadRawTextureData(rawDataNativeGray);

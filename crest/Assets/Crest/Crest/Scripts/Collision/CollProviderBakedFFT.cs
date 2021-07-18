@@ -21,13 +21,13 @@ namespace Crest
             DataMissing,
         }
 
-        public FFTBakedData _data = null;
+        public FFTBakedDataMultiRes _data = null;
 
         const float s_finiteDiffDx = 0.1f;
         const float s_finiteDiffDt = 0.06f;
         const int s_jobBatchSize = 12;
 
-        public CollProviderBakedFFT(FFTBakedData data)
+        public CollProviderBakedFFT(FFTBakedDataMultiRes data)
         {
             Debug.Assert(data != null, "Crest: Baked data should not be null.");
             _data = data;
@@ -207,7 +207,7 @@ namespace Crest
             public float _t;
 
             [ReadOnly]
-            public FFTBakedDataParameters _params;
+            public FFTBakedDataParametersMultiRes _params;
 
             [ReadOnly]
             public float _seaLevel;
@@ -241,7 +241,7 @@ namespace Crest
             public float _t;
 
             [ReadOnly]
-            public FFTBakedDataParameters _params;
+            public FFTBakedDataParametersMultiRes _params;
 
             [WriteOnly]
             public NativeArray<float3> _output;
@@ -282,7 +282,7 @@ namespace Crest
             public float _t;
 
             [ReadOnly]
-            public FFTBakedDataParameters _params;
+            public FFTBakedDataParametersMultiRes _params;
 
             [WriteOnly]
             public NativeArray<float4> _output;

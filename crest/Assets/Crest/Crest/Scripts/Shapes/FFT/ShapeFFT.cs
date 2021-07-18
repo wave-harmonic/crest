@@ -466,7 +466,9 @@ namespace Crest
             // idx = log2(sliceRes * _smallestWavelengthRequired);
             var firstLod = Mathf.RoundToInt(Mathf.Log(_smallestWavelengthRequired * _resolution, 2f));
             //Debug.Log("First lod: " + firstLod);
-            var baked = FFTBaker.BakeMultiRes(this, firstLod, 8, _timeResolution, patchSize, LoopPeriod);
+            // TODO - compute largest lod idx from spectrum, rather than always including all
+            var lodCount = FFTCompute.CASCADE_COUNT - firstLod;
+            var baked = FFTBaker.BakeMultiRes(this, firstLod, FFTCompute.CASCADE_COUNT - firstLod, _timeResolution, patchSize, LoopPeriod);
 
             // TODO: Prob should not merge in master..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;

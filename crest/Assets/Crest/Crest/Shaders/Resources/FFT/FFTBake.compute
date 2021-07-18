@@ -70,11 +70,12 @@ void FFTBakeMultiRes( uint3 id : SV_DispatchThreadID )
 		_OutHeights.GetDimensions( dummyi, outHeight );
 	}
 
-	// Flip slices so that lod 0 is at top of texture, same as "debug wave buffers"
-	// option on fft component, for my sanity.
-	int slice = _MinSlice + (outHeight - 1 - id.y) / fftRes;
+	int slice = _MinSlice + id.y / fftRes;
 
 	_OutHeights[id.xy] = _InFFTWaves[uint3(id.x, id.y % fftRes, slice)].y;
+	
+	//_OutHeights[id.xy] = sin( id.x + _BakeTime );
+	
 	//if( _OutHeights[id.xy] < 0. )_OutHeights[id.xy] = 0.;
 
 	//const float2 uv = (id.xy + 0.5) / float2(dimX, dimY);

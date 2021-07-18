@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!181963792 &2655988077585873504
+Preset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LeftEyeTransform
+  m_TargetType:
+    m_NativeTypeID: 4
+    m_ManagedTypePPtr: {fileID: 0}
+    m_ManagedTypeFallback: 
+  m_Properties:
+  - target: {fileID: 0}
+    propertyPath: m_LocalRotation.x
+    value: 0.5545755
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalRotation.y
+    value: -0.09895878
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalRotation.z
+    value: -0.43868673
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalRotation.w
+    value: 0.700148
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalPosition.x
+    value: 70
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalPosition.y
+    value: 5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalPosition.z
+    value: 40.048004
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalScale.x
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalScale.y
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalScale.z
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RootOrder
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalEulerAnglesHint.x
+    value: -223.61
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalEulerAnglesHint.y
+    value: -2399.7
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LocalEulerAnglesHint.z
+    value: 90
+    objectReference: {fileID: 0}
+  m_ExcludedProperties: []

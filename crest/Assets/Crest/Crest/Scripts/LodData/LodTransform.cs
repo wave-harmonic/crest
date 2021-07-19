@@ -12,6 +12,11 @@ namespace Crest
     /// </summary>
     public class LodTransform : IFloatingOrigin
     {
+        // Anything higher (minus 1 for near plane) will be clipped.
+        const float k_RenderAboveSeaLevel = 10000f;
+        // Anything lower will be clipped.
+        const float k_RenderBelowSeaLevel = 10000f;
+
         protected int[] _transformUpdateFrame;
 
         [System.Serializable]
@@ -102,9 +107,9 @@ namespace Crest
                     _renderDataSource[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
                 }
 
-                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * k_RenderAboveSeaLevel, Quaternion.AngleAxis(90f, Vector3.right));
 
-                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, 500f);
+                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, k_RenderAboveSeaLevel + k_RenderBelowSeaLevel);
             }
         }
 

@@ -25,6 +25,7 @@ Fixed
 .. bullet_list::
 
    -  Fix ocean not rendering on Xbox One and Xbox Series X.
+   -  Fix FFT shader build errors for Game Core platforms.
 
    .. only:: hdrp
 

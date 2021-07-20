@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -34,6 +35,9 @@ namespace Crest
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
         [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;
 
+        [Header("Signed Distance")]
+        public float _sphereRadius = 0.5f;
+
         public override float Wavelength => 0f;
 
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
@@ -47,6 +51,7 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
+        static readonly int sp_SignedDistanceSphere = Shader.PropertyToID("_SignedDistanceSphere");
 
         private void LateUpdate()
         {
@@ -87,6 +92,7 @@ namespace Crest
 
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
+                _mpb.SetFloat(sp_SignedDistanceSphere, _sphereRadius);
 
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
@@ -101,6 +107,14 @@ namespace Crest
 
         protected override string MaterialFeatureDisabledError => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;
         protected override string MaterialFeatureDisabledFix => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+
+        protected override void OnDrawGizmosSelected()
+        {
+            base.OnDrawGizmosSelected();
+
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.position, _sphereRadius);
+        }
 #endif
     }
 }

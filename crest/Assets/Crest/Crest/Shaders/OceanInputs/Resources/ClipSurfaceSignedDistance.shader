@@ -30,6 +30,8 @@ Shader "Crest/Inputs/Clip Surface/Signed Distance"
 			CBUFFER_START(CrestPerOceanInput)
 			uint _DisplacementSamplingIterations;
 			float _SignedDistanceSphere;
+			float3 _SignedDistanceBox;
+			float4x4 _SignedDistanceRotation;
 			CBUFFER_END
 
 			struct Attributes
@@ -50,6 +52,14 @@ Shader "Crest/Inputs/Clip Surface/Signed Distance"
 				return length(position) - radius;
 			}
 
+			// Taken from:
+			// https://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+			float signedDistanceBox(float3 position, float3 halfSize)
+			{
+				float3 q = abs(position) - halfSize;
+				return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+			}
+
 			Varyings Vert(Attributes input)
 			{
 				Varyings output;
@@ -62,10 +72,12 @@ Shader "Crest/Inputs/Clip Surface/Signed Distance"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
+				float3 positionWS = input.positionWS;
+
 				float3 surfacePositionWS = SampleOceanDataDisplacedToWorldPosition
 				(
 					_LD_TexArray_AnimatedWaves,
-					input.positionWS,
+					positionWS,
 					_DisplacementSamplingIterations
 				);
 
@@ -73,14 +85,16 @@ Shader "Crest/Inputs/Clip Surface/Signed Distance"
 				surfacePositionWS.y += _OceanCenterPosWorld.y;
 
 				// We only need the height as clip surface is sampled at the displaced position in the ocean shader.
-				float3 positionWS = input.positionWS;
 				positionWS.y -= surfacePositionWS.y;
 
 				// Align position with input position.
 				float4 objectOrigin = mul(unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0));
 				positionWS.xz -= objectOrigin.xz;
 
-				float signedDistance = signedDistanceSphere(positionWS, _SignedDistanceSphere);
+				positionWS = mul(_SignedDistanceRotation, float4(positionWS, 1.0));
+
+				float signedDistance = signedDistanceBox(positionWS, _SignedDistanceBox);
+				// float signedDistance = signedDistanceBox(positionWS, _SignedDistanceSphere);
 
 				// Bring data to the zero to one range.
 				signedDistance += 0.5;

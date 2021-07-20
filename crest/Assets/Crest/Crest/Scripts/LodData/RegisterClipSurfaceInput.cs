@@ -4,6 +4,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -37,6 +38,8 @@ namespace Crest
 
         [Header("Signed Distance")]
         public float _sphereRadius = 0.5f;
+        public Vector3 _boxSize = Vector3.one;
+        public Vector3 _rotation;
 
         public override float Wavelength => 0f;
 
@@ -52,6 +55,9 @@ namespace Crest
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
         static readonly int sp_SignedDistanceSphere = Shader.PropertyToID("_SignedDistanceSphere");
+        static readonly int sp_SignedDistanceBox = Shader.PropertyToID("_SignedDistanceBox");
+        static readonly int sp_SignedDistanceRotation = Shader.PropertyToID("_SignedDistanceRotation");
+        static readonly int sp_SignedDistanceRotation2 = Shader.PropertyToID("_SignedDistanceRotation2");
 
         private void LateUpdate()
         {
@@ -92,7 +98,11 @@ namespace Crest
 
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
+
                 _mpb.SetFloat(sp_SignedDistanceSphere, _sphereRadius);
+                _mpb.SetVector(sp_SignedDistanceBox, _boxSize * 0.5f);
+                var rotation = Matrix4x4.Rotate(Quaternion.Euler(_rotation));
+                _mpb.SetMatrix(sp_SignedDistanceRotation, rotation.inverse);
 
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
@@ -112,8 +122,13 @@ namespace Crest
         {
             base.OnDrawGizmosSelected();
 
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawWireSphere(transform.position, _sphereRadius);
+            var color = Color.magenta;
+            color.a = 0.90f;
+            Gizmos.color = color;
+            Gizmos.matrix = Matrix4x4.TRS(transform.position, Quaternion.Euler(_rotation), Vector3.one);
+            // Gizmos.DrawWireSphere(transform.position, _sphereRadius);
+            Gizmos.DrawWireCube(Vector3.zero, _boxSize);
+            Gizmos.DrawCube(Vector3.zero, _boxSize);
         }
 #endif
     }

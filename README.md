@@ -97,8 +97,8 @@ https://github.com/sponsors/wave-harmonic
 
 ### Gold 🥇
 
-[@celeronpm](https://github.com/celeronpm) [@ipthgil](https://github.com/ipthgil)
+[@ipthgil](https://github.com/ipthgil)
 
 ### Board Members 🚀
 
-[@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)
+[@celeronpm](https://github.com/celeronpm) [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)

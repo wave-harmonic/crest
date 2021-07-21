@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -39,43 +38,29 @@ namespace Crest
         // |  N  |
         // -------
         public FFTBakedDataParametersMultiRes _parameters;
+
+        public half[] _framesFlattened;
         [NonSerialized] public NativeArray<half> _framesFlattenedNative;
-        public string _framesFileName;
 
         public half _smallestValue;
         public half _largestValue;
 
         public void OnEnable()
         {
-            if (_framesFileName == null) // means we just created this object and we haven't initialized yet
-                return;
-
-            LoadFrames();
+            InitData();
         }
 
         // Note that this is called when entering play mode, so it has to be as fast as possible
-        private void LoadFrames()
+        private void InitData()
         {
             if (_framesFlattenedNative.Length > 0) // already loaded
                 return;
 
-            var asset = Resources.Load(_framesFileName) as TextAsset; // TextAsset is used for custom binary data
-            if (asset == null)
-                Debug.LogError("Failed to load baked frames from Resources");
-
-            var stream = new MemoryStream(asset.bytes);
-
-            using (BinaryReader reader = new BinaryReader(stream))
-            {
-                // half uses ushort for its value under the hood
-                var fileSize = _parameters._textureResolution * _parameters._textureResolution * _parameters._lodCount * _parameters._frameCount * sizeof(ushort);
-                var bytesArray = reader.ReadBytes(fileSize);
-                _framesFlattenedNative = new NativeArray<byte>(bytesArray, Allocator.Persistent).Reinterpret<half>(sizeof(byte));
-            }
-            Resources.UnloadAsset(asset);
+            Debug.Log(_framesFlattened.Length * 4);
+            _framesFlattenedNative = new NativeArray<half>(_framesFlattened, Allocator.Persistent);
         }
 
-        public void Initialize(float period, int textureResolution, int firstLod, int lodCount, float worldSize, int frameCount, half smallestValue, half largestValue, string framesFileName)
+        public void Initialize(float period, int textureResolution, int firstLod, int lodCount, float worldSize, int frameCount, half smallestValue, half largestValue, half[] framesFlattened)
         {
             _parameters = new FFTBakedDataParametersMultiRes()
             {
@@ -84,17 +69,16 @@ namespace Crest
                 _textureResolution = textureResolution,
                 _firstLod = firstLod,
                 _lodCount = lodCount,
-                //_worldSize = worldSize
             };
 
-            _framesFileName = framesFileName;
+            _framesFlattened = framesFlattened;
             _smallestValue = smallestValue;
             _largestValue = largestValue;
 #if UNITY_EDITOR
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 #endif
-            LoadFrames();
+            InitData();
         }
 
         public void OnDisable()

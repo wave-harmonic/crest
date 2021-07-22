@@ -6,6 +6,11 @@
 
 Shader "Crest/Inputs/Clip Surface/Signed Distance"
 {
+	Properties
+	{
+		[KeywordEnum(Sphere, Box)] _Shape("Shape", Float) = 0.0
+	}
+
 	SubShader
 	{
 		ZWrite Off
@@ -19,6 +24,8 @@ Shader "Crest/Inputs/Clip Surface/Signed Distance"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+
+			#pragma shader_feature_local _ _SHAPE_SPHERE _SHAPE_BOX
 
 			#include "UnityCG.cginc"
 			#include "../../OceanGlobals.hlsl"
@@ -91,10 +98,14 @@ Shader "Crest/Inputs/Clip Surface/Signed Distance"
 				float4 objectOrigin = mul(unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0));
 				positionWS.xz -= objectOrigin.xz;
 
+				// Rotate the position.
 				positionWS = mul(_SignedDistanceRotation, float4(positionWS, 1.0));
 
+#if _SHAPE_BOX
 				float signedDistance = signedDistanceBox(positionWS, _SignedDistanceBox);
-				// float signedDistance = signedDistanceBox(positionWS, _SignedDistanceSphere);
+#else
+				float signedDistance = signedDistanceSphere(positionWS, _SignedDistanceSphere);
+#endif
 
 				// Bring data to the zero to one range.
 				signedDistance += 0.5;

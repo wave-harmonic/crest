@@ -1,3 +1,6 @@
+
+// 1.02ms for 4096 queries
+
 using System;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
@@ -49,6 +52,8 @@ namespace Crest
         // also, FPI will only need X&Z, not Y, so it may be best to store X&Z in one
         // array and Y in a separate one.
         public const int kFloatsPerPoint = 4;
+
+        const int kIterationCount = 3;
 
         public void OnEnable()
         {
@@ -110,8 +115,6 @@ namespace Crest
             public int4 _indexBase;
         }
 
-        // 0.462ms - 4096
-        // 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void CalculateSamplingData(float4 x, float4 z, ref SpatialInterpolationData lerpData, in FFTBakedDataParametersMultiRes parameters, int lodIdx)
         {
@@ -162,10 +165,9 @@ namespace Crest
 
             // sum up waves for all lods
             float4 result = 0f;
-            for (var lod = parameters._firstLod; lod < parameters._lodCount; lod++)
             {
-                var dispY0 = SampleHeightXZWithInvert(x, z, lod, f0, parameters, in framesFlattened);
-                var dispY1 = SampleHeightXZWithInvert(x, z, lod, f1, parameters, in framesFlattened);
+                var dispY0 = SampleHeightXZWithInvert(x, z, f0, parameters, in framesFlattened);
+                var dispY1 = SampleHeightXZWithInvert(x, z, f1, parameters, in framesFlattened);
 
                 result += math.lerp(dispY0, dispY1, alphaT);
             }
@@ -174,19 +176,19 @@ namespace Crest
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static float4 SampleHeightXZWithInvert(float4 x, float4 z, int lodIdx, int4 frameIndex, FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened)
+        static float4 SampleHeightXZWithInvert(float4 x, float4 z, int4 frameIndex, FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened)
         {
             float4 targetX = x;
             float4 targetZ = z;
 
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < kIterationCount; i++)
             {
-                SampleDisplacementFromXZ(x, z, lodIdx, frameIndex, parameters, framesFlattened, out var dispX, out _, out var dispZ);
+                SampleDisplacementFromXZ(x, z, frameIndex, parameters, framesFlattened, out var dispX, out _, out var dispZ);
                 x = targetX - dispX;
                 z = targetZ - dispZ;
             }
 
-            SampleDisplacementFromXZ(x, z, lodIdx, frameIndex, parameters, framesFlattened, out _, out var dispY, out _);
+            SampleDisplacementFromXZ(x, z, frameIndex, parameters, framesFlattened, out _, out var dispY, out _);
 
             return dispY;
         }
@@ -215,15 +217,20 @@ namespace Crest
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void SampleDisplacementFromXZ(in float4 x, in float4 z, in int lodIdx, in int4 frameIndex, in FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened, out float4 dispX, out float4 dispY, out float4 dispZ)
+        static void SampleDisplacementFromXZ(in float4 x, in float4 z, in int4 frameIndex, in FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened, out float4 dispX, out float4 dispY, out float4 dispZ)
         {
-            // Spatial lerp data
-            SpatialInterpolationData lerpData = new SpatialInterpolationData();
-            CalculateSamplingData(x, z, ref lerpData, in parameters, lodIdx);
+            dispX = dispY = dispZ = float4.zero;
 
-            dispX = InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 0);
-            dispY = InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 1);
-            dispZ = InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 2);
+            // Spatial lerp data
+            for (var lodIdx = parameters._firstLod; lodIdx < parameters._lodCount; lodIdx++)
+            {
+                SpatialInterpolationData lerpData = new SpatialInterpolationData();
+                CalculateSamplingData(x, z, ref lerpData, in parameters, lodIdx);
+
+                dispX += InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 0);
+                dispY += InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 1);
+                dispZ += InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 2);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

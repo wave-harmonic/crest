@@ -164,8 +164,8 @@ namespace Crest
             float4 result = 0f;
             for (var lod = parameters._firstLod; lod < parameters._lodCount; lod++)
             {
-                SampleDisplacementFromXZ(x, z, lod, f0, parameters, in framesFlattened, out var _, out var dispY0, out var _);
-                SampleDisplacementFromXZ(x, z, lod, f1, parameters, in framesFlattened, out var _, out var dispY1, out var _);
+                var dispY0 = SampleHeightXZWithInvert(x, z, lod, f0, parameters, in framesFlattened);
+                var dispY1 = SampleHeightXZWithInvert(x, z, lod, f1, parameters, in framesFlattened);
 
                 result += math.lerp(dispY0, dispY1, alphaT);
             }
@@ -173,6 +173,23 @@ namespace Crest
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float4 SampleHeightXZWithInvert(float4 x, float4 z, int lodIdx, int4 frameIndex, FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened)
+        {
+            float4 targetX = x;
+            float4 targetZ = z;
+
+            for(int i = 0; i < 4; i++)
+            {
+                SampleDisplacementFromXZ(x, z, lodIdx, frameIndex, parameters, framesFlattened, out var dispX, out _, out var dispZ);
+                x = targetX - dispX;
+                z = targetZ - dispZ;
+            }
+
+            SampleDisplacementFromXZ(x, z, lodIdx, frameIndex, parameters, framesFlattened, out _, out var dispY, out _);
+
+            return dispY;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static float4 InterpolateData(in NativeArray<half> framesFlattened, in SpatialInterpolationData lerpData, in FFTBakedDataParametersMultiRes parameters, in int lodIdx, in int4 frameIndex, in int channelIdx)

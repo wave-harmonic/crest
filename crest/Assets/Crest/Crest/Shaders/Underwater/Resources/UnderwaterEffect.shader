@@ -141,7 +141,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			// Disable caustics for now.
 			#undef _CAUSTICS_ON
 
-			#include "../../OceanLightingHelpers.hlsl"
 			#include "../UnderwaterEffectShared.hlsl"
 
 			// For the alpha channel for blending.
@@ -211,7 +210,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
 					const float3 lightDir = _WorldSpaceLightPos0.xyz;
 					const half3 lightCol = _LightColor0;
-					sceneColour = ApplyUnderwaterEffect(AmbientLight(), scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);
+					sceneColour = ApplyUnderwaterEffect(_AmbientLighting, scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);
 				}
 
 				return fixed4(sceneColour, alpha);

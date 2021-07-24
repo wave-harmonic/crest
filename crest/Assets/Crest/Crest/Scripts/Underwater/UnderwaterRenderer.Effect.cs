@@ -130,6 +130,8 @@ namespace Crest
             {
                 var renderer = registered.Value;
 
+                renderer.GetPropertyBlock(_materialPropertyBlock);
+
                 // NOTE:
                 // We only need to do this so we can set a white texture for when there is no texture. Otherwise,
                 // _MainTex is already setup.
@@ -148,7 +150,7 @@ namespace Crest
 
                 // Add missing probe data.
                 LightProbeUtility.SetSHCoefficients(renderer.gameObject.transform.position, _materialPropertyBlock);
-                renderer.SetPropertyBlock(_materialPropertyBlock, 0);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
 
                 // Render into temporary render texture so the effect shader will have colour to work with. I could not
                 // work out how to use GPU blending to apply the underwater fog correctly.

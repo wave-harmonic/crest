@@ -219,7 +219,7 @@ namespace Crest
             {
                 if (quadIndex >= _queryPointsX.Length) return;
 
-                _output[quadIndex] = _seaLevel + FFTBakedDataMultiRes.SampleHeightBurst(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened);
+                _output[quadIndex] = _seaLevel + FFTBakedDataMultiRes.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened);
             }
         }
 
@@ -253,9 +253,9 @@ namespace Crest
                 var x = _queryPointsX[quadIndex];
                 var z = _queryPointsZ[quadIndex];
 
-                var height = FFTBakedDataMultiRes.SampleHeightBurst(x, z, _t, _params, in _framesFlattened);
-                var height_dx = height - FFTBakedDataMultiRes.SampleHeightBurst(x + s_finiteDiffDx, z, _t, _params, in _framesFlattened);
-                var height_dz = height - FFTBakedDataMultiRes.SampleHeightBurst(x, z + s_finiteDiffDx, _t, _params, in _framesFlattened);
+                var height = FFTBakedDataMultiRes.SampleHeightXZT(x, z, _t, _params, in _framesFlattened);
+                var height_dx = height - FFTBakedDataMultiRes.SampleHeightXZT(x + s_finiteDiffDx, z, _t, _params, in _framesFlattened);
+                var height_dz = height - FFTBakedDataMultiRes.SampleHeightXZT(x, z + s_finiteDiffDx, _t, _params, in _framesFlattened);
                 
                 _output[math.mad(quadIndex, 4, 0)] = math.normalize(new float3(height_dx.x, s_finiteDiffDx, height_dz.x));
                 _output[math.mad(quadIndex, 4, 1)] = math.normalize(new float3(height_dx.y, s_finiteDiffDx, height_dz.y));
@@ -292,8 +292,8 @@ namespace Crest
                 if (quadIndex >= _queryPointsX.Length) return;
 
                 _output[quadIndex] =
-                    (FFTBakedDataMultiRes.SampleHeightBurst(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened)
-                    - FFTBakedDataMultiRes.SampleHeightBurst(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t - s_finiteDiffDt, _params, in _framesFlattened))
+                    (FFTBakedDataMultiRes.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened)
+                    - FFTBakedDataMultiRes.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t - s_finiteDiffDt, _params, in _framesFlattened))
                     / s_finiteDiffDt;
             }
         }

@@ -150,7 +150,7 @@ namespace Crest
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float4 SampleHeightBurst(float4 x, float4 z, float4 t, FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened)
+        public static float4 SampleHeightXZT(float4 x, float4 z, float4 t, FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened)
         {
             // Temporal lerp
             var t01 = t / parameters._period;
@@ -164,40 +164,49 @@ namespace Crest
             float4 result = 0f;
             for (var lod = parameters._firstLod; lod < parameters._lodCount; lod++)
             {
-                // Spatial lerp data
-                SpatialInterpolationData lerpData = new SpatialInterpolationData();
-                CalculateSamplingData(x, z, ref lerpData, in parameters, lod);
+                SampleDisplacementFromXZ(x, z, lod, f0, parameters, in framesFlattened, out var _, out var dispY0, out var _);
+                SampleDisplacementFromXZ(x, z, lod, f1, parameters, in framesFlattened, out var _, out var dispY1, out var _);
 
-                var h0 = SampleHeightBurst(ref lerpData, lod, f0, parameters, in framesFlattened);
-                var h1 = SampleHeightBurst(ref lerpData, lod, f1, parameters, in framesFlattened);
-
-                result += math.lerp(h0, h1, alphaT);
+                result += math.lerp(dispY0, dispY1, alphaT);
             }
 
             return result;
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static float4 SampleHeightBurst(ref SpatialInterpolationData lerpData, int lodIdx, int4 frameIndex, FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened)
+        static float4 InterpolateData(in NativeArray<half> framesFlattened, in SpatialInterpolationData lerpData, in FFTBakedDataParametersMultiRes parameters, in int lodIdx, in int4 frameIndex, in int channelIdx)
         {
             // lookup 4 values
             var textureResolution2 = parameters._textureResolution * parameters._textureResolution;
             var lodOffset = lodIdx - parameters._firstLod;
             var indexBase = kFloatsPerPoint * frameIndex * textureResolution2 * parameters._lodCount + kFloatsPerPoint * textureResolution2 * lodOffset;
-            var channelOffset = 1 % kFloatsPerPoint;
 
+            // It may be that we can do a bunch of these calculations just once and store in SpatialInterpolationData
             var rowLength = kFloatsPerPoint * parameters._textureResolution;
-            var h00 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * rowLength + lerpData._U0 * kFloatsPerPoint + channelOffset);
-            var h10 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * rowLength + lerpData._U1 * kFloatsPerPoint + channelOffset);
-            var h01 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * rowLength + lerpData._U0 * kFloatsPerPoint + channelOffset);
-            var h11 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * rowLength + lerpData._U1 * kFloatsPerPoint + channelOffset);
+            var v00 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * rowLength + lerpData._U0 * kFloatsPerPoint + channelIdx);
+            var v10 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * rowLength + lerpData._U1 * kFloatsPerPoint + channelIdx);
+            var v01 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * rowLength + lerpData._U0 * kFloatsPerPoint + channelIdx);
+            var v11 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * rowLength + lerpData._U1 * kFloatsPerPoint + channelIdx);
 
-            // lerp u direction first
-            var h_0 = math.lerp(h00, h10, lerpData._alphaU);
-            var h_1 = math.lerp(h01, h11, lerpData._alphaU);
+            // Lerp u direction first
+            var v_0 = math.lerp(v00, v10, lerpData._alphaU);
+            var v_1 = math.lerp(v01, v11, lerpData._alphaU);
 
-            // lerp v direction
-            return math.lerp(h_0, h_1, lerpData._alphaV);
+            // Lerp v direction
+            return math.lerp(v_0, v_1, lerpData._alphaV);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void SampleDisplacementFromXZ(in float4 x, in float4 z, in int lodIdx, in int4 frameIndex, in FFTBakedDataParametersMultiRes parameters, in NativeArray<half> framesFlattened, out float4 dispX, out float4 dispY, out float4 dispZ)
+        {
+            // Spatial lerp data
+            SpatialInterpolationData lerpData = new SpatialInterpolationData();
+            CalculateSamplingData(x, z, ref lerpData, in parameters, lodIdx);
+
+            dispX = InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 0);
+            dispY = InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 1);
+            dispZ = InterpolateData(framesFlattened, lerpData, parameters, lodIdx, frameIndex, 2);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

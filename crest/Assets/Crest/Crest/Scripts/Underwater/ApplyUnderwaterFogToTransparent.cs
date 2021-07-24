@@ -7,14 +7,13 @@ namespace Crest
     using System.Collections.Generic;
     using UnityEngine;
 
-    // TODO: Maybe rename.
-    public class RegisterUnderwaterInput : MonoBehaviour
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Apply Underwater Fog To Transparent")]
+    public class ApplyUnderwaterFogToTransparent : MonoBehaviour
     {
         [Tooltip("If enabled, the depth fog will be correctly blended with the object's color at the performance cost of an extra texture copy/blit.")]
         [SerializeField]
         internal bool _highQuality;
-
-        public static readonly List<RegisterUnderwaterInput> s_Renderers = new List<RegisterUnderwaterInput>();
+        public static readonly List<ApplyUnderwaterFogToTransparent> s_Renderers = new List<ApplyUnderwaterFogToTransparent>();
         internal Renderer _renderer;
 
         void OnEnable()

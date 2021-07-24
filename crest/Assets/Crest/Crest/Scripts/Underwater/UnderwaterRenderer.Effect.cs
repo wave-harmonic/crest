@@ -34,7 +34,7 @@ namespace Crest
             internal Vector3[] _shDirections = { new Vector3(0.0f, 0.0f, 0.0f) };
         }
 
-        CrestSortedList<float, RegisterUnderwaterInput> _registry = new CrestSortedList<float, RegisterUnderwaterInput>(new TransparentRenderOrderComparer());
+        CrestSortedList<float, ApplyUnderwaterFogToTransparent> _registry = new CrestSortedList<float, ApplyUnderwaterFogToTransparent>(new TransparentRenderOrderComparer());
 
         internal class TransparentRenderOrderComparer : IComparer<float>
         {
@@ -114,7 +114,7 @@ namespace Crest
 
             // Add renderers if within frustum and sort transparency as Unity does.
             _registry.Clear();
-            foreach (var input in RegisterUnderwaterInput.s_Renderers)
+            foreach (var input in ApplyUnderwaterFogToTransparent.s_Renderers)
             {
                 // Disabled renderer means we control the rendering.
                 if (!input._renderer.enabled && GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, input._renderer.bounds))

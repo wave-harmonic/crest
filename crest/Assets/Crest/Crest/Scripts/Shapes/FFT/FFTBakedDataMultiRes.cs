@@ -45,6 +45,11 @@ namespace Crest
         public half _smallestValue;
         public half _largestValue;
 
+        // Note - we dont use the 4th channel and should remove it if possible.
+        // also, FPI will only need X&Z, not Y, so it may be best to store X&Z in one
+        // array and Y in a separate one.
+        public const int kFloatsPerPoint = 4;
+
         public void OnEnable()
         {
             InitData();
@@ -53,10 +58,11 @@ namespace Crest
         // Note that this is called when entering play mode, so it has to be as fast as possible
         private void InitData()
         {
-            if (_framesFlattenedNative.Length > 0) // already loaded
+            // Already loaded, or no data yet
+            if (_framesFlattenedNative.Length > 0 || _framesFlattened == null)
                 return;
 
-            Debug.Log(_framesFlattened.Length * 4);
+            //Debug.Log(_framesFlattened.Length * 4);
             _framesFlattenedNative = new NativeArray<half>(_framesFlattened, Allocator.Persistent);
         }
 
@@ -177,12 +183,14 @@ namespace Crest
             // lookup 4 values
             var textureResolution2 = parameters._textureResolution * parameters._textureResolution;
             var lodOffset = lodIdx - parameters._firstLod;
-            var indexBase = frameIndex * textureResolution2 * parameters._lodCount + textureResolution2 * lodOffset;
+            var indexBase = kFloatsPerPoint * frameIndex * textureResolution2 * parameters._lodCount + kFloatsPerPoint * textureResolution2 * lodOffset;
+            var channelOffset = 1 % kFloatsPerPoint;
 
-            var h00 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * parameters._textureResolution + lerpData._U0);
-            var h10 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * parameters._textureResolution + lerpData._U1);
-            var h01 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * parameters._textureResolution + lerpData._U0);
-            var h11 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * parameters._textureResolution + lerpData._U1);
+            var rowLength = kFloatsPerPoint * parameters._textureResolution;
+            var h00 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * rowLength + lerpData._U0 * kFloatsPerPoint + channelOffset);
+            var h10 = ElementsAt(framesFlattened, indexBase + lerpData._V0 * rowLength + lerpData._U1 * kFloatsPerPoint + channelOffset);
+            var h01 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * rowLength + lerpData._U0 * kFloatsPerPoint + channelOffset);
+            var h11 = ElementsAt(framesFlattened, indexBase + lerpData._V1 * rowLength + lerpData._U1 * kFloatsPerPoint + channelOffset);
 
             // lerp u direction first
             var h_0 = math.lerp(h00, h10, lerpData._alphaU);

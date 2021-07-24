@@ -31,11 +31,11 @@ namespace Crest
             var waveCombineShader = Resources.Load<ComputeShader>("FFT/FFTBake");
             var kernel = waveCombineShader.FindKernel("FFTBakeMultiRes");
 
-            var bakedWaves = new RenderTexture(fftWaves._resolution, fftWaves._resolution * lodCount, 1, RenderTextureFormat.RFloat, 0);
+            var bakedWaves = new RenderTexture(fftWaves._resolution, fftWaves._resolution * lodCount, 1, RenderTextureFormat.ARGBFloat, 0);
             bakedWaves.enableRandomWrite = true;
             bakedWaves.Create();
 
-            var stagingTexture = new Texture2D(fftWaves._resolution, fftWaves._resolution * lodCount, TextureFormat.RHalf, false, true);
+            var stagingTexture = new Texture2D(fftWaves._resolution, fftWaves._resolution * lodCount, TextureFormat.RGBAHalf, false, true);
 
             var frameCount = (int)(resolutionTime * loopPeriod);
             var frames = new half[frameCount][];
@@ -83,6 +83,7 @@ namespace Crest
             }
 
             var framesFlattened = frames.SelectMany(x => x).ToArray();
+            //Debug.Log($"Width: {fftWaves._resolution}, frame count: {frameCount}, slices: {lodCount}, floats per frame: {frames[0].Length}, total floats: {framesFlattened.Length}");
 
             var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedDataMultiRes>();
             var framesAsFloats = framesFlattened.Select(x => (float)x);

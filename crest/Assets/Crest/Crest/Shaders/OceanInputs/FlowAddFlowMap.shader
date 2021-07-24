@@ -12,6 +12,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 		[Toggle] _FlipZ("Flip Z", Float) = 0
 		[Toggle] _FeatherAtUVExtents("Feather At UV Extents", Float) = 0
 		_FeatherWidth("Feather Width", Range(0.001, 0.5)) = 0.1
+		[Toggle] _ApplyRotation("Apply Transform XZ Rotation", Float) = 0
 	}
 
 	SubShader
@@ -28,6 +29,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 			#pragma shader_feature_local _FLIPX_ON
 			#pragma shader_feature_local _FLIPZ_ON
 			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
+			#pragma shader_feature_local _APPLYROTATION_ON
 
 			#include "UnityCG.cginc"
 
@@ -82,6 +84,11 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 				float2 offset = abs(input.uv - 0.5);
 				float r_l1 = max(offset.x, offset.y);
 				strength *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
+#endif
+
+#if _APPLYROTATION_ON
+				// Apply rotation.
+				flow = normalize(flow.y * unity_ObjectToWorld._m00_m20 - flow.x * unity_ObjectToWorld._m02_m22);
 #endif
 
 				return float4(flow * strength, 0.0, 0.0);

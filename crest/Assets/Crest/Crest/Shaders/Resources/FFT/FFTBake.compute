@@ -5,62 +5,27 @@
 #pragma kernel FFTBakeMultiRes
 
 Texture2DArray<float3> _InFFTWaves;
-SamplerState sampler_linear_repeat;
-
-RWTexture2D<float4> _OutHeights;
+RWTexture2D<float4> _OutDisplacements;
 
 float _WavePatchSize;
 float _BakeTime;
 int _MinSlice;
 
-float3 CalculateDisplacement( float2 worldPosXZ, int fftSlices )
-{
-	float3 result = 0.0;
-	for( int slice = 0; slice < fftSlices; slice++ )
-	{
-		const float sliceWorldSize = 0.5 * (1 << slice);
-		const float3 waveUV = float3(worldPosXZ / sliceWorldSize, slice);
-		result += _InFFTWaves.SampleLevel( sampler_linear_repeat, waveUV, 0 );
-	}
-	return result;
-}
-
 [numthreads( 8, 8, 1 )]
-void FFTBakeMultiRes( uint3 id : SV_DispatchThreadID )
+void FFTBakeMultiRes( const uint3 id : SV_DispatchThreadID )
 {
+	// Read dimensions
 	int fftRes;
-	int fftSlices;
-	{
-		int dummyi;
-		_InFFTWaves.GetDimensions( fftRes, dummyi, fftSlices );
-	}
-
 	int outHeight;
 	{
 		int dummyi;
-		_OutHeights.GetDimensions( dummyi, outHeight );
+		_InFFTWaves.GetDimensions( fftRes, dummyi, dummyi );
+		_OutDisplacements.GetDimensions( dummyi, outHeight );
 	}
 
+	// Compute index of current slice
 	int slice = _MinSlice + id.y / fftRes;
 
-	_OutHeights[id.xy] = float4(_InFFTWaves[uint3(id.x, id.y % fftRes, slice)].xyz, 0.0);
-	
-	//_OutHeights[id.xy] = sin( id.x + _BakeTime );
-	
-	//if( _OutHeights[id.xy] < 0. )_OutHeights[id.xy] = 0.;
-
-	//const float2 uv = (id.xy + 0.5) / float2(dimX, dimY);
-	//const float2 worldPosXZ = uv * _WavePatchSize;
-
-	//float2 curPosXZ = worldPosXZ;
-	//float3 disp = CalculateDisplacement( worldPosXZ, fftSlices );
-
-	//// Fixed point iteration with large iteration count.
-	//for( int i = 0; i < 8; i++ )
-	//{
-	//	curPosXZ -= (curPosXZ + disp.xz - worldPosXZ);
-	//	disp = CalculateDisplacement( curPosXZ, fftSlices );
-	//}
-
-	//_OutHeights[id.xy] = disp.y;
+	// Return displacement
+	_OutDisplacements[id.xy] = float4(_InFFTWaves[uint3(id.x, id.y % fftRes, slice)].xyz, 0.0);
 }

@@ -65,7 +65,7 @@ namespace Crest
                 buf.SetComputeFloatParam(waveCombineShader, "_BakeTime", t);
                 buf.SetComputeIntParam(waveCombineShader, "_MinSlice", firstLod);
                 buf.SetComputeTextureParam(waveCombineShader, kernel, "_InFFTWaves", fftWaveDataTA);
-                buf.SetComputeTextureParam(waveCombineShader, kernel, "_OutHeights", bakedWaves);
+                buf.SetComputeTextureParam(waveCombineShader, kernel, "_OutDisplacements", bakedWaves);
                 buf.DispatchCompute(waveCombineShader, kernel, bakedWaves.width / 8, bakedWaves.height / 8, 1);
 
                 Graphics.ExecuteCommandBuffer(buf);

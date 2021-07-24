@@ -86,11 +86,8 @@ namespace Crest
                 SubmitDraws(lodIdx, buf);
             }
 
-            // targets have now been cleared, we can early out next time around
-            if (drawList.Count == 0)
-            {
-                _targetsClear = true;
-            }
+            // Targets are only clear if nothing was drawn
+            _targetsClear = drawList.Count == 0;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Flow";

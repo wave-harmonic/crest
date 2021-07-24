@@ -25,7 +25,7 @@ namespace Crest
 
         const float s_finiteDiffDx = 0.1f;
         const float s_finiteDiffDt = 0.06f;
-        const int s_jobBatchSize = 12;
+        const int s_jobBatchSize = 8;
 
         public CollProviderBakedFFT(FFTBakedDataMultiRes data)
         {

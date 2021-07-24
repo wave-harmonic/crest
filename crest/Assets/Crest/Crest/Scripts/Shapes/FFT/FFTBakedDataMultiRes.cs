@@ -163,16 +163,11 @@ namespace Crest
             var f1 = (f0 + 1) % parameters._frameCount;
             var alphaT = t01 * parameters._frameCount - f0;
 
-            // sum up waves for all lods
-            float4 result = 0f;
-            {
-                var dispY0 = SampleHeightXZWithInvert(x, z, f0, parameters, in framesFlattened);
-                var dispY1 = SampleHeightXZWithInvert(x, z, f1, parameters, in framesFlattened);
+            // Compute height at each time and interpolate
+            var dispY0 = SampleHeightXZWithInvert(x, z, f0, parameters, in framesFlattened);
+            var dispY1 = SampleHeightXZWithInvert(x, z, f1, parameters, in framesFlattened);
 
-                result += math.lerp(dispY0, dispY1, alphaT);
-            }
-
-            return result;
+            return math.lerp(dispY0, dispY1, alphaT);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

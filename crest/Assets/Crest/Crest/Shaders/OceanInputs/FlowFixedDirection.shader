@@ -8,6 +8,8 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 	{
 		_Speed("Speed", Range(0.0, 10.0)) = 1.0
 		_Direction("Direction", Range(0.0, 1.0)) = 0.0
+		[Toggle] _FeatherAtUVExtents("Feather At UV Extents", Float) = 0
+		_FeatherWidth("Feather Width", Range(0.001, 0.5)) = 0.1
 	}
 
 	SubShader
@@ -18,23 +20,32 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
+
 			#include "UnityCG.cginc"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Speed;
 			float _Direction;
 			float3 _DisplacementAtInputPosition;
+			half _FeatherWidth;
 			CBUFFER_END
 
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
+#if _FEATHERATUVEXTENTS_ON
+				float2 uv : TEXCOORD0;
+#endif
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
 				float2 vel : TEXCOORD0;
+#if _FEATHERATUVEXTENTS_ON
+				float2 uv : TEXCOORD1;
+#endif
 			};
 
 			Varyings Vert(Attributes input)
@@ -47,13 +58,25 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 
 				o.vel = _Speed * float2(cos(_Direction * 6.283185), sin(_Direction * 6.283185));
-				
+
+#if _FEATHERATUVEXTENTS_ON
+				o.uv = input.uv;
+#endif
+
 				return o;
 			}
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				return float4(input.vel, 0.0, 0.0);
+				float2 flow = input.vel;
+
+#if _FEATHERATUVEXTENTS_ON
+				float2 offset = abs(input.uv - 0.5);
+				float r_l1 = max(offset.x, offset.y);
+				flow *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
+#endif
+
+				return float4(flow, 0.0, 0.0);
 			}
 			ENDCG
 		}

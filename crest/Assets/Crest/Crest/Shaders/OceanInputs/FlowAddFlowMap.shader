@@ -10,6 +10,8 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 		_Strength( "Strength", float ) = 1
 		[Toggle] _FlipX("Flip X", Float) = 0
 		[Toggle] _FlipZ("Flip Z", Float) = 0
+		[Toggle] _FeatherAtUVExtents("Feather At UV Extents", Float) = 0
+		_FeatherWidth("Feather Width", Range(0.001, 0.5)) = 0.1
 	}
 
 	SubShader
@@ -25,6 +27,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 
 			#pragma shader_feature_local _FLIPX_ON
 			#pragma shader_feature_local _FLIPZ_ON
+			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
 
 			#include "UnityCG.cginc"
 
@@ -34,6 +37,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 			float4 _FlowMap_ST;
 			float _Strength;
 			float3 _DisplacementAtInputPosition;
+			half _FeatherWidth;
 			CBUFFER_END
 
 			struct Attributes
@@ -56,7 +60,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 				// Correct for displacement
 				worldPos.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
-				
+
 				o.uv = TRANSFORM_TEX(input.uv, _FlowMap);
 				return o;
 			}
@@ -72,7 +76,15 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 				flow.y *= -1.0;
 #endif
 
-				return float4(flow * _Strength, 0.0, 0.0);
+				float strength = _Strength;
+
+#if _FEATHERATUVEXTENTS_ON
+				float2 offset = abs(input.uv - 0.5);
+				float r_l1 = max(offset.x, offset.y);
+				strength *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
+#endif
+
+				return float4(flow * strength, 0.0, 0.0);
 			}
 
 			ENDCG

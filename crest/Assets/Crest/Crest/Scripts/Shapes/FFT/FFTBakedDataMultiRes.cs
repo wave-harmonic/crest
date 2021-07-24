@@ -71,7 +71,7 @@ namespace Crest
             _framesFlattenedNative = new NativeArray<half>(_framesFlattened, Allocator.Persistent);
         }
 
-        public void Initialize(float period, int textureResolution, int firstLod, int lodCount, float worldSize, int frameCount, half smallestValue, half largestValue, half[] framesFlattened)
+        public void Initialize(float period, int textureResolution, int firstLod, int lodCount, int frameCount, half smallestValue, half largestValue, half[] framesFlattened)
         {
             _parameters = new FFTBakedDataParametersMultiRes()
             {

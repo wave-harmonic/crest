@@ -16,8 +16,7 @@ namespace Crest
 {
     public class FFTBaker
     {
-        public static FFTBakedDataMultiRes BakeMultiRes(ShapeFFT fftWaves, int firstLod, int lodCount, int resolutionTime, float wavePatchSize,
-            float loopPeriod)
+        public static FFTBakedDataMultiRes BakeMultiRes(ShapeFFT fftWaves, int firstLod, int lodCount, int resolutionTime, float loopPeriod)
         {
             // Need min scale, maybe max too - unlikely to need 16 orders of magnitude
 
@@ -92,7 +91,6 @@ namespace Crest
                 fftWaves._resolution,
                 firstLod,
                 lodCount,
-                wavePatchSize,
                 frames.Length,
                 new half(framesAsFloats.Min()),
                 new half(framesAsFloats.Max()),

@@ -101,7 +101,7 @@ namespace Crest
         [Tooltip("Enable running this FFT with baked data. This makes the FFT periodic (repeating in time).")]
         public bool _enableBakedCollision = false;
         [Tooltip("Frames per second of baked data. Larger values generate more frames and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
-        public int _timeResolution = 32;
+        public int _timeResolution = 4;
         [Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
         public float _smallestWavelengthRequired = 2f;
         [Tooltip("FFT waves will loop with a periodic of this many seconds."), DecoratedField, Predicated("_enableBakedCollision"), Range(4f, 128f), Delayed]
@@ -397,78 +397,32 @@ namespace Crest
             }
         }
 
-        internal float CalculateWaveCascadeSize(float wavelengthUpperBound)
-        {
-            for (var cascadeIdx = 0; cascadeIdx < FFTCompute.CASCADE_COUNT; cascadeIdx++)
-            {
-                // Used everywhere as the size of a wave gen cascade
-                var size = 0.5f * (1 << cascadeIdx);
-                // Break when this cascade is sufficient (>= because waves wont quite reach maxWavelength, see
-                // note above). Cascades do not contain all low frequencies - longer wavelengths are provided by
-                // larger cascades.
-                if (0.25f * size >= wavelengthUpperBound)
-                {
-                    return size;
-                }
-            }
-
-            return 0.5f * (1 << (FFTCompute.CASCADE_COUNT - 1));
-        }
-
-        internal static int CalculateBakeResolution(int fftResolution, int smallestSpectrumOctaveRequired, int largestSpectrumOctaveRequired)
-        {
-            // At minimum, required res of FFT
-            var requiredRes = fftResolution;
-            // However we are also baking out some number of smaller cascades, each has double the resolution
-            requiredRes *= 1 << (largestSpectrumOctaveRequired - smallestSpectrumOctaveRequired);
-            //Debug.Log($"Start res {_resolution}, doubled {2 * _resolution}, multiplied {requiredRes}");
-
-            return requiredRes;
-        }
-
         public FFTBakedDataMultiRes Bake()
         {
             ComputeRequiredOctaves(_spectrum, _smallestWavelengthRequired, out var smallestOctaveRequired, out var largestOctaveRequired);
 
-            //if (largestOctaveRequired == -1 || smallestOctaveRequired == -1 || smallestOctaveRequired > largestOctaveRequired)
-            //{
-            //    Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", this);
-            //    return null;
-            //}
-
-            // Max wavelength is upper bound, waves would scale up to this value but not quite hitting it
-            var wavelengthUpperBound = 2f * Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + largestOctaveRequired);
-            //Debug.Log($"Max wl: {maxWavelength}");
-
-            var requiredRes = CalculateBakeResolution(_resolution, smallestOctaveRequired, largestOctaveRequired);
-
-            if (requiredRes > 512)
+            if (largestOctaveRequired == -1 || smallestOctaveRequired == -1 || smallestOctaveRequired > largestOctaveRequired)
             {
-                Debug.LogWarning("Crest: Desired res too high {requiredRes}, clamped at 512.", this);
-                requiredRes = 512;
+                Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", this);
+                return null;
             }
 
-            // slice size = 0.5 * 2^idx
-            var patchSize = CalculateWaveCascadeSize(wavelengthUpperBound);
-            //var baked = FFTBaker.Bake(this, requiredRes, _timeResolution, patchSize, LoopPeriod);
-
-            // TODO - work out which slices
-            // min WL is _smallestWavelengthRequired
-            // slice width 4m
-            // slice res 16
-            // 2 samples is 2 * 4 / 16 = 0.5m
-            // smallest WL is 0.5m
-            // largest WL is 1.0m
-            // _smallestWavelengthRequired = 2 * sliceWidth / sliceRes;
-            // sliceWidth = sliceRes * _smallestWavelengthRequired / 2f;
-            // 0.5 * 2 ^ idx = sliceRes * _smallestWavelengthRequired / 2f;
-            // 2 ^ idx = sliceRes * _smallestWavelengthRequired;
-            // idx = log2(sliceRes * _smallestWavelengthRequired);
+            // Assuming two samples per wave, then:
+            // _smallestWavelengthRequired = 2 * sliceWidth / sliceRes
+            //     sliceWidth = sliceRes * _smallestWavelengthRequired / 2f
+            //     0.5 * 2 ^ idx = sliceRes * _smallestWavelengthRequired / 2f
+            //     2 ^ idx = sliceRes * _smallestWavelengthRequired
+            //     idx = log2(sliceRes * _smallestWavelengthRequired)
             var firstLod = Mathf.RoundToInt(Mathf.Log(_smallestWavelengthRequired * _resolution, 2f));
-            //Debug.Log("First lod: " + firstLod);
-            // TODO - compute largest lod idx from spectrum, rather than always including all
-            var lodCount = FFTCompute.CASCADE_COUNT - firstLod;
-            var baked = FFTBaker.BakeMultiRes(this, firstLod, lodCount, _timeResolution, patchSize, LoopPeriod);
+
+            // Compute how many cascades are needed. Both the spectrum octaves and the wave cascades increase
+            // in powers of 2, so use the spectrum count.
+            ComputeRequiredOctaves(_spectrum, _smallestWavelengthRequired, out var smallestOctaveIndex, out var largestOctaveIndex);
+            // A single spectrum bar adds wavelengths before and after the bar i.e. two scales, so relationship
+            // is the following:
+            var lodCount = largestOctaveIndex - smallestOctaveIndex + 2;
+
+            var baked = FFTBaker.BakeMultiRes(this, firstLod, lodCount, _timeResolution, LoopPeriod);
 
             // TODO: Prob should not merge in master..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;
@@ -514,30 +468,22 @@ namespace Crest
                 return;
             }
 
-            message += "BAKED FRAME RESOLUTION: ";
-
             message += $"FFT resolution is {target._resolution}.";
-
-            var scales = largestOctaveRequired - smallestOctaveRequired + 1;
-            message += $" Spectrum power sliders give {scales} active octaves greater than smallest wavelength {target._smallestWavelengthRequired}m.";
-
-            message += $" Bake spatial resolution will be {target._resolution} x 2^{scales} = {ShapeFFT.CalculateBakeResolution(target._resolution, smallestOctaveRequired, largestOctaveRequired)}";
+            message += $" Spectrum power sliders give {largestOctaveRequired - smallestOctaveRequired + 1} active octaves greater than smallest wavelength {target._smallestWavelengthRequired}m.";
+            var scales = largestOctaveRequired - smallestOctaveRequired + 2;
+            message += $" Bake data resolution will be {target._resolution} x {target._resolution} x {scales}.";
 
             message += "\n\n";
-            message += "SIZE IN WORLD: ";
-
-            var maxWavelength = 2f * Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + largestOctaveRequired);
-            message += $"Largest wavelength in spectrum is {maxWavelength}m.";
-
-            var patchSize = target.CalculateWaveCascadeSize(maxWavelength);
-            message += $" At FFT resolution {target._resolution}, wave cascade containing largest wavelength is size {patchSize}m.";
-
-            message += "\n\n";
-            message += "BAKED FRAME COUNT: ";
-
-            message += $"Period is {16}s.";
+            message += $"Period is {target._timeLoopLength}s.";
             message += $" Frames per second setting is {target._timeResolution}.";
-            message += $" Frame count is {16} x {target._timeResolution} = {16 * target._timeResolution}.";
+            var frameCount = target._timeLoopLength * target._timeResolution;
+            message += $" Frame count is {target._timeLoopLength} x {target._timeResolution} = {frameCount}.";
+
+            message += "\n\n";
+            var pointsPerFrame = target._resolution * target._resolution * scales;
+            var channelCount = 4;
+            var bytesPerChannel = 4;
+            message += $"Total data size will be {pointsPerFrame * frameCount * channelCount * bytesPerChannel / 1048576f} MB.";
 
             EditorGUILayout.HelpBox(message, MessageType.Info);
         }

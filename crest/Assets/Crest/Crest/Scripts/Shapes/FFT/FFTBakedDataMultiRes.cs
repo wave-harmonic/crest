@@ -217,7 +217,8 @@ namespace Crest
             dispX = dispY = dispZ = float4.zero;
 
             // Spatial lerp data
-            for (var lodIdx = parameters._firstLod; lodIdx < parameters._lodCount; lodIdx++)
+            var lastLod = parameters._firstLod + parameters._lodCount;
+            for (var lodIdx = parameters._firstLod; lodIdx < lastLod; lodIdx++)
             {
                 SpatialInterpolationData lerpData = new SpatialInterpolationData();
                 CalculateSamplingData(x, z, ref lerpData, in parameters, lodIdx);

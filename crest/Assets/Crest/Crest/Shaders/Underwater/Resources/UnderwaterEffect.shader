@@ -45,6 +45,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	{
 		Pass
 		{
+			// Fullscreen effect which includes underwater fog, caustics etc.
+			Name "Underwater Effect"
+
 			// No culling or depth
 			Cull Off ZWrite Off ZTest Always
 
@@ -124,6 +127,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 		Pass
 		{
+			// Applies underwater fog to objects.
+			Name "Underwater Fog"
+
 			// NOTE: Disabling culling won't work correctly for some instances and culling won't work for some instances.
 			Cull Back ZWrite Off ZTest LEqual
 			Blend SrcAlpha OneMinusSrcAlpha
@@ -181,6 +187,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 				const half3 view = normalize(_WorldSpaceCameraPos - input.positionWS);
 				const float2 uv = input.positionSS.xy / input.positionSS.w;
+				// Get the alpha from the texture so we match object.
 				const half alpha = tex2D(_MainTex, input.uv).a;
 
 				float4 horizonPositionNormal; bool isBelowHorizon;

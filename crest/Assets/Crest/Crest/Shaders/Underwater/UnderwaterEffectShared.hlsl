@@ -95,7 +95,7 @@ void GetOceanSurfaceAndUnderwaterData(
 )
 {
 	isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (rawDepth < rawOceanDepth + oceanDepthTolerance);
-	isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+	isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW;
 	// Merge ocean depth with scene depth.
 	rawDepth = isOceanSurface ? rawOceanDepth : rawDepth;
 	sceneZ = CrestLinearEyeDepth(rawDepth);

@@ -88,8 +88,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-				float4 horizonPositionNormal; bool isBelowHorizon;
-				GetHorizonData(input.uv, horizonPositionNormal, isBelowHorizon);
+				// float4 horizonPositionNormal; bool isBelowHorizon;
+				// GetHorizonData(input.uv, horizonPositionNormal, isBelowHorizon);
+				bool isBelowHorizon = true;
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
@@ -100,7 +101,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				bool isOceanSurface; bool isUnderwater; float sceneZ;
 				GetOceanSurfaceAndUnderwaterData(rawOceanDepth, mask, isBelowHorizon, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
-				float wt = ComputeMeniscusWeight(uvScreenSpace, mask, horizonPositionNormal, sceneZ);
+				float wt = 1; // ComputeMeniscusWeight(uvScreenSpace, mask, horizonPositionNormal, sceneZ);
 
 #if _DEBUG_VIEW_OCEAN_MASK
 				return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);

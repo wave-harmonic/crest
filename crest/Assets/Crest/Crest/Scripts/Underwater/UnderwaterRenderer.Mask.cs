@@ -24,11 +24,19 @@ namespace Crest
         RenderTexture _maskTexture;
         RenderTexture _depthTexture;
 
+        Mesh _sphereMesh;
+        Material _sphereMaterial;
+
         void SetupOceanMask()
         {
             if (_oceanMaskMaterial?.material == null)
             {
                 _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
+            }
+
+            if (_sphereMaterial == null)
+            {
+                _sphereMaterial = new Material(Shader.Find("Hidden/Crest/Underwater/Sphere"));
             }
 
             if (_oceanMaskCommandBuffer == null)
@@ -53,6 +61,14 @@ namespace Crest
             _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTexture.colorBuffer);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTexture.depthBuffer);
+
+            if (_sphereMesh == null)
+            {
+                _sphereMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+            }
+
+            var matrix = Matrix4x4.TRS(_camera.transform.position, Quaternion.identity, Vector3.one * 1000);
+            _oceanMaskCommandBuffer.DrawMesh(_sphereMesh, matrix, _sphereMaterial, submeshIndex: 0, shaderPass: 0);
 
             PopulateOceanMask(
                 _oceanMaskCommandBuffer,

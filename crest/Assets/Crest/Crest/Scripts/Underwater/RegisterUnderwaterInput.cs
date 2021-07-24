@@ -10,15 +10,19 @@ namespace Crest
     // TODO: Maybe rename.
     public class RegisterUnderwaterInput : MonoBehaviour
     {
-        public static readonly List<Renderer> s_Renderers = new List<Renderer>();
-        Renderer _renderer;
+        [Tooltip("If enabled, the depth fog will be correctly blended with the object's color at the performance cost of an extra texture copy/blit.")]
+        [SerializeField]
+        internal bool _highQuality;
+
+        public static readonly List<RegisterUnderwaterInput> s_Renderers = new List<RegisterUnderwaterInput>();
+        internal Renderer _renderer;
 
         void OnEnable()
         {
-            if (TryGetComponent(out _renderer) && !s_Renderers.Contains(_renderer))
+            if (TryGetComponent(out _renderer) && !s_Renderers.Contains(this))
             {
                 _renderer.enabled = false;
-                s_Renderers.Add(_renderer);
+                s_Renderers.Add(this);
             }
         }
 
@@ -33,10 +37,10 @@ namespace Crest
 
         void OnDisable()
         {
-            if (_renderer != null && s_Renderers.Contains(_renderer))
+            if (_renderer != null && s_Renderers.Contains(this))
             {
                 _renderer.enabled = true;
-                s_Renderers.Remove(_renderer);
+                s_Renderers.Remove(this);
             }
         }
     }

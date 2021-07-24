@@ -34,7 +34,7 @@ namespace Crest
             internal Vector3[] _shDirections = { new Vector3(0.0f, 0.0f, 0.0f) };
         }
 
-        CrestSortedList<float, Renderer> _registry = new CrestSortedList<float, Renderer>(new TransparentRenderOrderComparer());
+        CrestSortedList<float, RegisterUnderwaterInput> _registry = new CrestSortedList<float, RegisterUnderwaterInput>(new TransparentRenderOrderComparer());
 
         internal class TransparentRenderOrderComparer : IComparer<float>
         {
@@ -114,12 +114,12 @@ namespace Crest
 
             // Add renderers if within frustum and sort transparency as Unity does.
             _registry.Clear();
-            foreach (var renderer in RegisterUnderwaterInput.s_Renderers)
+            foreach (var input in RegisterUnderwaterInput.s_Renderers)
             {
                 // Disabled renderer means we control the rendering.
-                if (!renderer.enabled && GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, renderer.bounds))
+                if (!input._renderer.enabled && GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, input._renderer.bounds))
                 {
-                    _registry.Add(Vector3.Distance(_camera.transform.position, renderer.transform.position),  renderer);
+                    _registry.Add(Vector3.Distance(_camera.transform.position, input.transform.position), input);
                 }
             }
 
@@ -128,7 +128,8 @@ namespace Crest
 
             foreach (var registered in _registry)
             {
-                var renderer = registered.Value;
+                var input = registered.Value;
+                var renderer = input._renderer;
 
                 renderer.GetPropertyBlock(_materialPropertyBlock);
 
@@ -152,15 +153,27 @@ namespace Crest
                 LightProbeUtility.SetSHCoefficients(renderer.gameObject.transform.position, _materialPropertyBlock);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
 
-                // Render into temporary render texture so the effect shader will have colour to work with. I could not
-                // work out how to use GPU blending to apply the underwater fog correctly.
-                CopyTexture(_underwaterEffectCommandBuffer, temporaryColorBuffer, _camera);
-                _underwaterEffectCommandBuffer.SetRenderTarget(temporaryColorBuffer, 0, CubemapFace.Unknown, -1);
+                int shaderPass;
+
+                if (input._highQuality)
+                {
+                    // Render into temporary render texture so the effect shader will have colour to work with. I could not
+                    // work out how to use GPU blending to apply the underwater fog correctly.
+                    CopyTexture(_underwaterEffectCommandBuffer, temporaryColorBuffer, _camera);
+                    _underwaterEffectCommandBuffer.SetRenderTarget(temporaryColorBuffer, 0, CubemapFace.Unknown, -1);
+                    shaderPass = 2;
+                }
+                else
+                {
+                    _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+                    shaderPass = 1;
+                }
+
                 _underwaterEffectCommandBuffer.DrawRenderer(renderer, renderer.sharedMaterial, submeshIndex: 0, shaderPass: 0);
 
                 // Render the fog and apply to camera target.
                 _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-                _underwaterEffectCommandBuffer.DrawRenderer(renderer, _underwaterEffectMaterial.material, submeshIndex: 0, shaderPass: 1);
+                _underwaterEffectCommandBuffer.DrawRenderer(renderer, _underwaterEffectMaterial.material, submeshIndex: 0, shaderPass);
             }
 
             _underwaterEffectCommandBuffer.DisableShaderKeyword("LIGHTPROBE_SH");

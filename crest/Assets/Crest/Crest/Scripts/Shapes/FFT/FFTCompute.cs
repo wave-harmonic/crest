@@ -391,9 +391,15 @@ namespace Crest
 
         void OnGUIInternal()
         {
-            OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f, 20f);
+            if (_waveBuffers != null && _waveBuffers.IsCreated())
+            {
+                OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f, 20f);
+            }
 
-            GUI.DrawTexture(new Rect(0f, 0f, 100f, 10f), _texSpectrumControls);
+            if (_texSpectrumControls != null)
+            {
+                GUI.DrawTexture(new Rect(0f, 0f, 100f, 10f), _texSpectrumControls);
+            }
         }
     }
 }

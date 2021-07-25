@@ -397,7 +397,7 @@ namespace Crest
             }
         }
 
-        public FFTBakedDataMultiRes Bake()
+        public FFTBakedData Bake()
         {
             ComputeRequiredOctaves(_spectrum, _smallestWavelengthRequired, out var smallestOctaveRequired, out var largestOctaveRequired);
 
@@ -422,7 +422,7 @@ namespace Crest
             // is the following:
             var lodCount = largestOctaveIndex - smallestOctaveIndex + 2;
 
-            var baked = FFTBaker.BakeMultiRes(this, firstLod, lodCount, _timeResolution, LoopPeriod);
+            var baked = FFTBaker.Bake(this, firstLod, lodCount, _timeResolution, LoopPeriod);
 
             // TODO: Prob should not merge in master..?
             OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;

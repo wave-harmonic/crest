@@ -21,13 +21,13 @@ namespace Crest
             DataMissing,
         }
 
-        public FFTBakedDataMultiRes _data = null;
+        public FFTBakedData _data = null;
 
         const float s_finiteDiffDx = 0.1f;
         const float s_finiteDiffDt = 0.06f;
         const int s_jobBatchSize = 8;
 
-        public CollProviderBakedFFT(FFTBakedDataMultiRes data)
+        public CollProviderBakedFFT(FFTBakedData data)
         {
             Debug.Assert(data != null, "Crest: Baked data should not be null.");
             _data = data;
@@ -207,7 +207,7 @@ namespace Crest
             public float _t;
 
             [ReadOnly]
-            public FFTBakedDataParametersMultiRes _params;
+            public FFTBakedDataParameters _params;
 
             [ReadOnly]
             public float _seaLevel;
@@ -219,7 +219,7 @@ namespace Crest
             {
                 if (quadIndex >= _queryPointsX.Length) return;
 
-                _output[quadIndex] = _seaLevel + FFTBakedDataMultiRes.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened);
+                _output[quadIndex] = _seaLevel + FFTBakedData.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened);
             }
         }
 
@@ -241,7 +241,7 @@ namespace Crest
             public float _t;
 
             [ReadOnly]
-            public FFTBakedDataParametersMultiRes _params;
+            public FFTBakedDataParameters _params;
 
             [WriteOnly]
             public NativeArray<float3> _output;
@@ -253,9 +253,9 @@ namespace Crest
                 var x = _queryPointsX[quadIndex];
                 var z = _queryPointsZ[quadIndex];
 
-                var height = FFTBakedDataMultiRes.SampleHeightXZT(x, z, _t, _params, in _framesFlattened);
-                var height_dx = height - FFTBakedDataMultiRes.SampleHeightXZT(x + s_finiteDiffDx, z, _t, _params, in _framesFlattened);
-                var height_dz = height - FFTBakedDataMultiRes.SampleHeightXZT(x, z + s_finiteDiffDx, _t, _params, in _framesFlattened);
+                var height = FFTBakedData.SampleHeightXZT(x, z, _t, _params, in _framesFlattened);
+                var height_dx = height - FFTBakedData.SampleHeightXZT(x + s_finiteDiffDx, z, _t, _params, in _framesFlattened);
+                var height_dz = height - FFTBakedData.SampleHeightXZT(x, z + s_finiteDiffDx, _t, _params, in _framesFlattened);
                 
                 _output[math.mad(quadIndex, 4, 0)] = math.normalize(new float3(height_dx.x, s_finiteDiffDx, height_dz.x));
                 _output[math.mad(quadIndex, 4, 1)] = math.normalize(new float3(height_dx.y, s_finiteDiffDx, height_dz.y));
@@ -282,7 +282,7 @@ namespace Crest
             public float _t;
 
             [ReadOnly]
-            public FFTBakedDataParametersMultiRes _params;
+            public FFTBakedDataParameters _params;
 
             [WriteOnly]
             public NativeArray<float4> _output;
@@ -292,8 +292,8 @@ namespace Crest
                 if (quadIndex >= _queryPointsX.Length) return;
 
                 _output[quadIndex] =
-                    (FFTBakedDataMultiRes.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened)
-                    - FFTBakedDataMultiRes.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t - s_finiteDiffDt, _params, in _framesFlattened))
+                    (FFTBakedData.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened)
+                    - FFTBakedData.SampleHeightXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t - s_finiteDiffDt, _params, in _framesFlattened))
                     / s_finiteDiffDt;
             }
         }

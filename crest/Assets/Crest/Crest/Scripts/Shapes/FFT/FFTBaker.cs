@@ -14,9 +14,12 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    public class FFTBaker
+    public static class FFTBaker
     {
-        public static FFTBakedDataMultiRes BakeMultiRes(ShapeFFT fftWaves, int firstLod, int lodCount, int resolutionTime, float loopPeriod)
+        /// <summary>
+        /// Runs FFT for a bunch of time steps and saves all the resulting data to a scriptable object
+        /// </summary>
+        public static FFTBakedData Bake(ShapeFFT fftWaves, int firstLod, int lodCount, int resolutionTime, float loopPeriod)
         {
             // Need min scale, maybe max too - unlikely to need 16 orders of magnitude
 
@@ -84,7 +87,7 @@ namespace Crest
             var framesFlattened = frames.SelectMany(x => x).ToArray();
             //Debug.Log($"Width: {fftWaves._resolution}, frame count: {frameCount}, slices: {lodCount}, floats per frame: {frames[0].Length}, total floats: {framesFlattened.Length}");
 
-            var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedDataMultiRes>();
+            var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
             var framesAsFloats = framesFlattened.Select(x => (float)x);
             bakedDataSO.Initialize(
                 loopPeriod,

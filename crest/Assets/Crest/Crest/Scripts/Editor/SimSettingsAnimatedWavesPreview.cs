@@ -11,7 +11,7 @@ namespace Crest
         private int _frameToPreview = 0;
         private Object _previousTarget;
         private SimSettingsAnimatedWaves _targetAnimatedWaves => target as SimSettingsAnimatedWaves;
-        private FFTBakedDataMultiRes _targetBakedData => _targetAnimatedWaves?._bakedFFTData;
+        private FFTBakedData _targetBakedData => _targetAnimatedWaves?._bakedFFTData;
     
         public override bool HasPreviewGUI()
         {
@@ -52,12 +52,12 @@ namespace Crest
 
                 var rawDataNative = new NativeArray<float>(singleFrameSize * 4, Allocator.Temp);
                 
-                for (int i = 0; i < singleFrameSize / FFTBakedDataMultiRes.kFloatsPerPoint; i++)
+                for (int i = 0; i < singleFrameSize / FFTBakedData.kFloatsPerPoint; i++)
                 {
                     // map to 0-1 range for visualisation purposes
-                    var indexX = _frameToPreview * singleFrameSize + i * FFTBakedDataMultiRes.kFloatsPerPoint + 0;
-                    var indexY = _frameToPreview * singleFrameSize + i * FFTBakedDataMultiRes.kFloatsPerPoint + 1;
-                    var indexZ = _frameToPreview * singleFrameSize + i * FFTBakedDataMultiRes.kFloatsPerPoint + 2;
+                    var indexX = _frameToPreview * singleFrameSize + i * FFTBakedData.kFloatsPerPoint + 0;
+                    var indexY = _frameToPreview * singleFrameSize + i * FFTBakedData.kFloatsPerPoint + 1;
+                    var indexZ = _frameToPreview * singleFrameSize + i * FFTBakedData.kFloatsPerPoint + 2;
                     var alphaX = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, allFramesAllPixels[indexX]);
                     var alphaY = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, allFramesAllPixels[indexY]);
                     var alphaZ = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, allFramesAllPixels[indexZ]);

@@ -45,7 +45,7 @@ namespace Crest
         public bool PingPongCombinePass => _pingPongCombinePass;
 
         [Predicated("_collisionSource", true, 3), DecoratedField]
-        public FFTBakedDataMultiRes _bakedFFTData;
+        public FFTBakedData _bakedFFTData;
 
         /// <summary>
         /// Provides ocean shape to CPU.

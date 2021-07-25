@@ -129,6 +129,19 @@ namespace Crest
                     FixSetCollisionSourceToCompute
                 );
             }
+            else if (_collisionSource == CollisionSources.BakedFFT)
+            {
+                if (!Mathf.Approximately(_bakedFFTData._parameters._windSpeed * 3.6f, ocean._globalWindSpeed))
+                {
+                    showMessage
+                    (
+                        $"Wind speed on ocean component {ocean._globalWindSpeed} does not match wind speed of baked FFT data {_bakedFFTData._parameters._windSpeed * 3.6f}, collision shape may not match visual surface.",
+                        $"Set global wind speed on ocean component to {_bakedFFTData._parameters._windSpeed * 3.6f}.",
+                        ValidatedHelper.MessageType.Warning, ocean,
+                        FixOceanWindSpeed
+                    );
+                }
+            }
 
             return isValid;
         }
@@ -140,6 +153,18 @@ namespace Crest
                 Undo.RecordObject(OceanRenderer.Instance._simSettingsAnimatedWaves, "Set collision source to compute");
                 OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource = CollisionSources.ComputeShaderQueries;
                 EditorUtility.SetDirty(OceanRenderer.Instance._simSettingsAnimatedWaves);
+            }
+        }
+
+        internal static void FixOceanWindSpeed(SerializedObject settingsObject)
+        {
+            if (OceanRenderer.Instance != null
+                && OceanRenderer.Instance._simSettingsAnimatedWaves != null
+                && OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData != null)
+            {
+                Undo.RecordObject(OceanRenderer.Instance._simSettingsAnimatedWaves, "Set global wind speed to match baked data");
+                OceanRenderer.Instance._globalWindSpeed = OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData._parameters._windSpeed * 3.6f;
+                EditorUtility.SetDirty(OceanRenderer.Instance);
             }
         }
     }

@@ -126,6 +126,7 @@ namespace Crest
                 fftWaves._resolution,
                 firstLod,
                 lodCount,
+                fftWaves.WindSpeedForFFT,
                 frames.Length,
                 new half(framesAsFloats.Min()),
                 new half(framesAsFloats.Max()),

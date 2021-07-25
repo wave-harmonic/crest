@@ -19,6 +19,7 @@ namespace Crest
         public int _textureResolution;
         public int _firstLod;
         public int _lodCount;
+        public float _windSpeed;
     }
 
     [PreferBinarySerialization]
@@ -75,7 +76,7 @@ namespace Crest
             _framesFlattenedNative = new NativeArray<half>(_framesFlattened, Allocator.Persistent);
         }
 
-        public void Initialize(float period, int textureResolution, int firstLod, int lodCount, int frameCount, half smallestValue, half largestValue, half[] framesFlattened)
+        public void Initialize(float period, int textureResolution, int firstLod, int lodCount, float windSpeed, int frameCount, half smallestValue, half largestValue, half[] framesFlattened)
         {
             _parameters = new FFTBakedDataParameters()
             {
@@ -84,6 +85,7 @@ namespace Crest
                 _textureResolution = textureResolution,
                 _firstLod = firstLod,
                 _lodCount = lodCount,
+                _windSpeed = windSpeed,
             };
 
             _framesFlattened = framesFlattened;

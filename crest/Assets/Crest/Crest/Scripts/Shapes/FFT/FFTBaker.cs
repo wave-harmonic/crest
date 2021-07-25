@@ -6,6 +6,8 @@
 
 //#define CREST_DEBUG_DUMP_EXRS
 
+#if UNITY_EDITOR
+
 using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
@@ -74,16 +76,6 @@ namespace Crest
             var frameCount = (int)(resolutionTime * loopPeriod);
             var frames = new half[frameCount][];
 
-            const string folderName = "BakedWave";
-
-#if CREST_DEBUG_DUMP_EXRS
-            if (Directory.Exists(folderName))
-            {
-                Directory.Delete(folderName, true);
-            }
-            Directory.CreateDirectory(folderName);
-#endif
-
             for (int timeIndex = 0; timeIndex < frameCount; timeIndex++) // this means resolutionTime is actually FPS
             {
                 float t = timeIndex / (float)resolutionTime;
@@ -109,6 +101,12 @@ namespace Crest
                 stagingTexture.ReadPixels(new Rect(0, 0, bakedWaves.width, bakedWaves.height), 0, 0);
 
 #if CREST_DEBUG_DUMP_EXRS
+                const string folderName = "FFTBaker";
+                if (Directory.Exists(folderName))
+                {
+                    Directory.Delete(folderName, true);
+                }
+                Directory.CreateDirectory(folderName);
                 var encodedTexture = stagingTexture.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
                 File.WriteAllBytes($"{folderName}/test_{timeIndex}.exr", encodedTexture);
 #endif
@@ -131,21 +129,27 @@ namespace Crest
                 new half(framesAsFloats.Max()),
                 framesFlattened);
 
-            SaveBakedDataAsset(bakedDataSO, folderName);
+            if (!SaveBakedDataAsset(bakedDataSO, fftWaves.gameObject.scene.name, fftWaves.gameObject.name))
+            {
+                return null;
+            }
 
             return bakedDataSO;
         }
 
-        private static void SaveBakedDataAsset(ScriptableObject bakedDataSO, string folderName)
+        private static bool SaveBakedDataAsset(ScriptableObject bakedDataSO, string sceneName, string shapeFFTName)
         {
-#if UNITY_EDITOR
-            var bakedDataDirectory = $"Assets/{folderName}";
-            if (!AssetDatabase.IsValidFolder(bakedDataDirectory))
+            string defaultPath = "Assets";
+            string folderPath = EditorUtility.SaveFolderPanel("Folder for baked data", defaultPath, "");
+            if(string.IsNullOrEmpty(folderPath))
             {
-                AssetDatabase.CreateFolder("Assets", folderName);
+                return false;
             }
-            AssetDatabase.CreateAsset(bakedDataSO, $"{bakedDataDirectory}/bakedTest.asset");
-#endif
+            folderPath = FileUtil.GetProjectRelativePath(folderPath);
+
+            AssetDatabase.CreateAsset(bakedDataSO, $"{folderPath}/{sceneName}-{shapeFFTName}-BakedData.asset");
+
+            return true;
         }
 
         internal static void ComputeRequiredOctaves(OceanWaveSpectrum spectrum, float minIncludedWavelength, out int smallest, out int largest)
@@ -169,3 +173,5 @@ namespace Crest
         }
     }
 }
+
+#endif

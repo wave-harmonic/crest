@@ -2,6 +2,19 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Potential optimisations:
+// - Store only 3 channels instead of 4, and store x&z displacement together separately from y as the
+//   access patterns differ.
+// - UV calculation 0-1 in CalculateSamplingData can be vectorised
+// - Potentially ensure lod count always multiple of 2 and 2x unroll
+// - Wind speed can limit spectrum, this could be taken into account to limit number of lods in baked data
+// - The period of the waves in each slice differ. Small slices will have smaller periods. Large slices likely
+//   need less time samples. The required sample count could likely be reduced by sampling the period of each
+//   slice by the frame count rather than sampling all slices with the same time samples. This would however
+//   add an extra calculation during sampling which may slow down query time.
+// - The queries could be made async and essentially free, by logging all queries and then processing them in
+//   one batch. This would likely also improve performance. An example of this async setup is in PR 157.
+
 using System;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
@@ -11,6 +24,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Bake params.
+    /// </summary>
     [Serializable]
     public struct FFTBakedDataParameters
     {
@@ -22,6 +38,9 @@ namespace Crest
         public float _windSpeed;
     }
 
+    /// <summary>
+    /// The generated FFT slices stored for a bunch of time values. Used to give collision shape for CPU.
+    /// </summary>
     [PreferBinarySerialization]
     public class FFTBakedData : ScriptableObject
     {
@@ -111,6 +130,9 @@ namespace Crest
             }
         }
 
+        /// <summary>
+        /// Indices and interpolation weights required to perform bilinear interpolation.
+        /// </summary>
         struct SpatialInterpolationData
         {
             public float4 _alphaU;
@@ -122,6 +144,9 @@ namespace Crest
             public int4 _indexBase;
         }
 
+        /// <summary>
+        /// Computes indices and interpolation weights required to perform bilinear interpolation.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void CalculateSamplingData(float4 x, float4 z, ref SpatialInterpolationData lerpData, in FFTBakedDataParameters parameters, int lodIdx)
         {
@@ -129,16 +154,8 @@ namespace Crest
 
             // 0-1 uv
             var u01 = x / worldSize;
-
             u01 = math.select(1f - (math.abs(u01) % 1f), u01 % 1f, u01 >= 0f);
-
             var v01 = z / worldSize;
-
-            // Inversion differs compared to u, because cpu texture data stored from top left,
-            // rather than gpu (top right)
-            //v01 = math.select(math.abs(v01) % 1f, 1f - (v01 % 1f), v01 >= 0f);
-            // Huw: unreverted this after making spectrum highly directional and testing different
-            // angles. if this holds then could compute u and v together
             v01 = math.select(1f - (math.abs(v01) % 1f), v01 % 1f, v01 >= 0f);
 
             // uv in texels
@@ -159,6 +176,10 @@ namespace Crest
             lerpData._V1 = (lerpData._V0 + 1) % parameters._textureResolution;
         }
 
+        /// <summary>
+        /// Takes a position x & z and a time t and evaluates the water height relative to sea level. It does an iteration
+        /// to invert the displacement to get the correct height at this position.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float4 SampleHeightXZT(float4 x, float4 z, float4 t, FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened)
         {
@@ -177,17 +198,22 @@ namespace Crest
             return math.lerp(dispY0, dispY1, alphaT);
         }
 
+        /// <summary>
+        /// Takes a position x & z and a frame index and evaluates the water height relative to sea level. It does an iteration
+        /// to invert the displacement to get the correct height at this position.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static float4 SampleHeightXZWithInvert(float4 x, float4 z, int4 frameIndex, FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened)
         {
-            float4 targetX = x;
-            float4 targetZ = z;
+            float4 displacedX = x;
+            float4 displacedZ = z;
 
+            // Fixed point iteration to search for the undisplaced position
             for (int i = 0; i < kIterationCount; i++)
             {
                 SampleDisplacementFromXZ(x, z, frameIndex, parameters, framesFlattened, out var dispX, out _, out var dispZ);
-                x = targetX - dispX;
-                z = targetZ - dispZ;
+                x = displacedX - dispX;
+                z = displacedZ - dispZ;
             }
 
             SampleDisplacementFromXZ(x, z, frameIndex, parameters, framesFlattened, out _, out var dispY, out _);
@@ -195,6 +221,10 @@ namespace Crest
             return dispY;
         }
 
+        /// <summary>
+        /// Performs bilinear interpolation of the specified channel at the given frame index, using the precalculated interpolation
+        /// data to give indices and interpolation weights.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static float4 InterpolateData(in NativeArray<half> framesFlattened, in SpatialInterpolationData lerpData, in FFTBakedDataParameters parameters, in int lodIdx, in int4 frameIndex, in int channelIdx)
         {
@@ -218,6 +248,10 @@ namespace Crest
             return math.lerp(v_0, v_1, lerpData._alphaV);
         }
 
+        /// <summary>
+        /// Takes a position x & z and a frame index and evaluates the water displacement relative to sea level. This does not
+        /// invert the displacements - it assumes the input position is the undisplaced position.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void SampleDisplacementFromXZ(in float4 x, in float4 z, in int4 frameIndex, in FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened, out float4 dispX, out float4 dispY, out float4 dispZ)
         {
@@ -236,6 +270,10 @@ namespace Crest
             }
         }
 
+        /// <summary>
+        /// Takes a position x & z and a time t and evaluates the water displacement relative to sea level. This does not
+        /// invert the displacements - it assumes the input position is the undisplaced position.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SampleDisplacementXZT(float4 x, float4 z, float4 t, FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened, out float4 dispX, out float4 dispY, out float4 dispZ)
         {
@@ -256,6 +294,9 @@ namespace Crest
             dispZ = math.lerp(dispZ0, dispZ1, alphaT);
         }
 
+        /// <summary>
+        /// Helper that returns a vector of the values of array at the provided indices.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static half4 ElementsAt(NativeArray<half> array, int4 indices) =>
             new half4(array[indices[0]], array[indices[1]], array[indices[2]], array[indices[3]]);
@@ -263,7 +304,7 @@ namespace Crest
 
 #if UNITY_EDITOR
     /// <summary>
-    /// FFTBakedData inspector makes all fields disabled as they should not be edited manually
+    /// FFTBakedData inspector makes all fields disabled as they should not be edited manually.
     /// </summary>
     [CustomEditor(typeof(FFTBakedData))]
     public class FFTBakedDataEditor : Editor

@@ -154,7 +154,7 @@ namespace Crest
             Vector3[] o_resultVels
             )
         {
-            if (_data == null || _data._framesFlattenedNative.Length == 0) 
+            if (_data == null || _data._framesFlattenedNative.Length == 0)
                 return (int)QueryStatus.DataMissing;
 
             var t = OceanRenderer.Instance.CurrentTime;
@@ -364,7 +364,7 @@ namespace Crest
                 var height = FFTBakedData.SampleHeightXZT(x, z, _t, _params, in _framesFlattened);
                 var height_dx = height - FFTBakedData.SampleHeightXZT(x + s_finiteDiffDx, z, _t, _params, in _framesFlattened);
                 var height_dz = height - FFTBakedData.SampleHeightXZT(x, z + s_finiteDiffDx, _t, _params, in _framesFlattened);
-                
+
                 _output[math.mad(quadIndex, 4, 0)] = math.normalize(new float3(height_dx.x, s_finiteDiffDx, height_dz.x));
                 _output[math.mad(quadIndex, 4, 1)] = math.normalize(new float3(height_dx.y, s_finiteDiffDx, height_dz.y));
                 _output[math.mad(quadIndex, 4, 2)] = math.normalize(new float3(height_dx.z, s_finiteDiffDx, height_dz.z));

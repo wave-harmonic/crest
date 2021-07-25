@@ -1,7 +1,5 @@
 // Crest Ocean System
 
-// Copyright 2021 Wave Harmonic Ltd
-
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 //#define CREST_DEBUG_DUMP_EXRS
@@ -16,6 +14,9 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    /// <summary>
+    /// Contains editor code for baking FFT shape to use for CPU collision.
+    /// </summary>
     public static class FFTBaker
     {
         static string s_bakeFolder = null;

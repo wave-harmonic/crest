@@ -404,6 +404,9 @@ namespace Crest
     [CustomEditor(typeof(ShapeFFT))]
     public class ShapeFFTEditor : ValidatedEditor
     {
+        /// <summary>
+        /// Display some validation and statistics about the bake.
+        /// </summary>
         void BakeHelpBox(ShapeFFT target)
         {
             var message = "";
@@ -459,6 +462,9 @@ namespace Crest
             GUI.enabled = true;
         }
 
+        /// <summary>
+        /// Controls & GUI for baking.
+        /// </summary>
         void OnInspectorGUIBaking()
         {
             var bakeAndAssignLabel = "Bake to asset and assign to current settings";

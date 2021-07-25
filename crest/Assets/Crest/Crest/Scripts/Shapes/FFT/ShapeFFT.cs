@@ -107,7 +107,7 @@ namespace Crest
         [Tooltip("FFT waves will loop with a periodic of this many seconds."), DecoratedField, Predicated("_enableBakedCollision"), Range(4f, 128f), Delayed]
         public float _timeLoopLength = 32f;
 
-        float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
+        internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
 
         Mesh _meshForDrawingWaves;
 
@@ -376,59 +376,6 @@ namespace Crest
         {
             DrawMesh();
         }
-
-        internal static void ComputeRequiredOctaves(OceanWaveSpectrum spectrum, float minIncludedWavelength, out int smallest, out int largest)
-        {
-            smallest = largest = -1;
-
-            for (var i = 0; i < OceanWaveSpectrum.NUM_OCTAVES; i++)
-            {
-                var pow = spectrum._powerDisabled[i] ? 0f : Mathf.Pow(10f, spectrum._powerLog[i]);
-                if (pow > Mathf.Pow(10f, OceanWaveSpectrum.MIN_POWER_LOG))
-                {
-                    var minWL = Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + i);
-                    if (2f * minWL > minIncludedWavelength && smallest == -1 && minWL >= smallest)
-                    {
-                        smallest = i;
-                    }
-
-                    largest = i;
-                }
-            }
-        }
-
-        public FFTBakedData Bake()
-        {
-            ComputeRequiredOctaves(_spectrum, _smallestWavelengthRequired, out var smallestOctaveRequired, out var largestOctaveRequired);
-
-            if (largestOctaveRequired == -1 || smallestOctaveRequired == -1 || smallestOctaveRequired > largestOctaveRequired)
-            {
-                Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", this);
-                return null;
-            }
-
-            // Assuming two samples per wave, then:
-            // _smallestWavelengthRequired = 2 * sliceWidth / sliceRes
-            //     sliceWidth = sliceRes * _smallestWavelengthRequired / 2f
-            //     0.5 * 2 ^ idx = sliceRes * _smallestWavelengthRequired / 2f
-            //     2 ^ idx = sliceRes * _smallestWavelengthRequired
-            //     idx = log2(sliceRes * _smallestWavelengthRequired)
-            var firstLod = Mathf.RoundToInt(Mathf.Log(_smallestWavelengthRequired * _resolution, 2f));
-
-            // Compute how many cascades are needed. Both the spectrum octaves and the wave cascades increase
-            // in powers of 2, so use the spectrum count.
-            ComputeRequiredOctaves(_spectrum, _smallestWavelengthRequired, out var smallestOctaveIndex, out var largestOctaveIndex);
-            // A single spectrum bar adds wavelengths before and after the bar i.e. two scales, so relationship
-            // is the following:
-            var lodCount = largestOctaveIndex - smallestOctaveIndex + 2;
-
-            var baked = FFTBaker.Bake(this, firstLod, lodCount, _timeResolution, LoopPeriod);
-
-            // TODO: Prob should not merge in master..?
-            OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = baked;
-
-            return baked;
-        }
 #endif
     }
 
@@ -461,7 +408,7 @@ namespace Crest
         {
             var message = "";
 
-            ShapeFFT.ComputeRequiredOctaves(target._spectrum, target._smallestWavelengthRequired, out var smallestOctaveRequired, out var largestOctaveRequired);
+            FFTBaker.ComputeRequiredOctaves(target._spectrum, target._smallestWavelengthRequired, out var smallestOctaveRequired, out var largestOctaveRequired);
             if (largestOctaveRequired == -1 || smallestOctaveRequired == -1 || smallestOctaveRequired > largestOctaveRequired)
             {
                 EditorGUILayout.HelpBox("No waves in spectrum. Increase one or more of the spectrum sliders.", MessageType.Error);
@@ -516,16 +463,41 @@ namespace Crest
         {
             if (GUILayout.Button("Bake to asset"))
             {
-                var result = ((ShapeFFT)target).Bake();
+                var targetFFT = target as ShapeFFT;
+                var result = FFTBaker.BakeShapeFFT(targetFFT);
                 if (result != null)
+                {
+                    Selection.activeObject = result;
+                }
+            }
+
+            var bakeAndAssignLabel = "Bake to asset and assign to current settings";
+            var selectCurrentSettingsLabel = "Select current settings";
+            if (OceanRenderer.Instance._simSettingsAnimatedWaves != null)
+            {
+                if (GUILayout.Button(bakeAndAssignLabel))
+                {
+                    var targetFFT = target as ShapeFFT;
+                    var result = FFTBaker.BakeShapeFFT(targetFFT);
+                    if (result != null)
+                    {
+                        OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = result;
+                        Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
+                    }
+                }
+
+                if (GUILayout.Button(selectCurrentSettingsLabel))
                 {
                     Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
                 }
             }
-
-            if (GUILayout.Button("Selected currently assigned bake"))
+            else
             {
-                Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
+                // No settings available, disable and show tooltip
+                GUI.enabled = false;
+                GUILayout.Button(new GUIContent(bakeAndAssignLabel, "No settings available to apply to. Assign an Animated Waves Sim Settings to the OceanRenderer component."));
+                GUILayout.Button(new GUIContent(selectCurrentSettingsLabel, "No settings available. Assign an Animated Waves Sim Settings to the OceanRenderer component."));
+                GUI.enabled = true;
             }
         }
     }

@@ -17,9 +17,41 @@ namespace Crest
     public static class FFTBaker
     {
         /// <summary>
+        /// Bakes FFT data for a ShapeFFT component
+        /// </summary>
+        public static FFTBakedData BakeShapeFFT(ShapeFFT fftWaves)
+        {
+            // Compute how many cascades are needed. Both the spectrum octaves and the wave cascades increase
+            // in powers of 2, so use the spectrum count.
+            ComputeRequiredOctaves(fftWaves._spectrum, fftWaves._smallestWavelengthRequired, out var smallestOctaveIndex, out var largestOctaveIndex);
+
+            if (largestOctaveIndex == -1 || smallestOctaveIndex == -1 || smallestOctaveIndex > largestOctaveIndex)
+            {
+                Debug.LogError("Crest: No waves in spectrum. Increase the spectrum sliders.", fftWaves);
+                return null;
+            }
+
+            // Assuming two samples per wave, then:
+            // _smallestWavelengthRequired = 2 * sliceWidth / sliceRes
+            //     sliceWidth = sliceRes * _smallestWavelengthRequired / 2f
+            //     0.5 * 2 ^ idx = sliceRes * _smallestWavelengthRequired / 2f
+            //     2 ^ idx = sliceRes * _smallestWavelengthRequired
+            //     idx = log2(sliceRes * _smallestWavelengthRequired)
+            var firstLod = Mathf.RoundToInt(Mathf.Log(fftWaves._smallestWavelengthRequired * fftWaves._resolution, 2f));
+
+            // A single spectrum bar adds wavelengths before and after the bar i.e. two scales, so relationship
+            // is the following:
+            var lodCount = largestOctaveIndex - smallestOctaveIndex + 2;
+
+            var baked = BakeFFT(fftWaves, firstLod, lodCount, fftWaves._timeResolution, fftWaves.LoopPeriod);
+
+            return baked;
+        }
+
+        /// <summary>
         /// Runs FFT for a bunch of time steps and saves all the resulting data to a scriptable object
         /// </summary>
-        public static FFTBakedData Bake(ShapeFFT fftWaves, int firstLod, int lodCount, int resolutionTime, float loopPeriod)
+        static FFTBakedData BakeFFT(ShapeFFT fftWaves, int firstLod, int lodCount, int resolutionTime, float loopPeriod)
         {
             // Need min scale, maybe max too - unlikely to need 16 orders of magnitude
 
@@ -114,6 +146,26 @@ namespace Crest
             }
             AssetDatabase.CreateAsset(bakedDataSO, $"{bakedDataDirectory}/bakedTest.asset");
 #endif
+        }
+
+        internal static void ComputeRequiredOctaves(OceanWaveSpectrum spectrum, float minIncludedWavelength, out int smallest, out int largest)
+        {
+            smallest = largest = -1;
+
+            for (var i = 0; i < OceanWaveSpectrum.NUM_OCTAVES; i++)
+            {
+                var pow = spectrum._powerDisabled[i] ? 0f : Mathf.Pow(10f, spectrum._powerLog[i]);
+                if (pow > Mathf.Pow(10f, OceanWaveSpectrum.MIN_POWER_LOG))
+                {
+                    var minWL = Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + i);
+                    if (2f * minWL > minIncludedWavelength && smallest == -1 && minWL >= smallest)
+                    {
+                        smallest = i;
+                    }
+
+                    largest = i;
+                }
+            }
         }
     }
 }

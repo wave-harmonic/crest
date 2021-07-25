@@ -239,6 +239,7 @@ namespace Crest
             new half4(array[indices[0]], array[indices[1]], array[indices[2]], array[indices[3]]);
     }
 
+#if UNITY_EDITOR
     /// <summary>
     /// FFTBakedData inspector makes all fields disabled as they should not be edited manually
     /// </summary>
@@ -258,4 +259,5 @@ namespace Crest
             GUI.enabled = true;
         }
     }
+#endif // UNITY_EDITOR
 }

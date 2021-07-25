@@ -6,12 +6,11 @@ using System;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
 {
-    // TODO: these fields are useful in the inspector, but they should be read only (grayed out), how? property drawer?
-    // Huw: there's something for this in crest, my collaborator dale will know.
     [Serializable]
     public struct FFTBakedDataParameters
     {
@@ -43,10 +42,10 @@ namespace Crest
         // |  N  |
         // -------
 
-        // This will freeze unity if expanded in the Inspector
-        [HideInInspector]
-        public half[] _framesFlattened;
-        [NonSerialized] public NativeArray<half> _framesFlattenedNative;
+        [SerializeField]
+        half[] _framesFlattened;
+        [NonSerialized]
+        public NativeArray<half> _framesFlattenedNative;
 
         public half _smallestValue;
         public half _largestValue;
@@ -90,12 +89,6 @@ namespace Crest
             _framesFlattened = framesFlattened;
             _smallestValue = smallestValue;
             _largestValue = largestValue;
-
-            // TODO - still needed?
-//#if UNITY_EDITOR
-//            AssetDatabase.SaveAssets();
-//            AssetDatabase.Refresh();
-//#endif
 
             InitData();
         }
@@ -244,5 +237,25 @@ namespace Crest
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static half4 ElementsAt(NativeArray<half> array, int4 indices) =>
             new half4(array[indices[0]], array[indices[1]], array[indices[2]], array[indices[3]]);
+    }
+
+    /// <summary>
+    /// FFTBakedData inspector makes all fields disabled as they should not be edited manually
+    /// </summary>
+    [CustomEditor(typeof(FFTBakedData))]
+    public class FFTBakedDataEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            GUI.enabled = false;
+
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_parameters"));
+
+            var targetData = target as FFTBakedData;
+            EditorGUILayout.FloatField("Smallest height", targetData._smallestValue);
+            EditorGUILayout.FloatField("Largest height", targetData._largestValue);
+
+            GUI.enabled = true;
+        }
     }
 }

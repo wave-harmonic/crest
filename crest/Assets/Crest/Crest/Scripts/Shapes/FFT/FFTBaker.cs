@@ -18,6 +18,8 @@ namespace Crest
 {
     public static class FFTBaker
     {
+        static string s_bakeFolder = null;
+
         /// <summary>
         /// Bakes FFT data for a ShapeFFT component
         /// </summary>
@@ -139,15 +141,26 @@ namespace Crest
 
         private static bool SaveBakedDataAsset(ScriptableObject bakedDataSO, string sceneName, string shapeFFTName)
         {
-            string defaultPath = "Assets";
-            string folderPath = EditorUtility.SaveFolderPanel("Folder for baked data", defaultPath, "");
-            if(string.IsNullOrEmpty(folderPath))
+            // Default folder
+            if (string.IsNullOrEmpty(s_bakeFolder))
             {
-                return false;
+                s_bakeFolder = "Assets";
             }
-            folderPath = FileUtil.GetProjectRelativePath(folderPath);
 
-            AssetDatabase.CreateAsset(bakedDataSO, $"{folderPath}/{sceneName}-{shapeFFTName}-BakedData.asset");
+            // Select bake folder
+            {
+                var folderPath = EditorUtility.SaveFolderPanel("Folder for baked data", s_bakeFolder, "");
+                if (string.IsNullOrEmpty(folderPath))
+                {
+                    return false;
+                }
+                s_bakeFolder = FileUtil.GetProjectRelativePath(folderPath);
+            }
+
+            var assetPath = AssetDatabase.GenerateUniqueAssetPath($"{s_bakeFolder}/{sceneName}-{shapeFFTName}-BakedData.asset");
+            AssetDatabase.CreateAsset(bakedDataSO, assetPath);
+
+            Debug.Log($"Baked wave data to {assetPath}.", bakedDataSO);
 
             return true;
         }

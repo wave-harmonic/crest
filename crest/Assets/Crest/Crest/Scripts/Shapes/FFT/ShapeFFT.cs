@@ -461,16 +461,6 @@ namespace Crest
 
         void OnInspectorGUIBaking()
         {
-            if (GUILayout.Button("Bake to asset"))
-            {
-                var targetFFT = target as ShapeFFT;
-                var result = FFTBaker.BakeShapeFFT(targetFFT);
-                if (result != null)
-                {
-                    Selection.activeObject = result;
-                }
-            }
-
             var bakeAndAssignLabel = "Bake to asset and assign to current settings";
             var selectCurrentSettingsLabel = "Select current settings";
             if (OceanRenderer.Instance._simSettingsAnimatedWaves != null)
@@ -483,6 +473,14 @@ namespace Crest
                     {
                         OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = result;
                         Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
+
+                        // Rebuild ocean
+                        var ocean = OceanRenderer.Instance;
+                        if (ocean != null)
+                        {
+                            ocean.enabled = false;
+                            ocean.enabled = true;
+                        }
                     }
                 }
 

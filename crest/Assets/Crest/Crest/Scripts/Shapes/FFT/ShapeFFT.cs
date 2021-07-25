@@ -476,6 +476,7 @@ namespace Crest
                     var result = FFTBaker.BakeShapeFFT(targetFFT);
                     if (result != null)
                     {
+                        OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource = SimSettingsAnimatedWaves.CollisionSources.BakedFFT;
                         OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData = result;
                         Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
 

@@ -144,15 +144,18 @@ namespace Crest
             }
             else if (_collisionSource == CollisionSources.BakedFFT)
             {
-                if (!Mathf.Approximately(_bakedFFTData._parameters._windSpeed * 3.6f, ocean._globalWindSpeed))
+                if (_bakedFFTData != null)
                 {
-                    showMessage
-                    (
-                        $"Wind speed on ocean component {ocean._globalWindSpeed} does not match wind speed of baked FFT data {_bakedFFTData._parameters._windSpeed * 3.6f}, collision shape may not match visual surface.",
-                        $"Set global wind speed on ocean component to {_bakedFFTData._parameters._windSpeed * 3.6f}.",
-                        ValidatedHelper.MessageType.Warning, ocean,
-                        FixOceanWindSpeed
-                    );
+                    if (!Mathf.Approximately(_bakedFFTData._parameters._windSpeed * 3.6f, ocean._globalWindSpeed))
+                    {
+                        showMessage
+                        (
+                            $"Wind speed on ocean component {ocean._globalWindSpeed} does not match wind speed of baked FFT data {_bakedFFTData._parameters._windSpeed * 3.6f}, collision shape may not match visual surface.",
+                            $"Set global wind speed on ocean component to {_bakedFFTData._parameters._windSpeed * 3.6f}.",
+                            ValidatedHelper.MessageType.Warning, ocean,
+                            FixOceanWindSpeed
+                        );
+                    }
                 }
             }
 

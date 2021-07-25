@@ -39,7 +39,6 @@ namespace Crest
                 return (int)QueryStatus.DataMissing;
 
             var t = OceanRenderer.Instance.CurrentTime;
-            var seaLevel = OceanRenderer.Instance.SeaLevel;
 
             // Queries processed in groups of 4 for SIMD - 'quads'
             var numQueryQuads = (o_resultDisps.Length + 3) / 4;

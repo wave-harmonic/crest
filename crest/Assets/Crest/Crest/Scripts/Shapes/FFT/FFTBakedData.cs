@@ -237,6 +237,26 @@ namespace Crest
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SampleDisplacementXZT(float4 x, float4 z, float4 t, FFTBakedDataParameters parameters, in NativeArray<half> framesFlattened, out float4 dispX, out float4 dispY, out float4 dispZ)
+        {
+            // Temporal lerp
+            var t01 = t / parameters._period;
+
+            t01 = math.select(1f - (math.abs(t01) % 1f), t01 % 1f, t01 >= 0f);
+            var f0 = (int4)(t01 * parameters._frameCount);
+            var f1 = (f0 + 1) % parameters._frameCount;
+            var alphaT = t01 * parameters._frameCount - f0;
+
+            // Compute height at each time and interpolate
+            SampleDisplacementFromXZ(x, z, f0, parameters, in framesFlattened, out var dispX0, out var dispY0, out var dispZ0);
+            SampleDisplacementFromXZ(x, z, f1, parameters, in framesFlattened, out var dispX1, out var dispY1, out var dispZ1);
+
+            dispX = math.lerp(dispX0, dispX1, alphaT);
+            dispY = math.lerp(dispY0, dispY1, alphaT);
+            dispZ = math.lerp(dispZ0, dispZ1, alphaT);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static half4 ElementsAt(NativeArray<half> array, int4 indices) =>
             new half4(array[indices[0]], array[indices[1]], array[indices[2]], array[indices[3]]);
     }

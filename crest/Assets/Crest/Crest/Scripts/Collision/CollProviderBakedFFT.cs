@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// Baked FFT data
+    /// Collision provider for baked FFT data
     /// </summary>
     public class CollProviderBakedFFT : ICollProvider
     {
@@ -35,44 +35,112 @@ namespace Crest
 
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
-            //if (_data == null) return (int)QueryStatus.DataMissing;
+            if (_data == null || _data._framesFlattenedNative.Length == 0)
+                return (int)QueryStatus.DataMissing;
 
-            //var t = OceanRenderer.Instance.CurrentTime;
+            var t = OceanRenderer.Instance.CurrentTime;
+            var seaLevel = OceanRenderer.Instance.SeaLevel;
 
-            //if (o_resultDisps != null)
-            //{
-            //    for (int i = 0; i < o_resultDisps.Length; i++)
-            //    {
-            //        o_resultDisps[i].x = 0f;
-            //        o_resultDisps[i].y = _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t);
-            //        o_resultDisps[i].z = 0f;
-            //    }
-            //}
+            // Queries processed in groups of 4 for SIMD - 'quads'
+            var numQueryQuads = (o_resultDisps.Length + 3) / 4;
+            var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-            //if (o_resultNorms != null)
-            //{
-            //    for (int i = 0; i < o_resultNorms.Length; i++)
-            //    {
-            //        float h = _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t);
-            //        float h_x = _data.SampleHeight(i_queryPoints[i].x + s_finiteDiffDx, i_queryPoints[i].z, t);
-            //        float h_z = _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z + s_finiteDiffDx, t);
+            // Copy input data. Could be avoided if query api is changed to use NAs.
+            for (int i = 0; i < numQueryQuads; i++)
+            {
+                queryPointsX[i] = new float4(i_queryPoints[i * 4].x, i_queryPoints[i * 4 + 1].x, i_queryPoints[i * 4 + 2].x, i_queryPoints[i * 4 + 3].x);
+                queryPointsZ[i] = new float4(i_queryPoints[i * 4].z, i_queryPoints[i * 4 + 1].z, i_queryPoints[i * 4 + 2].z, i_queryPoints[i * 4 + 3].z);
+            }
 
-            //        o_resultNorms[i].x = h - h_x;
-            //        o_resultNorms[i].y = s_finiteDiffDx;
-            //        o_resultNorms[i].z = h - h_z;
-            //        o_resultNorms[i].Normalize();
-            //    }
-            //}
+            if (o_resultDisps != null)
+            {
+                // One thread per quad - per group of 4 queries
+                var resultsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var resultsY = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var resultsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-            //if (o_resultVels != null)
-            //{
-            //    for (int i = 0; i < o_resultVels.Length; i++)
-            //    {
-            //        o_resultVels[i] = Vector3.zero;
-            //        o_resultVels[i].y = (_data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t)
-            //            - _data.SampleHeight(i_queryPoints[i].x, i_queryPoints[i].z, t - s_finiteDiffDt)) / s_finiteDiffDt;
-            //    }
-            //}
+                // Run job synchronously
+                new JobSampleDisplacement
+                {
+                    _queryPointsX = queryPointsX,
+                    _queryPointsZ = queryPointsZ,
+                    _framesFlattened = _data._framesFlattenedNative,
+                    _t = t,
+                    _params = _data._parameters,
+                    _outputX = resultsX,
+                    _outputY = resultsY,
+                    _outputZ = resultsZ,
+                }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
+
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                for (int i = 0; i < o_resultDisps.Length; i++)
+                {
+                    o_resultDisps[i].x = resultsX[i / 4][i % 4];
+                    o_resultDisps[i].y = resultsY[i / 4][i % 4];
+                    o_resultDisps[i].z = resultsZ[i / 4][i % 4];
+                }
+
+                resultsX.Dispose();
+                resultsY.Dispose();
+                resultsZ.Dispose();
+            }
+
+            if (o_resultNorms != null)
+            {
+                // One thread per quad - per group of 4 queries
+                var results = new NativeArray<float3>(4 * (o_resultNorms.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+                // Run job synchronously
+                new JobComputeNormal
+                {
+                    _queryPointsX = queryPointsX,
+                    _queryPointsZ = queryPointsZ,
+                    _framesFlattened = _data._framesFlattenedNative,
+                    _output = results,
+                    _t = t,
+                    _params = _data._parameters,
+                }.Schedule(i_queryPoints.Length / 4, s_jobBatchSize).Complete();
+
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    o_resultNorms[i] = results[i];
+                }
+
+                results.Dispose();
+            }
+
+            if (o_resultVels != null)
+            {
+                // One thread per quad - per group of 4 queries
+                var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+                // Run job synchronously
+                new JobComputeVerticalVelocity
+                {
+                    _queryPointsX = queryPointsX,
+                    _queryPointsZ = queryPointsZ,
+                    _framesFlattened = _data._framesFlattenedNative,
+                    _t = t,
+                    _params = _data._parameters,
+                    _output = results,
+                }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
+
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                for (int i = 0; i < o_resultVels.Length; i++)
+                {
+                    o_resultVels[i].y = results[i / 4][i % 4];
+
+                    o_resultVels[i].x = o_resultVels[i].z = 0f;
+                }
+
+                results.Dispose();
+            }
+
+            // Clean up query points
+            queryPointsX.Dispose();
+            queryPointsZ.Dispose();
 
             return (int)QueryStatus.Success;
         }
@@ -172,7 +240,7 @@ namespace Crest
                 }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
 
                 // Copy results to output. Could be avoided if query api was changed to NAs.
-                for (int i = 0; i < o_resultHeights.Length; i++)
+                for (int i = 0; i < o_resultVels.Length; i++)
                 {
                     o_resultVels[i].y = results[i / 4][i % 4];
 
@@ -224,6 +292,46 @@ namespace Crest
         }
 
         /// <summary>
+        /// Job to compute displacement
+        /// </summary>
+        [BurstCompile(CompileSynchronously = true)]
+        private struct JobSampleDisplacement : IJobParallelFor
+        {
+            [ReadOnly]
+            public NativeArray<float4> _queryPointsX;
+            [ReadOnly]
+            public NativeArray<float4> _queryPointsZ;
+
+            [ReadOnly]
+            public NativeArray<half> _framesFlattened;
+
+            [ReadOnly]
+            public float _t;
+
+            [ReadOnly]
+            public FFTBakedDataParameters _params;
+
+            [WriteOnly]
+            public NativeArray<float4> _outputX;
+            [WriteOnly]
+            public NativeArray<float4> _outputY;
+            [WriteOnly]
+            public NativeArray<float4> _outputZ;
+
+            public void Execute(int quadIndex)
+            {
+                if (quadIndex >= _queryPointsX.Length) return;
+
+                FFTBakedData.SampleDisplacementXZT(_queryPointsX[quadIndex], _queryPointsZ[quadIndex], _t, _params, in _framesFlattened,
+                    out var dispX, out var dispY, out var dispZ);
+
+                _outputX[quadIndex] = dispX;
+                _outputY[quadIndex] = dispY;
+                _outputZ[quadIndex] = dispZ;
+            }
+        }
+
+        /// <summary>
         /// Job to compute surface normal queries
         /// </summary>
         [BurstCompile(CompileSynchronously = true)]
@@ -265,7 +373,7 @@ namespace Crest
         }
 
         /// <summary>
-        /// Job to compute surface velocity, vertical only as we have height maps
+        /// Job to compute surface velocity. Currently vertical only, this could likely be extended to return full 3D velocity.
         /// </summary>
         [BurstCompile(CompileSynchronously = true)]
         private struct JobComputeVerticalVelocity : IJobParallelFor

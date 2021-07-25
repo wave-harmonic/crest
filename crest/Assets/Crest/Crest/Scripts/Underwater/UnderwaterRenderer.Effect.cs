@@ -24,7 +24,7 @@ namespace Crest
 
         CommandBuffer _underwaterEffectCommandBuffer;
         PropertyWrapperMaterial _underwaterEffectMaterial;
-        readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
+        internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -227,8 +227,8 @@ namespace Crest
                 camera.projectionMatrix = projectionMatrix;
 
                 // NOTE: Not needed for HDRP.
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, XRHelpers.LeftEyeInverseViewProjectionMatrix);
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, XRHelpers.RightEyeInverseViewProjectionMatrix);
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
             }
             else
             {
@@ -241,7 +241,7 @@ namespace Crest
                 }
 
                 // NOTE: Not needed for HDRP.
-                var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+                var inverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(camera.projectionMatrix, false) * camera.worldToCameraMatrix).inverse;
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
             }
 

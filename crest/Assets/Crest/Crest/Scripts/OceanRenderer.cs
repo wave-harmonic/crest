@@ -37,7 +37,7 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f, power: 2f)]
-        public float _globalWindSpeed = 150f;
+        public float _globalWindSpeed = 10f;
 
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
@@ -424,9 +424,24 @@ namespace Crest
 
         PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
 
+        // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
+        // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
+#pragma warning disable 414
+        static bool s_IsPrefabStage = false;
+#pragma warning restore 414
+
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+#if UNITY_EDITOR
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                s_IsPrefabStage = true;
+                return;
+            }
+#endif
+
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
 
@@ -438,14 +453,6 @@ namespace Crest
             {
                 PushTimeProvider(_timeProvider);
             }
-
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-#if UNITY_EDITOR
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                return;
-            }
-#endif
 
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
             {
@@ -490,7 +497,6 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
-            _generatedSettingsHash = CalculateSettingsHash();
 
             // Make sure we have correct defaults in case simulations are not enabled.
             LodDataMgrClipSurface.BindNullToGraphicsShaders();
@@ -521,6 +527,8 @@ namespace Crest
             }
 
             _canSkipCulling = false;
+
+            _generatedSettingsHash = CalculateSettingsHash();
         }
 
         private void OnDisable()
@@ -529,6 +537,14 @@ namespace Crest
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
+                // We have just left a prefab scene on the stack and are now in another prefab scene.
+                return;
+            }
+            else if (s_IsPrefabStage)
+            {
+                // We have left the last prefab scene and are now back to a normal scene. We do not want to disable the
+                // OceanRenderer.
+                s_IsPrefabStage = false;
                 return;
             }
 #endif
@@ -725,6 +741,15 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+#if UNITY_EDITOR
+            // If running a build, don't assert any requirements at all. Requirements are for
+            // the runtime, not for making builds.
+            if (BuildPipeline.isBuildingPlayer)
+            {
+                return true;
+            }
+#endif
+
             if (!RunningWithoutGPU)
             {
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
@@ -810,6 +835,16 @@ namespace Crest
 #pragma warning disable 0618
             Hashy.AddObject(_layerName, ref settingsHash);
 #pragma warning restore 0618
+
+            // Also include anything from the simulation settings for rebuilding.
+            foreach (var lod in _lodDatas)
+            {
+                // Null means it does not support settings.
+                if (lod.SettingsBase != null)
+                {
+                    lod.SettingsBase.AddToSettingsHash(ref settingsHash);
+                }
+            }
 
             return settingsHash;
         }
@@ -1018,7 +1053,7 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            var isUnderwaterActive = UnderwaterRenderer.Instance != null;
+            var isUnderwaterActive = UnderwaterRenderer.Instance != null && UnderwaterRenderer.Instance.IsActive;
 
             var definitelyUnderwater = false;
             var volumeExtinctionLength = 0f;

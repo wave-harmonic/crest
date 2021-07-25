@@ -4,9 +4,9 @@
 
 #pragma kernel UpdateFoam
 
-#include "../OceanConstants.hlsl"
 #include "HLSLSupport.cginc"
 
+#include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
@@ -51,6 +51,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// Try to sample the source slice, if it the sample position lies within its footprint
 	const float3 uv_slice_source = WorldToUV(worldPosXZ_flowed, _CascadeDataSrc[sliceIndexSource], sliceIndexSource);
 	const half2 r = abs(uv_slice_source.xy - 0.5);
+
 	if (max(r.x, r.y) <= r_max)
 	{
 		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0.0).x;

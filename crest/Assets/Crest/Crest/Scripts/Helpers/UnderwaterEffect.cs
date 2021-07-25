@@ -260,6 +260,18 @@ namespace Crest
         {
             var isValid = true;
 
+            if (UnderwaterRenderer.Instance != null)
+            {
+                showMessage
+                (
+                    "Both <i>Underwater Effect</i> (deprecated) and <i>Underwater Renderer</i> are active.",
+                    "Remove the <i>Underwater Effect</i> by removing the entire game object.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
             // Check that underwater effect is parented to a camera.
             if (!transform.parent || transform.parent.GetComponent<Camera>() == null)
             {

@@ -231,12 +231,21 @@ namespace Crest
 
         /// <summary>
         /// Changing wave gen data can result in creating lots of new generators. This gives a way to notify
-        /// that a parameter has changed. If there is no generator for the new param values
+        /// that a parameter has changed. If there is no existing generator for the new param values, but there
+        /// is one for the old param values, this old generator is repurposed.
         /// </summary>
         public static void OnGenerationDataUpdated(int resolution, float loopPeriod,
             float windTurbulenceOld, float windDirRadOld, float windSpeedOld, OceanWaveSpectrum spectrumOld,
             float windTurbulenceNew, float windDirRadNew, float windSpeedNew, OceanWaveSpectrum spectrumNew)
         {
+            // If multiple wave components share one FFT, then one of them changes its settings, it will
+            // actually steal the generator from the rest. Then the first from the rest which request the
+            // old settings will trigger creation of a new generator, and the remaining ones will use this
+            // new generator. In the end one new generator is created, but it's created for the old settings.
+            // Generators are requested single threaded so there should not be a race condition. Odd pattern
+            // but I don't think any other way works without ugly checks to see if old generators are still
+            // used, or other complicated things.
+
             // Check if no generator exists for new values
             var newHash = CalculateWaveConditionsHash(resolution, loopPeriod, windTurbulenceNew, windDirRadNew, windSpeedNew, spectrumNew);
             if (!_generators.TryGetValue(newHash, out _))

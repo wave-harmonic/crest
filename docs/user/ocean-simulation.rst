@@ -30,6 +30,24 @@ The animated waves sim can be configured by assigning an Animated Waves Sim Sett
 The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see :ref:`sea-floor-depth-section`).
 The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
+
+.. _animated_waves_settings:
+
+Simulation Settings
+^^^^^^^^^^^^^^^^^^^
+
+All of the settings below refer to the *Animated Waves Sim Settings* asset.
+
+-  **Collision Source** - Where to obtain ocean shape on CPU for physics / gameplay.
+-  **Max Query Count** - Maximum number of wave queries that can be performed when using ComputeShaderQueries.
+-  **Ping Pong Combine Pass** - Whether to use a graphics shader for combining the wave cascades together.
+   Disabling this uses a compute shader instead which doesn't need to copy back and forth between targets, but it may not work on some GPUs, in particular pre-DX11.3 hardware, which do not support typed UAV loads.
+   The fail behaviour is a flat ocean.
+-  **Render Texture Graphics Format** - The render texture format to use for the wave simulation.
+   Consider using higher precision (like R32G32B32A32_SFloat) if you see tearing or wierd normals.
+   You may encounter this issue if you use any of the *Set Water Height* inputs.
+
+
 User Inputs
 ^^^^^^^^^^^
 
@@ -267,9 +285,12 @@ To turn on this feature, enable the *Create Clip Surface Data* option on the *Oc
 
 The data contains 0-1 values. Holes are carved into the surface when the values is greater than 0.5.
 
-Overlapping meshes will not work correctly in all cases.
-There will be cases where one mesh will overwrite another resulting in ocean surface appearing where it should not.
-Overlapping boxes aligned on the axes will work well whilst spheres may have issues.
+Overlapping or adjacent meshes will not work correctly in most cases.
+There will be cases where one mesh will overwrite another resulting in the ocean surface appearing where it should not.
+The mesh is rendered from a top-down perspective.
+The back faces add clip surface data and the front faces remove from it which creates the convex hull.
+With an overlapping mesh, the front faces of the sides of one mesh will clear the clipping data creating by the other mesh.
+Overlapping boxes which are not rotated on the X or Z axes will work well whilst spheres will have issues.
 
 Clip areas can be added by adding geometry that covers the desired hole area to the scene and then assigning the *RegisterClipSurfaceInput* script.
 See the *FloatingOpenContainer* object in the *boat.unity* scene for an example usage.

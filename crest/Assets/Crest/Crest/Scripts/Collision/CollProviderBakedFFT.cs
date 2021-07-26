@@ -46,10 +46,18 @@ namespace Crest
             var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
 
             // Copy input data. Could be avoided if query api is changed to use NAs.
-            for (int i = 0; i < numQueryQuads; i++)
+            for (int i = 0; i < i_queryPoints.Length; i++)
             {
-                queryPointsX[i] = new float4(i_queryPoints[i * 4].x, i_queryPoints[i * 4 + 1].x, i_queryPoints[i * 4 + 2].x, i_queryPoints[i * 4 + 3].x);
-                queryPointsZ[i] = new float4(i_queryPoints[i * 4].z, i_queryPoints[i * 4 + 1].z, i_queryPoints[i * 4 + 2].z, i_queryPoints[i * 4 + 3].z);
+                var quadIdx = i / 4;
+                var xQuad = queryPointsX[quadIdx];
+                var zQuad = queryPointsZ[quadIdx];
+
+                var quadComp = i % 4;
+                xQuad[quadComp] = i_queryPoints[i].x;
+                zQuad[quadComp] = i_queryPoints[i].z;
+
+                queryPointsX[quadIdx] = xQuad;
+                queryPointsZ[quadIdx] = zQuad;
             }
 
             if (o_resultDisps != null)
@@ -165,10 +173,18 @@ namespace Crest
             var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
 
             // Copy input data. Could be avoided if query api is changed to use NAs.
-            for (int i = 0; i < numQueryQuads; i++)
+            for (var i = 0; i < i_queryPoints.Length; i++)
             {
-                queryPointsX[i] = new float4(i_queryPoints[i * 4].x, i_queryPoints[i * 4 + 1].x, i_queryPoints[i * 4 + 2].x, i_queryPoints[i * 4 + 3].x);
-                queryPointsZ[i] = new float4(i_queryPoints[i * 4].z, i_queryPoints[i * 4 + 1].z, i_queryPoints[i * 4 + 2].z, i_queryPoints[i * 4 + 3].z);
+                var quadIdx = i / 4;
+                var xQuad = queryPointsX[quadIdx];
+                var zQuad = queryPointsZ[quadIdx];
+
+                var quadComp = i % 4;
+                xQuad[quadComp] = i_queryPoints[i].x;
+                zQuad[quadComp] = i_queryPoints[i].z;
+
+                queryPointsX[quadIdx] = xQuad;
+                queryPointsZ[quadIdx] = zQuad;
             }
 
             if (o_resultHeights != null)

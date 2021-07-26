@@ -42,8 +42,8 @@ namespace Crest
 
             // Queries processed in groups of 4 for SIMD - 'quads'
             var numQueryQuads = (o_resultDisps.Length + 3) / 4;
-            var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+            var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
 
             // Copy input data. Could be avoided if query api is changed to use NAs.
             for (int i = 0; i < numQueryQuads; i++)
@@ -161,8 +161,8 @@ namespace Crest
 
             // Queries processed in groups of 4 for SIMD - 'quads'
             var numQueryQuads = (o_resultHeights.Length + 3) / 4;
-            var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+            var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
 
             // Copy input data. Could be avoided if query api is changed to use NAs.
             for (int i = 0; i < numQueryQuads; i++)

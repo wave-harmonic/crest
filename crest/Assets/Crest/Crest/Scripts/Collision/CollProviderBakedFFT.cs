@@ -95,8 +95,9 @@ namespace Crest
 
             if (o_resultNorms != null)
             {
-                // One thread per quad - per group of 4 queries
-                var results = new NativeArray<float3>(4 * (o_resultNorms.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var normalX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var normalY = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var normalZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
                 // Run job synchronously
                 new JobComputeNormal
@@ -104,18 +105,29 @@ namespace Crest
                     _queryPointsX = queryPointsX,
                     _queryPointsZ = queryPointsZ,
                     _framesFlattened = _data._framesFlattenedNative,
-                    _output = results,
+                    _outputNormalX = normalX,
+                    _outputNormalY = normalY,
+                    _outputNormalZ = normalZ,
                     _t = t,
                     _params = _data._parameters,
-                }.Schedule(i_queryPoints.Length / 4, s_jobBatchSize).Complete();
+                }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
 
                 // Copy results to output. Could be avoided if query api was changed to NAs.
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
-                    o_resultNorms[i] = results[i];
+                    var quad = i / 4;
+                    var quadComp = i % 4;
+
+                    Vector3 norm;
+                    norm.x = normalX[quad][quadComp];
+                    norm.y = normalY[quad][quadComp];
+                    norm.z = normalZ[quad][quadComp];
+                    o_resultNorms[i] = norm;
                 }
 
-                results.Dispose();
+                normalX.Dispose();
+                normalY.Dispose();
+                normalZ.Dispose();
             }
 
             if (o_resultVels != null)
@@ -215,8 +227,9 @@ namespace Crest
 
             if (o_resultNorms != null)
             {
-                // One thread per quad - per group of 4 queries
-                var results = new NativeArray<float3>(4 * (o_resultNorms.Length + 3) / 4, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var normalX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var normalY = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var normalZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
                 // Run job synchronously
                 new JobComputeNormal
@@ -224,18 +237,29 @@ namespace Crest
                     _queryPointsX = queryPointsX,
                     _queryPointsZ = queryPointsZ,
                     _framesFlattened = _data._framesFlattenedNative,
-                    _output = results,
+                    _outputNormalX = normalX,
+                    _outputNormalY = normalY,
+                    _outputNormalZ = normalZ,
                     _t = t,
                     _params = _data._parameters,
-                }.Schedule(i_queryPoints.Length / 4, s_jobBatchSize).Complete();
+                }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
 
                 // Copy results to output. Could be avoided if query api was changed to NAs.
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
-                    o_resultNorms[i] = results[i];
+                    var quad = i / 4;
+                    var quadComp = i % 4;
+
+                    Vector3 norm;
+                    norm.x = normalX[quad][quadComp];
+                    norm.y = normalY[quad][quadComp];
+                    norm.z = normalZ[quad][quadComp];
+                    o_resultNorms[i] = norm;
                 }
 
-                results.Dispose();
+                normalX.Dispose();
+                normalY.Dispose();
+                normalZ.Dispose();
             }
 
             if (o_resultVels != null)
@@ -367,7 +391,11 @@ namespace Crest
             public FFTBakedDataParameters _params;
 
             [WriteOnly]
-            public NativeArray<float3> _output;
+            public NativeArray<float4> _outputNormalX;
+            [WriteOnly]
+            public NativeArray<float4> _outputNormalY;
+            [WriteOnly]
+            public NativeArray<float4> _outputNormalZ;
 
             public void Execute(int quadIndex)
             {
@@ -380,10 +408,14 @@ namespace Crest
                 var height_dx = height - FFTBakedData.SampleHeightXZT(x + s_finiteDiffDx, z, _t, _params, in _framesFlattened);
                 var height_dz = height - FFTBakedData.SampleHeightXZT(x, z + s_finiteDiffDx, _t, _params, in _framesFlattened);
 
-                _output[math.mad(quadIndex, 4, 0)] = math.normalize(new float3(height_dx.x, s_finiteDiffDx, height_dz.x));
-                _output[math.mad(quadIndex, 4, 1)] = math.normalize(new float3(height_dx.y, s_finiteDiffDx, height_dz.y));
-                _output[math.mad(quadIndex, 4, 2)] = math.normalize(new float3(height_dx.z, s_finiteDiffDx, height_dz.z));
-                _output[math.mad(quadIndex, 4, 3)] = math.normalize(new float3(height_dx.w, s_finiteDiffDx, height_dz.w));
+                var normal0 = math.normalize(new float3(height_dx[0], s_finiteDiffDx, height_dz[0]));
+                var normal1 = math.normalize(new float3(height_dx[1], s_finiteDiffDx, height_dz[1]));
+                var normal2 = math.normalize(new float3(height_dx[2], s_finiteDiffDx, height_dz[2]));
+                var normal3 = math.normalize(new float3(height_dx[3], s_finiteDiffDx, height_dz[3]));
+
+                _outputNormalX[quadIndex] = new float4(normal0[0], normal1[0], normal2[0], normal3[0]);
+                _outputNormalY[quadIndex] = new float4(normal0[1], normal1[1], normal2[1], normal3[1]);
+                _outputNormalZ[quadIndex] = new float4(normal0[2], normal1[2], normal2[2], normal3[2]);
             }
         }
 

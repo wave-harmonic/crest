@@ -5,8 +5,8 @@
 // Potential optimisations:
 // - Store only 3 channels instead of 4, and store x&z displacement together separately from y as the
 //   access patterns differ.
-// - UV calculation 0-1 in CalculateSamplingData can be vectorised
-// - Potentially ensure lod count always multiple of 2 and 2x unroll
+// - Potentially ensure lod count always multiple of 2 and 2x unroll the loops over lods. Maybe even
+//   specialise the code for different LOD counts?
 // - Wind speed can limit spectrum, this could be taken into account to limit number of lods in baked data
 // - The period of the waves in each slice differ. Small slices will have smaller periods. Large slices likely
 //   need less time samples. The required sample count could likely be reduced by sampling the period of each
@@ -14,6 +14,8 @@
 //   add an extra calculation during sampling which may slow down query time.
 // - The queries could be made async and essentially free, by logging all queries and then processing them in
 //   one batch. This would likely also improve performance. An example of this async setup is in PR 157.
+// - We could potentially avoid starting a job for less than ~10 or so queries, assuming we can run the query
+//   code directly and still be Burst compiled.
 
 using System;
 using System.Runtime.CompilerServices;
@@ -152,17 +154,18 @@ namespace Crest
         {
             float worldSize = 0.5f * (1 << lodIdx);
 
-            // 0-1 uv
+            // 0-1 UV. Ensure we land in the positive quadrant. FPI moves the query point around
+            // so we need to do this here.
             var u01 = x / worldSize;
             u01 = math.select(1f - (math.abs(u01) % 1f), u01 % 1f, u01 >= 0f);
             var v01 = z / worldSize;
             v01 = math.select(1f - (math.abs(v01) % 1f), v01 % 1f, v01 >= 0f);
 
-            // uv in texels
+            // UV in texels
             var uTexels = u01 * parameters._textureResolution;
             var vTexels = v01 * parameters._textureResolution;
 
-            // offset for texel center
+            // Offset for texel center
             uTexels -= 0.5f;
             vTexels -= 0.5f;
             uTexels = math.select(uTexels, uTexels + parameters._textureResolution, uTexels < 0f);

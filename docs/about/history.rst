@@ -27,6 +27,7 @@ Fixed
    -  Fix ocean not rendering on Xbox One and Xbox Series X.
    -  Fix height input (and others) from not working 100m above sea level and 500m below sea level.
    -  Fix FFT shader build errors for Game Core platforms.
+   -  Fix FFT material allocations every frame.
    -  Fix flow simulation sometimes not clearing after disabling last input.
 
    .. only:: hdrp

@@ -21,42 +21,42 @@ Shader "Crest/Ocean"
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]
 		// Base colour when looking straight down into water
-		_Diffuse("Scatter Colour Base", Color) = (0.0, 0.0124, 0.566, 1.0)
+		_Diffuse("Scatter Colour Base", Color) = (0.0, 0.0026954073, 0.16981131, 1.0)
 		// Base colour when looking into water at shallow/grazing angle
-		_DiffuseGrazing("Scatter Colour Grazing", Color) = (0.184, 0.393, 0.519, 1)
+		_DiffuseGrazing("Scatter Colour Grazing", Color) = (0.0, 0.003921569, 0.1686274, 1.0)
 		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		// Base colour in shadow
-		_DiffuseShadow("Scatter Colour Shadow", Color) = (0.0, 0.356, 0.565, 1.0)
+		_DiffuseShadow("Scatter Colour Shadow", Color) = (0.0, 0.0013477041, 0.084905684, 1.0)
 
 		[Header(Shallow Scattering)]
 		// Enable light scattering in shallow water
 		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
 		// Colour in shallow water
-		_SubSurfaceShallowCol("Scatter Colour Shallow", Color) = (0.552, 1.0, 1.0, 1.0)
+		_SubSurfaceShallowCol("Scatter Colour Shallow", Color) = (0.0, 0.003921569, 0.24705884, 1.0)
 		// Max depth that is considered 'shallow'
 		_SubSurfaceDepthMax("Scatter Colour Shallow Depth Max", Range(0.01, 50.0)) = 10.0
 		// Fall off of shallow scattering
 		_SubSurfaceDepthPower("Scatter Colour Shallow Depth Falloff", Range(0.01, 10.0)) = 2.5
 		// Shallow water colour in shadow (see comment on Shadowing param above)
-		_SubSurfaceShallowColShadow("Scatter Colour Shallow Shadow", Color) = (0.144, 0.226, 0.212, 1)
+		_SubSurfaceShallowColShadow("Scatter Colour Shallow Shadow", Color) = (0.0, 0.0053968453, 0.17, 1)
 
 		[Header(Subsurface Scattering)]
 		// Whether to to emulate light scattering through the water volume
 		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
 		// Colour tint for primary light contribution
-		_SubSurfaceColour("SSS Tint", Color) = (0.0, 0.48, 0.36)
+		_SubSurfaceColour("SSS Tint", Color) = (0.08850684, 0.497, 0.45615074, 1.0)
 		// Amount of primary light contribution that always comes in
-		_SubSurfaceBase("SSS Intensity Base", Range(0.0, 4.0)) = 1.0
+		_SubSurfaceBase("SSS Intensity Base", Range(0.0, 4.0)) = 0.0
 		// Primary light contribution in direction of light to emulate light passing through waves
-		_SubSurfaceSun("SSS Intensity Sun", Range(0.0, 10.0)) = 4.5
+		_SubSurfaceSun("SSS Intensity Sun", Range(0.0, 10.0)) = 1.7
 		// Fall-off for primary light scattering to affect directionality
 		_SubSurfaceSunFallOff("SSS Sun Falloff", Range(1.0, 16.0)) = 5.0
 
 		// Reflection properites
 		[Header(Reflection Environment)]
 		// Strength of specular lighting response
-		_Specular("Specular", Range(0.0, 1.0)) = 1.0
+		_Specular("Specular", Range(0.0, 1.0)) = 0.7
 		// Controls blurriness of reflection
 		_Roughness("Roughness", Range(0.0, 1.0)) = 0.0
 		// Controls harshness of Fresnel behaviour
@@ -141,9 +141,9 @@ Shader "Crest/Ocean"
 		// Whether light can pass through the water surface
 		[Toggle] _Transparency("Enable", Float) = 1
 		// Scattering coefficient within water volume, per channel
-		_DepthFogDensity("Depth Fog Density", Vector) = (0.33, 0.23, 0.37, 1.0)
+		_DepthFogDensity("Depth Fog Density", Vector) = (0.9, 0.3, 0.35, 1.0)
 		// How strongly light is refracted when passing through water surface
-		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1
+		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.5
 
 		[Header(Caustics)]
 		// Approximate rays being focused/defocused on underwater surfaces

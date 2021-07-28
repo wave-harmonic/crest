@@ -18,6 +18,7 @@ Changed
 .. bullet_list::
 
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
+   -  Add XR `SPI` support to *Underwater Renderer*. `[URP]`
 
 
 Fixed
@@ -38,7 +39,7 @@ Fixed
 
    .. only:: birp or urp
 
-      -  Fix caustics jittering in XR for some devices. `[BIRP] [URP]`
+      -  Fix *Underwater Renderer* caustics jittering for some XR devices. `[BIRP] [URP]`
 
    .. only:: urp
 

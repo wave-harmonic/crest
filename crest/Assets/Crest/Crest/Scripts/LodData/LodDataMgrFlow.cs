@@ -31,21 +31,8 @@ namespace Crest
 
         public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsFlow != null) return _ocean._simSettingsFlow;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsFlow != null ? _ocean._simSettingsFlow : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrFlow(OceanRenderer ocean) : base(ocean)
         {
@@ -99,11 +86,8 @@ namespace Crest
                 SubmitDraws(lodIdx, buf);
             }
 
-            // targets have now been cleared, we can early out next time around
-            if (drawList.Count == 0)
-            {
-                _targetsClear = true;
-            }
+            // Targets are only clear if nothing was drawn
+            _targetsClear = drawList.Count == 0;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Flow";

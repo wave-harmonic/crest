@@ -24,8 +24,6 @@ float _WindSpeed;
 float _Turbulence;
 float _Gravity;
 
-uint _RngState;
-
 uint WangHash(uint seed)
 {
 	seed = (seed ^ 61) ^ (seed >> 16);
@@ -36,23 +34,23 @@ uint WangHash(uint seed)
 	return seed;
 }
 
-uint Rand()
+uint Rand(inout uint rngState)
 {
-	_RngState ^= (_RngState << 13);
-	_RngState ^= (_RngState >> 17);
-	_RngState ^= (_RngState << 5);
-	return _RngState;
+	rngState ^= (rngState << 13);
+	rngState ^= (rngState >> 17);
+	rngState ^= (rngState << 5);
+	return rngState;
 }
 
-float RandFloat()
+float RandFloat(inout uint rngState)
 {
-	return Rand() / 4294967296.0f;
+	return Rand(rngState) / 4294967296.0f;
 }
 
-float RandGauss()
+float RandGauss(inout uint rngState)
 {
-	float u1 = RandFloat();
-	float u2 = RandFloat();
+	float u1 = RandFloat(rngState);
+	float u2 = RandFloat(rngState);
 	if (u1 < 1e-6f)
 		u1 = 1e-6f;
 	return sqrt(-2.0f * log(u1)) * cos(PI2 * u2);
@@ -130,8 +128,9 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	const float2 k = PI2 * coord / worldSize;
 	const float kMag = length(k);
 
-	// Init seed
-	_RngState = WangHash(id.z * _Size * _Size + id.y * _Size + id.x);
+	// Init seed. rngState was _RngState (file level variable), but GameCore platforms does not allow assigning to them.
+	// See issue #856 for more information: https://github.com/wave-harmonic/crest/issues/856
+	uint rngState = WangHash(id.z * _Size * _Size + id.y * _Size + id.x);
 
 	// Dispersion
 	float w; float dwdk;
@@ -156,12 +155,12 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	deltaSNeg *= (dK * dK) * dwdk / kMag;
 
 	// Amplitude
-	const float ampPos = RandGauss() * sqrt(abs(deltaSPos) * 2.0f);
-	const float ampNeg = RandGauss() * sqrt(abs(deltaSNeg) * 2.0f);
+	const float ampPos = RandGauss(rngState) * sqrt(abs(deltaSPos) * 2.0f);
+	const float ampNeg = RandGauss(rngState) * sqrt(abs(deltaSNeg) * 2.0f);
 
 	// Output
-	const float phasePos = RandFloat() * PI2;
-	const float phaseNeg = RandFloat() * PI2;
+	const float phasePos = RandFloat(rngState) * PI2;
+	const float phaseNeg = RandFloat(rngState) * PI2;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	const float spiceyMultiplier = 1.5;

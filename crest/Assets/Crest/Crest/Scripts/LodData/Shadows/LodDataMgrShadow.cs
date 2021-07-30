@@ -57,21 +57,8 @@ namespace Crest
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
         readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsShadow != null) return _ocean._simSettingsShadow;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrShadow(OceanRenderer ocean) : base(ocean)
         {

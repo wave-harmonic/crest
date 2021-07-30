@@ -95,21 +95,19 @@ namespace Crest
         protected Material _material;
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
+        // If this is true, then the renderer should not be there as input source is from something else.
+        protected virtual bool RendererRequired => true;
+
         void InitRendererAndMaterial(bool verifyShader)
         {
             _renderer = GetComponent<Renderer>();
 
-            if (_renderer)
+            if (RendererRequired && _renderer != null)
             {
 #if UNITY_EDITOR
                 if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
-                    ValidatedHelper.ValidateInputMesh(RendererRequired, gameObject, ValidatedHelper.DebugLog);
-
-                    if (TryGetComponent<MeshRenderer>(out var meshRenderer))
-                    {
-                        ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, ShaderPrefix, gameObject, ValidatedHelper.DebugLog);
-                    }
+                    ValidatedHelper.ValidateRenderer(gameObject, ValidatedHelper.DebugLog, ShaderPrefix);
                 }
 #endif
 
@@ -117,7 +115,7 @@ namespace Crest
             }
         }
 
-        protected void Start()
+        protected virtual void Start()
         {
             InitRendererAndMaterial(true);
         }
@@ -260,7 +258,7 @@ namespace Crest
     }
 
     [ExecuteAlways]
-    public abstract class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
+    public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
         : RegisterLodDataInput<LodDataType>
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
@@ -285,6 +283,8 @@ namespace Crest
 
         protected abstract string SplineShaderName { get; }
         protected abstract Vector2 DefaultCustomData { get; }
+
+        protected override bool RendererRequired => _spline == null;
 
         void Awake()
         {
@@ -338,8 +338,6 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        protected override bool RendererRequired => _spline == null;
-
         protected override void Update()
         {
             base.Update();
@@ -387,7 +385,8 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
-        protected virtual bool RendererRequired => true;
+        // Whether there is an alternative methods than a renderer (like splines).
+        protected virtual bool RendererOptional => false;
 
         protected virtual string FeatureToggleLabel => null;
         protected virtual string FeatureToggleName => null;
@@ -400,14 +399,9 @@ namespace Crest
         protected virtual string MaterialFeatureDisabledError => null;
         protected virtual string MaterialFeatureDisabledFix => null;
 
-        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            var isValid = ValidatedHelper.ValidateInputMesh(RendererRequired, gameObject, showMessage);
-
-            if (TryGetComponent<MeshRenderer>(out var meshRenderer))
-            {
-                isValid = ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, ShaderPrefix, gameObject, showMessage) && isValid;
-            }
+            var isValid = ValidatedHelper.ValidateRenderer(gameObject, showMessage, RendererRequired, RendererOptional, ShaderPrefix);
 
             if (ocean != null && !FeatureEnabled(ocean))
             {
@@ -433,5 +427,29 @@ namespace Crest
 
     [CustomEditor(typeof(RegisterLodDataInputBase), true), CanEditMultipleObjects]
     class RegisterLodDataInputBaseEditor : ValidatedEditor { }
+
+    public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
+    {
+        protected override bool RendererOptional => true;
+
+        public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            bool isValid = base.Validate(ocean, showMessage);
+
+            // Will be invalid if no renderer and no spline.
+            if (RendererRequired && !TryGetComponent<Renderer>(out _))
+            {
+                showMessage
+                (
+                    "A <i>Crest Spline</i> component is required to drive this data. Alternatively a <i>MeshRenderer</i> can be added. Neither is currently attached to ocean input.",
+                    "Attach a <i>Crest Spline</i> component.",
+                    ValidatedHelper.MessageType.Error, gameObject,
+                    ValidatedHelper.FixAttachComponent<Spline.Spline>
+                );
+            }
+
+            return isValid;
+        }
+    }
 #endif
 }

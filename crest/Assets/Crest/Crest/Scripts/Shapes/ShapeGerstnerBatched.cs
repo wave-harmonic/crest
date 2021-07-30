@@ -18,7 +18,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner Batched")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstnerbatched")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
         /// <summary>
@@ -175,7 +175,6 @@ namespace Crest
             // Initialise with spectrum.
             _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
             _spectrum.name = "Default Waves (auto)";
-            _spectrum.Upgrade();
         }
 #endif
 
@@ -188,11 +187,6 @@ namespace Crest
             {
                 enabled = false;
                 return;
-            }
-
-            if (_spectrum != null)
-            {
-                _spectrum.Upgrade();
             }
 #endif
 
@@ -885,7 +879,7 @@ namespace Crest
             // Renderer
             if (_mode == GerstnerMode.Geometry)
             {
-                isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+                isValid = ValidatedHelper.ValidateRenderer(gameObject, showMessage, "Crest/Inputs/Animated Waves/Gerstner");
             }
             else if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
             {

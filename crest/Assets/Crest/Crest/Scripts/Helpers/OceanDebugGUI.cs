@@ -197,6 +197,8 @@ namespace Crest
 #endif
                 y += h;
             }
+
+            GUI.Label(new Rect(x, y, w, h), $"FFT generator(s): {FFTCompute.GeneratorCount}"); y += h;
         }
 
         void DrawShapeTargets()

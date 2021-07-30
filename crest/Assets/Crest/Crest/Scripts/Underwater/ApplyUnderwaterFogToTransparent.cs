@@ -16,10 +16,15 @@ namespace Crest
         public static readonly List<ApplyUnderwaterFogToTransparent> s_Renderers = new List<ApplyUnderwaterFogToTransparent>();
         internal Renderer _renderer;
 
+        [Tooltip("The shader pass to use when rendering this object.")]
+        [SerializeField]
+        internal int _shaderPass;
+
         void OnEnable()
         {
             if (TryGetComponent(out _renderer) && !s_Renderers.Contains(this))
             {
+                // If the shader has other passes (like shadows) then this will stop them from working.
                 _renderer.enabled = false;
                 s_Renderers.Add(this);
             }

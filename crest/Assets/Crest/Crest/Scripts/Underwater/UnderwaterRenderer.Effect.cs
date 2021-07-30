@@ -169,7 +169,7 @@ namespace Crest
                     shaderPass = 1;
                 }
 
-                _underwaterEffectCommandBuffer.DrawRenderer(renderer, renderer.sharedMaterial, submeshIndex: 0, shaderPass: 0);
+                _underwaterEffectCommandBuffer.DrawRenderer(renderer, renderer.sharedMaterial, submeshIndex: 0, shaderPass: input._shaderPass);
 
                 // Render the fog and apply to camera target.
                 _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);

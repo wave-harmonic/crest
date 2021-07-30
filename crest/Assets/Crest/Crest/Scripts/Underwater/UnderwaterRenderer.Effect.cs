@@ -138,7 +138,7 @@ namespace Crest
                 // _MainTex is already setup.
 
                 // Set _MainTex so we can get the alpha channel for blending.
-                var texture = renderer.sharedMaterial.GetTexture("_MainTex");
+                var texture = renderer.sharedMaterial.HasProperty("_MainTex") ? renderer.sharedMaterial.GetTexture("_MainTex") : null;
                 if (texture != null)
                 {
                     _materialPropertyBlock.SetTexture("_MainTex", renderer.sharedMaterial.GetTexture("_MainTex"));

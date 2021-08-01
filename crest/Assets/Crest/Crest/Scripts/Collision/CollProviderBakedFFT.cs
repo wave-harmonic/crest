@@ -32,8 +32,14 @@ namespace Crest
 
         const int MAX_QUERY_QUADS = 8192;
 
+        /// <summary>
+        /// Data for a particular query type, such as heights or normals.
+        /// </summary>
         class QueryData
         {
+            // Double buffered query input and output data. Query data can vary in count
+            // for different query types. Each is double buffered so that jobs can run
+            // while new query input data is registered.
             public Dictionary<int, int2>[] _segmentRegistry = new Dictionary<int, int2>[2];
             public NativeArray<float4>[] _queryPositionQuadsX = new NativeArray<float4>[2];
             public NativeArray<float4>[] _queryPositionQuadsZ = new NativeArray<float4>[2];
@@ -42,14 +48,19 @@ namespace Crest
             public NativeArray<float4>[] _resultQuads1 = new NativeArray<float4>[2];
             public NativeArray<float4>[] _resultQuads2 = new NativeArray<float4>[2];
 
-            public int RegisterQueryPoints(int i_ownerHash, int _segmentsToWriteThisFrame, int _dataToWriteThisFrame, Vector3[] i_queryPoints)
+            /// <summary>
+            /// Updates the query positions (creates space for them the first time). If the query count doesn't match a new set of query
+            /// position data will be created. This will force any running jobs to complete. The jobs will be kicked off in LateUpdate,
+            /// so this should be called before the kick-off, such as from Update.
+            /// </summary>
+            public int RegisterQueryPoints(int ownerHash, Vector3[] queryPoints, int segmentsToWriteThisFrame, int dataToWriteThisFrame)
             {
-                var numQuads = (i_queryPoints.Length + 3) / 4;
+                var numQuads = (queryPoints.Length + 3) / 4;
 
                 // Get segment to find place to write to for next jobs
                 var segmentRetrieved = false;
                 int2 querySegment;
-                if (_segmentRegistry[_segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out querySegment))
+                if (_segmentRegistry[segmentsToWriteThisFrame].TryGetValue(ownerHash, out querySegment))
                 {
                     // make sure segment size matches our query count
                     var segmentSize = querySegment[1] - querySegment[0];
@@ -61,7 +72,7 @@ namespace Crest
                     else
                     {
                         // Query count does not match segment - remove it. The segment will be recreated below.
-                        _segmentRegistry[_segmentsToWriteThisFrame].Remove(i_ownerHash);
+                        _segmentRegistry[segmentsToWriteThisFrame].Remove(ownerHash);
                     }
                 }
 
@@ -75,25 +86,25 @@ namespace Crest
                     }
 
                     querySegment = new int2(_lastQueryQuadIndex, _lastQueryQuadIndex + numQuads);
-                    _segmentRegistry[_segmentsToWriteThisFrame].Add(i_ownerHash, querySegment);
+                    _segmentRegistry[segmentsToWriteThisFrame].Add(ownerHash, querySegment);
                     _lastQueryQuadIndex += numQuads;
                 }
 
                 // Copy input data. Could be avoided if query api is changed to use NAs.
-                for (var i = 0; i < i_queryPoints.Length; i++)
+                for (var i = 0; i < queryPoints.Length; i++)
                 {
                     var quadIdx = i / 4;
                     var outIdx = quadIdx + querySegment.x;
 
-                    var xQuad = _queryPositionQuadsX[_dataToWriteThisFrame][outIdx];
-                    var zQuad = _queryPositionQuadsZ[_dataToWriteThisFrame][outIdx];
+                    var xQuad = _queryPositionQuadsX[dataToWriteThisFrame][outIdx];
+                    var zQuad = _queryPositionQuadsZ[dataToWriteThisFrame][outIdx];
 
                     var quadComp = i % 4;
-                    xQuad[quadComp] = i_queryPoints[i].x;
-                    zQuad[quadComp] = i_queryPoints[i].z;
+                    xQuad[quadComp] = queryPoints[i].x;
+                    zQuad[quadComp] = queryPoints[i].z;
 
-                    _queryPositionQuadsX[_dataToWriteThisFrame][outIdx] = xQuad;
-                    _queryPositionQuadsZ[_dataToWriteThisFrame][outIdx] = zQuad;
+                    _queryPositionQuadsX[dataToWriteThisFrame][outIdx] = xQuad;
+                    _queryPositionQuadsZ[dataToWriteThisFrame][outIdx] = zQuad;
                 }
 
                 return (int)QueryStatus.Success;
@@ -105,8 +116,17 @@ namespace Crest
         QueryData _queryDataNorms = new QueryData();
         QueryData _queryDataVels = new QueryData();
 
+        /// <summary>
+        /// Query data double buffered, this gives index of buffer to write new query data to.
+        /// </summary>
         int _dataToWriteThisFrame = 0;
+        /// <summary>
+        /// Data segment registry double buffered, this gives index of buffer to write new query data to.
+        /// </summary>
         int _segmentsToWriteThisFrame = 0;
+        /// <summary>
+        /// Handle for all jobs.
+        /// </summary>
         JobHandle _jobHandle;
 
         public CollProviderBakedFFT(FFTBakedData data)
@@ -142,12 +162,78 @@ namespace Crest
             }
         }
 
-        /// <summary>
-        /// Updates the query positions (creates space for them the first time). If the query count doesn't match a new set of query
-        /// position data will be created. This will force any running jobs to complete. The jobs will be kicked off in LateUpdate,
-        /// so this should be called before the kick-off, such as from Update.
-        /// </summary>
-        /// <returns>True if successful.</returns>
+        bool RetrieveHeights(int i_ownerHash, float[] o_resultHeights)
+        {
+            // Return data - get segment from finished jobs
+            if (o_resultHeights != null && _queryDataHeights._segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegment))
+            {
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                for (int i = 0; i < o_resultHeights.Length; i++)
+                {
+                    var quadIdx = computedQuerySegment.x + i / 4;
+                    o_resultHeights[i] = _queryDataHeights._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool RetrieveDisps(int i_ownerHash, Vector3[] o_resultDisps)
+        {
+            // Return data - get segment from finished jobs
+            if (o_resultDisps != null && _queryDataDisps._segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegment))
+            {
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                Vector3 disp;
+                for (int i = 0; i < o_resultDisps.Length; i++)
+                {
+                    var quadIdx = computedQuerySegment.x + i / 4;
+                    disp.x = _queryDataDisps._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    disp.y = _queryDataDisps._resultQuads1[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    disp.z = _queryDataDisps._resultQuads2[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    o_resultDisps[i] = disp;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool RetrieveNorms(int i_ownerHash, Vector3[] o_resultNorms)
+        {
+            if (o_resultNorms != null && _queryDataNorms._segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegment))
+            {
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                Vector3 norm;
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    var quadIdx = computedQuerySegment.x + i / 4;
+                    norm.x = _queryDataNorms._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    norm.y = _queryDataNorms._resultQuads1[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    norm.z = _queryDataNorms._resultQuads2[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    o_resultNorms[i] = norm;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool RetrieveVels(int i_ownerHash, Vector3[] o_resultVels)
+        {
+            if (o_resultVels != null && _queryDataVels._segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegment))
+            {
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                Vector3 vel = Vector3.zero;
+                for (int i = 0; i < o_resultVels.Length; i++)
+                {
+                    var quadIdx = computedQuerySegment.x + i / 4;
+                    vel.y = _queryDataVels._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    o_resultVels[i] = vel;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public int Query(
             int i_ownerHash,
             float i_minSpatialLength,
@@ -161,62 +247,61 @@ namespace Crest
             // with the jobs. Therefore ensure the jobs are complete.
             _jobHandle.Complete();
 
-            var dataCopiedOutHeights = false;
-            var dataCopiedOutNorms = false;
-            var dataCopiedOutVels = false;
-
-            // Return data - get segment from finished jobs
-            if (o_resultHeights != null && _queryDataHeights._segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegmentHeights))
-            {
-                // Copy results to output. Could be avoided if query api was changed to NAs.
-                for (int i = 0; i < o_resultHeights.Length; i++)
-                {
-                    var quadIdx = computedQuerySegmentHeights.x + i / 4;
-                    o_resultHeights[i] = _queryDataHeights._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                }
-                dataCopiedOutHeights = true;
-            }
-            if (o_resultNorms != null && _queryDataNorms._segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegmentNorms))
-            {
-                // Copy results to output. Could be avoided if query api was changed to NAs.
-                Vector3 norm;
-                for (int i = 0; i < o_resultNorms.Length; i++)
-                {
-                    var quadIdx = computedQuerySegmentNorms.x + i / 4;
-                    norm.x = _queryDataNorms._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    norm.y = _queryDataNorms._resultQuads1[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    norm.z = _queryDataNorms._resultQuads2[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    o_resultNorms[i] = norm;
-                }
-                dataCopiedOutNorms = true;
-            }
-            if (o_resultVels != null && _queryDataVels._segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegmentVels))
-            {
-                // Copy results to output. Could be avoided if query api was changed to NAs.
-                Vector3 vel = Vector3.zero;
-                for (int i = 0; i < o_resultVels.Length; i++)
-                {
-                    var quadIdx = computedQuerySegmentVels.x + i / 4;
-                    vel.y = _queryDataVels._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    o_resultVels[i] = vel;
-                }
-                dataCopiedOutVels = true;
-            }
+            var dataCopiedOutHeights = RetrieveHeights(i_ownerHash, o_resultHeights);
+            var dataCopiedOutNorms = RetrieveNorms(i_ownerHash, o_resultNorms);
+            var dataCopiedOutVels = RetrieveVels(i_ownerHash, o_resultVels);
 
             if (o_resultHeights != null)
             {
-                _queryDataHeights.RegisterQueryPoints(i_ownerHash, _segmentsToWriteThisFrame, _dataToWriteThisFrame, i_queryPoints);
+                _queryDataHeights.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
             }
             if (o_resultNorms != null)
             {
-                _queryDataNorms.RegisterQueryPoints(i_ownerHash, _segmentsToWriteThisFrame, _dataToWriteThisFrame, i_queryPoints);
+                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
             }
             if (o_resultVels != null)
             {
-                _queryDataVels.RegisterQueryPoints(i_ownerHash, _segmentsToWriteThisFrame, _dataToWriteThisFrame, i_queryPoints);
+                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
             }
 
             var allCopied = (dataCopiedOutHeights || o_resultHeights == null)
+                && (dataCopiedOutNorms || o_resultNorms == null)
+                && (dataCopiedOutVels || o_resultVels == null);
+
+            return allCopied ? (int)QueryStatus.Success : (int)QueryStatus.ResultsNotReadyYet;
+        }
+
+        public int Query(
+            int i_ownerHash,
+            float i_minSpatialLength,
+            Vector3[] i_queryPoints,
+            Vector3[] o_resultDisps,
+            Vector3[] o_resultNorms,
+            Vector3[] o_resultVels
+            )
+        {
+            // We're going to write to one set of data, so we need to read from the data that is
+            // with the jobs. Therefore ensure the jobs are complete.
+            _jobHandle.Complete();
+
+            var dataCopiedOutDisps = RetrieveDisps(i_ownerHash, o_resultDisps);
+            var dataCopiedOutNorms = RetrieveNorms(i_ownerHash, o_resultNorms);
+            var dataCopiedOutVels = RetrieveVels(i_ownerHash, o_resultVels);
+
+            if (o_resultDisps != null)
+            {
+                _queryDataDisps.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+            }
+            if (o_resultNorms != null)
+            {
+                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+            }
+            if (o_resultVels != null)
+            {
+                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+            }
+
+            var allCopied = (dataCopiedOutDisps || o_resultDisps == null)
                 && (dataCopiedOutNorms || o_resultNorms == null)
                 && (dataCopiedOutVels || o_resultVels == null);
 
@@ -295,271 +380,6 @@ namespace Crest
 
             return true;
         }
-
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
-        {
-            return (int)QueryStatus.ResultsNotReadyYet;
-
-            //if (_data == null || _data._framesFlattenedNative.Length == 0)
-            //    return (int)QueryStatus.CollisionDataMissing;
-
-            //var t = OceanRenderer.Instance.CurrentTime;
-
-            //// Queries processed in groups of 4 for SIMD - 'quads'
-            //var numQueryQuads = (o_resultDisps.Length + 3) / 4;
-            //var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
-            //var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
-
-            //// Copy input data. Could be avoided if query api is changed to use NAs.
-            //for (int i = 0; i < i_queryPoints.Length; i++)
-            //{
-            //    var quadIdx = i / 4;
-            //    var xQuad = queryPointsX[quadIdx];
-            //    var zQuad = queryPointsZ[quadIdx];
-
-            //    var quadComp = i % 4;
-            //    xQuad[quadComp] = i_queryPoints[i].x;
-            //    zQuad[quadComp] = i_queryPoints[i].z;
-
-            //    queryPointsX[quadIdx] = xQuad;
-            //    queryPointsZ[quadIdx] = zQuad;
-            //}
-
-            //if (o_resultDisps != null)
-            //{
-            //    // One thread per quad - per group of 4 queries
-            //    var resultsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            //    var resultsY = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            //    var resultsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-            //    // Run job synchronously
-            //    new JobSampleDisplacement
-            //    {
-            //        _queryPointsX = queryPointsX,
-            //        _queryPointsZ = queryPointsZ,
-            //        _framesFlattened = _data._framesFlattenedNative,
-            //        _t = t,
-            //        _params = _data._parameters,
-            //        _outputX = resultsX,
-            //        _outputY = resultsY,
-            //        _outputZ = resultsZ,
-            //    }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
-
-            //    // Copy results to output. Could be avoided if query api was changed to NAs.
-            //    for (int i = 0; i < o_resultDisps.Length; i++)
-            //    {
-            //        o_resultDisps[i].x = resultsX[i / 4][i % 4];
-            //        o_resultDisps[i].y = resultsY[i / 4][i % 4];
-            //        o_resultDisps[i].z = resultsZ[i / 4][i % 4];
-            //    }
-
-            //    resultsX.Dispose();
-            //    resultsY.Dispose();
-            //    resultsZ.Dispose();
-            //}
-
-            //if (o_resultNorms != null)
-            //{
-            //    var normalX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            //    var normalY = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            //    var normalZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-            //    // Run job synchronously
-            //    new JobComputeNormal
-            //    {
-            //        _queryPointsX = queryPointsX,
-            //        _queryPointsZ = queryPointsZ,
-            //        _framesFlattened = _data._framesFlattenedNative,
-            //        _outputNormalX = normalX,
-            //        _outputNormalY = normalY,
-            //        _outputNormalZ = normalZ,
-            //        _t = t,
-            //        _params = _data._parameters,
-            //    }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
-
-            //    // Copy results to output. Could be avoided if query api was changed to NAs.
-            //    for (int i = 0; i < o_resultNorms.Length; i++)
-            //    {
-            //        var quad = i / 4;
-            //        var quadComp = i % 4;
-
-            //        Vector3 norm;
-            //        norm.x = normalX[quad][quadComp];
-            //        norm.y = normalY[quad][quadComp];
-            //        norm.z = normalZ[quad][quadComp];
-            //        o_resultNorms[i] = norm;
-            //    }
-
-            //    normalX.Dispose();
-            //    normalY.Dispose();
-            //    normalZ.Dispose();
-            //}
-
-            //if (o_resultVels != null)
-            //{
-            //    // One thread per quad - per group of 4 queries
-            //    var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-            //    // Run job synchronously
-            //    new JobComputeVerticalVelocity
-            //    {
-            //        _queryPointsX = queryPointsX,
-            //        _queryPointsZ = queryPointsZ,
-            //        _framesFlattened = _data._framesFlattenedNative,
-            //        _t = t,
-            //        _params = _data._parameters,
-            //        _output = results,
-            //    }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
-
-            //    // Copy results to output. Could be avoided if query api was changed to NAs.
-            //    for (int i = 0; i < o_resultVels.Length; i++)
-            //    {
-            //        o_resultVels[i].y = results[i / 4][i % 4];
-
-            //        o_resultVels[i].x = o_resultVels[i].z = 0f;
-            //    }
-
-            //    results.Dispose();
-            //}
-
-            //// Clean up query points
-            //queryPointsX.Dispose();
-            //queryPointsZ.Dispose();
-
-            //return (int)QueryStatus.Success;
-        }
-
-        //public int Query(
-        //    int i_ownerHash,
-        //    float i_minSpatialLength,
-        //    Vector3[] i_queryPoints,
-        //    float[] o_resultHeights,
-        //    Vector3[] o_resultNorms,
-        //    Vector3[] o_resultVels
-        //    )
-        //{
-        //    if (_data == null || _data._framesFlattenedNative.Length == 0)
-        //        return (int)QueryStatus.DataMissing;
-
-        //    var t = OceanRenderer.Instance.CurrentTime;
-        //    var seaLevel = OceanRenderer.Instance.SeaLevel;
-
-        //    // Queries processed in groups of 4 for SIMD - 'quads'
-        //    var numQueryQuads = (o_resultHeights.Length + 3) / 4;
-        //    var queryPointsX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
-        //    var queryPointsZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.ClearMemory);
-
-        //    // Copy input data. Could be avoided if query api is changed to use NAs.
-        //    for (var i = 0; i < i_queryPoints.Length; i++)
-        //    {
-        //        var quadIdx = i / 4;
-        //        var xQuad = queryPointsX[quadIdx];
-        //        var zQuad = queryPointsZ[quadIdx];
-
-        //        var quadComp = i % 4;
-        //        xQuad[quadComp] = i_queryPoints[i].x;
-        //        zQuad[quadComp] = i_queryPoints[i].z;
-
-        //        queryPointsX[quadIdx] = xQuad;
-        //        queryPointsZ[quadIdx] = zQuad;
-        //    }
-
-        //    if (o_resultHeights != null)
-        //    {
-        //        // One thread per quad - per group of 4 queries
-        //        var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-        //        // Run job synchronously
-        //        new JobSampleHeight
-        //        {
-        //            _queryPointsX = queryPointsX,
-        //            _queryPointsZ = queryPointsZ,
-        //            _framesFlattened = _data._framesFlattenedNative,
-        //            _t = t,
-        //            _params = _data._parameters,
-        //            _seaLevel = seaLevel,
-        //            _output = results,
-        //        }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
-
-        //        // Copy results to output. Could be avoided if query api was changed to NAs.
-        //        for (int i = 0; i < o_resultHeights.Length; i++)
-        //        {
-        //            o_resultHeights[i] = results[i / 4][i % 4];
-        //        }
-
-        //        results.Dispose();
-        //    }
-
-        //    if (o_resultNorms != null)
-        //    {
-        //        var normalX = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-        //        var normalY = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-        //        var normalZ = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-        //        // Run job synchronously
-        //        new JobComputeNormal
-        //        {
-        //            _queryPointsX = queryPointsX,
-        //            _queryPointsZ = queryPointsZ,
-        //            _framesFlattened = _data._framesFlattenedNative,
-        //            _outputNormalX = normalX,
-        //            _outputNormalY = normalY,
-        //            _outputNormalZ = normalZ,
-        //            _t = t,
-        //            _params = _data._parameters,
-        //        }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
-
-        //        // Copy results to output. Could be avoided if query api was changed to NAs.
-        //        for (int i = 0; i < o_resultNorms.Length; i++)
-        //        {
-        //            var quad = i / 4;
-        //            var quadComp = i % 4;
-
-        //            Vector3 norm;
-        //            norm.x = normalX[quad][quadComp];
-        //            norm.y = normalY[quad][quadComp];
-        //            norm.z = normalZ[quad][quadComp];
-        //            o_resultNorms[i] = norm;
-        //        }
-
-        //        normalX.Dispose();
-        //        normalY.Dispose();
-        //        normalZ.Dispose();
-        //    }
-
-        //    if (o_resultVels != null)
-        //    {
-        //        // One thread per quad - per group of 4 queries
-        //        var results = new NativeArray<float4>(numQueryQuads, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-        //        // Run job synchronously
-        //        new JobComputeVerticalVelocity
-        //        {
-        //            _queryPointsX = queryPointsX,
-        //            _queryPointsZ = queryPointsZ,
-        //            _framesFlattened = _data._framesFlattenedNative,
-        //            _t = t,
-        //            _params = _data._parameters,
-        //            _output = results,
-        //        }.Schedule(numQueryQuads, s_jobBatchSize).Complete();
-
-        //        // Copy results to output. Could be avoided if query api was changed to NAs.
-        //        for (int i = 0; i < o_resultVels.Length; i++)
-        //        {
-        //            o_resultVels[i].y = results[i / 4][i % 4];
-
-        //            o_resultVels[i].x = o_resultVels[i].z = 0f;
-        //        }
-
-        //        results.Dispose();
-        //    }
-
-        //    // Clean up query points
-        //    queryPointsX.Dispose();
-        //    queryPointsZ.Dispose();
-
-        //    return (int)QueryStatus.Success;
-        //}
 
         /// <summary>
         /// Job to compute height queries

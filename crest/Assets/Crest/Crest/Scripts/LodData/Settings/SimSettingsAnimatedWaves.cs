@@ -51,7 +51,7 @@ namespace Crest
         [Tooltip("The render texture format to use for the wave simulation. It should only be changed if you need more precision. See the documentation for information.")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-        [Predicated("_collisionSource", true, 3), DecoratedField]
+        [Predicated("_collisionSource", true, (int)CollisionSources.BakedFFT), DecoratedField]
         public FFTBakedData _bakedFFTData;
 
         public override void AddToSettingsHash(ref int settingsHash)

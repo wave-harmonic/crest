@@ -466,6 +466,8 @@ namespace Crest
         /// </summary>
         void OnInspectorGUIBaking()
         {
+            if (OceanRenderer.Instance == null) return;
+
             var bakeAndAssignLabel = "Bake to asset and assign to current settings";
             var selectCurrentSettingsLabel = "Select current settings";
             if (OceanRenderer.Instance._simSettingsAnimatedWaves != null)

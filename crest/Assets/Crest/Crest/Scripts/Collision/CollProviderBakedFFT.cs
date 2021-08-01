@@ -314,8 +314,9 @@ namespace Crest
         /// <returns>True if jobs kicked off, false if jobs already running.</returns>
         bool ScheduleJobs()
         {
+            Debug.Assert(_jobHandle.IsCompleted, "Crest: Expected _jobHandle to be completed before scheduling new jobs.");
+
             var t = OceanRenderer.Instance.CurrentTime;
-            var seaLevel = OceanRenderer.Instance.SeaLevel;
 
             if (_queryDataHeights._lastQueryQuadIndex > 0)
             {
@@ -326,7 +327,7 @@ namespace Crest
                     _framesFlattened = _data._framesFlattenedNative,
                     _t = t,
                     _params = _data._parameters,
-                    _seaLevel = seaLevel,
+                    _seaLevel = OceanRenderer.Instance.SeaLevel,
                     _output = _queryDataHeights._resultQuads0[1 - _dataToWriteThisFrame],
                 }.Schedule(_queryDataHeights._lastQueryQuadIndex, s_jobBatchSize));
             }

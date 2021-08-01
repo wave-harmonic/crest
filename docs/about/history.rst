@@ -21,6 +21,8 @@ Changed
       See :ref:`clip-surface-section` for more information.
    -  Add *Render Texture Graphics Format* option to *Clip Surface Sim Settings* to support even more accurate clipping for signed-distance primitives.
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
+   -  Add default textures to ocean shader.
+   -  Update ocean shader default values.
    -  Add XR `SPI` support to *Underwater Renderer*. `[URP]`
 
 

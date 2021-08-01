@@ -96,7 +96,9 @@ namespace Crest
                             result.y = OceanRenderer.Instance.SeaLevel;
                             result += _resultDisps[j * _steps + i];
 
-                            DebugDrawCross(result, _resultNorms[j * _steps + i], Mathf.Min(_stepSize / 4f, 1f), Color.green);
+                            var norm = _useNormals ? _resultNorms[j * _steps + i] : Vector3.up;
+
+                            DebugDrawCross(result, norm, Mathf.Min(_stepSize / 4f, 1f), Color.green);
                         }
                     }
                 }
@@ -112,7 +114,9 @@ namespace Crest
                             var result = _samplePositions[j * _steps + i];
                             result.y = _resultHeights[j * _steps + i];
 
-                            DebugDrawCross(result, _resultNorms[j * _steps + i], Mathf.Min(_stepSize / 4f, 1f), Color.green);
+                            var norm = _useNormals ? _resultNorms[j * _steps + i] : Vector3.up;
+
+                            DebugDrawCross(result, norm, Mathf.Min(_stepSize / 4f, 1f), Color.green);
                         }
                     }
                 }

@@ -30,14 +30,16 @@ namespace Crest
         const float s_finiteDiffDt = 0.06f;
         const int s_jobBatchSize = 8;
 
-        const int MAX_QUERY_QUADS = 4096;
-        Dictionary<int, int2> _segmentRegistry = new Dictionary<int, int2>();
+        const int MAX_QUERY_QUADS = 8192;
+        Dictionary<int, int2>[] _segmentRegistry = new Dictionary<int, int2>[2];
         JobHandle _jobHandle;
         NativeArray<float4>[] _queryPositionQuadsX = new NativeArray<float4>[2];
         NativeArray<float4>[] _queryPositionQuadsZ = new NativeArray<float4>[2];
         int _lastQueryQuadIndex = 0;
         NativeArray<float4>[] _resultHeightQuads = new NativeArray<float4>[2];
-        int _dataBeingUsedByJobs = 0;
+
+        int _dataToWriteThisFrame = 0;
+        int _segmentsToWriteThisFrame = 0;
 
         public CollProviderBakedFFT(FFTBakedData data)
         {
@@ -46,6 +48,7 @@ namespace Crest
 
             for (var i = 0; i < 2; i++)
             {
+                _segmentRegistry[i] = new Dictionary<int, int2>();
                 _queryPositionQuadsX[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
                 _queryPositionQuadsZ[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
                 _resultHeightQuads[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
@@ -67,14 +70,30 @@ namespace Crest
             Vector3[] o_resultVels
             )
         {
+            // We're going to write to one set of data, so we need to read from the data that is
+            // with the jobs. Therefore ensure the jobs are complete.
+            _jobHandle.Complete();
+
             var numQuads = (i_queryPoints.Length + 3) / 4;
 
             var dataCopiedOut = false;
 
-            // Get segment
+            // Return data - get segment from finished jobs
+            if (_segmentRegistry[1 - _segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out var computedQuerySegment))
+            {
+                // Copy results to output. Could be avoided if query api was changed to NAs.
+                for (int i = 0; i < o_resultHeights.Length; i++)
+                {
+                    var quadIdx = computedQuerySegment.x + i / 4;
+                    o_resultHeights[i] = _resultHeightQuads[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                }
+                dataCopiedOut = true;
+            }
+
+            // Get segment to find place to write to for next jobs
             var segmentRetrieved = false;
             int2 querySegment;
-            if (_segmentRegistry.TryGetValue(i_ownerHash, out querySegment))
+            if (_segmentRegistry[_segmentsToWriteThisFrame].TryGetValue(i_ownerHash, out querySegment))
             {
                 // make sure segment size matches our query count
                 var segmentSize = querySegment[1] - querySegment[0];
@@ -82,18 +101,11 @@ namespace Crest
                 {
                     // All good
                     segmentRetrieved = true;
-
-                    // Copy results to output. Could be avoided if query api was changed to NAs.
-                    for (int i = 0; i < o_resultHeights.Length; i++)
-                    {
-                        o_resultHeights[i] = _resultHeightQuads[1 - _dataBeingUsedByJobs][i / 4][i % 4];
-                    }
-                    dataCopiedOut = true;
                 }
                 else
                 {
                     // Query count does not match segment - remove it. The segment will be recreated below.
-                    _segmentRegistry.Remove(i_ownerHash);
+                    _segmentRegistry[_segmentsToWriteThisFrame].Remove(i_ownerHash);
                 }
             }
 
@@ -107,15 +119,9 @@ namespace Crest
                 }
 
                 querySegment = new int2(_lastQueryQuadIndex, _lastQueryQuadIndex + numQuads);
-                _segmentRegistry.Add(i_ownerHash, querySegment);
+                _segmentRegistry[_segmentsToWriteThisFrame].Add(i_ownerHash, querySegment);
                 _lastQueryQuadIndex += numQuads;
             }
-
-            // Save off the query data
-            //for (var i = querySegment.x; i < querySegment.y; i++)
-            //{
-            //    s_queryPositionsX[i] = queryPoints[i - querySegment.x].xz;
-            //}
 
             // Copy input data. Could be avoided if query api is changed to use NAs.
             for (var i = 0; i < i_queryPoints.Length; i++)
@@ -123,15 +129,15 @@ namespace Crest
                 var quadIdx = i / 4;
                 var outIdx = quadIdx + querySegment.x;
 
-                var xQuad = _queryPositionQuadsX[1 - _dataBeingUsedByJobs][outIdx];
-                var zQuad = _queryPositionQuadsZ[1 - _dataBeingUsedByJobs][outIdx];
+                var xQuad = _queryPositionQuadsX[_dataToWriteThisFrame][outIdx];
+                var zQuad = _queryPositionQuadsZ[_dataToWriteThisFrame][outIdx];
 
                 var quadComp = i % 4;
                 xQuad[quadComp] = i_queryPoints[i].x;
                 zQuad[quadComp] = i_queryPoints[i].z;
 
-                _queryPositionQuadsX[1 - _dataBeingUsedByJobs][outIdx] = xQuad;
-                _queryPositionQuadsZ[1 - _dataBeingUsedByJobs][outIdx] = zQuad;
+                _queryPositionQuadsX[_dataToWriteThisFrame][outIdx] = xQuad;
+                _queryPositionQuadsZ[_dataToWriteThisFrame][outIdx] = zQuad;
             }
 
             return dataCopiedOut ? (int)QueryStatus.Success : (int)QueryStatus.ResultsNotReadyYet;
@@ -158,13 +164,13 @@ namespace Crest
             var seaLevel = OceanRenderer.Instance.SeaLevel;
             _jobHandle = new JobSampleHeight
             {
-                _queryPointsX = _queryPositionQuadsX[_dataBeingUsedByJobs],
-                _queryPointsZ = _queryPositionQuadsZ[_dataBeingUsedByJobs],
+                _queryPointsX = _queryPositionQuadsX[1 - _dataToWriteThisFrame],
+                _queryPointsZ = _queryPositionQuadsZ[1 - _dataToWriteThisFrame],
                 _framesFlattened = _data._framesFlattenedNative,
                 _t = t,
                 _params = _data._parameters,
                 _seaLevel = seaLevel,
-                _output = _resultHeightQuads[_dataBeingUsedByJobs],
+                _output = _resultHeightQuads[1 - _dataToWriteThisFrame],
             }.Schedule(_lastQueryQuadIndex, s_jobBatchSize);
 
 
@@ -626,10 +632,16 @@ namespace Crest
             _jobHandle.Complete();
 
             // Flip data being used by queries vs data being processed by jobs
-            _dataBeingUsedByJobs = 1 - _dataBeingUsedByJobs;
+            _dataToWriteThisFrame = 1 - _dataToWriteThisFrame;
+            _segmentsToWriteThisFrame = 1 - _segmentsToWriteThisFrame;
+
+            // Prepare next registry
+            _segmentRegistry[_segmentsToWriteThisFrame].Clear();
 
             // Line up jobs
             ScheduleJobs();
+
+            _lastQueryQuadIndex = 0;
         }
 
         public void CleanUp()

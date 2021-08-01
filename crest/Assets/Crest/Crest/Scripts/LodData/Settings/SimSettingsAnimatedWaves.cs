@@ -58,6 +58,7 @@ namespace Crest
         {
             base.AddToSettingsHash(ref settingsHash);
             Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
+            Hashy.AddInt((int)_collisionSource, ref settingsHash);
         }
 
         /// <summary>

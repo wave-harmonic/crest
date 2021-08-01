@@ -31,14 +31,13 @@ namespace Crest
         const int s_jobBatchSize = 8;
 
         const int MAX_QUERY_QUADS = 4096;
-        Dictionary<int, int2> s_segmentRegistry = new Dictionary<int, int2>();
-        JobHandle s_jobHandle;
-        NativeArray<float4>[] s_queryPositionQuadsX = new NativeArray<float4>[2];
-        NativeArray<float4>[] s_queryPositionQuadsZ = new NativeArray<float4>[2];
-        int s_lastQueryQuadIndex = 0;
-        NativeArray<float4>[] s_resultHeightQuads = new NativeArray<float4>[2];
-        //NativeArray<float4>[] s_resultHeightQuads = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
-        int s_dataBeingUsedByJobs = 0;
+        Dictionary<int, int2> _segmentRegistry = new Dictionary<int, int2>();
+        JobHandle _jobHandle;
+        NativeArray<float4>[] _queryPositionQuadsX = new NativeArray<float4>[2];
+        NativeArray<float4>[] _queryPositionQuadsZ = new NativeArray<float4>[2];
+        int _lastQueryQuadIndex = 0;
+        NativeArray<float4>[] _resultHeightQuads = new NativeArray<float4>[2];
+        int _dataBeingUsedByJobs = 0;
 
         public CollProviderBakedFFT(FFTBakedData data)
         {
@@ -47,9 +46,9 @@ namespace Crest
 
             for (var i = 0; i < 2; i++)
             {
-                s_queryPositionQuadsX[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
-                s_queryPositionQuadsZ[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
-                s_resultHeightQuads[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
+                _queryPositionQuadsX[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
+                _queryPositionQuadsZ[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
+                _resultHeightQuads[i] = new NativeArray<float4>(MAX_QUERY_QUADS, Allocator.Persistent);
             }
         }
 
@@ -75,7 +74,7 @@ namespace Crest
             // Get segment
             var segmentRetrieved = false;
             int2 querySegment;
-            if (s_segmentRegistry.TryGetValue(i_ownerHash, out querySegment))
+            if (_segmentRegistry.TryGetValue(i_ownerHash, out querySegment))
             {
                 // make sure segment size matches our query count
                 var segmentSize = querySegment[1] - querySegment[0];
@@ -87,29 +86,29 @@ namespace Crest
                     // Copy results to output. Could be avoided if query api was changed to NAs.
                     for (int i = 0; i < o_resultHeights.Length; i++)
                     {
-                        o_resultHeights[i] = s_resultHeightQuads[1 - s_dataBeingUsedByJobs][i / 4][i % 4];
+                        o_resultHeights[i] = _resultHeightQuads[1 - _dataBeingUsedByJobs][i / 4][i % 4];
                     }
                     dataCopiedOut = true;
                 }
                 else
                 {
                     // Query count does not match segment - remove it. The segment will be recreated below.
-                    s_segmentRegistry.Remove(i_ownerHash);
+                    _segmentRegistry.Remove(i_ownerHash);
                 }
             }
 
             // If no segment was retrieved, add one if there is space
             if (!segmentRetrieved)
             {
-                if (s_lastQueryQuadIndex + numQuads > MAX_QUERY_QUADS)
+                if (_lastQueryQuadIndex + numQuads > MAX_QUERY_QUADS)
                 {
                     Debug.LogError("Out of query data space. Try calling Compact() to reorganise query segments.");
                     return (int)QueryStatus.TooManyQueries;
                 }
 
-                querySegment = new int2(s_lastQueryQuadIndex, s_lastQueryQuadIndex + numQuads);
-                s_segmentRegistry.Add(i_ownerHash, querySegment);
-                s_lastQueryQuadIndex += numQuads;
+                querySegment = new int2(_lastQueryQuadIndex, _lastQueryQuadIndex + numQuads);
+                _segmentRegistry.Add(i_ownerHash, querySegment);
+                _lastQueryQuadIndex += numQuads;
             }
 
             // Save off the query data
@@ -124,15 +123,15 @@ namespace Crest
                 var quadIdx = i / 4;
                 var outIdx = quadIdx + querySegment.x;
 
-                var xQuad = s_queryPositionQuadsX[1 - s_dataBeingUsedByJobs][outIdx];
-                var zQuad = s_queryPositionQuadsZ[1 - s_dataBeingUsedByJobs][outIdx];
+                var xQuad = _queryPositionQuadsX[1 - _dataBeingUsedByJobs][outIdx];
+                var zQuad = _queryPositionQuadsZ[1 - _dataBeingUsedByJobs][outIdx];
 
                 var quadComp = i % 4;
                 xQuad[quadComp] = i_queryPoints[i].x;
                 zQuad[quadComp] = i_queryPoints[i].z;
 
-                s_queryPositionQuadsX[1 - s_dataBeingUsedByJobs][outIdx] = xQuad;
-                s_queryPositionQuadsZ[1 - s_dataBeingUsedByJobs][outIdx] = zQuad;
+                _queryPositionQuadsX[1 - _dataBeingUsedByJobs][outIdx] = xQuad;
+                _queryPositionQuadsZ[1 - _dataBeingUsedByJobs][outIdx] = zQuad;
             }
 
             return dataCopiedOut ? (int)QueryStatus.Success : (int)QueryStatus.ResultsNotReadyYet;
@@ -144,12 +143,12 @@ namespace Crest
         /// <returns>True if jobs kicked off, false if jobs already running.</returns>
         bool ScheduleJobs()
         {
-            if (!s_jobHandle.IsCompleted)
+            if (!_jobHandle.IsCompleted)
             {
                 return false;
             }
 
-            if (s_lastQueryQuadIndex == 0)
+            if (_lastQueryQuadIndex == 0)
             {
                 // Nothing to do
                 return true;
@@ -157,16 +156,16 @@ namespace Crest
 
             var t = OceanRenderer.Instance.CurrentTime;
             var seaLevel = OceanRenderer.Instance.SeaLevel;
-            s_jobHandle = new JobSampleHeight
+            _jobHandle = new JobSampleHeight
             {
-                _queryPointsX = s_queryPositionQuadsX[s_dataBeingUsedByJobs],
-                _queryPointsZ = s_queryPositionQuadsZ[s_dataBeingUsedByJobs],
+                _queryPointsX = _queryPositionQuadsX[_dataBeingUsedByJobs],
+                _queryPointsZ = _queryPositionQuadsZ[_dataBeingUsedByJobs],
                 _framesFlattened = _data._framesFlattenedNative,
                 _t = t,
                 _params = _data._parameters,
                 _seaLevel = seaLevel,
-                _output = s_resultHeightQuads[s_dataBeingUsedByJobs],
-            }.Schedule(s_lastQueryQuadIndex, s_jobBatchSize);
+                _output = _resultHeightQuads[_dataBeingUsedByJobs],
+            }.Schedule(_lastQueryQuadIndex, s_jobBatchSize);
 
 
             //var heightJob = new HeightJob()
@@ -624,10 +623,10 @@ namespace Crest
         public void UpdateQueries()
         {
             // Ensure jobs are done
-            s_jobHandle.Complete();
+            _jobHandle.Complete();
 
             // Flip data being used by queries vs data being processed by jobs
-            s_dataBeingUsedByJobs = 1 - s_dataBeingUsedByJobs;
+            _dataBeingUsedByJobs = 1 - _dataBeingUsedByJobs;
 
             // Line up jobs
             ScheduleJobs();
@@ -636,13 +635,13 @@ namespace Crest
         public void CleanUp()
         {
             // Ensure jobs are done
-            s_jobHandle.Complete();
+            _jobHandle.Complete();
 
             for (var i = 0; i < 2; i++)
             {
-                s_queryPositionQuadsX[i].Dispose();
-                s_queryPositionQuadsZ[i].Dispose();
-                s_resultHeightQuads[i].Dispose();
+                _queryPositionQuadsX[i].Dispose();
+                _queryPositionQuadsZ[i].Dispose();
+                _resultHeightQuads[i].Dispose();
             }
         }
 

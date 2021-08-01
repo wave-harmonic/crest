@@ -18,6 +18,8 @@ Changed
 .. bullet_list::
 
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
+   -  Add default textures to ocean shader.
+   -  Update ocean shader default values.
 
 
 Fixed

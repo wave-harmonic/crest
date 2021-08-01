@@ -178,7 +178,7 @@ namespace Crest
                 && OceanRenderer.Instance._simSettingsAnimatedWaves != null
                 && OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData != null)
             {
-                Undo.RecordObject(OceanRenderer.Instance._simSettingsAnimatedWaves, "Set global wind speed to match baked data");
+                Undo.RecordObject(OceanRenderer.Instance, "Set global wind speed to match baked data");
                 OceanRenderer.Instance._globalWindSpeed = OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData._parameters._windSpeed * 3.6f;
                 EditorUtility.SetDirty(OceanRenderer.Instance);
             }

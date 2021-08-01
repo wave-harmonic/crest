@@ -23,7 +23,10 @@ Changed
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
    -  Add default textures to ocean shader.
    -  Update ocean shader default values.
-   -  Add XR `SPI` support to *Underwater Renderer*. `[URP]`
+
+   .. only:: urp
+
+      -  Add XR `SPI` support to *Underwater Renderer*. `[URP]`
 
 
 Fixed

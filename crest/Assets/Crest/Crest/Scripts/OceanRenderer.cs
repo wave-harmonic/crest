@@ -860,7 +860,6 @@ namespace Crest
             }
 #endif
 
-
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
@@ -917,6 +916,11 @@ namespace Crest
                 }
             }
 #endif
+
+            // Run queries at end of update. For CollProviderBakedFFT calling this kicks off
+            // collision processing job, and the next call to Query() will force a complete, and
+            // we don't want that to happen until they've had a chance to run, so schedule them
+            // late.
 #if UNITY_EDITOR
             // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
             // so knock this out.

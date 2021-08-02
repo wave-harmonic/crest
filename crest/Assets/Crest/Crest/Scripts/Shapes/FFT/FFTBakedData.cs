@@ -95,13 +95,6 @@ namespace Crest
             }
 
             _framesFlattenedNative = new NativeArray<half>(_framesFlattened, Allocator.Persistent);
-
-#if UNITY_EDITOR
-            if (EditorApplication.isPlaying)
-#endif
-            {
-                _framesFlattened = null;
-            }
         }
 
         public void Initialize(float period, int textureResolution, int firstLod, int lodCount, float windSpeed, int frameCount, half smallestValue, half largestValue, half[] framesFlattened)

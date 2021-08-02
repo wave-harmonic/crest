@@ -860,16 +860,6 @@ namespace Crest
             }
 #endif
 
-            // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
-#if UNITY_EDITOR
-            // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
-            // so knock this out.
-            if (EditorApplication.isPlaying)
-#endif
-            {
-                CollisionProvider?.UpdateQueries();
-                FlowProvider?.UpdateQueries();
-            }
 
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
@@ -927,6 +917,15 @@ namespace Crest
                 }
             }
 #endif
+#if UNITY_EDITOR
+            // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
+            // so knock this out.
+            if (EditorApplication.isPlaying)
+#endif
+            {
+                CollisionProvider?.UpdateQueries();
+                FlowProvider?.UpdateQueries();
+            }
         }
 
         void WritePerFrameMaterialParams()

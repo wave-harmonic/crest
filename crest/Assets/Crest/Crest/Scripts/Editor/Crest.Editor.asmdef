@@ -14,6 +14,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.mathematics",
+            "expression": "1.0.0",
+            "define": "CREST_MATH"
+        }
+    ],
     "noEngineReferences": false
 }

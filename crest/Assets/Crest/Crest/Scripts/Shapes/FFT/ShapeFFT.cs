@@ -403,6 +403,7 @@ namespace Crest
     [CustomEditor(typeof(ShapeFFT))]
     public class ShapeFFTEditor : ValidatedEditor
     {
+#if CREST_MATH
         /// <summary>
         /// Display some validation and statistics about the bake.
         /// </summary>
@@ -506,6 +507,7 @@ namespace Crest
                 GUI.enabled = true;
             }
         }
+#endif // CREST_MATH
     }
 #endif
 }

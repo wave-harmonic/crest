@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if CREST_MATH
+
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
@@ -108,3 +110,5 @@ namespace Crest
         }
     }
 }
+
+#endif // CREST_MATH

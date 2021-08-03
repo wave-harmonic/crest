@@ -51,8 +51,10 @@ namespace Crest
         [Tooltip("The render texture format to use for the wave simulation. It should only be changed if you need more precision. See the documentation for information.")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
+#if CREST_MATH
         [Predicated("_collisionSource", true, (int)CollisionSources.BakedFFT), DecoratedField]
         public FFTBakedData _bakedFFTData;
+#endif // CREST_MATH
 
         public override void AddToSettingsHash(ref int settingsHash)
         {
@@ -86,9 +88,11 @@ namespace Crest
                         Debug.LogError("Crest: Compute shader queries not supported in headless/batch mode. To resolve, assign an Animated Wave Settings asset to the OceanRenderer component and set the Collision Source to be a CPU option.");
                     }
                     break;
+#if CREST_MATH
                 case CollisionSources.BakedFFT:
                     result = new CollProviderBakedFFT(_bakedFFTData);
                     break;
+#endif // CREST_MATH
             }
 
             if (result == null)
@@ -143,6 +147,7 @@ namespace Crest
                     FixSetCollisionSourceToCompute
                 );
             }
+#if CREST_MATH
             else if (_collisionSource == CollisionSources.BakedFFT)
             {
                 if (_bakedFFTData != null)
@@ -159,6 +164,7 @@ namespace Crest
                     }
                 }
             }
+#endif
 
             return isValid;
         }
@@ -173,6 +179,7 @@ namespace Crest
             }
         }
 
+#if CREST_MATH
         internal static void FixOceanWindSpeed(SerializedObject settingsObject)
         {
             if (OceanRenderer.Instance != null
@@ -184,9 +191,9 @@ namespace Crest
                 EditorUtility.SetDirty(OceanRenderer.Instance);
             }
         }
+#endif // CREST_MATH
     }
 
-#if UNITY_EDITOR
     [CustomEditor(typeof(SimSettingsAnimatedWaves), true), CanEditMultipleObjects]
     class SimSettingsAnimatedWavesEditor : SimSettingsBaseEditor
     {
@@ -202,6 +209,5 @@ namespace Crest
             base.OnInspectorGUI();
         }
     }
-#endif
-#endif
+#endif // UNITY_EDITOR
 }

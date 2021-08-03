@@ -5,6 +5,7 @@
 //#define CREST_DEBUG_DUMP_EXRS
 
 #if UNITY_EDITOR
+#if CREST_MATH
 
 using System.Linq;
 using Unity.Mathematics;
@@ -189,4 +190,5 @@ namespace Crest
     }
 }
 
-#endif
+#endif // CREST_MATH
+#endif // UNITY_EDITOR

@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if CREST_MATH
+
 using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
@@ -385,7 +387,9 @@ namespace Crest
         /// <summary>
         /// Job to compute height queries
         /// </summary>
+#if CREST_BURST
         [BurstCompile(CompileSynchronously = true)]
+#endif
         private struct JobSampleHeight : IJobParallelFor
         {
             [ReadOnly]
@@ -419,7 +423,9 @@ namespace Crest
         /// <summary>
         /// Job to compute displacement
         /// </summary>
+#if CREST_BURST
         [BurstCompile(CompileSynchronously = true)]
+#endif
         private struct JobSampleDisplacement : IJobParallelFor
         {
             [ReadOnly]
@@ -459,7 +465,9 @@ namespace Crest
         /// <summary>
         /// Job to compute surface normal queries
         /// </summary>
+#if CREST_BURST
         [BurstCompile(CompileSynchronously = true)]
+#endif
         private struct JobComputeNormal : IJobParallelFor
         {
             [ReadOnly]
@@ -508,7 +516,9 @@ namespace Crest
         /// <summary>
         /// Job to compute surface velocity. Currently vertical only, this could likely be extended to return full 3D velocity.
         /// </summary>
+#if CREST_BURST
         [BurstCompile(CompileSynchronously = true)]
+#endif
         private struct JobComputeVerticalVelocity : IJobParallelFor
         {
             [ReadOnly]
@@ -597,3 +607,5 @@ namespace Crest
         }
     }
 }
+
+#endif // CREST_MATH

@@ -17,6 +17,8 @@
 // - We could potentially avoid starting a job for less than ~10 or so queries, assuming we can run the query
 //   code directly and still be Burst compiled.
 
+#if CREST_MATH
+
 using System;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
@@ -327,3 +329,5 @@ namespace Crest
     }
 #endif // UNITY_EDITOR
 }
+
+#endif // CREST_MATH

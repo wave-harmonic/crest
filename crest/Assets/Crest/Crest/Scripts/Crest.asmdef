@@ -29,6 +29,16 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.burst",
+            "expression": "1.0.0",
+            "define": "CREST_BURST"
+        },
+        {
+            "name": "com.unity.mathematics",
+            "expression": "1.0.0",
+            "define": "CREST_MATH"
         }
     ],
     "noEngineReferences": false

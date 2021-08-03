@@ -114,6 +114,11 @@ namespace Crest
             PackageManagerHelpers.AddMissingPackage("com.unity.mathematics");
         }
 
+        public static void FixAddMissingBurstPackage(SerializedObject componentOrGameObject)
+        {
+            PackageManagerHelpers.AddMissingPackage("com.unity.burst");
+        }
+
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
         {
             var renderer = gameObject.GetComponent<Renderer>();

@@ -9,6 +9,7 @@
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Crest.EditorHelpers;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -106,6 +107,11 @@ namespace Crest
             var renderer = gameObject.GetComponent<MeshRenderer>();
             Undo.DestroyObjectImmediate(renderer);
             EditorUtility.SetDirty(gameObject);
+        }
+
+        public static void FixAddMissingMathPackage(SerializedObject componentOrGameObject)
+        {
+            PackageManagerHelpers.AddMissingPackage("com.unity.mathematics");
         }
 
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)

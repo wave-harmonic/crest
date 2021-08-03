@@ -147,9 +147,9 @@ namespace Crest
                     FixSetCollisionSourceToCompute
                 );
             }
-#if CREST_MATH
             else if (_collisionSource == CollisionSources.BakedFFT)
             {
+#if CREST_MATH
                 if (_bakedFFTData != null)
                 {
                     if (!Mathf.Approximately(_bakedFFTData._parameters._windSpeed * 3.6f, ocean._globalWindSpeed))
@@ -163,8 +163,18 @@ namespace Crest
                         );
                     }
                 }
+#else // CREST_MATH
+                showMessage
+                (
+                    "The <i>Unity Mathematics (com.unity.mathematics)</i> package is required for baked collisions.",
+                    "Add the <i>Unity Mathematics</i> package.",
+                    ValidatedHelper.MessageType.Error, this,
+                    ValidatedHelper.FixAddMissingMathPackage
+                );
+
+                isValid = false;
+#endif // CREST_MATH
             }
-#endif
 
             return isValid;
         }

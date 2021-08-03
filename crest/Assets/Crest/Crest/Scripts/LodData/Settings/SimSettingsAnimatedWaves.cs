@@ -178,7 +178,7 @@ namespace Crest
 #if !CREST_BURST
                 showMessage
                 (
-                    "The <i>Unity Burst (com.unity.mathematics)</i> package will greatly improve performance",
+                    "The <i>Unity Burst (com.unity.burst)</i> package will greatly improve performance.",
                     "Add the <i>Unity Burst</i> package.",
                     ValidatedHelper.MessageType.Warning, this,
                     ValidatedHelper.FixAddMissingBurstPackage

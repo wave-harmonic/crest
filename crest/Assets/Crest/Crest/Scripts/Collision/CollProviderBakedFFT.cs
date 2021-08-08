@@ -119,7 +119,7 @@ namespace Crest
         /// <summary>
         /// Query data double buffered, this gives index of buffer to write new query data to.
         /// </summary>
-        int _dataToWriteThisFrame = 0;
+        int _dataBeingUsedByJobs = 1;
         /// <summary>
         /// Data segment registry double buffered, this gives index of buffer to write new query data to.
         /// </summary>
@@ -171,7 +171,7 @@ namespace Crest
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
                     var quadIdx = computedQuerySegment.x + i / 4;
-                    o_resultHeights[i] = _queryDataHeights._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    o_resultHeights[i] = _queryDataHeights._resultQuads0[_dataBeingUsedByJobs][quadIdx][i % 4];
                 }
                 return true;
             }
@@ -188,9 +188,9 @@ namespace Crest
                 for (int i = 0; i < o_resultDisps.Length; i++)
                 {
                     var quadIdx = computedQuerySegment.x + i / 4;
-                    disp.x = _queryDataDisps._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    disp.y = _queryDataDisps._resultQuads1[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    disp.z = _queryDataDisps._resultQuads2[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    disp.x = _queryDataDisps._resultQuads0[_dataBeingUsedByJobs][quadIdx][i % 4];
+                    disp.y = _queryDataDisps._resultQuads1[_dataBeingUsedByJobs][quadIdx][i % 4];
+                    disp.z = _queryDataDisps._resultQuads2[_dataBeingUsedByJobs][quadIdx][i % 4];
                     o_resultDisps[i] = disp;
                 }
                 return true;
@@ -207,9 +207,9 @@ namespace Crest
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
                     var quadIdx = computedQuerySegment.x + i / 4;
-                    norm.x = _queryDataNorms._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    norm.y = _queryDataNorms._resultQuads1[1 - _dataToWriteThisFrame][quadIdx][i % 4];
-                    norm.z = _queryDataNorms._resultQuads2[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    norm.x = _queryDataNorms._resultQuads0[_dataBeingUsedByJobs][quadIdx][i % 4];
+                    norm.y = _queryDataNorms._resultQuads1[_dataBeingUsedByJobs][quadIdx][i % 4];
+                    norm.z = _queryDataNorms._resultQuads2[_dataBeingUsedByJobs][quadIdx][i % 4];
                     o_resultNorms[i] = norm;
                 }
                 return true;
@@ -226,7 +226,7 @@ namespace Crest
                 for (int i = 0; i < o_resultVels.Length; i++)
                 {
                     var quadIdx = computedQuerySegment.x + i / 4;
-                    vel.y = _queryDataVels._resultQuads0[1 - _dataToWriteThisFrame][quadIdx][i % 4];
+                    vel.y = _queryDataVels._resultQuads0[_dataBeingUsedByJobs][quadIdx][i % 4];
                     o_resultVels[i] = vel;
                 }
                 return true;
@@ -253,15 +253,15 @@ namespace Crest
 
             if (o_resultHeights != null)
             {
-                _queryDataHeights.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+                _queryDataHeights.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultNorms != null)
             {
-                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultVels != null)
             {
-                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, 1 - _dataBeingUsedByJobs);
             }
 
             var allCopied = (dataCopiedOutHeights || o_resultHeights == null)
@@ -290,15 +290,15 @@ namespace Crest
 
             if (o_resultDisps != null)
             {
-                _queryDataDisps.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+                _queryDataDisps.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultNorms != null)
             {
-                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultVels != null)
             {
-                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, _dataToWriteThisFrame);
+                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, _segmentsToWriteThisFrame, 1 - _dataBeingUsedByJobs);
             }
 
             var allCopied = (dataCopiedOutDisps || o_resultDisps == null)
@@ -322,13 +322,13 @@ namespace Crest
             {
                 _jobHandle = JobHandle.CombineDependencies(_jobHandle, new JobSampleHeight
                 {
-                    _queryPointsX = _queryDataHeights._queryPositionQuadsX[1 - _dataToWriteThisFrame],
-                    _queryPointsZ = _queryDataHeights._queryPositionQuadsZ[1 - _dataToWriteThisFrame],
+                    _queryPointsX = _queryDataHeights._queryPositionQuadsX[_dataBeingUsedByJobs],
+                    _queryPointsZ = _queryDataHeights._queryPositionQuadsZ[_dataBeingUsedByJobs],
                     _framesFlattened = _data._framesFlattenedNative,
                     _t = t,
                     _params = _data._parameters,
                     _seaLevel = OceanRenderer.Instance.SeaLevel,
-                    _output = _queryDataHeights._resultQuads0[1 - _dataToWriteThisFrame],
+                    _output = _queryDataHeights._resultQuads0[_dataBeingUsedByJobs],
                 }.Schedule(_queryDataHeights._lastQueryQuadIndex, s_jobBatchSize));
             }
 
@@ -336,14 +336,14 @@ namespace Crest
             {
                 _jobHandle = JobHandle.CombineDependencies(_jobHandle, new JobSampleDisplacement
                 {
-                    _queryPointsX = _queryDataDisps._queryPositionQuadsX[1 - _dataToWriteThisFrame],
-                    _queryPointsZ = _queryDataDisps._queryPositionQuadsZ[1 - _dataToWriteThisFrame],
+                    _queryPointsX = _queryDataDisps._queryPositionQuadsX[_dataBeingUsedByJobs],
+                    _queryPointsZ = _queryDataDisps._queryPositionQuadsZ[_dataBeingUsedByJobs],
                     _framesFlattened = _data._framesFlattenedNative,
                     _t = t,
                     _params = _data._parameters,
-                    _outputX = _queryDataDisps._resultQuads0[1 - _dataToWriteThisFrame],
-                    _outputY = _queryDataDisps._resultQuads1[1 - _dataToWriteThisFrame],
-                    _outputZ = _queryDataDisps._resultQuads2[1 - _dataToWriteThisFrame],
+                    _outputX = _queryDataDisps._resultQuads0[_dataBeingUsedByJobs],
+                    _outputY = _queryDataDisps._resultQuads1[_dataBeingUsedByJobs],
+                    _outputZ = _queryDataDisps._resultQuads2[_dataBeingUsedByJobs],
                 }.Schedule(_queryDataDisps._lastQueryQuadIndex, s_jobBatchSize));
             }
 
@@ -351,12 +351,12 @@ namespace Crest
             {
                 _jobHandle = JobHandle.CombineDependencies(_jobHandle, new JobComputeNormal
                 {
-                    _queryPointsX = _queryDataNorms._queryPositionQuadsX[1 - _dataToWriteThisFrame],
-                    _queryPointsZ = _queryDataNorms._queryPositionQuadsZ[1 - _dataToWriteThisFrame],
+                    _queryPointsX = _queryDataNorms._queryPositionQuadsX[_dataBeingUsedByJobs],
+                    _queryPointsZ = _queryDataNorms._queryPositionQuadsZ[_dataBeingUsedByJobs],
                     _framesFlattened = _data._framesFlattenedNative,
-                    _outputNormalX = _queryDataNorms._resultQuads0[1 - _dataToWriteThisFrame],
-                    _outputNormalY = _queryDataNorms._resultQuads1[1 - _dataToWriteThisFrame],
-                    _outputNormalZ = _queryDataNorms._resultQuads2[1 - _dataToWriteThisFrame],
+                    _outputNormalX = _queryDataNorms._resultQuads0[_dataBeingUsedByJobs],
+                    _outputNormalY = _queryDataNorms._resultQuads1[_dataBeingUsedByJobs],
+                    _outputNormalZ = _queryDataNorms._resultQuads2[_dataBeingUsedByJobs],
                     _t = t,
                     _params = _data._parameters,
                 }.Schedule(_queryDataNorms._lastQueryQuadIndex, s_jobBatchSize));
@@ -366,12 +366,12 @@ namespace Crest
             {
                 _jobHandle = JobHandle.CombineDependencies(_jobHandle, new JobComputeVerticalVelocity
                 {
-                    _queryPointsX = _queryDataVels._queryPositionQuadsX[1 - _dataToWriteThisFrame],
-                    _queryPointsZ = _queryDataVels._queryPositionQuadsZ[1 - _dataToWriteThisFrame],
+                    _queryPointsX = _queryDataVels._queryPositionQuadsX[_dataBeingUsedByJobs],
+                    _queryPointsZ = _queryDataVels._queryPositionQuadsZ[_dataBeingUsedByJobs],
                     _framesFlattened = _data._framesFlattenedNative,
                     _t = t,
                     _params = _data._parameters,
-                    _output = _queryDataVels._resultQuads0[1 - _dataToWriteThisFrame],
+                    _output = _queryDataVels._resultQuads0[_dataBeingUsedByJobs],
                 }.Schedule(_queryDataVels._lastQueryQuadIndex, s_jobBatchSize));
             }
 
@@ -550,7 +550,7 @@ namespace Crest
             _jobHandle.Complete();
 
             // Flip data being used by queries vs data being processed by jobs
-            _dataToWriteThisFrame = 1 - _dataToWriteThisFrame;
+            _dataBeingUsedByJobs = 1 - _dataBeingUsedByJobs;
             _segmentsToWriteThisFrame = 1 - _segmentsToWriteThisFrame;
 
             // Prepare for next batch of queries. Clear so that if something

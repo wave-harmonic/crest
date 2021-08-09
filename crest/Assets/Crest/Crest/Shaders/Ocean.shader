@@ -496,7 +496,7 @@ Shader "Crest/Ocean"
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
-				float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvDepth).x;
+				float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvDepth);
 				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
@@ -552,13 +552,15 @@ Shader "Crest/Ocean"
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				half3 scatterCol = ScatterColour(AmbientLight(), input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, rawDepth, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface
 
 				// Soften reflection at intersections with objects/surfaces
 				#if _TRANSPARENCY_ON
-				float reflAlpha = saturate((sceneZ - pixelZ) / 0.2);
+				// Above water depth outline is handled in OceanEmission.
+				sceneZ = (underwater ? CrestLinearEyeDepth(CrestMultiSampleSceneDepth(rawDepth, uvDepth)) : sceneZ);
+				float reflAlpha = saturate((sceneZ  - pixelZ) / 0.2);
 				#else
 				// This addresses the problem where screenspace depth doesnt work in VR, and so neither will this. In VR people currently
 				// disable transparency, so this will always be 1.0.

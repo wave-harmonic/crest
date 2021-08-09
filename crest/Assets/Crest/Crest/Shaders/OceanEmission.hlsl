@@ -149,7 +149,7 @@ void ApplyCaustics(in const float3 i_scenePos, in const half3 i_lightDir, in con
 
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
-	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ,
+	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, const float i_rawDepth,
 	in const half3 i_bubbleCol, in sampler2D i_normals, in const bool i_underwater, in const half3 i_scatterCol,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
@@ -179,13 +179,13 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
 		if (sceneZRefract > i_pixelZ)
 		{
-			depthFogDistance = sceneZRefract - i_pixelZ;
 			uvBackgroundRefract = uvBackground + refractOffset;
+			depthFogDistance = CrestLinearEyeDepth(CrestMultiSampleSceneDepth(rawDepth, uvBackgroundRefract)) - i_pixelZ;
 		}
 		else
 		{
 			// It seems that when MSAA is enabled this can sometimes be negative
-			depthFogDistance = max(i_sceneZ - i_pixelZ, 0.0);
+			depthFogDistance = max(CrestLinearEyeDepth(CrestMultiSampleSceneDepth(i_rawDepth, uvBackground)) - i_pixelZ, 0.0);
 
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;

@@ -51,6 +51,7 @@ Fixed
 
    .. only:: urp
 
+      -  Fix shadow artefacts when no shadow casters are within view. `[URP]`
       -  Remove sample shadow scriptable render feature error. `[URP]`
 
 

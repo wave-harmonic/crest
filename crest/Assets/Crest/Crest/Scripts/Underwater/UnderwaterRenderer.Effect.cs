@@ -133,20 +133,16 @@ namespace Crest
 
                 renderer.GetPropertyBlock(_materialPropertyBlock);
 
-                // NOTE:
-                // We only need to do this so we can set a white texture for when there is no texture. Otherwise,
-                // _MainTex is already setup. Could replace with a keyword instead.
-
                 // Set _MainTex so we can get the alpha channel for blending.
-                var texture = renderer.sharedMaterial.HasProperty("_MainTex") ? renderer.sharedMaterial.GetTexture("_MainTex") : null;
+                var texture = renderer.sharedMaterial.HasProperty(input._textureProperty) ? renderer.sharedMaterial.GetTexture(input._textureProperty) : null;
                 if (texture != null)
                 {
-                    _materialPropertyBlock.SetTexture("_MainTex", renderer.sharedMaterial.GetTexture("_MainTex"));
-                    _materialPropertyBlock.SetVector("_MainTex_ST", renderer.sharedMaterial.GetVector("_MainTex_ST"));
+                    _materialPropertyBlock.SetTexture(input._textureProperty, renderer.sharedMaterial.GetTexture(input._textureProperty));
+                    _materialPropertyBlock.SetVector(input._texturePropertyST, renderer.sharedMaterial.GetVector(input._texturePropertyST));
                 }
                 else
                 {
-                    _materialPropertyBlock.SetTexture("_MainTex", Texture2D.whiteTexture);
+                    _materialPropertyBlock.SetTexture(input._textureProperty, Texture2D.whiteTexture);
                 }
 
                 // Add missing probe data.

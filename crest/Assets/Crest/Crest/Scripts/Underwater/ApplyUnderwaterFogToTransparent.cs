@@ -20,6 +20,12 @@ namespace Crest
         [SerializeField]
         internal int _shaderPass;
 
+        [Tooltip("The property name of the main texture which will be used for alpha blending.")]
+        [SerializeField]
+        internal string _textureProperty = "_MainTex";
+
+        internal string _texturePropertyST;
+
         bool _isEnabled;
         public bool IsEnabled => _isEnabled;
 
@@ -29,6 +35,7 @@ namespace Crest
             {
                 // If the shader has other passes (like shadows) then this will stop them from working.
                 _isEnabled = _renderer.enabled;
+                _texturePropertyST = $"{_textureProperty}_ST";
                 s_Renderers.Add(this);
             }
         }

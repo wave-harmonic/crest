@@ -145,6 +145,7 @@ The following input shaders are provided under *Crest/Inputs/Dynamic Waves*:
 
 -  **Object Interaction** can be used in conjunction with the *ObjectWaterInteraction* script to simulate the interaction of an object with the water.
    Can be used for boat wakes.
+   The mesh needs to be a capsule.
    See the boat example scenes.
 
 -  **Sphere-Water Interaction** is a more specialized and accurate version of the *Object Interaction* input.

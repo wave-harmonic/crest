@@ -23,7 +23,7 @@ namespace Crest
         static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
 
         CommandBuffer _underwaterEffectCommandBuffer;
-        PropertyWrapperMaterial _underwaterEffectMaterial;
+        public PropertyWrapperMaterial _underwaterEffectMaterial;
         internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
         internal class UnderwaterSphericalHarmonicsData

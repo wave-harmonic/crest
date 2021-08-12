@@ -141,6 +141,35 @@ half3 ApplyUnderwaterEffect(
 
 	return lerp(sceneColour, scatterCol, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneZ)));
 }
+
+half3 GetScatterColor(
+	const half3 ambientLighting,
+	const half3 lightCol,
+	const float3 lightDir,
+	const half3 view
+)
+{
+	half3 scatterCol = 0.0;
+	int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
+	{
+		float3 dummy;
+		half sss = 0.0;
+		// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
+		const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[sliceIndex], sliceIndex);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
+
+		// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
+		const float depth = 0.0;
+		const half shadow = 1.0;
+		{
+			const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
+			const float baseCascadeScale = _CrestCascadeData[0]._scale;
+			scatterCol = ScatterColour(ambientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
+		}
+	}
+
+	return scatterCol;
+}
 #endif // CREST_OCEAN_EMISSION_INCLUDED
 
 #endif // CREST_UNDERWATER_EFFECT_SHARED_INCLUDED

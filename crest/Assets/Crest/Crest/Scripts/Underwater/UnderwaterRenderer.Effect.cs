@@ -117,7 +117,7 @@ namespace Crest
             foreach (var input in ApplyUnderwaterFogToTransparent.s_Renderers)
             {
                 // Disabled renderer means we control the rendering.
-                if (!input._renderer.enabled && GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, input._renderer.bounds))
+                if (input.IsEnabled && GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, input._renderer.bounds))
                 {
                     _registry.Add(Vector3.Distance(_camera.transform.position, input.transform.position), input);
                 }
@@ -135,7 +135,7 @@ namespace Crest
 
                 // NOTE:
                 // We only need to do this so we can set a white texture for when there is no texture. Otherwise,
-                // _MainTex is already setup.
+                // _MainTex is already setup. Could replace with a keyword instead.
 
                 // Set _MainTex so we can get the alpha channel for blending.
                 var texture = renderer.sharedMaterial.HasProperty("_MainTex") ? renderer.sharedMaterial.GetTexture("_MainTex") : null;
@@ -150,10 +150,8 @@ namespace Crest
                 }
 
                 // Add missing probe data.
-                LightProbeUtility.SetSHCoefficients(renderer.gameObject.transform.position, _materialPropertyBlock);
+                // LightProbeUtility.SetSHCoefficients(renderer.gameObject.transform.position, _materialPropertyBlock);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
-
-                int shaderPass;
 
                 if (input._highQuality)
                 {
@@ -161,15 +159,15 @@ namespace Crest
                     // work out how to use GPU blending to apply the underwater fog correctly.
                     CopyTexture(_underwaterEffectCommandBuffer, temporaryColorBuffer, _camera);
                     _underwaterEffectCommandBuffer.SetRenderTarget(temporaryColorBuffer, 0, CubemapFace.Unknown, -1);
-                    shaderPass = 2;
                 }
                 else
                 {
                     _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-                    shaderPass = 1;
                 }
 
                 _underwaterEffectCommandBuffer.DrawRenderer(renderer, renderer.sharedMaterial, submeshIndex: 0, shaderPass: input._shaderPass);
+
+                int shaderPass = input._highQuality ? 2 : 1;
 
                 // Render the fog and apply to camera target.
                 _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);

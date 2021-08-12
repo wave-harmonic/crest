@@ -20,12 +20,15 @@ namespace Crest
         [SerializeField]
         internal int _shaderPass;
 
+        bool _isEnabled;
+        public bool IsEnabled => _isEnabled;
+
         void OnEnable()
         {
             if (TryGetComponent(out _renderer) && !s_Renderers.Contains(this))
             {
                 // If the shader has other passes (like shadows) then this will stop them from working.
-                _renderer.enabled = false;
+                _isEnabled = _renderer.enabled;
                 s_Renderers.Add(this);
             }
         }
@@ -36,14 +39,14 @@ namespace Crest
             var maxWaterHeight = OceanRenderer.Instance.SeaLevel + OceanRenderer.Instance.MaxVertDisplacement;
             // TODO: Throws exceptions when renderer is disabled for ParticleSystem.
             // TODO: Probably a better to check this.
-            _renderer.enabled = _renderer.bounds.ClosestPoint(transform.position + Vector3.down * 10000f).y > maxWaterHeight;
+            _isEnabled = _renderer.enabled && !(_renderer.bounds.ClosestPoint(transform.position + Vector3.down * 10000f).y > maxWaterHeight);
         }
 
         void OnDisable()
         {
             if (_renderer != null && s_Renderers.Contains(this))
             {
-                _renderer.enabled = true;
+                _isEnabled = false;
                 s_Renderers.Remove(this);
             }
         }

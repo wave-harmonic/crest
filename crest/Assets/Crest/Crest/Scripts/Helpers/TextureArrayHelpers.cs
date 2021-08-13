@@ -35,8 +35,9 @@ namespace Crest
             }
         }
 
-        // Unity 2018.* does not support blitting to texture arrays, so have
-        // implemented a custom version to clear to black
+        // Custom implementation of clear to black instead of blitting to a texture array as the latter breaks Xbox One
+        // and Xbox Series X. See #857 which changed to Graphics.Blit and #868 which reverts that change. Or see commit:
+        // https://github.com/wave-harmonic/crest/commit/9160898972051a276f12eff0bd9b832d2992ae62
         public static void ClearToBlack(RenderTexture dst)
         {
             if (s_clearToBlackShader == null)
@@ -83,11 +84,15 @@ namespace Crest
             return array;
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
+            if (OceanRenderer.RunningWithoutGPU)
+            {
+                // No texture arrays when no graphics card..
+                return;
+            }
+
             // Init here from 2019.3 onwards
             sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 

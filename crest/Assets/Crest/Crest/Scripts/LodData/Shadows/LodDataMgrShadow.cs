@@ -4,8 +4,11 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace Crest
 {
@@ -18,8 +21,17 @@ namespace Crest
     public class LodDataMgrShadow : LodDataMgr
     {
         public override string SimName { get { return "Shadow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
+        static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
+        protected override Texture2DArray NullTexture => s_nullTexture;
+
+        internal const string MATERIAL_KEYWORD_PROPERTY = "_Shadows";
+        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_SHADOWS_ON";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Shadowing is not enabled on the ocean material and will not be visible.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Shadowing</i> option in the <i>Scattering<i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The shadow feature is disabled on this component but is enabled on the ocean material.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Shadow Data</i> option on this component to turn it on, or disable the <i>Shadowing</i> feature on the ocean material to save performance.";
 
         public static bool s_processData = true;
 
@@ -45,21 +57,8 @@ namespace Crest
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
         readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsShadow != null) return _ocean._simSettingsShadow;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrShadow(OceanRenderer ocean) : base(ocean)
         {
@@ -90,9 +89,11 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            if (OceanRenderer.Instance.OceanMaterial != null
+                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning("Shadowing is not enabled on the current ocean material and will not be visible.", _ocean);
+                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }
@@ -102,7 +103,7 @@ namespace Crest
             base.InitData();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
 
             TextureArrayHelpers.ClearToBlack(_sources);
@@ -232,9 +233,9 @@ namespace Crest
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     lt._renderData[lodIdx].Validate(0, SimName);
-                    #endif
+#endif
 
                     _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
@@ -252,14 +253,13 @@ namespace Crest
                         1);
                 }
 
-                // Disable single pass double-wide stereo rendering for these commands since we are rendering to
-                // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
-                // appears to be a Unity bug only for the legacy VR system.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+#if ENABLE_VR && ENABLE_VR_MODULE
+                // Disable for XR SPI otherwise input will not have correct world position.
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
-                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
-                    BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                    BufCopyShadowMap.DisableShaderKeyword("STEREO_INSTANCING_ON");
                 }
+#endif
 
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
@@ -268,12 +268,13 @@ namespace Crest
                     SubmitDraws(lodIdx, BufCopyShadowMap);
                 }
 
-                // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+#if ENABLE_VR && ENABLE_VR_MODULE
+                // Restore XR SPI as we cannot rely on remaining pipeline to do it for us.
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
-                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
-                    BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                    BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
                 }
+#endif
             }
 
             // Set the target texture as to make sure we catch the 'pong' each frame
@@ -324,11 +325,8 @@ namespace Crest
 
         readonly static string s_textureArrayName = "_LD_TexArray_Shadow";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
-        {
-            return ParamIdSampler(sourceLod);
-        }
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
 
         public static void Bind(IPropertyWrapper properties)
         {
@@ -338,13 +336,13 @@ namespace Crest
             }
             else
             {
-                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
             }
         }
 
-#if UNITY_2019_3_OR_NEWER
+        public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards

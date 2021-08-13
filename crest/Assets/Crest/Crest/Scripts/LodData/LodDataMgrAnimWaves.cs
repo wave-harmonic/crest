@@ -2,7 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -17,13 +19,16 @@ namespace Crest
     ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer).
     ///  * LodDataDynamicWaves adds its results into this LodData. The dynamic waves piggy back off the combine
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
-    ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
+    ///
+    /// The RGB channels are the XYZ displacement from a rest plane at sea level to the corresponding displaced position on the
+    /// surface. The A channel holds the variance/energy in all the smaller wavelengths that are too small to go into the cascade
+    /// slice. This is used as a statistical measure for the missing waves and is used to ensure foam is generated everywhere.
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
+        protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
@@ -33,12 +38,6 @@ namespace Crest
         /// Turn shape combine pass on/off. Debug only - ifdef'd out in standalone
         /// </summary>
         public static bool _shapeCombinePass = true;
-
-        /// <summary>
-        /// Ping pong between render targets to do the combine. Disabling this uses a compute shader instead which doesn't need
-        /// to copy back and forth between targets, but has dodgy historical support as pre-DX11.3 hardware may not support typed UAV loads.
-        /// </summary>
-        public static bool _shapeCombinePassPingPong = true;
 
         RenderTexture _waveBuffers;
         RenderTexture _combineBuffer;
@@ -60,23 +59,16 @@ namespace Crest
 
         readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
+        public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsAnimatedWaves != null) return _ocean._simSettingsAnimatedWaves;
+        public interface IShapeUpdatable { void CrestUpdate(CommandBuffer buf); }
+        static List<IShapeUpdatable> _updatables = new List<IShapeUpdatable>();
+        public static void RegisterUpdatable(IShapeUpdatable updatable) => _updatables.Add(updatable);
+        public static void DeregisterUpdatable(IShapeUpdatable updatable) => _updatables.RemoveAll(candidate => candidate == updatable);
 
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsAnimatedWaves : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
         {
@@ -93,20 +85,29 @@ namespace Crest
             // read and write to the same texture.
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
 
             _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
 
             _combineBuffer = CreateCombineBuffer(desc);
 
-            var combineShader = Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs");
-            _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _combineMaterial.Length; i++)
+            // Combine graphics shader - for 'ping pong' approach (legacy hardware)
+            var combineShaderNameGraphics = "Hidden/Crest/Simulation/Combine Animated Wave LODs";
+            var combineShaderGraphics = Shader.Find(combineShaderNameGraphics);
+            Debug.Assert(combineShaderGraphics != null,
+                $"Could not load shader {combineShaderNameGraphics}. Try right clicking the Crest folder in the Project view and selecting Reimport, and checking for errors.",
+                OceanRenderer.Instance);
+            if (combineShaderGraphics != null)
             {
-                var mat = new Material(combineShader);
-                _combineMaterial[i] = new PropertyWrapperMaterial(mat);
+                _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+                for (int i = 0; i < _combineMaterial.Length; i++)
+                {
+                    var mat = new Material(combineShaderGraphics);
+                    _combineMaterial[i] = new PropertyWrapperMaterial(mat);
+                }
             }
 
+            // Combine compute shader - modern hardware
             _combineShader = ComputeShaderHelpers.LoadShader(ShaderName);
             if (_combineShader == null)
             {
@@ -205,12 +206,19 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
+            Shader.SetGlobalFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             // Validation
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
+            }
+
+            foreach (var gerstner in _updatables)
+            {
+                gerstner.CrestUpdate(buf);
             }
 
             // lod-dependent data
@@ -229,7 +237,7 @@ namespace Crest
             }
 
             // Combine the LODs - copy results from biggest LOD down to LOD 0
-            if (_shapeCombinePassPingPong)
+            if (Settings.PingPongCombinePass)
             {
                 CombinePassPingPong(buf);
             }
@@ -250,6 +258,8 @@ namespace Crest
 
         void CombinePassPingPong(CommandBuffer buf)
         {
+            if (_combineMaterial == null) return;
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
             const int shaderPassCombineIntoAux = 0, shaderPassCopyResultBack = 1;
 
@@ -270,14 +280,10 @@ namespace Crest
                 }
 
                 // Dynamic waves
-                LodDataMgrDynWaves.Bind(_combineMaterial[lodIdx]);
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                 }
-
-                // Flow
-                LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
@@ -412,11 +418,8 @@ namespace Crest
         }
 
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
-        {
-            return ParamIdSampler(sourceLod);
-        }
+        public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
+        protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
 
         public static void Bind(IPropertyWrapper properties)
         {
@@ -430,15 +433,14 @@ namespace Crest
             }
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
             sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
             sp_LODChange = Shader.PropertyToID("_LODChange");
             s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+            _updatables.Clear();
         }
     }
 }

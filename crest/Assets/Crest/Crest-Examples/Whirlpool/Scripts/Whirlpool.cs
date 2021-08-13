@@ -2,12 +2,23 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
 {
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_EXAMPLE + "Whirlpool")]
     public class Whirlpool : MonoBehaviour
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Range(0, 1000), SerializeField]
         float _amplitude = 20f;
         [Range(0, 1000), SerializeField]
@@ -91,4 +102,9 @@ namespace Crest
             UpdateMaterials();
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(Whirlpool))]
+    public class WhirlpoolEditor : Editor { }
+#endif
 }

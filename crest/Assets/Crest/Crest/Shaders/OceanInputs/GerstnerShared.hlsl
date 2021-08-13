@@ -23,10 +23,8 @@ half4 _ChopAmps[BATCH_SIZE / 4];
 float4 _TargetPointData;
 CBUFFER_END
 
-half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
+half3 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 {
-	float2 displacementNormalized = 0.0;
-
 	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
 
@@ -81,13 +79,6 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		result.x += dot(resultx, wt);
 		result.y += dot(resulty, wt);
 		result.z += dot(resultz, wt);
-
-		half4 sssFactor = min(1.0, _TwoPiOverWavelengths[vi]);
-		displacementNormalized.x += dot(resultx * sssFactor, wt);
-		displacementNormalized.y += dot(resultz * sssFactor, wt);
 	}
-
-	half sss = length(displacementNormalized);
-
-	return _Weight * half4(result, sss);
+	return _Weight * result;
 }

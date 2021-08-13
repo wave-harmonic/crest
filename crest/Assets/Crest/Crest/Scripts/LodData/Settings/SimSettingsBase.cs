@@ -15,6 +15,13 @@ namespace Crest
     /// </summary>
     public partial class SimSettingsBase : ScriptableObject
     {
+        /// <summary>
+        /// Adds anything that requires a rebuild to the provided settings hash.
+        /// </summary>
+        public virtual void AddToSettingsHash(ref int settingsHash)
+        {
+            // Intentionally left empty.
+        }
     }
 
 #if UNITY_EDITOR
@@ -23,7 +30,7 @@ namespace Crest
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage) => true;
     }
 
-    [CustomEditor(typeof(SimSettingsAnimatedWaves), true), CanEditMultipleObjects]
+    [CustomEditor(typeof(SimSettingsBase), true), CanEditMultipleObjects]
     class SimSettingsBaseEditor : ValidatedEditor { }
 #endif
 }

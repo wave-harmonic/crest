@@ -17,4 +17,4 @@ MonoBehaviour:
   _waveFoamCoverage: 0.8
   _shorelineFoamMaxDepth: 0.8
   _shorelineFoamStrength: 0.5
-  _renderTextureFormat: 15
+  _renderTextureGraphicsFormat: 45

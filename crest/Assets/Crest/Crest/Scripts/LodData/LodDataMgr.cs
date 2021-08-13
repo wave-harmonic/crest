@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,7 +15,11 @@ namespace Crest
     {
         public abstract string SimName { get; }
 
-        public abstract RenderTextureFormat TextureFormat { get; }
+        // This is the texture format we want to use.
+        protected abstract GraphicsFormat RequestedTextureFormat { get; }
+
+        // This is the platform compatible texture format we will use.
+        public GraphicsFormat CompatibleTextureFormat { get; private set; }
 
         // NOTE: This MUST match the value in OceanConstants.hlsl, as it
         // determines the size of the texture arrays in the shaders.
@@ -25,6 +30,9 @@ namespace Crest
         public const int THREAD_GROUP_SIZE_X = 8;
         public const int THREAD_GROUP_SIZE_Y = 8;
 
+        // NOTE: This is a temporary solution to keywords having prefixes downstream.
+        internal const string MATERIAL_KEYWORD_PREFIX = "";
+
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
         protected abstract bool NeedToReadWriteTextureData { get; }
@@ -32,6 +40,8 @@ namespace Crest
         protected RenderTexture _targets;
 
         public RenderTexture DataTexture { get { return _targets; } }
+
+        protected virtual Texture2DArray NullTexture => TextureArrayHelpers.BlackTextureArray;
 
         public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
         protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
@@ -48,6 +58,25 @@ namespace Crest
         public bool enabled { get; protected set; }
 
         protected OceanRenderer _ocean;
+
+        // Implement in any sub-class which supports having an asset file for settings. This is used for polymorphic
+        // operations. A sub-class will also implement an alternative for the specialised type called Settings.
+        public virtual SimSettingsBase SettingsBase => null;
+        SimSettingsBase _defaultSettings;
+
+        /// <summary>
+        /// Returns the default value of the settings asset for the provided type.
+        /// </summary>
+        protected SettingsType GetDefaultSettings<SettingsType>() where SettingsType : SimSettingsBase
+        {
+            if (_defaultSettings == null)
+            {
+                _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                _defaultSettings.name = SimName + " Auto-generated Settings";
+            }
+
+            return (SettingsType)_defaultSettings;
+        }
 
         public LodDataMgr(OceanRenderer ocean)
         {
@@ -78,12 +107,19 @@ namespace Crest
 
         protected virtual void InitData()
         {
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
+            // Find a compatible texture format.
+            var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
+            CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(RequestedTextureFormat, formatUsage);
+            if (CompatibleTextureFormat != RequestedTextureFormat)
+            {
+                Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {RequestedTextureFormat}");
+            }
+            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {RequestedTextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
 
             // Bind globally once here on init, which will bind to all graphics shaders (not compute)
@@ -198,12 +234,10 @@ namespace Crest
         internal virtual void OnDisable()
         {
             // Unbind from all graphics shaders (not compute)
-            Shader.SetGlobalTexture(GetParamIdSampler(), null);
+            Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards

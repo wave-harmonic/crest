@@ -21,8 +21,7 @@ struct CascadeParams
 	float _oneOverTextureRes;
 	float _texelWidth;
 	float _weight;
-	// Align to 32 bytes
-	float __padding;
+	float _maxWavelength;
 };
 
 StructuredBuffer<CascadeParams> _CrestCascadeData;

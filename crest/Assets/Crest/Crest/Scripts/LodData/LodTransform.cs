@@ -12,6 +12,11 @@ namespace Crest
     /// </summary>
     public class LodTransform : IFloatingOrigin
     {
+        // Anything higher (minus 1 for near plane) will be clipped.
+        const float k_RenderAboveSeaLevel = 10000f;
+        // Anything lower will be clipped.
+        const float k_RenderBelowSeaLevel = 10000f;
+
         protected int[] _transformUpdateFrame;
 
         [System.Serializable]
@@ -21,6 +26,7 @@ namespace Crest
             public float _textureRes;
             public Vector3 _posSnapped;
             public int _frame;
+            public float _maxWavelength;
 
             public RenderData Validate(int frameOffset, string context)
             {
@@ -90,17 +96,20 @@ namespace Crest
 
                 _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
 
+                _renderData[lodIdx]._maxWavelength = MaxWavelength(lodIdx);
+
                 // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
                 if (_renderDataSource[lodIdx]._textureRes == 0f)
                 {
                     _renderDataSource[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
                     _renderDataSource[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
                     _renderDataSource[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                    _renderDataSource[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
                 }
 
-                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * k_RenderAboveSeaLevel, Quaternion.AngleAxis(90f, Vector3.right));
 
-                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, 500f);
+                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, k_RenderAboveSeaLevel + k_RenderBelowSeaLevel);
             }
         }
 
@@ -153,6 +162,9 @@ namespace Crest
                 cascadeParamsSrc[lodIdx]._texelWidth = _renderDataSource[lodIdx]._texelWidth;
 
                 cascadeParamsTgt[lodIdx]._weight = cascadeParamsSrc[lodIdx]._weight = 1f;
+
+                cascadeParamsTgt[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
+                cascadeParamsSrc[lodIdx]._maxWavelength = _renderDataSource[lodIdx]._maxWavelength;
             }
 
             // Duplicate last element so that things can safely read off the end of the cascades

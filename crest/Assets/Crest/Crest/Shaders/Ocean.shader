@@ -6,55 +6,57 @@ Shader "Crest/Ocean"
 {
 	Properties
 	{
-		[Header(Normal Mapping)]
+		[Header(Normals)]
+		// Strength of the final surface normal (includes both wave normal and normal map)
+		_NormalsStrengthOverall( "Overall Normal Strength", Range( 0.0, 1.0 ) ) = 1.0
 		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
-		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
+		[Toggle] _ApplyNormalMapping("Use Normal Map", Float) = 1
 		// Normal map texture (should be set to Normals type in the properties)
 		[NoScaleOffset] _Normals("Normal Map", 2D) = "bump" {}
-		// Strength of normal map influence
-		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.36
 		// Scale of normal map texture
-		_NormalsScale("Scale", Range(0.01, 200.0)) = 40.0
+		_NormalsScale("Normal Map Scale", Range(0.01, 200.0)) = 40.0
+		// Strength of normal map influence
+		_NormalsStrength("Normal Map Strength", Range(0.01, 2.0)) = 0.36
 
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]
 		// Base colour when looking straight down into water
-		_Diffuse("Diffuse", Color) = (0.0, 0.0124, 0.566, 1.0)
+		_Diffuse("Scatter Colour Base", Color) = (0.0, 0.0026954073, 0.16981131, 1.0)
 		// Base colour when looking into water at shallow/grazing angle
-		_DiffuseGrazing("Diffuse Grazing", Color) = (0.184, 0.393, 0.519, 1)
+		_DiffuseGrazing("Scatter Colour Grazing", Color) = (0.0, 0.003921569, 0.1686274, 1.0)
 		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		// Base colour in shadow
-		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.0, 0.356, 0.565, 1.0)
+		_DiffuseShadow("Scatter Colour Shadow", Color) = (0.0, 0.0013477041, 0.084905684, 1.0)
+
+		[Header(Shallow Scattering)]
+		// Enable light scattering in shallow water
+		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
+		// Colour in shallow water
+		_SubSurfaceShallowCol("Scatter Colour Shallow", Color) = (0.0, 0.003921569, 0.24705884, 1.0)
+		// Max depth that is considered 'shallow'
+		_SubSurfaceDepthMax("Scatter Colour Shallow Depth Max", Range(0.01, 50.0)) = 10.0
+		// Fall off of shallow scattering
+		_SubSurfaceDepthPower("Scatter Colour Shallow Depth Falloff", Range(0.01, 10.0)) = 2.5
+		// Shallow water colour in shadow (see comment on Shadowing param above)
+		_SubSurfaceShallowColShadow("Scatter Colour Shallow Shadow", Color) = (0.0, 0.0053968453, 0.17, 1)
 
 		[Header(Subsurface Scattering)]
 		// Whether to to emulate light scattering through the water volume
 		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
 		// Colour tint for primary light contribution
-		_SubSurfaceColour("Colour", Color) = (0.0, 0.48, 0.36)
+		_SubSurfaceColour("SSS Tint", Color) = (0.08850684, 0.497, 0.45615074, 1.0)
 		// Amount of primary light contribution that always comes in
-		_SubSurfaceBase("Base Mul", Range(0.0, 4.0)) = 1.0
+		_SubSurfaceBase("SSS Intensity Base", Range(0.0, 4.0)) = 0.0
 		// Primary light contribution in direction of light to emulate light passing through waves
-		_SubSurfaceSun("Sun Mul", Range(0.0, 10.0)) = 4.5
+		_SubSurfaceSun("SSS Intensity Sun", Range(0.0, 10.0)) = 1.7
 		// Fall-off for primary light scattering to affect directionality
-		_SubSurfaceSunFallOff("Sun Fall-Off", Range(1.0, 16.0)) = 5.0
-
-		[Header(Shallow Scattering)]
-		// Enable light scattering in shallow water
-		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
-		// Max depth that is considered 'shallow'
-		_SubSurfaceDepthMax("Depth Max", Range(0.01, 50.0)) = 10.0
-		// Fall off of shallow scattering
-		_SubSurfaceDepthPower("Depth Power", Range(0.01, 10.0)) = 2.5
-		// Colour in shallow water
-		_SubSurfaceShallowCol("Shallow Colour", Color) = (0.552, 1.0, 1.0, 1.0)
-		// Shallow water colour in shadow (see comment on Shadowing param above)
-		_SubSurfaceShallowColShadow("Shallow Colour (Shadow)", Color) = (0.144, 0.226, 0.212, 1)
+		_SubSurfaceSunFallOff("SSS Sun Falloff", Range(1.0, 16.0)) = 5.0
 
 		// Reflection properites
 		[Header(Reflection Environment)]
 		// Strength of specular lighting response
-		_Specular("Specular", Range(0.0, 1.0)) = 1.0
+		_Specular("Specular", Range(0.0, 1.0)) = 0.7
 		// Controls blurriness of reflection
 		_Roughness("Roughness", Range(0.0, 1.0)) = 0.0
 		// Controls harshness of Fresnel behaviour
@@ -72,7 +74,7 @@ Shader "Crest/Ocean"
 		// Whether to use an overridden reflection cubemap (provided in the next property)
 		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
 		// Custom environment map to reflect
-		[NoScaleOffset] _ReflectionCubemapOverride("Override Reflection Cubemap", CUBE) = "" {}
+		[NoScaleOffset] _ReflectionCubemapOverride("Reflection Cubemap Override", CUBE) = "" {}
 
 		[Header(Procedural Skybox)]
 		// Enable a simple procedural skybox, not suitable for realistic reflections, but can be useful to give control over reflection colour
@@ -88,52 +90,60 @@ Shader "Crest/Ocean"
 		[HDR] _SkyAwayFromSun("Away From Sun", Color) = (1.0, 1.0, 1.0, 1.0)
 
 		[Header(Add Directional Light)]
+		// Add specular highlights from the the primary light.
 		[Toggle] _ComputeDirectionalLight("Enable", Float) = 1
-		_DirectionalLightFallOff("Fall-Off", Range(1.0, 4096.0)) = 275.0
-		[Toggle] _DirectionalLightVaryRoughness("Vary Fall-Off Over Distance", Float) = 0
-		_DirectionalLightFarDistance("Far Distance", Float) = 137.0
-		_DirectionalLightFallOffFar("Fall-Off At Far Distance", Range(1.0, 4096.0)) = 42.0
+		// Specular highlight intensity.
 		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 7.0
+		// Falloff of the specular highlights from source to camera.
+		_DirectionalLightFallOff("Falloff", Range(1.0, 4096.0)) = 275.0
+		// Helps to spread out specular highlight in mid-to-background.
+		[Toggle] _DirectionalLightVaryRoughness("Vary Falloff Over Distance", Float) = 0
+		// Definition of far distance.
+		_DirectionalLightFarDistance("Far Distance", Float) = 137.0
+		// Same as "Falloff" except only up to "Far Distance".
+		_DirectionalLightFallOffFar("Falloff At Far Distance", Range(1.0, 4096.0)) = 42.0
 
 		[Header(Foam)]
 		// Enable foam layer on ocean surface
 		[Toggle] _Foam("Enable", Float) = 1
 		// Foam texture
-		[NoScaleOffset] _FoamTexture("Texture", 2D) = "white" {}
+		[NoScaleOffset] _FoamTexture("Foam", 2D) = "white" {}
 		// Foam texture scale
-		_FoamScale("Scale", Range(0.01, 50.0)) = 10.0
+		_FoamScale("Foam Scale", Range(0.01, 50.0)) = 10.0
+		// Controls how gradual the transition is from full foam to no foam
+		_WaveFoamFeather("Foam Feather", Range(0.001, 1.0)) = 0.4
 		// Scale intensity of lighting
-		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 1.35
+		_WaveFoamLightScale("Foam Light Scale", Range(0.0, 2.0)) = 1.35
 		// Colour tint for whitecaps / foam on water surface
-		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
-		// Colour tint bubble foam underneath water surface
-		_FoamBubbleColor("Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
-		// Parallax for underwater bubbles to give feeling of volume
-		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.5)) = 0.14
+		_FoamWhiteColor("Foam Tint", Color) = (1.0, 1.0, 1.0, 1.0)
 		// Proximity to sea floor where foam starts to get generated
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
-		// Controls how gradual the transition is from full foam to no foam
-		_WaveFoamFeather("Wave Foam Feather", Range(0.001, 1.0)) = 0.4
-		// How much underwater bubble foam is generated
-		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0, 5.0)) = 1.68
 
 		[Header(Foam 3D Lighting)]
 		// Generates normals for the foam based on foam values/texture and use it for foam lighting
 		[Toggle] _Foam3DLighting("Enable", Float) = 1
 		// Strength of the generated normals
-		_WaveFoamNormalStrength("Normals Strength", Range(0.0, 30.0)) = 3.5
+		_WaveFoamNormalStrength("Foam Normal Strength", Range(0.0, 30.0)) = 3.5
 		// Acts like a gloss parameter for specular response
-		_WaveFoamSpecularFallOff("Specular Fall-Off", Range(1.0, 512.0)) = 293.0
+		_WaveFoamSpecularFallOff("Specular Falloff", Range(1.0, 512.0)) = 293.0
 		// Strength of specular response
 		_WaveFoamSpecularBoost("Specular Boost", Range(0.0, 16.0)) = 0.15
+
+		[Header(Foam Bubbles)]
+		// Colour tint bubble foam underneath water surface
+		_FoamBubbleColor("Foam Bubbles Color", Color) = (0.64, 0.83, 0.82, 1.0)
+		// Parallax for underwater bubbles to give feeling of volume
+		_FoamBubbleParallax("Foam Bubbles Parallax", Range(0.0, 0.5)) = 0.14
+		// How much underwater bubble foam is generated
+		_WaveFoamBubblesCoverage("Foam Bubbles Coverage", Range(0.0, 5.0)) = 1.68
 
 		[Header(Transparency)]
 		// Whether light can pass through the water surface
 		[Toggle] _Transparency("Enable", Float) = 1
 		// Scattering coefficient within water volume, per channel
-		_DepthFogDensity("Fog Density", Vector) = (0.33, 0.23, 0.37, 1.0)
+		_DepthFogDensity("Depth Fog Density", Vector) = (0.9, 0.3, 0.35, 1.0)
 		// How strongly light is refracted when passing through water surface
-		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1
+		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.5
 
 		[Header(Caustics)]
 		// Approximate rays being focused/defocused on underwater surfaces
@@ -141,19 +151,19 @@ Shader "Crest/Ocean"
 		// Caustics texture
 		[NoScaleOffset] _CausticsTexture("Caustics", 2D) = "black" {}
 		// Caustics texture scale
-		_CausticsTextureScale("Scale", Range(0.0, 25.0)) = 5.0
+		_CausticsTextureScale("Caustics Scale", Range(0.0, 25.0)) = 5.0
 		// The 'mid' value of the caustics texture, around which the caustic texture values are scaled
-		_CausticsTextureAverage("Texture Average Value", Range(0.0, 1.0)) = 0.07
+		_CausticsTextureAverage("Caustics Texture Grey Point", Range(0.0, 1.0)) = 0.07
 		// Scaling / intensity
-		_CausticsStrength("Strength", Range(0.0, 10.0)) = 3.2
+		_CausticsStrength("Caustics Strength", Range(0.0, 10.0)) = 3.2
 		// The depth at which the caustics are in focus
-		_CausticsFocalDepth("Focal Depth", Range(0.0, 25.0)) = 2.0
+		_CausticsFocalDepth("Caustics Focal Depth", Range(0.0, 250.0)) = 2.0
 		// The range of depths over which the caustics are in focus
-		_CausticsDepthOfField("Depth Of Field", Range(0.01, 10.0)) = 0.33
+		_CausticsDepthOfField("Caustics Depth of Field", Range(0.01, 1000.0)) = 0.33
 		// How much the caustics texture is distorted
-		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.16
+		_CausticsDistortionStrength("Caustics Distortion Strength", Range(0.0, 0.25)) = 0.16
 		// The scale of the distortion pattern used to distort the caustics
-		_CausticsDistortionScale("Distortion Scale", Range(0.01, 50.0)) = 25.0
+		_CausticsDistortionScale("Caustics Distortion Scale", Range(0.01, 50.0)) = 25.0
 
 		// To use the underwater effect the UnderWaterCurtainGeom and UnderWaterMeniscus prefabs must be parented to the camera.
 		[Header(Underwater)]
@@ -173,6 +183,10 @@ Shader "Crest/Ocean"
 		[Toggle] _ClipSurface("Enable", Float) = 0
 		// Clips purely based on water depth
 		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
+
+		[Header(Rendering)]
+		// What projection modes will this material support? Choosing perspective or orthographic is an optimisation.
+		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
 
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
@@ -236,11 +250,15 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
 
+			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
+
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
 			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
 			#pragma shader_feature_local _DEBUGDISABLESMOOTHLOD_ON
 			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
+
+			#pragma multi_compile_local _ _OLD_UNDERWATER
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -248,6 +266,19 @@ Shader "Crest/Ocean"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
+
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
+			#include "OceanShaderData.hlsl"
+			#include "OceanHelpersNew.hlsl"
+			#include "OceanVertHelpers.hlsl"
+			#include "OceanShaderHelpers.hlsl"
+			#include "OceanLightingHelpers.hlsl"
+
+			#include "OceanEmission.hlsl"
+			#include "OceanNormalMapping.hlsl"
+			#include "OceanReflection.hlsl"
+			#include "OceanFoam.hlsl"
 
 			struct Attributes
 			{
@@ -274,14 +305,6 @@ Shader "Crest/Ocean"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
-
-			#include "OceanConstants.hlsl"
-			#include "OceanGlobals.hlsl"
-			#include "OceanInputsDriven.hlsl"
-			#include "OceanHelpersNew.hlsl"
-			#include "OceanVertHelpers.hlsl"
-
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
 			{
@@ -291,22 +314,33 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				// Scale up by small "epsilon" to solve numerical issues.
-				// :OceanGridPrecisionErrors
-				v.vertex.xyz *= 1.00001;
-
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
 				// Move to world space
-				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
+				o.worldPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz, 1.0));
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
 				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
+
+				{
+					// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
+					// :OceanGridPrecisionErrors
+					const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
+					const float2 cameraPositionXZ = abs(_WorldSpaceCameraPos.xz);
+					// Scale "epsilon" by distance from zero. There is an issue where overlaps can cause SV_IsFrontFace
+					// to be flipped (needs to be investigated). Gaps look bad from above surface, and overlaps look bad
+					// from below surface. We want to close gaps without introducing overlaps. A fixed "epsilon" will
+					// either not solve gaps at large distances or introduce too many overlaps at small distances. Even
+					// with scaling, there are still unsolvable overlaps underwater (especially at large distances).
+					// 100,000 (0.00001) is the maximum position before Unity warns the user of precision issues.
+					o.worldPos.xz = lerp(tileCenterXZ, o.worldPos.xz, lerp(1.0, 1.01, max(cameraPositionXZ.x, cameraPositionXZ.y) * 0.00001));
+				}
+
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
@@ -329,8 +363,7 @@ Shader "Crest/Ocean"
 					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					half sss = 0.;
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos, sss);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
@@ -346,8 +379,7 @@ Shader "Crest/Ocean"
 					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					half sss = 0.;
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos, sss);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
@@ -400,7 +432,7 @@ Shader "Crest/Ocean"
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				#define TINT_COUNT (uint)7
 				half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
-				o.debugtint = wt_smallerLod * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_biggerLod * tintCols[_LD_LodIdx_1 % TINT_COUNT];
+				o.debugtint = wt_smallerLod * tintCols[_LD_SliceIndex % TINT_COUNT] + wt_biggerLod * tintCols[(_LD_SliceIndex + 1) % TINT_COUNT];
 				#endif
 
 				// view-projection
@@ -416,41 +448,7 @@ Shader "Crest/Ocean"
 				return o;
 			}
 
-			// frag shader uniforms
-
-			#include "OceanFoam.hlsl"
-			#include "OceanEmission.hlsl"
-			#include "OceanReflection.hlsl"
-			uniform sampler2D _Normals;
-			#include "OceanNormalMapping.hlsl"
-
-			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-			// add a param here that forces ocean to be in undrwater state. I think the root
-			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
-			// i'm not sure why cracks are not visible in this case.
-			uniform float _ForceUnderwater;
-
-			float3 WorldSpaceLightDir(float3 worldPos)
-			{
-				float3 lightDir = _WorldSpaceLightPos0.xyz;
-				if (_WorldSpaceLightPos0.w > 0.)
-				{
-					// non-directional light - this is a position, not a direction
-					lightDir = normalize(lightDir - worldPos.xyz);
-				}
-				return lightDir;
-			}
-
-			bool IsUnderwater(const float facing)
-			{
-#if !_UNDERWATER_ON
-				return false;
-#endif
-				const bool backface = facing < 0.0;
-				return backface || _ForceUnderwater > 0.0;
-			}
-
-			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
+			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 			{
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -459,7 +457,12 @@ Shader "Crest/Ocean"
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
-				const bool underwater = IsUnderwater(facing);
+				#if _UNDERWATER_ON
+				const bool underwater = IsUnderwater(i_isFrontFace, _ForceUnderwater);
+				#else
+				const bool underwater = false;
+				#endif
+
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
@@ -489,13 +492,15 @@ Shader "Crest/Ocean"
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
 				// water surface depth, and underlying scene opaque surface depth
-				float pixelZ = LinearEyeDepth(input.positionCS.z);
+				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
-				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
-				float sceneZ = LinearEyeDepth(sceneZ01);
+				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
+				float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvDepth).x;
+				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
+				half3 lightCol = _LightColor0;
 				// Soft shadow, hard shadow
 				fixed2 shadow = (fixed2)1.0
 				#if _SHADOWS_ON
@@ -505,31 +510,32 @@ Shader "Crest/Ocean"
 
 				// Normal - geom + normal mapping. Subsurface scattering.
 				float3 dummy = 0.;
-				half3 n_geom = half3(0.0, 1.0, 0.0);
+				float3 n_pixel = float3(0.0, 1.0, 0.0);
 				half sss = 0.;
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_geom.xz, sss);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_pixel.xz, sss);
 				}
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_geom.xz, sss);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_pixel.xz, sss);
 				}
-				n_geom = normalize(n_geom);
 
-				if (underwater) n_geom = -n_geom;
-				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
-				n_pixel = normalize(n_pixel);
+				n_pixel.xz += SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
 				#endif
 				#endif
+
+				// Finalise normal
+				n_pixel.xz *= _NormalsStrengthOverall;
+				n_pixel = normalize( n_pixel );
+				if (underwater) n_pixel = -n_pixel;
 
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
@@ -545,8 +551,8 @@ Shader "Crest/Ocean"
 				// Compute color of ocean - in-scattered light + refracted scene
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
+				half3 scatterCol = ScatterColour(AmbientLight(), input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface
 
@@ -581,11 +587,13 @@ Shader "Crest/Ocean"
 					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
 					UNITY_APPLY_FOG(input.fogCoord, col);
 				}
+#if _OLD_UNDERWATER
 				else
 				{
 					// underwater - do depth fog
 					col = lerp(col, scatterCol, saturate(1. - exp(-_DepthFogDensity.xyz * pixelZ)));
 				}
+#endif
 
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				col = lerp(col.rgb, input.debugtint, 0.5);

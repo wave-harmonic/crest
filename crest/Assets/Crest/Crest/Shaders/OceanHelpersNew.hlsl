@@ -7,6 +7,9 @@
 #ifndef CREST_OCEAN_HELPERS_H
 #define CREST_OCEAN_HELPERS_H
 
+#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
+#define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
+
 float2 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams)
 {
 	return (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;
@@ -32,26 +35,59 @@ float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 }
 
 // Sampling functions
-void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout half io_sss)
+
+// Displacements. Variance is a statistical measure of how many waves are in the smaller cascades (below this cascade slice). This gives a measure
+// of how much wave content is missing when we sample a particular LOD, and can be used to compensate. The foam sim uses it to compensate for missing
+// waves when computing surface pinch.
+void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout half io_variance)
 {
 	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
 	io_worldPos += i_wt * data.xyz;
-	io_sss += i_wt * data.a;
+	io_variance += i_wt * data.w;
 }
 
-void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)
+void SampleDisplacements( in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos )
+{
+	half unusedVariance = 0.0;
+	SampleDisplacements( i_dispSampler, i_uv_slice, i_wt, io_worldPos, unusedVariance );
+}
+
+void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float2 io_nxz, inout half io_sss)
 {
 	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
-	io_sss += i_wt * data.a;
 	const half3 disp = data.xyz;
 	io_worldPos += i_wt * disp;
 
-	float3 n; {
-		float3 dd = float3(i_invRes, 0.0, i_texelSize);
-		half3 disp_x = dd.zyy + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
-		half3 disp_z = dd.yyz + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
-		n = normalize(cross(disp_z - disp, disp_x - disp));
+	float3 dd = float3(i_invRes, 0.0, i_texelSize);
+	float3 disp_x = dd.zyy + i_dispSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), 0.0 ).xyz;
+	float3 disp_z = dd.yyz + i_dispSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), 0.0 ).xyz;
+
+	// Normal
+	float3 n;
+	{
+		float3 crossProd = cross(disp_z - disp, disp_x - disp);
+
+		// Situation could arise where cross returns 0, prob when arguments are two aligned vectors. This
+		// resulted in NaNs and flashing screen in HDRP. Force normal to point upwards as the only time
+		// it should point downwards is for underwater (handled elsewhere) or in surface inversions which
+		// should not happen for well tweaked waves, and look broken anyway.
+		crossProd.y = max(crossProd.y, 0.0001);
+
+		n = normalize(crossProd);
 	}
+
+	// SSS - based off pinch
+#if _SUBSURFACESCATTERING_ON
+	{
+		const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
+		// Determinant is < 1 for pinched, < 0 for overlap/inversion
+		const float det = determinant( jacobian );
+		const float sssMax = 0.6;
+		const float sssRange = 0.12;
+		io_sss += i_wt * saturate( sssMax - sssRange * det );
+	}
+#endif // _SUBSURFACESCATTERING_ON
+
 	io_nxz += i_wt * n.xz;
 }
 
@@ -84,21 +120,23 @@ void PosToSliceIndices
 (
 	const float2 worldXZ,
 	const float minSlice,
-	const float minScale,
 	const float oceanScale0,
-	out float slice0,
-	out float slice1,
+	out uint slice0,
+	out uint slice1,
 	out float lodAlpha
 )
 {
 	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
 	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
 	const float radius0 = oceanScale0;
-	const float sliceNumber = clamp(log2(max(taxicab / radius0, 1.0)), minSlice, _SliceCount - 1.0);
+	float sliceNumber = log2( max( taxicab / radius0, 1.0 ) );
+	// Don't use last slice - this is a 'transition' slice used to cross fade waves between
+	// LOD resolutions to avoid pops.
+	sliceNumber = clamp( sliceNumber, minSlice, _SliceCount - 2.0 );
 
 	lodAlpha = frac(sliceNumber);
 	slice0 = floor(sliceNumber);
-	slice1 = slice0 + 1.0;
+	slice1 = slice0 + 1;
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
@@ -112,9 +150,6 @@ void PosToSliceIndices
 		lodAlpha = min(lodAlpha + _MeshScaleLerp, 1.0);
 	}
 }
-
-#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
-#define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 
 // Perform iteration to invert the displacement vector field - find position that displaces to query position.
 float3 InvertDisplacement
@@ -163,6 +198,11 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 
 	// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 	clip(-clipValue + 0.5);
+}
+
+bool IsUnderwater(const bool i_isFrontFace, const float i_forceUnderwater)
+{
+	return !i_isFrontFace || i_forceUnderwater > 0.0;
 }
 
 #endif // CREST_OCEAN_HELPERS_H

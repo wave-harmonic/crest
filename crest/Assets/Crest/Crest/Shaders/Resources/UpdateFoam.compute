@@ -6,6 +6,7 @@
 
 #include "HLSLSupport.cginc"
 
+#include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
@@ -50,6 +51,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// Try to sample the source slice, if it the sample position lies within its footprint
 	const float3 uv_slice_source = WorldToUV(worldPosXZ_flowed, _CascadeDataSrc[sliceIndexSource], sliceIndexSource);
 	const half2 r = abs(uv_slice_source.xy - 0.5);
+
 	if (max(r.x, r.y) <= r_max)
 	{
 		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0.0).x;
@@ -69,9 +71,11 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// fade
 	foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
 
-	// sample displacement texture and generate foam from it
+	// Sample displacement texture and generate foam from it
 	const float3 dd = float3(cascadeData._oneOverTextureRes, 0.0, cascadeData._texelWidth);
-	half3 s = SampleLod(_LD_TexArray_AnimatedWaves, uv_slice).xyz;
+	half4 data = SampleLod( _LD_TexArray_AnimatedWaves, uv_slice );
+	half3 s = data.xyz;
+	float foamBase = data.w;
 	half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
 	half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
 	float3 disp = s.xyz;
@@ -81,11 +85,12 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// > 1: Stretch
 	// < 1: Squash
 	// < 0: Overlap
-	float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
-	float det = (du.x * du.w - du.y * du.z) / (cascadeData._texelWidth * cascadeData._texelWidth);
-	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
+	const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / cascadeData._texelWidth;
+	// Determinant is < 1 for pinched, < 0 for overlap/inversion
+	const float det = determinant( jacobian );
+	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate( _WaveFoamCoverage - det + foamBase * 0.7 );
 
-	// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
+	// Add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 	const float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, cascadeData, sliceIndex);
 	float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth, uv_slice_displaced, 0.0).x + disp.y;
 	foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);

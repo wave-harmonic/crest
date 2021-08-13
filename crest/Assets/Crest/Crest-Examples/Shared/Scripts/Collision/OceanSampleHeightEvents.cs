@@ -13,8 +13,18 @@ using UnityEditor;
 /// <summary>
 /// Emits useful events (UnityEvents) based on the sampled height of the ocean surface.
 /// </summary>
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ocean Sample Height Events")]
 public class OceanSampleHeightEvents : MonoBehaviour
 {
+    /// <summary>
+    /// The version of this asset. Can be used to migrate across versions. This value should
+    /// only be changed when the editor upgrades the version.
+    /// </summary>
+    [SerializeField, HideInInspector]
+#pragma warning disable 414
+    int _version = 0;
+#pragma warning restore 414
+
     [Header("Settings For All Events")]
 
     [Tooltip("The higher the value, the more smaller waves will be ignored when sampling the ocean surface.")]
@@ -101,7 +111,7 @@ public class OceanSampleHeightEvents : MonoBehaviour
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox
             (
-                "For the Above/Below Ocean Surface Events, whenever this game object goes below or above the ocean " + 
+                "For the Above/Below Ocean Surface Events, whenever this game object goes below or above the ocean " +
                 "surface, the appropriate event is fired once per state change. It can be used to trigger audio to " +
                 "play underwater and much more. For the Distance From Ocean Surface event, it will pass the " +
                 "distance every frame (passing normalised distance to audio volume as an example).",

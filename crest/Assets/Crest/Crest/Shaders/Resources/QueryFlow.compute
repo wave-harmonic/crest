@@ -20,7 +20,7 @@ float3 ComputeFlow(float2 undispPos, float minSlice, const float baseScale)
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, baseScale, slice0, slice1, lodAlpha);
+	PosToSliceIndices(undispPos, minSlice, baseScale, slice0, slice1, lodAlpha);
 
 	const float3 uv0 = WorldToUV(undispPos, _CrestCascadeData[slice0], slice0);
 	const float3 uv1 = WorldToUV(undispPos, _CrestCascadeData[slice1], slice1);
@@ -44,7 +44,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float minGridSize = data.z;
 
 	const float gridSizeSlice0 = _CrestCascadeData[0]._texelWidth;
-	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
+	// While it would probably be ok to use the last slice, we avoid using it to be consistent with displacements.
+	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 2.0);
 	const float baseScale = _CrestCascadeData[0]._scale;
 
 	_ResultFlows[id.x] = ComputeFlow(queryPosXZ, minSlice, baseScale);

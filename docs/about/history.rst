@@ -23,6 +23,7 @@ Changed
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
    -  Add default textures to ocean shader.
    -  Update ocean shader default values.
+   -  Add *Scale By Factor* shader for *Animated Waves* which is useful for reducing waves.
 
    .. only:: urp
 

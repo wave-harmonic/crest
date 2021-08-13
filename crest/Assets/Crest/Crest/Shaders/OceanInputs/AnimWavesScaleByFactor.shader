@@ -9,8 +9,18 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 	Properties
 	{
 		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
+
 		// Scale the waves. Zero is no waves and one leaves waves untouched.
 		_Scale("Scale", Range(0, 1)) = 0.35
+
+		// Use the texture instead of the scale value.
+		[Toggle] _Texture("Apply Texture", Float) = 0
+		_MainTex("Texture", 2D) = "black" {}
+
+		// Inverts the scale value.
+		[Toggle] _Invert("Invert", Float) = 0
+
+		[Header(Feather)]
 		// Feather the edges of the mesh using the texture coordinates. Easiest to understand with a plane.
 		[Toggle] _FeatherAtUVExtents("Feather At UV Extents", Float) = 0
 		// How far from edge to feather.
@@ -28,12 +38,22 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma shader_feature_local _TEXTURE_ON
+			#pragma shader_feature_local _INVERT_ON
 			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
 
 			#include "UnityCG.cginc"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanShaderHelpers.hlsl"
+
+#if defined(_TEXTURE_ON) || defined(_FEATHERATUVEXTENTS_ON)
+#define _NEED_UVS
+#endif
+
+#if _TEXTURE_ON
+			sampler2D _MainTex;
+#endif
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
@@ -42,12 +62,15 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 #if _FEATHERATUVEXTENTS_ON
 			half _FeatherWidth;
 #endif
+#if _TEXTURE_ON
+			float4 _MainTex_ST;
+#endif
 			CBUFFER_END
 
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
-#if _FEATHERATUVEXTENTS_ON
+#ifdef _NEED_UVS
 				float2 uv : TEXCOORD0;
 #endif
 			};
@@ -55,7 +78,7 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-#if _FEATHERATUVEXTENTS_ON
+#ifdef _NEED_UVS
 				float2 uv : TEXCOORD0;
 #endif
 			};
@@ -69,7 +92,7 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 				positionWS.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
 
-#if _FEATHERATUVEXTENTS_ON
+#ifdef _NEED_UVS
 				o.uv = input.uv;
 #endif
 
@@ -78,7 +101,15 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 
 			half4 Frag( Varyings input ) : SV_Target
 			{
+#if _TEXTURE_ON
+				float scale = tex2D(_MainTex, input.uv).r;
+#else
 				float scale = _Scale;
+#endif
+
+#if _INVERT_ON
+				scale = 1 - scale;
+#endif
 
 #if _FEATHERATUVEXTENTS_ON
 				scale = lerp(1.0, scale, FeatherWeightFromTextureCoordinates(input.uv, _FeatherWidth));

@@ -8,8 +8,6 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 {
 	Properties
 	{
-		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
-
 		// Scale the waves. Zero is no waves and one leaves waves untouched.
 		_Scale("Scale", Range(0, 1)) = 0.35
 
@@ -32,7 +30,6 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 		Pass
 		{
 			Blend Zero SrcColor
-			ColorMask [_ColorWriteMask]
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -108,7 +105,7 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 #endif
 
 #if _INVERT_ON
-				scale = 1 - scale;
+				scale = 1.0 - scale;
 #endif
 
 #if _FEATHERATUVEXTENTS_ON

@@ -29,6 +29,7 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 	{
 		Pass
 		{
+			// Multiply
 			Blend Zero SrcColor
 
 			CGPROGRAM

@@ -127,7 +127,7 @@ namespace Crest
         // Put a time provider at the top of the stack
         public void PushTimeProvider(ITimeProvider tp)
         {
-            Debug.Assert(tp != null, "Null time provider pushed");
+            Debug.Assert(tp != null, "Crest: Null time provider pushed");
 
             // Remove any instances of it already in the stack
             PopTimeProvider(tp);
@@ -139,7 +139,7 @@ namespace Crest
         // Remove a time provider from the stack
         public void PopTimeProvider(ITimeProvider tp)
         {
-            Debug.Assert(tp != null, "Null time provider popped");
+            Debug.Assert(tp != null, "Crest: Null time provider popped");
 
             _timeProviderStack.RemoveAll(candidate => candidate == tp);
         }

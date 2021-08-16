@@ -158,7 +158,7 @@ namespace Crest
 #endif
             }
 
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
+            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "Crest: The graphics device does not support the render texture format " + fmt.ToString());
             var result = new RenderTexture(_resolution, _resolution, depthStencilTarget ? 24 : 0);
             result.name = gameObject.name + "_oceanDepth_" + (depthStencilTarget ? "DepthOnly" : "Cache");
             result.format = fmt;

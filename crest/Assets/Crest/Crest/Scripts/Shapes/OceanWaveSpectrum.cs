@@ -114,7 +114,7 @@ namespace Crest
 
         public static int GetOctaveIndex(float wavelength)
         {
-            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.");
+            Debug.Assert(wavelength > 0f, "Crest: OceanWaveSpectrum: Wavelength must be > 0.");
             var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
             return (int)(wl_pow2 - SMALLEST_WL_POW_2);
         }
@@ -129,7 +129,7 @@ namespace Crest
         /// <returns>The amplitude of the wave in m</returns>
         public float GetAmplitude(float wavelength, float componentsPerOctave, float windSpeed, out float power)
         {
-            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.", this);
+            Debug.Assert(wavelength > 0f, "Crest: OceanWaveSpectrum: Wavelength must be > 0.", this);
 
             var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
             wl_pow2 = Mathf.Clamp(wl_pow2, SMALLEST_WL_POW_2, SMALLEST_WL_POW_2 + NUM_OCTAVES - 1f);
@@ -145,7 +145,7 @@ namespace Crest
 
             if (index >= _powerLog.Length || index >= _powerDisabled.Length)
             {
-                Debug.Assert(index < _powerLog.Length && index < _powerDisabled.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
+                Debug.Assert(index < _powerLog.Length && index < _powerDisabled.Length, $"Crest: OceanWaveSpectrum: index {index} is out of range.", this);
                 power = 0f;
                 return 0f;
             }

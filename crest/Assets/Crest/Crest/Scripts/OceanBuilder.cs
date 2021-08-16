@@ -157,7 +157,7 @@ namespace Crest
             ClearOutTiles(ocean, tiles);
 
             var root = new GameObject("Root");
-            Debug.Assert(root != null, "The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
+            Debug.Assert(root != null, "Crest: The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
 
             root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
             root.transform.parent = ocean.transform;

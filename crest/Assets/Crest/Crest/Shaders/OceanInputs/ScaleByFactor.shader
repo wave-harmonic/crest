@@ -2,13 +2,13 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This writes straight into the displacement texture and sets the water height to the y value of the geometry.
+// 0-1 scaling of existing ocean data using multiplicative blending.
 
-Shader "Crest/Inputs/Animated Waves/Scale By Factor"
+Shader "Crest/Inputs/All/Scale By Factor"
 {
 	Properties
 	{
-		// Scale the waves. Zero is no waves and one leaves waves untouched.
+		// Scale the ocean data. Zero is no data and one leaves data untouched.
 		_Scale("Scale", Range(0, 1)) = 0.35
 
 		// Use the texture instead of the scale value.
@@ -86,7 +86,7 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 				Varyings o;
 
 				float3 positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
-				// Correct for displacement
+				// Correct for displacement.
 				positionWS.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
 
@@ -97,7 +97,7 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 				return o;
 			}
 
-			half4 Frag( Varyings input ) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
 #if _TEXTURE_ON
 				float scale = tex2D(_MainTex, input.uv).r;

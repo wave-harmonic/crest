@@ -62,7 +62,7 @@ namespace Crest.EditorHelpers
             {
                 Debug.LogError
                 (
-                    $"Property <i>{property.displayName}</i> on <i>{property.serializedObject.targetObject.name}</i> " +
+                    $"Crest: Property <i>{property.displayName}</i> on <i>{property.serializedObject.targetObject.name}</i> " +
                     "has a multi-property attribute which requires a custom editor.",
                     property.serializedObject.targetObject
                 );

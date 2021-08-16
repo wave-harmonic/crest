@@ -140,7 +140,7 @@ namespace Crest
 
             if (_powerLog.Length < NUM_OCTAVES || _powerDisabled.Length < NUM_OCTAVES)
             {
-                Debug.LogWarning($"Wave spectrum {name} is out of date, please open this asset and resave in editor.", this);
+                Debug.LogWarning($"Crest: Wave spectrum {name} is out of date, please open this asset and resave in editor.", this);
             }
 
             if (index >= _powerLog.Length || index >= _powerDisabled.Length)

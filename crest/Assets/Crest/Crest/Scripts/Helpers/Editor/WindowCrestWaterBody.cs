@@ -289,13 +289,13 @@ namespace Crest
         {
             if (_createClipArea && _clipMaterial == null)
             {
-                Debug.LogError("A material for the clip shader must be provided. This is typically a material using shader 'Crest/Inputs/Clip Surface/Include Area'");
+                Debug.LogError("Crest: A material for the clip shader must be provided. This is typically a material using shader 'Crest/Inputs/Clip Surface/Include Area'");
                 return false;
             }
 
             if (_createGerstnerWaves && _gerstnerMaterial == null)
             {
-                Debug.LogError("A material for the Gerstner waves must be specified in the Create Water Body window. This is typically a material using shader 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'");
+                Debug.LogError("Crest: A material for the Gerstner waves must be specified in the Create Water Body window. This is typically a material using shader 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'");
                 return false;
             }
 

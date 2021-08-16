@@ -206,7 +206,7 @@ namespace Crest.Spline
             {
                 // New point being inserted before first point, and spline has multiple points, extrapolate backwards
                 var newPos = 2f * parent.GetChild(1).position - parent.GetChild(2).position;
-                Debug.Log(newPos);
+                //Debug.Log(newPos);
                 newPoint.transform.position = newPos;
             }
 

@@ -118,7 +118,7 @@ namespace Crest
             }
 
             var framesFlattened = frames.SelectMany(x => x).ToArray();
-            //Debug.Log($"Width: {fftWaves._resolution}, frame count: {frameCount}, slices: {lodCount}, floats per frame: {frames[0].Length}, total floats: {framesFlattened.Length}");
+            //Debug.Log($"Crest: Width: {fftWaves._resolution}, frame count: {frameCount}, slices: {lodCount}, floats per frame: {frames[0].Length}, total floats: {framesFlattened.Length}");
 
             var bakedDataSO = ScriptableObject.CreateInstance<FFTBakedData>();
             var framesAsFloats = framesFlattened.Select(x => (float)x);
@@ -162,7 +162,7 @@ namespace Crest
             var assetPath = AssetDatabase.GenerateUniqueAssetPath($"{s_bakeFolder}/{sceneName}-{shapeFFTName}-BakedData.asset");
             AssetDatabase.CreateAsset(bakedDataSO, assetPath);
 
-            Debug.Log($"Baked wave data to {assetPath}.", bakedDataSO);
+            Debug.Log($"Crest: Baked wave data to {assetPath}.", bakedDataSO);
 
             return true;
         }

@@ -81,7 +81,7 @@ namespace Crest
                 {
                     if (_lastQueryQuadIndex + numQuads > MAX_QUERY_QUADS)
                     {
-                        Debug.LogError("Out of query data space. Try calling Compact() to reorganise query segments.");
+                        Debug.LogError("Crest: Out of query data space. Try calling Compact() to reorganise query segments.");
                         return (int)QueryStatus.TooManyQueries;
                     }
 

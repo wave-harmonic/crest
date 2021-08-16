@@ -93,10 +93,9 @@ namespace Crest
 
             if (result == null)
             {
-                // this should not be hit, but can be if compute shaders aren't loaded correctly.
-                // they will print out appropriate errors, so we don't want to return just null and have null reference
+                // This should not be hit, but can be if compute shaders aren't loaded correctly.
+                // They will print out appropriate errors. Don't just return null and have null reference
                 // exceptions spamming the logs.
-                //Debug.LogError($"Could not create collision provider. Collision source = {_collisionSource.ToString()}", this);
                 return new CollProviderNull();
             }
 

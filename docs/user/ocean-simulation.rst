@@ -13,6 +13,12 @@ user input, as covered in this video:
    Basics of Adding Ocean Inputs
 
 
+The following shaders can be used with any ocean input:
+
+-  **Scale By Factor** scales the ocean data between zero and one inclusive.
+   It is multiplicative, which can be inverted, so zero becomes no data and one leaves the data unchanged.
+
+
 .. _animated-waves-section:
 
 Animated Waves

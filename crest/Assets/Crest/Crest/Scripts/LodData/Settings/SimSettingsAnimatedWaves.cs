@@ -113,7 +113,7 @@ namespace Crest
         {
             var isValid = base.Validate(ocean, showMessage);
 
-            if (_collisionSource == CollisionSources.GerstnerWavesCPU)
+            if (_collisionSource == CollisionSources.GerstnerWavesCPU && showMessage != ValidatedHelper.DebugLog)
             {
                 showMessage
                 (

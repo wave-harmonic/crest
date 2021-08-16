@@ -1619,7 +1619,7 @@ namespace Crest
                 var newLDR = _lodDataResolution - (_lodDataResolution % _geometryDownSampleFactor);
                 Debug.LogWarning
                 (
-                    "Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").",
+                    $"Crest: Adjusted Lod Data Resolution from {_lodDataResolution} to {newLDR} to ensure the Geometry Down Sample Factor is a factor ({_geometryDownSampleFactor}).",
                     this
                 );
 

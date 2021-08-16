@@ -28,7 +28,7 @@ namespace Crest
                     {
                         if (property.GetCustomAttributes<DecoratorAttribute>().ToList().Count == 0) continue;
                         if (property.GetCustomAttributes<DecoratedPropertyAttribute>().ToList().Count > 0) continue;
-                        Debug.LogError($"A decorator attribute on {type}.{property.Name} has no attribute which inherits from DecoratedPropertyAttribute. The decorator will be ignored.");
+                        Debug.LogError($"Crest: A decorator attribute on {type}.{property.Name} has no attribute which inherits from DecoratedPropertyAttribute. The decorator will be ignored.");
                     }
                 }
             }

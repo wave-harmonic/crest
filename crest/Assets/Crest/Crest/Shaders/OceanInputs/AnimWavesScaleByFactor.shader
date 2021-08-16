@@ -110,7 +110,7 @@ Shader "Crest/Inputs/Animated Waves/Scale By Factor"
 #endif
 
 #if _FEATHERATUVEXTENTS_ON
-				scale = lerp(1.0, scale, FeatherWeightFromTextureCoordinates(input.uv, _FeatherWidth));
+				scale = lerp(1.0, scale, FeatherWeightFromUV(input.uv, _FeatherWidth));
 #endif
 
 				return scale * _Weight;

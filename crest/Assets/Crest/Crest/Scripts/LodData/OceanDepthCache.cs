@@ -186,7 +186,7 @@ namespace Crest
 
             if (_layers == 0)
             {
-                Debug.LogError("No valid layers for populating depth cache, aborting.", this);
+                Debug.LogError("Crest: No valid layers for populating depth cache, aborting.", this);
                 return false;
             }
 
@@ -424,7 +424,7 @@ namespace Crest
                 ti.alphaIsTransparency = false;
                 ti.SaveAndReimport();
 
-                Debug.Log("Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
+                Debug.Log("Crest: Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
             }
 
             ShowValidationMessages();

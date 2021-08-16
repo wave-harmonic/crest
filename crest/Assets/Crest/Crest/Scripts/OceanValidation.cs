@@ -57,9 +57,9 @@ namespace Crest
 
             switch (type)
             {
-                case MessageType.Error: Debug.LogError(message, @object); break;
-                case MessageType.Warning: Debug.LogWarning(message, @object); break;
-                default: Debug.Log(message, @object); break;
+                case MessageType.Error: Debug.LogError("Crest: " + message, @object); break;
+                case MessageType.Warning: Debug.LogWarning("Crest: " + message, @object); break;
+                default: Debug.Log("Crest: " + message, @object); break;
             }
         }
 

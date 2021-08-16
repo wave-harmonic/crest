@@ -136,7 +136,7 @@ namespace Crest
             _camViewpoint = GetComponent<Camera>();
             if (!_camViewpoint)
             {
-                Debug.LogWarning("Disabling planar reflections as no camera found on gameobject to generate reflection from.", this);
+                Debug.LogWarning("Crest: Disabling planar reflections as no camera found on gameobject to generate reflection from.", this);
                 enabled = false;
                 return;
             }
@@ -149,7 +149,7 @@ namespace Crest
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
             {
-                Debug.LogWarning("Planar reflections are not enabled on the current ocean material and will not be visible.", this);
+                Debug.LogWarning("Crest: Planar reflections are not enabled on the current ocean material and will not be visible.", this);
             }
 #endif
         }

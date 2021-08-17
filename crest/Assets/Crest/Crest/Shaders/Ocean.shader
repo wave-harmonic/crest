@@ -106,6 +106,8 @@ Shader "Crest/Ocean"
 		[Header(Foam)]
 		// Enable foam layer on ocean surface
 		[Toggle] _Foam("Enable", Float) = 1
+		// Samples foam in fragment shader to reduce squares.
+		[Toggle] _FoamHQ("High Quality", Float) = 0
 		// Foam texture
 		[NoScaleOffset] _FoamTexture("Foam", 2D) = "white" {}
 		// Foam texture scale
@@ -239,6 +241,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _TRANSPARENCY_ON
 			#pragma shader_feature_local _CAUSTICS_ON
 			#pragma shader_feature_local _FOAM_ON
+			#pragma shader_feature_local _FOAMHQ_ON
 			#pragma shader_feature_local _FOAM3DLIGHTING_ON
 			#pragma shader_feature_local _PLANARREFLECTIONS_ON
 			#pragma shader_feature_local _OVERRIDEREFLECTIONCUBEMAP_ON
@@ -540,11 +543,28 @@ Shader "Crest/Ocean"
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON
+
+				float foam = input.foam_screenPosXYW.x;
+
+#if _FOAMHQ_ON
+				// Data that needs to be sampled at the undisplaced position
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, cascadeData0, _LD_SliceIndex);
+					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, foam);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, cascadeData1, _LD_SliceIndex + 1);
+					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
+				}
+#endif
+
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoam(foam, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoamWithFlow(input.flow_shadow.xy, foam, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 

@@ -545,8 +545,7 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 
 				float foam = input.foam_screenPosXYW.x;
-
-#if _FOAMHQ_ON
+// #if _FOAMHQ_ON
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)
 				{
@@ -558,7 +557,9 @@ Shader "Crest/Ocean"
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, cascadeData1, _LD_SliceIndex + 1);
 					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
 				}
-#endif
+// #endif
+
+				return float4(foam, 0, 0, 1);
 
 				half4 whiteFoamCol;
 				#if !_FLOW_ON

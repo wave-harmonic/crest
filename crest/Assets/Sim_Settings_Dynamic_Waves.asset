@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467d18cefc08f7f44bd5688ce841f075, type: 3}
+  m_Name: Sim_Settings_Dynamic_Waves
+  m_EditorClassIdentifier: 
+  _version: 0
+  _minGridSize: 0
+  _maxGridSize: 0
+  _simulationFrequency: 60
+  _damping: 0.05
+  _courantNumber: 0.7
+  _horizDisplace: 3
+  _displaceClamp: 0.3
+  _gravityMultiplier: 1

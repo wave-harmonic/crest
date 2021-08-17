@@ -120,7 +120,7 @@ Material:
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 40
-    - _NormalsStrength: 0.36
+    - _NormalsStrength: 0.01
     - _NormalsStrengthOverall: 1
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
@@ -184,3 +184,4 @@ Material:
     - _SubSurfaceShallowCol: {r: 0, g: 0.003921569, b: 0.24705882, a: 1}
     - _SubSurfaceShallowColShadow: {r: 0.14417942, g: 0.2264151, b: 0.21173015, a: 1}
     - _SubSurfaceShallowColour: {r: 0.41999996, g: 0.75, b: 0.69, a: 1}
+  m_BuildTextureStacks: []

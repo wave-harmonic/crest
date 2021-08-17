@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -15,7 +16,7 @@ namespace Crest
     /// spheres can be used to model the interaction of a non-spherical shape.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Sphere Water Interaction")]
-    public partial class SphereWaterInteraction : MonoBehaviour
+    public partial class SphereWaterInteraction : MonoBehaviour, ILodDataInput
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -26,7 +27,8 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        float Radius => 0.5f * transform.lossyScale.x;
+        [Range(0.01f, 50f), SerializeField]
+        float _radius = 1f;
 
         [Range(-1f, 1f), SerializeField]
         float _weight = 1f;
@@ -43,20 +45,25 @@ namespace Crest
         [SerializeField]
         bool _warnOnSpeedClamp = false;
 
-        FloatingObjectBase _object;
-
         Vector3 _posLast;
+
+        float _weightThisFrame;
+        Matrix4x4 _renderMatrix;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
-        Renderer _renderer;
+        Material _mat;
         MaterialPropertyBlock _mpb;
 
         static int sp_velocity = Shader.PropertyToID("_Velocity");
         static int sp_weight = Shader.PropertyToID("_Weight");
         static int sp_simDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_radius = Shader.PropertyToID("_Radius");
+
+        public float Wavelength => 2f * _radius;
+
+        public bool Enabled => true;
 
         private void Start()
         {
@@ -81,14 +88,8 @@ namespace Crest
                 return;
             }
 
-            _renderer = GetComponent<Renderer>();
+            _mat = new Material(Shader.Find("Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"));
             _mpb = new MaterialPropertyBlock();
-
-            _object = GetComponentInParent<FloatingObjectBase>();
-            if (_object == null)
-            {
-                _object = transform.parent.gameObject.AddComponent<ObjectWaterInteractionAdaptor>();
-            }
         }
 
         void LateUpdate()
@@ -96,7 +97,7 @@ namespace Crest
             var ocean = OceanRenderer.Instance;
             if (ocean == null) return;
 
-            _sampleHeightHelper.Init(transform.position, 2f * Radius);
+            _sampleHeightHelper.Init(transform.position, 2f * _radius);
             _sampleHeightHelper.Sample(out Vector3 disp, out _, out _);
 
             // Enforce upwards
@@ -106,22 +107,28 @@ namespace Crest
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
             var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
-            var weight = _weight;
+            _weightThisFrame = _weight;
 
             var waterHeight = disp.y + ocean.SeaLevel;
-            LateUpdateSphereWeight(waterHeight, ref weight);
-
-            _renderer.GetPropertyBlock(_mpb);
+            LateUpdateSphereWeight(waterHeight, ref _weightThisFrame);
 
             _mpb.SetVector(sp_velocity, relativeVelocity);
             _mpb.SetFloat(sp_simDeltaTime, dt);
-            _mpb.SetFloat(sp_radius, Radius);
+            _mpb.SetFloat(sp_radius, _radius);
 
             // Weighting with this value helps keep ripples consistent for different gravity values
             var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
-            _mpb.SetFloat(sp_weight, weight * gravityMul);
+            _weightThisFrame *= gravityMul;
 
-            _renderer.SetPropertyBlock(_mpb);
+            // Matrix used for rendering this input
+            {
+                var position = transform.position;
+                // Apply sea level to matrix so we can use it for rendering and gizmos.
+                position.y = OceanRenderer.Instance.SeaLevel;
+                var scale = Vector3.one * 2f * _radius;
+                scale.z = 0f;
+                _renderMatrix = Matrix4x4.TRS(position, Quaternion.Euler(90f, 0f, 0f), scale);
+            }
 
             _posLast = transform.position;
         }
@@ -139,7 +146,7 @@ namespace Crest
             }
 
             {
-                _sampleFlowHelper.Init(transform.position, _object.ObjectWidth);
+                _sampleFlowHelper.Init(transform.position, 2f * _radius);
                 _sampleFlowHelper.Sample(out var surfaceFlow);
                 vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
@@ -178,7 +185,7 @@ namespace Crest
             if (centerDepthInWater >= 0f)
             {
                 // Center in water - exponential fall off of interaction influence as object gets deeper
-                var prop = centerDepthInWater / Radius;
+                var prop = centerDepthInWater / _radius;
                 prop *= 0.5f;
                 weight *= Mathf.Exp(-prop * prop);
             }
@@ -186,15 +193,27 @@ namespace Crest
             {
                 // Center out of water - ramp off with square root, weight goes to 0 when sphere is just touching water
                 var height = -centerDepthInWater;
-                var heightProp = 1f - Mathf.Clamp01(height / Radius);
+                var heightProp = 1f - Mathf.Clamp01(height / _radius);
                 weight *= Mathf.Sqrt(heightProp);
             }
+        }
+
+        void OnEnable()
+        {
+            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrDynWaves));
+            registered.Remove(this);
+            registered.Add(0, this);
+        }
+
+        void OnDisable()
+        {
+            RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrDynWaves)).Remove(this);
         }
 
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
-            Gizmos.DrawWireSphere(transform.position, Radius);
+            Gizmos.DrawWireSphere(transform.position, _radius);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -206,8 +225,15 @@ namespace Crest
             sp_simDeltaTime = Shader.PropertyToID("_SimDeltaTime");
             sp_radius = Shader.PropertyToID("_Radius");
         }
+
+        public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        {
+            _mpb.SetFloat(sp_weight, weight * _weightThisFrame);
+            buf.DrawMesh(RegisterClipSurfaceInput.QuadMesh, _renderMatrix, _mat, 0, 0, _mpb);
+        }
     }
 
+    // Validation
 #if UNITY_EDITOR
     public partial class SphereWaterInteraction : IValidated
     {
@@ -224,43 +250,6 @@ namespace Crest
                     ValidatedHelper.MessageType.Warning, ocean,
                     (so) => OceanRenderer.FixSetFeatureEnabled(so, LodDataMgrDynWaves.FEATURE_TOGGLE_NAME, true)
                 );
-            }
-
-            if (transform.parent == null)
-            {
-                showMessage
-                (
-                    "<i>SphereWaterInteraction</i> component requires a parent <i>GameObject</i>.",
-                    "Create a primary GameObject for the object, and parent this underneath it.",
-                    ValidatedHelper.MessageType.Error, this
-                );
-
-                isValid = false;
-            }
-
-            if (GetComponent<RegisterDynWavesInput>() == null)
-            {
-                showMessage
-                (
-                    "<i>SphereWaterInteraction</i> component requires <i>RegisterDynWavesInput</i> component to be present.",
-                    "Attach a <i>RegisterDynWavesInput</i> component.",
-                    ValidatedHelper.MessageType.Error, this
-                );
-
-                isValid = false;
-            }
-
-            if (GetComponent<Renderer>() == null)
-            {
-                showMessage
-                (
-                    "<i>SphereWaterInteraction</i> component requires a <i>MeshRenderer</i> component.",
-                    "Attach a <i>MeshRenderer</i> component.",
-                    ValidatedHelper.MessageType.Error, this,
-                    ValidatedHelper.FixAttachComponent<MeshRenderer>
-                );
-
-                isValid = false;
             }
 
             return isValid;

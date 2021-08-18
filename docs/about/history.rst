@@ -38,6 +38,7 @@ Fixed
    -  Fix FFT shader build errors for Game Core platforms.
    -  Fix FFT material allocations every frame.
    -  Fix flow simulation sometimes not clearing after disabling last input.
+   -  Fix outline around objects when MSAA is enabled by making it less noticeable.
 
    .. only:: hdrp
 

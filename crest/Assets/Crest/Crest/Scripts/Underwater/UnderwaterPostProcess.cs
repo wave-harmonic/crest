@@ -24,6 +24,9 @@ namespace Crest
         [SerializeField]
         MeshFilter _waterVolumeBoundaryGeometry;
 
+        [SerializeField]
+        bool _isConvexHull = false;
+
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
 
@@ -211,17 +214,17 @@ namespace Crest
                     : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
 
             InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
-            InitialiseClipSurfaceMaskTextures(descriptor, ref _waterBoundaryGeometryTexture);
-
-            // Keep separate from mask.
-            _waterBoundaryGeometryCommandBuffer.Clear();
-            _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture.depthBuffer);
-            _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, false, Color.black);
-            _waterBoundaryGeometryCommandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
-            _waterBoundaryGeometryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture.depthBuffer);
 
             if (_waterVolumeBoundaryGeometry != null)
             {
+                InitialiseClipSurfaceMaskTextures(descriptor, ref _waterBoundaryGeometryTexture);
+
+                // Keep separate from mask.
+                _waterBoundaryGeometryCommandBuffer.Clear();
+                _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture.depthBuffer);
+                _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, false, Color.black);
+                _waterBoundaryGeometryCommandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
+                _waterBoundaryGeometryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture.depthBuffer);
                 _waterBoundaryGeometryCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _waterBoundaryGeometryMaterial, 0, 0);
             }
 
@@ -292,14 +295,15 @@ namespace Crest
 
             if (_waterVolumeBoundaryGeometry == null)
             {
-                _underwaterPostProcessMaterial.DisableKeyword("_GEOMETRY_EFFECT");
+                _underwaterPostProcessMaterial.DisableKeyword("_GEOMETRY_EFFECT_PLANE");
+                _underwaterPostProcessMaterial.DisableKeyword("_GEOMETRY_EFFECT_CONVEX_HULL");
                 _postProcessCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterPostProcessMaterial, 0, MeshTopology.Triangles, 3, 1);
             }
             else
             {
                 _underwaterPostProcessMaterial.DisableKeyword("_FULL_SCREEN_EFFECT");
-                _underwaterPostProcessMaterial.EnableKeyword("_GEOMETRY_EFFECT");
-                _postProcessCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterPostProcessMaterial,0, 1);
+                _underwaterPostProcessMaterial.EnableKeyword(_isConvexHull ? "_GEOMETRY_EFFECT_CONVEX_HULL" : "_GEOMETRY_EFFECT_PLANE");
+                _postProcessCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterPostProcessMaterial, 0, 1);
             }
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);

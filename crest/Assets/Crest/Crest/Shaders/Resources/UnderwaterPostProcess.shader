@@ -26,10 +26,13 @@ Shader "Crest/Underwater/Post Process"
 	#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 	// Are we rendering from a geometry?
-	#pragma multi_compile_local __ _GEOMETRY_EFFECT
+	#pragma multi_compile_local __ _FULL_SCREEN_EFFECT _GEOMETRY_EFFECT_PLANE _GEOMETRY_EFFECT_CONVEX_HULL
 	// Fullscreen only denotes an optimisation of whether to skip the horizon calculation. Not related to above.
-	#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
+
+#if defined(_GEOMETRY_EFFECT_PLANE) || defined(_GEOMETRY_EFFECT_CONVEX_HULL)
+#define _GEOMETRY_EFFECT 1
+#endif
 
 	#if _COMPILESHADERWITHDEBUGINFO_ON
 	#pragma enable_d3d11_debug_symbols
@@ -105,7 +108,7 @@ Shader "Crest/Underwater/Post Process"
 		return lerp(sceneColour, scatterCol, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneZ)));
 	}
 
-	fixed4 Frag(Varyings input) : SV_Target
+	fixed4 Frag(Varyings input, const bool isFrontFace : SV_IsFrontFace) : SV_Target
 	{
 		// We need this when sampling a screenspace texture.
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -142,10 +145,12 @@ Shader "Crest/Underwater/Post Process"
 		bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 		sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 
-#if _GEOMETRY_EFFECT
-		const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uvScreenSpace);
+#if _GEOMETRY_EFFECT_CONVEX_HULL
+		const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uvScreenSpace).x;
 		bool isBeforeFrontFaceBoundary = false;
 		bool isAfterBackFaceBoundary = false;
+
+		// return float4(sceneZ01, oceanDepth01, frontFaceBoundaryDepth01, 1);
 
 		if (isUnderwater)
 		{
@@ -205,7 +210,7 @@ Shader "Crest/Underwater/Post Process"
 
 			float3 cameraForward = mul((float3x3)unity_CameraToWorld, float3(0.0, 0.0, 1.0));
 			float3 scenePosition = _WorldSpaceCameraPos - view * sceneZ / dot(cameraForward, -view);
-#if _GEOMETRY_EFFECT
+#if _GEOMETRY_EFFECT_CONVEX_HULL
 			if (isAfterBackFaceBoundary)
 			{
 				// Cancels out caustics. We will want caustics outside of volume at some point though.
@@ -217,6 +222,8 @@ Shader "Crest/Underwater/Post Process"
 			{
 				sceneZ -= CrestLinearEyeDepth(frontFaceBoundaryDepth01);
 			}
+#elif _GEOMETRY_EFFECT_PLANE
+			sceneZ -= CrestLinearEyeDepth(input.positionCS.z);
 #endif
 			sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, sceneZ, scenePosition, view, isOceanSurface);
 		}
@@ -284,6 +291,9 @@ Shader "Crest/Underwater/Post Process"
 			Name "Geometry"
 			Cull Front
 			ZTest Always
+
+			// For plane. Keep ZTest default.
+			// Cull Back
 
 			CGPROGRAM
 			#pragma vertex Vert

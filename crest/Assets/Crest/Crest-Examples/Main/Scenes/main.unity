@@ -1666,6 +1666,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3190275879643289567, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
+      propertyPath: _isConvexHull
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3190275879643289567, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
       propertyPath: _viewPostProcessMask
       value: 0
       objectReference: {fileID: 0}

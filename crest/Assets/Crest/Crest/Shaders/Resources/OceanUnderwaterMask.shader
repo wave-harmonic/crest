@@ -31,9 +31,7 @@ Shader "Crest/Underwater/Ocean Mask"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float3 positionWS : TEXCOORD0;
-				float lodAlpha : TEXCOORD1;
-				float4 screenPosition : TEXCOORD2;
+				float3 screenPosition : TEXCOORD0;
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -84,8 +82,6 @@ Shader "Crest/Underwater/Ocean Mask"
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = worldPos.xz;
 
-				output.lodAlpha = lodAlpha;
-
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)
 				{
@@ -100,41 +96,18 @@ Shader "Crest/Underwater/Ocean Mask"
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos, sss);
 				}
 
-				output.positionWS = worldPos;
 				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
-				output.screenPosition = ComputeScreenPos(output.positionCS);
+				output.screenPosition = ComputeScreenPos(output.positionCS).xyw;
 
 				return output;
 			}
 
 			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 			{
-				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
-				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
-				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
+				half2 screenUV = input.screenPosition.xy / input.screenPosition.z;
+				const float deviceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, screenUV.xy).x;
 
-				const float wt_smallerLod = (1.0 - input.lodAlpha) * cascadeData0._weight;
-				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
-				// Clip surface
-				half clipVal = 0.0;
-				if (wt_smallerLod > 0.001)
-				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.positionWS.xz, cascadeData0, _LD_SliceIndex);
-					SampleClipY(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
-				}
-				if (wt_biggerLod > 0.001)
-				{
-					const float3 uv_slice_biggerLod = WorldToUV(input.positionWS.xz, cascadeData1, _LD_SliceIndex + 1);
-					SampleClipY(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
-				}
-				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
-				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
-				// clip(-clipVal + 0.5);
-
-				half3 uv_z = input.screenPosition.xyz / input.screenPosition.w;
-				const float rawClipSurfaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uv_z.xy);
-
-				if (rawClipSurfaceZ != 0 && rawClipSurfaceZ < uv_z.z)
+				if (deviceZ != 0 && deviceZ < input.positionCS.z)
 				{
 					discard;
 				}

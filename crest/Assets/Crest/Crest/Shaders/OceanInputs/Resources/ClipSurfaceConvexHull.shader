@@ -9,7 +9,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 	SubShader
 	{
 		ZWrite Off
-		ColorMask RG
+		ColorMask R
 
 		Pass
 		{
@@ -28,7 +28,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			CBUFFER_START(CrestPerOceanInput)
 			uint _DisplacementSamplingIterations;
-			half _ApplyToUnderwater;
 			CBUFFER_END
 
 			struct Attributes
@@ -67,7 +66,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				{
 					clip(-1);
 				}
-				return float4(1, _ApplyToUnderwater, 0, 1);
+				return float4(1, 0, 0, 1);
 			}
 			ENDCG
 		}
@@ -99,7 +98,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float3 positionWS : TEXCOORD0;
+				float3 positionWS : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)

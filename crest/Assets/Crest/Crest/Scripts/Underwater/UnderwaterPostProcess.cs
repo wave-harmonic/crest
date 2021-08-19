@@ -213,17 +213,19 @@ namespace Crest
             InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             InitialiseClipSurfaceMaskTextures(descriptor, ref _waterBoundaryGeometryTexture);
 
+            // Keep separate from mask.
             _waterBoundaryGeometryCommandBuffer.Clear();
-            _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture);
-            _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, true, Color.black);
+            _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture.depthBuffer);
+            _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, false, Color.black);
             _waterBoundaryGeometryCommandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
-            _waterBoundaryGeometryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture);
+            _waterBoundaryGeometryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture.depthBuffer);
 
             if (_waterVolumeBoundaryGeometry != null)
             {
                 _waterBoundaryGeometryCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _waterBoundaryGeometryMaterial, 0, 0);
             }
 
+            // TODO: consider rendering backfaces into mask
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
                 _textureMask, _depthBuffer,

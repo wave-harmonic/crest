@@ -142,6 +142,34 @@ Shader "Crest/Underwater/Post Process"
 		bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 		sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 
+#if _GEOMETRY_EFFECT
+		const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uvScreenSpace);
+		bool isBeforeFrontFaceBoundary = false;
+		bool isAfterBackFaceBoundary = false;
+
+		if (isUnderwater)
+		{
+			// scene is after back face boundary
+			if (sceneZ01 < input.positionCS.z)
+			{
+				isAfterBackFaceBoundary = true;
+			}
+
+			if (frontFaceBoundaryDepth01 != 0)
+			{
+				// scene is before front face boundary
+				if (sceneZ01 > frontFaceBoundaryDepth01)
+				{
+					return float4(sceneColour, 1.0);
+				}
+				else
+				{
+					isBeforeFrontFaceBoundary = true;
+				}
+			}
+		}
+#endif
+
 		float wt = 1.0;
 
 #if CREST_MENISCUS
@@ -178,7 +206,17 @@ Shader "Crest/Underwater/Post Process"
 			float3 cameraForward = mul((float3x3)unity_CameraToWorld, float3(0.0, 0.0, 1.0));
 			float3 scenePosition = _WorldSpaceCameraPos - view * sceneZ / dot(cameraForward, -view);
 #if _GEOMETRY_EFFECT
-			sceneZ -= input.screenPosition.w;
+			if (isAfterBackFaceBoundary)
+			{
+				// Cancels out caustics. We will want caustics outside of volume at some point though.
+				isOceanSurface = true;
+				sceneZ = input.screenPosition.w;
+			}
+
+			if (isBeforeFrontFaceBoundary)
+			{
+				sceneZ -= CrestLinearEyeDepth(frontFaceBoundaryDepth01);
+			}
 #endif
 			sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, sceneZ, scenePosition, view, isOceanSurface);
 		}
@@ -198,6 +236,7 @@ Shader "Crest/Underwater/Post Process"
 	{
 		Pass
 		{
+			Name "Fullscreen"
 			// No culling or depth
 			Cull Off ZWrite Off ZTest Always
 
@@ -242,6 +281,10 @@ Shader "Crest/Underwater/Post Process"
 
 		Pass
 		{
+			Name "Geometry"
+			Cull Front
+			ZTest Always
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag

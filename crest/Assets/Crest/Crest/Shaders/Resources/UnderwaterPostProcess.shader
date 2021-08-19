@@ -289,11 +289,8 @@ Shader "Crest/Underwater/Post Process"
 		Pass
 		{
 			Name "Geometry"
-			Cull Front
-			ZTest Always
-
-			// For plane. Keep ZTest default.
-			// Cull Back
+			Cull [_CullMode]
+			ZTest [_ZTest]
 
 			CGPROGRAM
 			#pragma vertex Vert

@@ -303,6 +303,9 @@ namespace Crest
             {
                 _underwaterPostProcessMaterial.DisableKeyword("_FULL_SCREEN_EFFECT");
                 _underwaterPostProcessMaterial.EnableKeyword(_isConvexHull ? "_GEOMETRY_EFFECT_CONVEX_HULL" : "_GEOMETRY_EFFECT_PLANE");
+                _underwaterPostProcessMaterial.SetInt("_CullMode", _isConvexHull ? 1 : 2);
+                _underwaterPostProcessMaterial.SetInt("_ZTest", _isConvexHull ? 0 : 4); // Always and LEqual
+
                 _postProcessCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterPostProcessMaterial, 0, 1);
             }
 

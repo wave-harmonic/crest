@@ -18,6 +18,8 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			// for VFACE
 			#pragma target 3.0
 
+			#pragma multi_compile_local __ _UNDERWATER_GEOMETRY_EFFECT
+
 			#include "UnityCG.cginc"
 
 			#include "../UnderwaterMaskShared.hlsl"

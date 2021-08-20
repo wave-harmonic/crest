@@ -14,6 +14,7 @@ namespace Crest
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
+        public static readonly int sp_CrestWaterBoundaryGeometryTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryTexture");
 
         // This matches const on shader side.
         internal const float UNDERWATER_MASK_NO_MASK = 1.0f;
@@ -23,6 +24,10 @@ namespace Crest
         PropertyWrapperMaterial _oceanMaskMaterial;
         RenderTexture _maskTexture;
         RenderTexture _depthTexture;
+
+        RenderTexture _waterBoundaryGeometryTexture;
+        CommandBuffer _waterBoundaryGeometryCommandBuffer;
+        Material _waterBoundaryGeometryMaterial = null;
 
         void SetupOceanMask()
         {
@@ -38,6 +43,19 @@ namespace Crest
                     name = "Ocean Mask",
                 };
             }
+
+            if (_waterBoundaryGeometryMaterial == null)
+            {
+                _waterBoundaryGeometryMaterial = new Material(Shader.Find("Crest/Hidden/Water Boundary Geometry"));
+            }
+
+            if (_waterBoundaryGeometryCommandBuffer == null)
+            {
+                _waterBoundaryGeometryCommandBuffer = new CommandBuffer()
+                {
+                    name = "Water Boundary Geometry",
+                };
+            }
         }
 
         void OnPreRenderOceanMask()
@@ -46,6 +64,29 @@ namespace Crest
             descriptor.useDynamicScale = _camera.allowDynamicResolution;
 
             InitialiseMaskTextures(descriptor, ref _maskTexture, ref _depthTexture);
+
+            // Needed for convex hull as we need to clip the mask right up until the volume begins. It is used for non
+            // convex hull, but could be skipped if we sample the clip surface in the mask.
+            if (_waterVolumeBoundaryGeometry != null)
+            {
+                InitialiseClipSurfaceMaskTextures(descriptor, ref _waterBoundaryGeometryTexture);
+
+                // Keep separate from mask.
+                _waterBoundaryGeometryCommandBuffer.Clear();
+                _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture.depthBuffer);
+                _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, false, Color.black);
+                _waterBoundaryGeometryCommandBuffer.SetViewProjectionMatrices(_camera.worldToCameraMatrix, _camera.projectionMatrix);
+                _waterBoundaryGeometryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture.depthBuffer);
+                _waterBoundaryGeometryCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _waterBoundaryGeometryMaterial, 0, 0);
+
+                _oceanMaskMaterial.material.EnableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
+                OceanRenderer.Instance.OceanMaterial.EnableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
+            }
+            else
+            {
+                _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
+                OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
+            }
 
             _oceanMaskCommandBuffer.Clear();
             // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
@@ -90,6 +131,30 @@ namespace Crest
                 depthBuffer.enableRandomWrite = false;
                 depthBuffer.name = "Ocean Mask Depth";
                 depthBuffer.format = RenderTextureFormat.Depth;
+                depthBuffer.Create();
+            }
+        }
+
+        internal static void InitialiseClipSurfaceMaskTextures(RenderTextureDescriptor desc, ref RenderTexture depthBuffer)
+        {
+            // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
+            if (depthBuffer == null || depthBuffer.width != desc.width || depthBuffer.height != desc.height)
+            {
+                // @Performance: We should consider either a temporary RT or use an RTHandle if appropriate
+                // RenderTexture is a "native engine object". We have to release it to avoid memory leaks.
+                if (depthBuffer != null)
+                {
+                    depthBuffer.Release();
+                }
+
+                depthBuffer = new RenderTexture(desc)
+                {
+                    depth = 24,
+                    enableRandomWrite = false,
+                    name = "Clip Surface Mask",
+                    format = RenderTextureFormat.Depth,
+                };
+
                 depthBuffer.Create();
             }
         }

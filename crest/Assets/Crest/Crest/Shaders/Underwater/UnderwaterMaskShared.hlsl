@@ -21,6 +21,9 @@ struct Attributes
 struct Varyings
 {
 	float4 positionCS : SV_POSITION;
+#if _UNDERWATER_GEOMETRY_EFFECT
+	float3 screenPosition : TEXCOORD0;
+#endif
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -29,6 +32,10 @@ struct Varyings
 // cause here might be imprecision or numerical issues at ocean tile boundaries, although
 // i'm not sure why cracks are not visible in this case.
 float _ForceUnderwater;
+
+#if _UNDERWATER_GEOMETRY_EFFECT
+UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture);
+#endif
 
 Varyings Vert(Attributes v)
 {
@@ -95,12 +102,25 @@ Varyings Vert(Attributes v)
 #endif
 
 	output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+#if _UNDERWATER_GEOMETRY_EFFECT
+	output.screenPosition = ComputeScreenPos(output.positionCS).xyw;
+#endif
 
 	return output;
 }
 
 half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 {
+#if _UNDERWATER_GEOMETRY_EFFECT
+	half2 screenUV = input.screenPosition.xy / input.screenPosition.z;
+	const float deviceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, screenUV.xy).x;
+
+	if (deviceZ != 0 && deviceZ < input.positionCS.z)
+	{
+		discard;
+	}
+#endif
+
 	if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 	{
 		return (half4)UNDERWATER_MASK_WATER_SURFACE_BELOW;

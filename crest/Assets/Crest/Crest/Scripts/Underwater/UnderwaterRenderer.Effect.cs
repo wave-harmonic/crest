@@ -96,9 +96,26 @@ namespace Crest
             }
 
             _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
-
             _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+
+            if (_waterVolumeBoundaryGeometry == null)
+            {
+                _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_PLANE");
+                _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_CONVEX_HULL");
+                _underwaterEffectMaterial.material.SetInt("_CullMode", (int)CullMode.Off);
+                _underwaterEffectMaterial.material.SetInt("_ZTest", (int)CompareFunction.Always);
+
+                _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+            }
+            else
+            {
+                _underwaterEffectMaterial.material.DisableKeyword("_FULL_SCREEN_EFFECT");
+                _underwaterEffectMaterial.material.EnableKeyword(_isConvexHull ? "_GEOMETRY_EFFECT_CONVEX_HULL" : "_GEOMETRY_EFFECT_PLANE");
+                _underwaterEffectMaterial.material.SetInt("_CullMode", (int)(_isConvexHull ? CullMode.Front : CullMode.Back));
+                _underwaterEffectMaterial.material.SetInt("_ZTest", (int)(_isConvexHull ?  CompareFunction.Always : CompareFunction.LessEqual));
+
+                _underwaterEffectCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterEffectMaterial.material, 0, 0);
+            }
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
         }

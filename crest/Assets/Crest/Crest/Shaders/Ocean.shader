@@ -252,6 +252,9 @@ Shader "Crest/Ocean"
 
 			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
+			// Clipping the ocean surface for underwater volumes.
+			#pragma multi_compile_local __ _UNDERWATER_GEOMETRY_EFFECT
+
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
 			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
@@ -477,12 +480,23 @@ Shader "Crest/Ocean"
 				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);
 				#endif
 
+				half3 screenPos = input.screenPosXYW;
+				half2 uvDepth = screenPos.xy / screenPos.z;
+
+#if _UNDERWATER_GEOMETRY_EFFECT
+				{
+					const float rawClipSurfaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uvDepth);
+					if (rawClipSurfaceZ != 0 && rawClipSurfaceZ < input.positionCS.z)
+					{
+						discard;
+					}
+				}
+#endif
+
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
 				// water surface depth, and underlying scene opaque surface depth
 				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
-				half3 screenPos = input.screenPosXYW;
-				half2 uvDepth = screenPos.xy / screenPos.z;
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
 				float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvDepth).x;
 				float sceneZ = CrestLinearEyeDepth(rawDepth);

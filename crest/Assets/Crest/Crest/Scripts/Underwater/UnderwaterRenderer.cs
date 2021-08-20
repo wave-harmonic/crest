@@ -41,6 +41,15 @@ namespace Crest
         internal bool _meniscus = true;
 
 
+        [Header("Geometry")]
+
+        [SerializeField]
+        internal MeshFilter _waterVolumeBoundaryGeometry;
+
+        [SerializeField]
+        internal bool _isConvexHull = false;
+
+
         [Header("Advanced")]
 
         [SerializeField]
@@ -137,12 +146,14 @@ namespace Crest
         {
             SetupOceanMask();
             SetupUnderwaterEffect();
+            _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _waterBoundaryGeometryCommandBuffer);
             _camera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
         }
 
         void Disable()
         {
+            _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _waterBoundaryGeometryCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
         }

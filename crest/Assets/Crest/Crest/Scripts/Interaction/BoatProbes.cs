@@ -154,7 +154,8 @@ namespace Crest
             var forward = _engineBias;
             if (_playerControlled) forward +=
 #if ENABLE_INPUT_SYSTEM
-                (Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0);
+                !Application.isFocused ? 0 :
+                ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
 #else
                 Input.GetAxis("Vertical");
 #endif
@@ -163,8 +164,9 @@ namespace Crest
             var sideways = _turnBias;
             if (_playerControlled) sideways +=
 #if ENABLE_INPUT_SYSTEM
-                (Keyboard.current.aKey.isPressed ? -1f : 0f) +
-                (Keyboard.current.dKey.isPressed ? 1f : 0f);
+                !Application.isFocused ? 0 :
+                ((Keyboard.current.aKey.isPressed ? -1f : 0f) +
+                (Keyboard.current.dKey.isPressed ? 1f : 0f));
 #else
                 (Input.GetKey(KeyCode.A) ? -1f : 0f) +
                 (Input.GetKey(KeyCode.D) ? 1f : 0f);

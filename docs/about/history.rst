@@ -24,6 +24,7 @@ Changed
    -  Add default textures to ocean shader.
    -  Update ocean shader default values.
    -  Improve foam detail at medium to long distance.
+   -  Add *Scale By Factor* shader for all inputs which is particularly useful when used with *Animated Waves* for reducing waves.
 
    .. only:: urp
 

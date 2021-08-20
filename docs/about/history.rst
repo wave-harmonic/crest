@@ -41,6 +41,7 @@ Fixed
    -  Fix FFT material allocations every frame.
    -  Fix flow simulation sometimes not clearing after disabling last input.
    -  Fix pixelated looking foam bubbles at medium to long distance.
+   -  Fix inputs (eg keyboard) working when game view is not focused.
 
    .. only:: hdrp
 

@@ -23,6 +23,7 @@ Changed
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
    -  Add default textures to ocean shader.
    -  Update ocean shader default values.
+   -  Improve foam detail at medium to long distance.
    -  Add *Scale By Factor* shader for all inputs which is particularly useful when used with *Animated Waves* for reducing waves.
 
    .. only:: urp
@@ -39,6 +40,7 @@ Fixed
    -  Fix FFT shader build errors for Game Core platforms.
    -  Fix FFT material allocations every frame.
    -  Fix flow simulation sometimes not clearing after disabling last input.
+   -  Fix pixelated looking foam bubbles at medium to long distance.
 
    .. only:: hdrp
 

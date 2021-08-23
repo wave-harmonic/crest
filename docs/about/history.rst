@@ -27,6 +27,9 @@ Fixed
    -  Fix ocean not rendering on Xbox One and Xbox Series X.
    -  Fix height input (and others) from not working 100m above sea level and 500m below sea level.
    -  Fix FFT shader build errors for Game Core platforms.
+   -  Fix underwater effect undershooting or overshooting ocean surface when XR camera is nearly aligned with horizon.
+   -  Fix underwater effect being flipped at certain camera orientations.
+   -  Fix meniscus thickness consistency (in some cases disappearing) with different camera orientations.
 
    .. only:: hdrp
 

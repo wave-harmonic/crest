@@ -48,7 +48,7 @@ namespace Crest
                 && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
+                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }
@@ -86,11 +86,8 @@ namespace Crest
                 SubmitDraws(lodIdx, buf);
             }
 
-            // targets have now been cleared, we can early out next time around
-            if (drawList.Count == 0)
-            {
-                _targetsClear = true;
-            }
+            // Targets are only clear if nothing was drawn
+            _targetsClear = drawList.Count == 0;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Flow";

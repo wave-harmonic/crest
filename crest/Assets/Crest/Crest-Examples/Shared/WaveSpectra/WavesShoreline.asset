@@ -12,27 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
   m_Name: WavesShoreline
   m_EditorClassIdentifier: 
-  _windSpeed: 16.666668
+  _version: 1
   _fetch: 1000000
   _waveDirectionVariance: 20
   _gravityScale: 1
   _smallWavelengthMultiplier: 1
   _multiplier: 1
   _powerLog:
-  - -5.7439322
-  - -5.141873
-  - -4.539814
-  - -3.9377599
-  - -3.3357232
-  - -1.8748138
-  - -1.5779101
-  - -1.0604553
-  - -0.2149522
-  - -0.35700414
-  - 0.1502203
-  - 0.37293813
-  - -0.54237056
-  - -6
+  - -7.1418724
+  - -6.539813
+  - -5.937754
+  - -5.3357
+  - -4.733663
+  - -3.2727537
+  - -2.97585
+  - -2.4583952
+  - -1.6128922
+  - -1.7549441
+  - -1.2477198
+  - -1.0250019
+  - -1.9403106
+  - -7.39794
   _powerDisabled: 0101010101000100000001010101
   _chopScales:
   - 1
@@ -66,3 +66,4 @@ MonoBehaviour:
   - 1
   _chop: 1.54
   _showAdvancedControls: 0
+  _model: 0

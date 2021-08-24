@@ -17,7 +17,18 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add signed-distance primitives for more accurate clipping and overlapping.
+      See :ref:`clip-surface-section` for more information.
+   -  Add *Render Texture Graphics Format* option to *Clip Surface Sim Settings* to support even more accurate clipping for signed-distance primitives.
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
+   -  Add default textures to ocean shader.
+   -  Update ocean shader default values.
+   -  Improve foam detail at medium to long distance.
+   -  Add *Scale By Factor* shader for all inputs which is particularly useful when used with *Animated Waves* for reducing waves.
+
+   .. only:: urp
+
+      -  Add XR `SPI` support to *Underwater Renderer*. `[URP]`
 
 
 Fixed
@@ -27,6 +38,9 @@ Fixed
    -  Fix ocean not rendering on Xbox One and Xbox Series X.
    -  Fix height input (and others) from not working 100m above sea level and 500m below sea level.
    -  Fix FFT shader build errors for Game Core platforms.
+   -  Fix FFT material allocations every frame.
+   -  Fix flow simulation sometimes not clearing after disabling last input.
+   -  Fix pixelated looking foam bubbles at medium to long distance.
    -  Fix underwater effect undershooting or overshooting ocean surface when XR camera is nearly aligned with horizon.
    -  Fix underwater effect being flipped at certain camera orientations.
    -  Fix meniscus thickness consistency (in some cases disappearing) with different camera orientations.
@@ -39,10 +53,11 @@ Fixed
 
    .. only:: birp or urp
 
-      -  Fix caustics jittering in XR for some devices. `[BIRP] [URP]`
+      -  Fix *Underwater Renderer* caustics jittering for some XR devices. `[BIRP] [URP]`
 
    .. only:: urp
 
+      -  Fix shadow artefacts when no shadow casters are within view. `[URP]`
       -  Remove sample shadow scriptable render feature error. `[URP]`
 
 

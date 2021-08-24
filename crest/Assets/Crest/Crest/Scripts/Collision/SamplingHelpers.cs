@@ -39,7 +39,7 @@ namespace Crest
 #if UNITY_EDITOR
             if (!allowMultipleCallsPerFrame && _lastFrame >= OceanRenderer.FrameCount)
             {
-                Debug.LogWarning($"Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly. (_lastFrame = {_lastFrame})", context);
+                Debug.LogWarning($"Crest: SampleHeightHelper.Init() called multiple times in one frame which is not expected. Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly. (_lastFrame = {_lastFrame})", context);
             }
             _lastFrame = OceanRenderer.FrameCount;
 #endif

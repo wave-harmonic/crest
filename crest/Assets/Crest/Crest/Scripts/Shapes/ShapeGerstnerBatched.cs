@@ -299,7 +299,7 @@ namespace Crest
         {
             if (_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
             {
-                Debug.LogError($"OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
+                Debug.LogError($"Crest: OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
             }
 
             float ampSum = 0f;
@@ -342,7 +342,7 @@ namespace Crest
                     rend = _renderProxy.GetComponent<MeshRenderer>();
                     rend.enabled = false;
                     var waveShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global");
-                    Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
+                    Debug.Assert(waveShader, "Crest: Could not load Gerstner wave shader, make sure it is packaged in the build.");
                     if (waveShader == null)
                     {
                         enabled = false;
@@ -450,7 +450,7 @@ namespace Crest
 
             if (dropped > 0)
             {
-                Debug.LogWarning(string.Format("Gerstner LOD{0}: Batch limit reached, dropped {1} wavelengths. To support bigger batch sizes, see the comment around the BATCH_SIZE declaration.", lodIdx, dropped), this);
+                Debug.LogWarning(string.Format("Crest: Gerstner LOD{0}: Batch limit reached, dropped {1} wavelengths. To support bigger batch sizes, see the comment around the BATCH_SIZE declaration.", lodIdx, dropped), this);
                 numComponents = BATCH_SIZE;
             }
 
@@ -550,7 +550,7 @@ namespace Crest
             // One or more wavelengths - update the batch
             if (componentIdx > startCompIdx)
             {
-                //Debug.Log($"Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
+                //Debug.Log($"Crest: Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
                 UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
             }
         }
@@ -859,7 +859,7 @@ namespace Crest
             {
                 if (gerstner._spectrum == null)
                 {
-                    Debug.LogError("A wave spectrum must be assigned in order to generate wave data.", gerstner);
+                    Debug.LogError("Crest: A wave spectrum must be assigned in order to generate wave data.", gerstner);
                 }
                 else
                 {
@@ -879,7 +879,7 @@ namespace Crest
             // Renderer
             if (_mode == GerstnerMode.Geometry)
             {
-                isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+                isValid = ValidatedHelper.ValidateRenderer(gameObject, showMessage, "Crest/Inputs/Animated Waves/Gerstner");
             }
             else if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
             {

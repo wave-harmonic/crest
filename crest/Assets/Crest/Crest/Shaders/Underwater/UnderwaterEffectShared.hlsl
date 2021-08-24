@@ -113,6 +113,11 @@ half3 ApplyUnderwaterEffect(
 	const bool isOceanSurface
 )
 {
+	if (isOceanSurface)
+	{
+		return sceneColour;
+	}
+
 	half3 scatterCol = 0.0;
 	int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
 	{

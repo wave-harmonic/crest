@@ -163,7 +163,19 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(UnderwaterRenderer))]
-    public class UnderwaterRendererEditor : Editor { }
+    public partial class UnderwaterRenderer : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            // Intentionally left empty. Here for downstream.
+
+            return isValid;
+        }
+    }
+
+    [CustomEditor(typeof(UnderwaterRenderer)), CanEditMultipleObjects]
+    public class UnderwaterRendererEditor : ValidatedEditor { }
 #endif
 }

@@ -11,6 +11,8 @@ namespace Crest
     public partial class UnderwaterRenderer
     {
         internal const string SHADER_OCEAN_MASK = "Hidden/Crest/Underwater/Ocean Mask";
+        internal const int k_ShaderPassOceanSurfaceMask = 0;
+        internal const int k_ShaderPassOceanHorizonMask = 1;
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
@@ -19,7 +21,6 @@ namespace Crest
         internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
-        Material _horizonMaskMaterial;
         RenderTexture _maskTexture;
         RenderTexture _depthTexture;
 
@@ -28,11 +29,6 @@ namespace Crest
             if (_oceanMaskMaterial?.material == null)
             {
                 _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
-            }
-
-            if (_horizonMaskMaterial == null)
-            {
-                _horizonMaskMaterial = new Material(Shader.Find("Hidden/Crest/Underwater/Horizon"));
             }
 
             if (_oceanMaskCommandBuffer == null)
@@ -64,7 +60,6 @@ namespace Crest
                 OceanRenderer.Instance.Tiles,
                 _cameraFrustumPlanes,
                 _oceanMaskMaterial.material,
-                _horizonMaskMaterial,
                 _farPlaneMultiplier,
                 _debug._disableOceanMask
             );
@@ -108,7 +103,6 @@ namespace Crest
             List<OceanChunkRenderer> chunksToRender,
             Plane[] frustumPlanes,
             Material oceanMaskMaterial,
-            Material horizonMaterial,
             float farPlaneMultiplier,
             bool debugDisableOceanMask
         )
@@ -129,7 +123,7 @@ namespace Crest
                         {
                             chunk.BindOceanData(camera);
                         }
-                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
+                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial, submeshIndex: 0, shaderPass: k_ShaderPassOceanSurfaceMask);
                     }
                     chunk._oceanDataHasBeenBound = false;
                 }
@@ -141,14 +135,14 @@ namespace Crest
                 if (XRHelpers.IsSinglePass)
                 {
                     // NOTE: Not needed for HDRP.
-                    horizonMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
-                    horizonMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
+                    oceanMaskMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
+                    oceanMaskMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
                 }
                 else
                 {
                     // NOTE: Not needed for HDRP.
                     var inverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(camera.projectionMatrix, false) * camera.worldToCameraMatrix).inverse;
-                    horizonMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+                    oceanMaskMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
                 }
 
                 // Compute _ZBufferParams x and y values.
@@ -166,9 +160,10 @@ namespace Crest
 
                 // Take 0-1 linear depth and convert non-linear depth. Scripted for performance saving.
                 var farPlaneLerp = (1f - zBufferParamsY * farPlaneMultiplier) / (zBufferParamsX * farPlaneMultiplier);
-                horizonMaterial.SetFloat(sp_FarPlaneOffset, farPlaneLerp);
+                oceanMaskMaterial.SetFloat(sp_FarPlaneOffset, farPlaneLerp);
 
-                commandBuffer.DrawProcedural(Matrix4x4.identity, horizonMaterial, -1, MeshTopology.Triangles, 3, 1);
+                // Render fullscreen triangle with horizon mask pass.
+                commandBuffer.DrawProcedural(Matrix4x4.identity, oceanMaskMaterial, shaderPass: k_ShaderPassOceanHorizonMask, MeshTopology.Triangles, 3, 1);
             }
         }
     }

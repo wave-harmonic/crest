@@ -500,16 +500,27 @@ Shader "Crest/Ocean"
 				float3 dummy = 0.;
 				float3 n_pixel = float3(0.0, 1.0, 0.0);
 				half sss = 0.;
+				#if _FOAM_ON
+				float foam = 0.0;
+				#endif
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_pixel.xz, sss);
+
+					#if _FOAM_ON
+					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, foam);
+					#endif
 				}
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);
 					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_pixel.xz, sss);
+
+					#if _FOAM_ON
+					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
+					#endif
 				}
 
 				#if _APPLYNORMALMAPPING_ON
@@ -528,19 +539,6 @@ Shader "Crest/Ocean"
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON
-				float foam = 0.0;
-				// Data that needs to be sampled at the undisplaced position
-				if (wt_smallerLod > 0.001)
-				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, cascadeData0, _LD_SliceIndex);
-					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, foam);
-				}
-				if (wt_biggerLod > 0.001)
-				{
-					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, cascadeData1, _LD_SliceIndex + 1);
-					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
-				}
-
 				// Foam can saturate.
 				foam = saturate(foam);
 

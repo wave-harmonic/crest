@@ -14,28 +14,14 @@ namespace Crest
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
+        public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
 
         internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
+        Material _horizonMaskMaterial;
         RenderTexture _maskTexture;
         RenderTexture _depthTexture;
-
-        static Mesh s_QuadMesh;
-        static Mesh QuadMesh
-        {
-            get
-            {
-                if (s_QuadMesh == null)
-                {
-                    s_QuadMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                }
-
-                return s_QuadMesh;
-            }
-        }
-
-        Material _horizonMaterial;
 
         void SetupOceanMask()
         {
@@ -44,9 +30,9 @@ namespace Crest
                 _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
             }
 
-            if (_horizonMaterial == null)
+            if (_horizonMaskMaterial == null)
             {
-                _horizonMaterial = new Material(Shader.Find("Hidden/Crest/Underwater/Horizon"));
+                _horizonMaskMaterial = new Material(Shader.Find("Hidden/Crest/Underwater/Horizon"));
             }
 
             if (_oceanMaskCommandBuffer == null)
@@ -78,7 +64,7 @@ namespace Crest
                 OceanRenderer.Instance.Tiles,
                 _cameraFrustumPlanes,
                 _oceanMaskMaterial.material,
-                _horizonMaterial,
+                _horizonMaskMaterial,
                 _farPlaneMultiplier,
                 _debug._disableOceanMask
             );
@@ -151,13 +137,38 @@ namespace Crest
 
             // Render horizon into mask using a quad at the far plane. After ocean for z-testing.
             {
-                // 0.9 prevents culling of quad by far plane. Also gives some overlap which helps prevent horizon line.
-                var distance = camera.farClipPlane * farPlaneMultiplier;
-                var height = Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad) * 2f * distance;
-                var width = height * camera.aspect;
-                var scale = new Vector3(width, height, 1f);
-                var matrix = Matrix4x4.TRS(camera.transform.position + camera.transform.forward * distance, camera.transform.rotation, scale);
-                commandBuffer.DrawMesh(QuadMesh, matrix, horizonMaterial);
+                // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function.
+                if (XRHelpers.IsSinglePass)
+                {
+                    // NOTE: Not needed for HDRP.
+                    horizonMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
+                    horizonMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
+                }
+                else
+                {
+                    // NOTE: Not needed for HDRP.
+                    var inverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(camera.projectionMatrix, false) * camera.worldToCameraMatrix).inverse;
+                    horizonMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+                }
+
+                // Compute _ZBufferParams x and y values.
+                float zBufferParamsX; float zBufferParamsY;
+                if (SystemInfo.usesReversedZBuffer)
+                {
+                    zBufferParamsY = 1f;
+                    zBufferParamsX = camera.farClipPlane / camera.nearClipPlane - 1f;
+                }
+                else
+                {
+                    zBufferParamsY = camera.farClipPlane / camera.nearClipPlane;
+                    zBufferParamsX = 1f - zBufferParamsY;
+                }
+
+                // Take 0-1 linear depth and convert non-linear depth. Scripted for performance saving.
+                var farPlaneLerp = (1f - zBufferParamsY * farPlaneMultiplier) / (zBufferParamsX * farPlaneMultiplier);
+                horizonMaterial.SetFloat(sp_FarPlaneOffset, farPlaneLerp);
+
+                commandBuffer.DrawProcedural(Matrix4x4.identity, horizonMaterial, -1, MeshTopology.Triangles, 3, 1);
             }
         }
     }

@@ -10,9 +10,7 @@ Shader "Hidden/Crest/Underwater/Horizon"
 	{
 		Pass
 		{
-			// Quads will face towards the camera if given the camera's rotation.
-			Cull Back
-			// Could be enabled if needed.
+			Cull Off
 			ZWrite Off
 
 			CGPROGRAM
@@ -25,10 +23,16 @@ Shader "Hidden/Crest/Underwater/Horizon"
 
 			#include "../../OceanConstants.hlsl"
 			#include "../../OceanGlobals.hlsl"
+			#include "../../FullScreenTriangle.hlsl"
+
+			// Driven by scripting. It is a non-linear converted from a linear 0-1 value.
+			float _FarPlaneOffset;
+			float4x4 _InvViewProjection;
+			float4x4 _InvViewProjectionRight;
 
 			struct Attributes
 			{
-				float3 positionOS : POSITION;
+				uint id : SV_VertexID;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
@@ -46,8 +50,22 @@ Shader "Hidden/Crest/Underwater/Horizon"
 				UNITY_SETUP_INSTANCE_ID(input);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-				output.positionCS = UnityObjectToClipPos(input.positionOS);
-				output.positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				float z = _FarPlaneOffset;
+
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.id, z);
+				float2 uv = GetFullScreenTriangleTexCoord(input.id);
+
+				const float2 pixelCS = uv * 2.0 - float2(1.0, 1.0);
+#if CREST_HANDLE_XR
+				const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
+#else
+				const float4x4 InvViewProjection = _InvViewProjection;
+#endif
+				const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, z, 1.0));
+				const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
+
+				output.positionWS = pixelWS;
+
 				return output;
 			}
 

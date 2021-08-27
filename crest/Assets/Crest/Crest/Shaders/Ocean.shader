@@ -452,6 +452,7 @@ Shader "Crest/Ocean"
 				#endif
 
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
+				const float2 positionXZWSUndisplaced = input.lodAlpha_worldXZUndisplaced_oceanDepth.yz;
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 
@@ -505,7 +506,7 @@ Shader "Crest/Ocean"
 				#endif
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice_smallerLod = WorldToUV(positionXZWSUndisplaced, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_pixel.xz, sss);
 
 					#if _FOAM_ON
@@ -515,7 +516,7 @@ Shader "Crest/Ocean"
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);
+					const float3 uv_slice_biggerLod = WorldToUV(positionXZWSUndisplaced, _CrestCascadeData[si], si);
 					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_pixel.xz, sss);
 
 					#if _FOAM_ON
@@ -525,9 +526,9 @@ Shader "Crest/Ocean"
 
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
-				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
+				ApplyNormalMapsWithFlow(positionXZWSUndisplaced, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
+				n_pixel.xz += SampleNormalMaps(positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
 				#endif
 				#endif
 
@@ -544,9 +545,9 @@ Shader "Crest/Ocean"
 
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(foam, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoam(foam, positionXZWSUndisplaced, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, foam, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoamWithFlow(input.flow_shadow.xy, foam, positionXZWSUndisplaced, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 

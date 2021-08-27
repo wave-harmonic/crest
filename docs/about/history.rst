@@ -44,6 +44,7 @@ Fixed
    -  Fix underwater effect undershooting or overshooting ocean surface when XR camera is nearly aligned with horizon.
    -  Fix underwater effect being flipped at certain camera orientations.
    -  Fix meniscus thickness consistency (in some cases disappearing) with different camera orientations.
+   -  Fix inputs (eg keyboard) working when game view is not focused.
 
    .. only:: hdrp
 

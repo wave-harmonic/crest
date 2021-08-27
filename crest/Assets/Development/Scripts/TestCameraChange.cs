@@ -40,6 +40,12 @@ namespace Crest
 
         void Update()
         {
+            // New input system works even when game view is not focused.
+            if (!Application.isFocused)
+            {
+                return;
+            }
+
 #if ENABLE_INPUT_SYSTEM
             if (Keyboard.current.cKey.wasReleasedThisFrame)
 #else

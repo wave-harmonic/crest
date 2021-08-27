@@ -32,8 +32,8 @@ float _ForceUnderwater;
 
 Varyings Vert(Attributes v)
 {
+	// This will work for all pipelines.
 	Varyings output = (Varyings)0;
-
 	UNITY_SETUP_INSTANCE_ID(v);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
@@ -103,11 +103,11 @@ half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV
 {
 	if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 	{
-		return (half4)UNDERWATER_MASK_WATER_SURFACE_BELOW;
+		return (half4)UNDERWATER_MASK_BELOW_SURFACE;
 	}
 	else
 	{
-		return (half4)UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+		return (half4)UNDERWATER_MASK_ABOVE_SURFACE;
 	}
 }
 

@@ -15,20 +15,38 @@ namespace Crest
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
 
-        // This matches const on shader side.
-        internal const float UNDERWATER_MASK_NO_MASK = 1.0f;
-
         internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
         RenderTexture _maskTexture;
         RenderTexture _depthTexture;
 
+        static Mesh s_QuadMesh;
+        static Mesh QuadMesh
+        {
+            get
+            {
+                if (s_QuadMesh == null)
+                {
+                    s_QuadMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+                }
+
+                return s_QuadMesh;
+            }
+        }
+
+        Material _horizonMaterial;
+
         void SetupOceanMask()
         {
             if (_oceanMaskMaterial?.material == null)
             {
                 _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
+            }
+
+            if (_horizonMaterial == null)
+            {
+                _horizonMaterial = new Material(Shader.Find("Hidden/Crest/Underwater/Horizon"));
             }
 
             if (_oceanMaskCommandBuffer == null)
@@ -50,7 +68,7 @@ namespace Crest
             _oceanMaskCommandBuffer.Clear();
             // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
             _oceanMaskCommandBuffer.SetRenderTarget(_maskTexture.colorBuffer, _depthTexture.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
-            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
+            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.black);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTexture.colorBuffer);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTexture.depthBuffer);
 
@@ -60,6 +78,8 @@ namespace Crest
                 OceanRenderer.Instance.Tiles,
                 _cameraFrustumPlanes,
                 _oceanMaskMaterial.material,
+                _horizonMaterial,
+                _farPlaneMultiplier,
                 _debug._disableOceanMask
             );
         }
@@ -102,6 +122,8 @@ namespace Crest
             List<OceanChunkRenderer> chunksToRender,
             Plane[] frustumPlanes,
             Material oceanMaskMaterial,
+            Material horizonMaterial,
+            float farPlaneMultiplier,
             bool debugDisableOceanMask
         )
         {
@@ -125,6 +147,17 @@ namespace Crest
                     }
                     chunk._oceanDataHasBeenBound = false;
                 }
+            }
+
+            // Render horizon into mask using a quad at the far plane. After ocean for z-testing.
+            {
+                // 0.9 prevents culling of quad by far plane. Also gives some overlap which helps prevent horizon line.
+                var distance = camera.farClipPlane * farPlaneMultiplier;
+                var height = Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad) * 2f * distance;
+                var width = height * camera.aspect;
+                var scale = new Vector3(width, height, 1f);
+                var matrix = Matrix4x4.TRS(camera.transform.position + camera.transform.forward * distance, camera.transform.rotation, scale);
+                commandBuffer.DrawMesh(QuadMesh, matrix, horizonMaterial);
             }
         }
     }

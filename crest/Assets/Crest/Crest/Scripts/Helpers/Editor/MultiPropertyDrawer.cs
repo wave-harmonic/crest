@@ -17,6 +17,8 @@ namespace Crest.EditorHelpers
     [CustomPropertyDrawer(typeof(DecoratedPropertyAttribute), true)]
     public class DecoratedDrawer : PropertyDrawer
     {
+        internal static bool s_HideInInspector = false;
+
         List<object> _decorators = null;
         List<object> Decorators
         {
@@ -53,22 +55,26 @@ namespace Crest.EditorHelpers
                 attribute.Decorate(position, property, attribute.BuildLabel(label), this);
             }
 
-            var a = (DecoratedPropertyAttribute) attribute;
-            try
+            if (!s_HideInInspector)
             {
-                a.OnGUI(a.NeedsControlRectangle ? EditorGUILayout.GetControlRect(true) : position, property, a.BuildLabel(label), this);
-            }
-            catch (System.ArgumentException)
-            {
-                Debug.LogError
-                (
-                    $"Crest: Property <i>{property.displayName}</i> on <i>{property.serializedObject.targetObject.name}</i> " +
-                    "has a multi-property attribute which requires a custom editor.",
-                    property.serializedObject.targetObject
-                );
+                var a = (DecoratedPropertyAttribute) attribute;
+                try
+                {
+                    a.OnGUI(a.NeedsControlRectangle ? EditorGUILayout.GetControlRect(true) : position, property, a.BuildLabel(label), this);
+                }
+                catch (System.ArgumentException)
+                {
+                    Debug.LogError
+                    (
+                        $"Crest: Property <i>{property.displayName}</i> on <i>{property.serializedObject.targetObject.name}</i> " +
+                        "has a multi-property attribute which requires a custom editor.",
+                        property.serializedObject.targetObject
+                    );
+                }
             }
 
             // Handle resetting the GUI state.
+            s_HideInInspector = false;
             GUI.color = originalColor;
             GUI.enabled = originalEnabled;
         }

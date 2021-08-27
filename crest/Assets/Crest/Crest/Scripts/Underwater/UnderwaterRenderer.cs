@@ -47,23 +47,9 @@ namespace Crest
         [Tooltip("Copying params each frame ensures underwater appearance stays consistent with ocean material params. Has a small overhead so should be disabled if not needed.")]
         internal bool _copyOceanMaterialParamsEachFrame = true;
 
-        [SerializeField, Predicated("useHorizonSafetyMarginMultiplier", inverted: true), Range(0f, 1f)]
-        [Tooltip("Adjusts the far plane for horizon line calculation. Helps with horizon line issue. (Experimental)")]
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip("Adjusts the far plane for horizon line calculation. Helps with horizon line issue.")]
         internal float _farPlaneMultiplier = 0.68f;
-
-        [SerializeField, Tooltip("Use the old horizon safety margin multiplier to fix horizon line issues instead of the new experimental far plane multiplier.")]
-        internal bool _useHorizonSafetyMarginMultiplier = false;
-
-        // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
-        // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
-        // or below the horizon line itself already.
-        [SerializeField, Predicated("useHorizonSafetyMarginMultiplier"), Range(0f, 1f)]
-        [Tooltip("A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.")]
-        internal float _horizonSafetyMarginMultiplier = 0.01f;
-
-        [SerializeField, Predicated("useHorizonSafetyMarginMultiplier"), DecoratedField]
-        [Tooltip("Dynamic resolution can cause the horizon gap issue to widen. Scales the safety margin multiplier to compensate.")]
-        internal bool _scaleSafetyMarginWithDynamicResolution = true;
 
         [Space(10)]
 
@@ -177,7 +163,19 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(UnderwaterRenderer))]
-    public class UnderwaterRendererEditor : Editor { }
+    public partial class UnderwaterRenderer : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            // Intentionally left empty. Here for downstream.
+
+            return isValid;
+        }
+    }
+
+    [CustomEditor(typeof(UnderwaterRenderer)), CanEditMultipleObjects]
+    public class UnderwaterRendererEditor : ValidatedEditor { }
 #endif
 }

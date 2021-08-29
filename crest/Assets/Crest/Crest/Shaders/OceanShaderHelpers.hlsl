@@ -40,12 +40,4 @@ float CrestLinearEyeDepth(const float i_rawDepth)
 #endif // _PROJECTION
 }
 
-float FeatherWeightFromUV(const float2 i_uv, const half i_featherWidth)
-{
-	float2 offset = abs(i_uv - 0.5);
-	float r_l1 = max(offset.x, offset.y);
-	float weight = saturate(1.0 - (r_l1 - (0.5 - i_featherWidth)) / i_featherWidth);
-	return weight;
-}
-
 #endif // CREST_OCEAN_SHADER_HELPERS_H

@@ -12,6 +12,8 @@ half _DataSliceOffset;
 float2 _HorizonNormal;
 
 
+float4 _CrestOceanMaskDepthTexture_TexelSize;
+
 float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, const float mask, const float3 sceneColour)
 {
 	if (isOceanSurface)
@@ -62,7 +64,29 @@ half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const f
 	return weight;
 }
 
+#if defined(UNITY_SAMPLE_SCREENSPACE_TEXTURE)
+float CrestMultiSampleOceanDepth(const float i_rawDepth, const float2 i_positionNDC)
+{
+	float rawDepth = i_rawDepth;
+
+	if (_CrestDepthTextureOffset > 0)
+	{
+		// We could use screen size instead.
+		float2 texelSize = _CrestOceanMaskDepthTexture_TexelSize.xy;
+		int3 offset = int3(-_CrestDepthTextureOffset, 0, _CrestDepthTextureOffset);
+
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.xy * texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.yx * texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.yz * texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.zy * texelSize));
+	}
+
+	return rawDepth;
+}
+#endif
+
 void GetOceanSurfaceAndUnderwaterData(
+	const float2 positionNDC,
 	const float rawOceanDepth,
 	const float mask,
 	inout float rawDepth,
@@ -74,9 +98,17 @@ void GetOceanSurfaceAndUnderwaterData(
 {
 	isOceanSurface = (rawDepth < rawOceanDepth + oceanDepthTolerance);
 	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
+
 	// Merge ocean depth with scene depth.
-	rawDepth = isOceanSurface ? rawOceanDepth : rawDepth;
-	sceneZ = CrestLinearEyeDepth(rawDepth);
+	if (isOceanSurface)
+	{
+		rawDepth = rawOceanDepth;
+		sceneZ = CrestLinearEyeDepth(CrestMultiSampleOceanDepth(rawDepth, positionNDC));
+	}
+	else
+	{
+		sceneZ = CrestLinearEyeDepth(CrestMultiSampleSceneDepth(rawDepth, positionNDC));
+	}
 }
 
 #ifdef CREST_OCEAN_EMISSION_INCLUDED

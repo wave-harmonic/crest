@@ -40,6 +40,7 @@ Fixed
    -  Fix FFT shader build errors for Game Core platforms.
    -  Fix FFT material allocations every frame.
    -  Fix flow simulation sometimes not clearing after disabling last input.
+   -  Fix outline around objects when MSAA is enabled by making it less noticeable.
    -  Fix pixelated looking foam bubbles at medium to long distance.
    -  Fix underwater effect undershooting or overshooting ocean surface when XR camera is nearly aligned with horizon.
    -  Fix underwater effect being flipped at certain camera orientations.

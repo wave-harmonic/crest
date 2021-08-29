@@ -7,6 +7,22 @@
 #ifndef CREST_OCEAN_SHADER_HELPERS_H
 #define CREST_OCEAN_SHADER_HELPERS_H
 
+// Sample depth macros for all pipelines. Use macros as HDRP depth is a mipchain which can change according to:
+// com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl
+#if defined(SHADERGRAPH_SAMPLE_SCENE_DEPTH)
+#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SHADERGRAPH_SAMPLE_SCENE_DEPTH(coordinates)
+#elif defined(TEXTURE2D_X)
+#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, coordinates)
+#elif defined(SAMPLE_DEPTH_TEXTURE)
+#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, coordinates)
+#endif
+
+#if UNITY_REVERSED_Z
+#define CREST_DEPTH_COMPARE(depth1, depth2) min(depth1, depth2)
+#else
+#define CREST_DEPTH_COMPARE(depth1, depth2) max(depth1, depth2)
+#endif
+
 // Same as LinearEyeDepth except supports orthographic projection. Use projection keywords to restrict support to either
 // of these modes as an optimisation.
 float CrestLinearEyeDepth(const float i_rawDepth)
@@ -38,6 +54,26 @@ float CrestLinearEyeDepth(const float i_rawDepth)
 	// If a shader does not have the projection enumeration, then assume they want to support both projection modes.
 	return lerp(perspective, orthographic, isOrthographic);
 #endif // _PROJECTION
+}
+
+// Works for all pipelines.
+float CrestMultiSampleSceneDepth(const float i_rawDepth, const float2 i_positionNDC)
+{
+	float rawDepth = i_rawDepth;
+
+	if (_CrestDepthTextureOffset > 0)
+	{
+		// We could use screen size instead.
+		float2 texelSize = _CameraDepthTexture_TexelSize.xy;
+		int3 offset = int3(-_CrestDepthTextureOffset, 0, _CrestDepthTextureOffset);
+
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.xy * texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.yx * texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.yz * texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.zy * texelSize));
+	}
+
+	return rawDepth;
 }
 
 #endif // CREST_OCEAN_SHADER_HELPERS_H

@@ -95,7 +95,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				const float rawOceanDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
 
 				bool isOceanSurface; bool isUnderwater; float sceneZ;
-				GetOceanSurfaceAndUnderwaterData(rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+				GetOceanSurfaceAndUnderwaterData(uvScreenSpace, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
 				float wt = ComputeMeniscusWeight(uvScreenSpace, mask, _HorizonNormal, sceneZ);
 

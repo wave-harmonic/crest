@@ -15,9 +15,12 @@ namespace Crest
     /// (directional light, reflections, ambient etc) with the underwater depth. This works with vanilla lighting, but
     /// uncommon or custom lighting will require a custom solution (use this for reference).
     /// </summary>
+    [DefaultExecutionOrder(k_DefaultExecutionOrder)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_EXAMPLE + "Underwater Environmental Lighting")]
     public class UnderwaterEnvironmentalLighting : MonoBehaviour
     {
+        public const int k_DefaultExecutionOrder = OceanRenderer.k_DefaultExecutionOrder + 1;
+
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.

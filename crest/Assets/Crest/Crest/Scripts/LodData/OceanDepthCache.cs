@@ -16,10 +16,13 @@ namespace Crest
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
     [ExecuteAlways]
+    [DefaultExecutionOrder(k_DefaultExecutionOrder)]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "shallows-and-shorelines.html" + Internal.Constants.HELP_URL_RP)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Depth Cache")]
     public partial class OceanDepthCache : MonoBehaviour
     {
+        public const int k_DefaultExecutionOrder = OceanRenderer.k_DefaultExecutionOrder + 1;
+
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.
@@ -90,12 +93,6 @@ namespace Crest
 
         void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && _runValidationOnStart)
             {
@@ -641,6 +638,17 @@ namespace Crest
                 );
 
                 isValid = false;
+            }
+
+            if (ocean == null)
+            {
+                showMessage
+                (
+                    "The <i>Ocean Depth Cache</i> uses the <i>Ocean Renderer</i> height which is not present. " +
+                    "The transform height will be used instead.",
+                    "", // Leave fix message blank as this could be a valid option.
+                    ValidatedHelper.MessageType.Info, this
+                );
             }
 
             if (ocean != null && ocean.Root != null && !Mathf.Approximately(transform.position.y, ocean.Root.position.y))

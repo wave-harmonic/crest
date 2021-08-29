@@ -16,10 +16,13 @@ namespace Crest
     /// For convenience, all shader material settings are copied from the main ocean shader.
     /// </summary>
     [RequireComponent(typeof(Camera))]
+    [DefaultExecutionOrder(k_DefaultExecutionOrder)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Renderer")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "underwater.html" + Internal.Constants.HELP_URL_RP)]
     public partial class UnderwaterRenderer : MonoBehaviour
     {
+        public const int k_DefaultExecutionOrder = OceanRenderer.k_DefaultExecutionOrder + 1;
+
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.

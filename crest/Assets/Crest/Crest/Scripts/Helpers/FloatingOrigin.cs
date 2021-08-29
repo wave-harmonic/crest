@@ -37,9 +37,12 @@ namespace Crest
     /// script should normally be attached to the viewpoint, typically the main camera.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Floating Origin")]
+    [DefaultExecutionOrder(k_DefaultExecutionOrder)]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "other-features.html" + Internal.Constants.HELP_URL_RP + "#floating-origin")]
     public class FloatingOrigin : MonoBehaviour
     {
+        public const int k_DefaultExecutionOrder = -200;
+
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.

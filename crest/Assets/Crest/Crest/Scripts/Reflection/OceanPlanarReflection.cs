@@ -77,9 +77,13 @@ namespace Crest
     /// <summary>
     /// Attach to a camera to generate a reflection texture which can be sampled in the ocean shader.
     /// </summary>
+    [RequireComponent(typeof(Camera))]
+    [DefaultExecutionOrder(k_DefaultExecutionOrder)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Planar Reflections")]
-    public class OceanPlanarReflection : MonoBehaviour
+    public partial class OceanPlanarReflection : MonoBehaviour
     {
+        public const int k_DefaultExecutionOrder = OceanRenderer.k_DefaultExecutionOrder + 1;
+
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.
@@ -125,33 +129,21 @@ namespace Crest
         const int CULL_DISTANCE_COUNT = 32;
         float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
-        private void Start()
+        void OnEnable()
         {
-            if (OceanRenderer.Instance == null)
+            if (_camViewpoint == null)
             {
-                enabled = false;
-                return;
+                _camViewpoint = GetComponent<Camera>();
             }
 
-            _camViewpoint = GetComponent<Camera>();
-            if (!_camViewpoint)
+            if (_camViewpointSkybox == null)
             {
-                Debug.LogWarning("Crest: Disabling planar reflections as no camera found on gameobject to generate reflection from.", this);
-                enabled = false;
-                return;
+                _camViewpointSkybox = _camViewpoint.GetComponent<Skybox>();
             }
-            _camViewpointSkybox = _camViewpoint?.GetComponent<Skybox>();
 
             // This is anyway called in OnPreRender, but was required here as there was a black reflection
             // for a frame without this earlier setup call.
             CreateWaterObjects(_camViewpoint);
-
-#if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
-            {
-                Debug.LogWarning("Crest: Planar reflections are not enabled on the current ocean material and will not be visible.", this);
-            }
-#endif
         }
 
         bool RequestRefresh(long frame)
@@ -401,4 +393,27 @@ namespace Crest
             }
         }
     }
+
+#if UNITY_EDITOR
+    public partial class OceanPlanarReflection : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (ocean != null && !ocean.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
+            {
+                showMessage
+                (
+                    "Crest: Planar reflections are not enabled on the current ocean material and will not be visible.",
+                    "Enable planar reflections.",
+                    ValidatedHelper.MessageType.Warning,
+                    this
+                );
+            }
+
+            return isValid;
+        }
+    }
+#endif
 }

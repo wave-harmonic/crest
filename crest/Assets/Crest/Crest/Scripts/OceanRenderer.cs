@@ -23,10 +23,14 @@ namespace Crest
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
     [ExecuteAlways, SelectionBase]
+    [DefaultExecutionOrder(k_DefaultExecutionOrder)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
     [HelpURL(Constants.HELP_URL_GENERAL)]
     public partial class OceanRenderer : MonoBehaviour
     {
+        // Update ocean after Cinemachine.
+        public const int k_DefaultExecutionOrder = 200;
+
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.

@@ -62,7 +62,7 @@ namespace Crest
 
         public FFTCompute(int resolution, float windSpeed, float windTurbulence, float windDirRad, OceanWaveSpectrum spectrum)
         {
-            Debug.Assert(Mathf.NextPowerOfTwo(resolution) == resolution, "FFTCompute resolution must be power of 2");
+            Debug.Assert(Mathf.NextPowerOfTwo(resolution) == resolution, "Crest: FFTCompute resolution must be power of 2");
 
             _resolution = resolution;
             _windSpeed = windSpeed;

@@ -13,6 +13,12 @@ user input, as covered in this video:
    Basics of Adding Ocean Inputs
 
 
+The following shaders can be used with any ocean input:
+
+-  **Scale By Factor** scales the ocean data between zero and one inclusive.
+   It is multiplicative, which can be inverted, so zero becomes no data and one leaves the data unchanged.
+
+
 .. _animated-waves-section:
 
 Animated Waves
@@ -68,6 +74,8 @@ The following input shaders are provided under *Crest/Inputs/Animated Waves*:
 -  **Add From Texture** allows any kind of shape added to the surface from a texture.
    Can ether be a heightmap texture (1 channel) or a 3 channel XYZ displacement texture.
    Optionally the alpha channel can be used to write to subsurface scattering which increases the amount of light emitted from the water volume, which is useful for approximating light scattering.
+-  **Scale By Factor** scales the waves by a factor where zero is no waves and one leaves waves unchanged.
+   Useful for reducing waves.
 -  **Set Base Water Height Using Geometry** allows the sea level (average water height) to be offset some amount.
    The top surface of the geometry will provide the water height, and the waves will apply on top.
 -  **Push Water Under Convex Hull** pushes the water underneath the geometry.
@@ -145,6 +153,7 @@ The following input shaders are provided under *Crest/Inputs/Dynamic Waves*:
 
 -  **Object Interaction** can be used in conjunction with the *ObjectWaterInteraction* script to simulate the interaction of an object with the water.
    Can be used for boat wakes.
+   The mesh needs to be a capsule.
    See the boat example scenes.
 
 -  **Sphere-Water Interaction** is a more specialized and accurate version of the *Object Interaction* input.

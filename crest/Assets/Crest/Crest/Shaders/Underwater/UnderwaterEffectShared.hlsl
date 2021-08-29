@@ -8,9 +8,9 @@
 half3 _AmbientLighting;
 float4x4 _InvViewProjection;
 float4x4 _InvViewProjectionRight;
-float4 _HorizonPosNormal;
-float4 _HorizonPosNormalRight;
 half _DataSliceOffset;
+float2 _HorizonNormal;
+
 
 float4 _CrestOceanMaskDepthTexture_TexelSize;
 
@@ -18,7 +18,7 @@ float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, 
 {
 	if (isOceanSurface)
 	{
-		return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
+		return float4(sceneColour * float3(mask == UNDERWATER_MASK_ABOVE_SURFACE, mask == UNDERWATER_MASK_BELOW_SURFACE, 0.0), 1.0);
 	}
 	else
 	{
@@ -29,60 +29,39 @@ float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, 
 float3 ComputeWorldSpaceView(const float2 uv)
 {
 	const float2 pixelCS = uv * 2.0 - float2(1.0, 1.0);
-	#if CREST_HANDLE_XR
-		const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
-	#else
-		const float4x4 InvViewProjection = _InvViewProjection;
-	#endif
+#if CREST_HANDLE_XR
+	const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
+#else
+	const float4x4 InvViewProjection = _InvViewProjection;
+#endif
 	const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
 	const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
 	return _WorldSpaceCameraPos - pixelWS;
 }
 
-float MeniscusSampleOceanMask(const float2 uvScreenSpace, const float2 dy, const half offset)
+float MeniscusSampleOceanMask(const float2 uvScreenSpace, const float2 offset, const half magnitude)
 {
-	float2 uv = uvScreenSpace + dy * offset;
+	float2 uv = uvScreenSpace + offset * magnitude;
 	return UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uv).r;
 }
 
-half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const float4 horizonPositionNormal, const float sceneZ)
+half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const float2 horizonNormal, const float sceneZ)
 {
-	float wt = 1.0;
+	float weight = 1.0;
 #if CREST_MENISCUS
 #if !_FULL_SCREEN_EFFECT
-	// Render meniscus by checking mask in opposite direction of surface normal.
-	// If the sample is different than the current mask, apply meniscus.
-	// Skip the meniscus beyond one unit to prevent numerous artefacts.
-	if (mask != UNDERWATER_MASK_NO_MASK && sceneZ < 1.0)
-	{
-		float wt_mul = 0.9;
-		// Adding the mask value will flip the UV when mask is below surface.
-		// Apply the horizon normal so it works with any orientation.
-		float2 dy = (float2(-1.0 + mask, -1.0 + mask) / _ScreenParams.y) * -horizonPositionNormal.zw;
-		wt *= (MeniscusSampleOceanMask(uvScreenSpace, dy, 1.0) != mask) ? wt_mul : 1.0;
-		wt *= (MeniscusSampleOceanMask(uvScreenSpace, dy, 2.0) != mask) ? wt_mul : 1.0;
-		wt *= (MeniscusSampleOceanMask(uvScreenSpace, dy, 3.0) != mask) ? wt_mul : 1.0;
-	}
+	// Render meniscus by checking the mask along the horizon normal which is flipped using the surface normal from
+	// mask. Adding the mask value will flip the UV when mask is below surface.
+	float2 offset = float2(-1.0 + mask, -1.0 + mask) * horizonNormal / length(_ScreenParams.xy * horizonNormal);
+	float multiplier = 0.9;
+
+	// Sample three pixels along the normal. If the sample is different than the current mask, apply meniscus.
+	weight *= (MeniscusSampleOceanMask(uvScreenSpace, offset, 1.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(uvScreenSpace, offset, 2.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(uvScreenSpace, offset, 3.0) != mask) ? multiplier : 1.0;
 #endif // _FULL_SCREEN_EFFECT
 #endif // CREST_MENISCUS
-	return wt;
-}
-
-void GetHorizonData(const float2 uv, out float4 horizonPositionNormal, out bool isBelowHorizon)
-{
-#if !_FULL_SCREEN_EFFECT
-	// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
-	// intersection line is passed in.
-#if CREST_HANDLE_XR
-	horizonPositionNormal = unity_StereoEyeIndex == 0 ? _HorizonPosNormal : _HorizonPosNormalRight;
-#else // CREST_HANDLE_XR
-	horizonPositionNormal = _HorizonPosNormal;
-#endif // CREST_HANDLE_XR
-	isBelowHorizon = dot(uv - horizonPositionNormal.xy, horizonPositionNormal.zw) > 0.0;
-#else // !_FULL_SCREEN_EFFECT
-	horizonPositionNormal = 0;
-	isBelowHorizon = true;
-#endif // !_FULL_SCREEN_EFFECT
+	return weight;
 }
 
 #if defined(UNITY_SAMPLE_SCREENSPACE_TEXTURE)
@@ -110,7 +89,6 @@ void GetOceanSurfaceAndUnderwaterData(
 	const float2 positionNDC,
 	const float rawOceanDepth,
 	const float mask,
-	const bool isBelowHorizon,
 	inout float rawDepth,
 	inout bool isOceanSurface,
 	inout bool isUnderwater,
@@ -118,8 +96,8 @@ void GetOceanSurfaceAndUnderwaterData(
 	const float oceanDepthTolerance
 )
 {
-	isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (rawDepth < rawOceanDepth + oceanDepthTolerance);
-	isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+	isOceanSurface = (rawDepth < rawOceanDepth + oceanDepthTolerance);
+	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
 
 	// Merge ocean depth with scene depth.
 	if (isOceanSurface)

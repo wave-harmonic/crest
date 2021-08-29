@@ -3,7 +3,7 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2020.3.10 and later.
 The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
@@ -33,7 +33,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=m2ZojyD4PZc" target="_blank"><img src="https://img.youtube.com/vi/m2ZojyD4PZc/0.jpg" alt="Critter Cove & Crest Trailer" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=zCeK_Kdxqa0" target="_blank"><img src="https://img.youtube.com/vi/zCeK_Kdxqa0/0.jpg" alt="Of Ships & Scoundrels - Crest Demo" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=HVlJa2J0wSc" target="_blank"><img src="https://img.youtube.com/vi/HVlJa2J0wSc/0.jpg" alt="Rogue Waves" width="240" height="180" /></a>
-<a href="https://www.youtube.com/watch?feature=player_embedded&v=e1maUIXQIRI" target="_blank"><img src="https://img.youtube.com/vi/e1maUIXQIRI/0.jpg" alt="Ship Simulator : Realistic" width="240" height="180" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=SG4OTpVO9_E" target="_blank"><img src="https://img.youtube.com/vi/SG4OTpVO9_E/0.jpg" alt="Ship Simulator: Realistic" width="240" height="180" /></a>
 
 # Documentation
 
@@ -43,7 +43,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 * Unity version:
   * The SRP assets on the Asset Store specify the minimum version required.
-  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.4.8 or later is the minimum version. See further down for 2018.4 support.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2020.3.10 or later is the minimum version. See further down for 2018.4 support.
 * *Crest* example content:
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime

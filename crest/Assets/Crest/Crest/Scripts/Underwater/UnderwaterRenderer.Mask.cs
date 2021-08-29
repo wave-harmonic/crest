@@ -11,12 +11,12 @@ namespace Crest
     public partial class UnderwaterRenderer
     {
         internal const string SHADER_OCEAN_MASK = "Hidden/Crest/Underwater/Ocean Mask";
+        internal const int k_ShaderPassOceanSurfaceMask = 0;
+        internal const int k_ShaderPassOceanHorizonMask = 1;
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
-
-        // This matches const on shader side.
-        internal const float UNDERWATER_MASK_NO_MASK = 1.0f;
+        public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
 
         internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
@@ -50,7 +50,7 @@ namespace Crest
             _oceanMaskCommandBuffer.Clear();
             // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
             _oceanMaskCommandBuffer.SetRenderTarget(_maskTexture.colorBuffer, _depthTexture.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
-            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
+            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.black);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTexture.colorBuffer);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTexture.depthBuffer);
 
@@ -60,6 +60,7 @@ namespace Crest
                 OceanRenderer.Instance.Tiles,
                 _cameraFrustumPlanes,
                 _oceanMaskMaterial.material,
+                _farPlaneMultiplier,
                 _debug._disableOceanMask
             );
         }
@@ -102,6 +103,7 @@ namespace Crest
             List<OceanChunkRenderer> chunksToRender,
             Plane[] frustumPlanes,
             Material oceanMaskMaterial,
+            float farPlaneMultiplier,
             bool debugDisableOceanMask
         )
         {
@@ -121,10 +123,47 @@ namespace Crest
                         {
                             chunk.BindOceanData(camera);
                         }
-                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
+                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial, submeshIndex: 0, shaderPass: k_ShaderPassOceanSurfaceMask);
                     }
                     chunk._oceanDataHasBeenBound = false;
                 }
+            }
+
+            // Render horizon into mask using a quad at the far plane. After ocean for z-testing.
+            {
+                // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function.
+                if (XRHelpers.IsSinglePass)
+                {
+                    // NOTE: Not needed for HDRP.
+                    oceanMaskMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
+                    oceanMaskMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
+                }
+                else
+                {
+                    // NOTE: Not needed for HDRP.
+                    var inverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(camera.projectionMatrix, false) * camera.worldToCameraMatrix).inverse;
+                    oceanMaskMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+                }
+
+                // Compute _ZBufferParams x and y values.
+                float zBufferParamsX; float zBufferParamsY;
+                if (SystemInfo.usesReversedZBuffer)
+                {
+                    zBufferParamsY = 1f;
+                    zBufferParamsX = camera.farClipPlane / camera.nearClipPlane - 1f;
+                }
+                else
+                {
+                    zBufferParamsY = camera.farClipPlane / camera.nearClipPlane;
+                    zBufferParamsX = 1f - zBufferParamsY;
+                }
+
+                // Take 0-1 linear depth and convert non-linear depth. Scripted for performance saving.
+                var farPlaneLerp = (1f - zBufferParamsY * farPlaneMultiplier) / (zBufferParamsX * farPlaneMultiplier);
+                oceanMaskMaterial.SetFloat(sp_FarPlaneOffset, farPlaneLerp);
+
+                // Render fullscreen triangle with horizon mask pass.
+                commandBuffer.DrawProcedural(Matrix4x4.identity, oceanMaskMaterial, shaderPass: k_ShaderPassOceanHorizonMask, MeshTopology.Triangles, 3, 1);
             }
         }
     }

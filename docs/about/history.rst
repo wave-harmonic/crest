@@ -23,6 +23,8 @@ Changed
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
    -  Add default textures to ocean shader.
    -  Update ocean shader default values.
+   -  Improve foam detail at medium to long distance.
+   -  Add *Scale By Factor* shader for all inputs which is particularly useful when used with *Animated Waves* for reducing waves.
 
    .. only:: urp
 
@@ -39,6 +41,11 @@ Fixed
    -  Fix FFT material allocations every frame.
    -  Fix flow simulation sometimes not clearing after disabling last input.
    -  Fix outline around objects when MSAA is enabled by making it less noticeable.
+   -  Fix pixelated looking foam bubbles at medium to long distance.
+   -  Fix underwater effect undershooting or overshooting ocean surface when XR camera is nearly aligned with horizon.
+   -  Fix underwater effect being flipped at certain camera orientations.
+   -  Fix meniscus thickness consistency (in some cases disappearing) with different camera orientations.
+   -  Fix inputs (eg keyboard) working when game view is not focused.
 
    .. only:: hdrp
 
@@ -52,6 +59,7 @@ Fixed
 
    .. only:: urp
 
+      -  Fix shadow artefacts when no shadow casters are within view. `[URP]`
       -  Remove sample shadow scriptable render feature error. `[URP]`
 
 

@@ -333,7 +333,7 @@ namespace Crest
             {
                 componentIdx++;
             }
-            //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+            //Debug.Log($"Crest: {cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
 
             for (; componentIdx < _wavelengths.Length; componentIdx++)
             {
@@ -375,7 +375,7 @@ namespace Crest
                     _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
                     minWl *= 2f;
 
-                    //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                    //Debug.Log($"Crest: {cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
                 }
                 if (cascadeIdx == CASCADE_COUNT) break;
 
@@ -461,7 +461,7 @@ namespace Crest
                 cascadeIdx++;
                 minWl *= 2f;
                 _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
-                //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                //Debug.Log($"Crest: {cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
             }
 
             _lastCascade = CASCADE_COUNT - 1;
@@ -599,7 +599,7 @@ namespace Crest
         {
             if (_activeSpectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
             {
-                Debug.LogError($"OceanWaveSpectrum {_activeSpectrum.name} is out of date, please open this asset and resave in editor.", _activeSpectrum);
+                Debug.LogError($"Crest: OceanWaveSpectrum {_activeSpectrum.name} is out of date, please open this asset and resave in editor.", _activeSpectrum);
             }
 
             float ampSum = 0f;

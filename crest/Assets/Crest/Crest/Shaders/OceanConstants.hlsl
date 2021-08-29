@@ -23,12 +23,10 @@
 #define CREST_SHADOW_INDEX_SOFT 0
 #define CREST_SHADOW_INDEX_HARD 1
 
-// Background
-#define UNDERWATER_MASK_NO_MASK 1.0
-// Water rendered from above
-#define UNDERWATER_MASK_WATER_SURFACE_ABOVE 0.0
-// Water rendered from below
-#define UNDERWATER_MASK_WATER_SURFACE_BELOW 2.0
+// Water rendered from above.
+#define UNDERWATER_MASK_ABOVE_SURFACE 0.0
+// Water rendered from below. Used to invert meniscus sampling so keep as 2.0.
+#define UNDERWATER_MASK_BELOW_SURFACE 2.0
 
 #if defined(STEREO_INSTANCING_ON) || defined(STEREO_MULTIVIEW_ON)
 #define CREST_HANDLE_XR 1

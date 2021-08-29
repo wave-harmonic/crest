@@ -158,7 +158,7 @@ namespace Crest
 #endif
             }
 
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
+            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "Crest: The graphics device does not support the render texture format " + fmt.ToString());
             var result = new RenderTexture(_resolution, _resolution, depthStencilTarget ? 24 : 0);
             result.name = gameObject.name + "_oceanDepth_" + (depthStencilTarget ? "DepthOnly" : "Cache");
             result.format = fmt;
@@ -186,7 +186,7 @@ namespace Crest
 
             if (_layers == 0)
             {
-                Debug.LogError("No valid layers for populating depth cache, aborting.", this);
+                Debug.LogError("Crest: No valid layers for populating depth cache, aborting.", this);
                 return false;
             }
 
@@ -424,7 +424,7 @@ namespace Crest
                 ti.alphaIsTransparency = false;
                 ti.SaveAndReimport();
 
-                Debug.Log("Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
+                Debug.Log("Crest: Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
             }
 
             ShowValidationMessages();

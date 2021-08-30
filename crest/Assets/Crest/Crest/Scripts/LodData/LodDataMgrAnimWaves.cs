@@ -55,6 +55,17 @@ namespace Crest
         int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = -1;
         int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
 
+        /// <summary>
+        /// Wave first order moments - gradient of y displacement in x and z directions
+        /// </summary>
+        RenderTexture _waveMoments1;
+        /// <summary>
+        /// Wave second order moments - squares of gradients and covariance
+        /// </summary>
+        RenderTexture _waveMoments2;
+        ComputeShader _shaderMoments;
+        int _kernelMoments;
+
         ComputeShader _combineShader;
         PropertyWrapperCompute _combineProperties;
         PropertyWrapperMaterial[] _combineMaterial;
@@ -93,6 +104,8 @@ namespace Crest
 
             _combineBuffer = CreateCombineBuffer(desc);
 
+            CreateMomentsBuffer(desc);
+
             // Combine graphics shader - for 'ping pong' approach (legacy hardware)
             var combineShaderNameGraphics = "Hidden/Crest/Simulation/Combine Animated Wave LODs";
             var combineShaderGraphics = Shader.Find(combineShaderNameGraphics);
@@ -125,6 +138,9 @@ namespace Crest
             krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON");
             krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
             _combineProperties = new PropertyWrapperCompute();
+
+            _shaderMoments = Resources.Load<ComputeShader>("FFT/FFTMoments");
+            _kernelMoments = _shaderMoments.FindKernel("Moments");
         }
 
         RenderTexture CreateCombineBuffer(RenderTextureDescriptor desc)
@@ -141,6 +157,26 @@ namespace Crest
             result.enableRandomWrite = false;
             result.Create();
             return result;
+        }
+
+        void CreateMomentsBuffer(RenderTextureDescriptor desc)
+        {
+            desc.useMipMap = false;
+            desc.vrUsage = VRTextureUsage.None;
+            desc.dimension = TextureDimension.Tex2D;
+            desc.enableRandomWrite = true;
+
+            // Wave first order moments - gradient of y displacement in x and z directions
+            _waveMoments1 = new RenderTexture(desc);
+            _waveMoments1.format = RenderTextureFormat.RG16;
+            _waveMoments1.name = "Wave Moments 1";
+            _waveMoments1.Create();
+
+            // Wave second order moments - squares of gradients and covariance
+            _waveMoments2 = new RenderTexture(desc);
+            _waveMoments2.format = RenderTextureFormat.ARGBHalf;
+            _waveMoments2.name = "Wave Moments 2";
+            _waveMoments2.Create();
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
@@ -255,6 +291,11 @@ namespace Crest
 
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
+            }
+
+            if (_computeGradients)
+            {
+                ComputeGradients(buf);
             }
         }
 
@@ -373,6 +414,17 @@ namespace Crest
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
                     1);
             }
+        }
+
+        /// <summary>
+        /// Compute gradients of y displacement in x and z directions
+        /// </summary>
+        void ComputeGradients(CommandBuffer buf)
+        {
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMoments, "_FFTDisplacements", _waveBuffers);
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMoments, "_OutputMoments1", _waveMoments1);
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMoments, "_OutputMoments2", _waveMoments2);
+            buf.DispatchCompute(_shaderMoments, _kernelMoments, _waveMoments1.width / 8, _waveMoments1.height / 8, _waveMoments1.depth);
         }
 
         public void BindWaveBuffer(IPropertyWrapper properties)

@@ -53,7 +53,8 @@ namespace Crest
 
         int _kernelSpectrumInit;
         int _kernelSpectrumUpdate;
-        int _kernelMoments;
+        int _kernelMomentsCompute;
+        int _kernelMomentsCombine;
 
         // Generation data
         int _resolution;
@@ -145,7 +146,8 @@ namespace Crest
             _shaderFFT = Resources.Load<ComputeShader>("FFT/FFTCompute");
 
             _shaderMoments = Resources.Load<ComputeShader>("FFT/FFTMoments");
-            _kernelMoments = _shaderMoments.FindKernel("Moments");
+            _kernelMomentsCompute = _shaderMoments.FindKernel("Moments");
+            _kernelMomentsCombine = _shaderMoments.FindKernel("MomentsCombine");
 
             _texButterfly = new Texture2D(_resolution, Mathf.RoundToInt(Mathf.Log(_resolution, 2)), TextureFormat.RGBAFloat, false, true);
 
@@ -296,7 +298,7 @@ namespace Crest
 
             if (computeGradients)
             {
-                ComputeGradients(buf);
+                ComputeMoments(buf);
             }
 
             _generationTime = time;
@@ -473,12 +475,20 @@ namespace Crest
         /// <summary>
         /// Compute gradients of y displacement in x and z directions
         /// </summary>
-        void ComputeGradients(CommandBuffer buf)
+        void ComputeMoments(CommandBuffer buf)
         {
-            buf.SetComputeTextureParam(_shaderMoments, _kernelMoments, "_FFTDisplacements", _waveBuffers);
-            buf.SetComputeTextureParam(_shaderMoments, _kernelMoments, "_OutputMoments1", _waveMoments1);
-            buf.SetComputeTextureParam(_shaderMoments, _kernelMoments, "_OutputMoments2", _waveMoments2);
-            buf.DispatchCompute(_shaderMoments, _kernelMoments, _resolution / 8, _resolution / 8, CASCADE_COUNT);
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMomentsCompute, "_FFTDisplacements", _waveBuffers);
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMomentsCompute, "_OutputMoments1", _waveMoments1);
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMomentsCompute, "_OutputMoments2", _waveMoments2);
+            buf.DispatchCompute(_shaderMoments, _kernelMomentsCompute, _resolution / 8, _resolution / 8, CASCADE_COUNT);
+
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMomentsCombine, "_OutputMoments1", _waveMoments1);
+            buf.SetComputeTextureParam(_shaderMoments, _kernelMomentsCombine, "_OutputMoments2", _waveMoments2);
+            for (int slice = 1; slice < CASCADE_COUNT; slice++)
+            {
+                buf.SetComputeIntParam(_shaderMoments, "_Slice", slice);
+                buf.DispatchCompute(_shaderMoments, _kernelMomentsCombine, _resolution / 8, _resolution / 8, 1);
+            }
         }
 
         public static void OnGUI(int resolution, float windTurbulence, float windDirRad, float windSpeed, OceanWaveSpectrum spectrum)
@@ -489,7 +499,9 @@ namespace Crest
 
         void OnGUIInternal()
         {
-            OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f, 20f);
+            OceanDebugGUI.DrawTextureArray(_waveBuffers, 10, 0.5f, 20f);
+            OceanDebugGUI.DrawTextureArray(_waveMoments1, 9, 0.5f, 5f);
+            OceanDebugGUI.DrawTextureArray(_waveMoments2, 8, 0f, 1f);
 
             GUI.DrawTexture(new Rect(0f, 0f, 100f, 10f), _texSpectrumControls);
         }

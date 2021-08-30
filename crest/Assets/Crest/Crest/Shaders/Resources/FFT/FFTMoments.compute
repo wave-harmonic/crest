@@ -6,11 +6,11 @@
 // Second output is second order moments (squares of slopes) and covariance
 
 #pragma kernel Moments
+#pragma kernel MomentsCombine
 
 Texture2DArray<float4> _FFTDisplacements;
 RWTexture2DArray<float2> _OutputMoments1;
 RWTexture2DArray<float4> _OutputMoments2;
-SamplerState linear_clamp_sampler;
 
 [numthreads(8, 8, 1)]
 void Moments(uint3 id : SV_DispatchThreadID)
@@ -38,4 +38,101 @@ void Moments(uint3 id : SV_DispatchThreadID)
 	// Second order moments - squares of gradients and covariance
 	// TODO - maybe this can be computed later when addint to anim data
 	_OutputMoments2[id] = float4(gradientX * gradientX, gradientZ * gradientZ, gradientX * gradientZ, 0.0f);
+}
+
+float2 InterpolateTexture2(
+	in RWTexture2DArray<float2> i_dispSampler,
+	in float i_width, in float i_height, in float3 i_uv_slice
+) {
+	// NOTE: We have to roll our own bilinear filter in Compute shaders when
+	// reading from a RWTexture. The documentation below explains how SRV
+	// and UAV mappings of the same texture cannot exist at the same time.
+	// https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/sm5-object-rwtexture2d
+
+	// Convert from UV to coordinates
+	const float2 pixelCoord = i_uv_slice.xy * float2(i_width, i_height);
+
+	// Make relative to pixel centers
+	float2 pixelCoordCenters = pixelCoord - 0.5;
+
+	// Clamp from below and above (desired?)
+	pixelCoordCenters = clamp( pixelCoordCenters, 0.0, float2(i_width, i_height) - 1.0 );
+
+	// Compute integral and fractional parts
+	const uint2 pixelCoordCentersBotLeft = floor( pixelCoordCenters );
+	const uint sliceIndex = i_uv_slice.z;
+	const float2 pixelCoordCentersFrac = frac( pixelCoordCenters );
+
+	const float2 dataBotLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft, sliceIndex)];
+	const float2 dataBotRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 0), sliceIndex)];
+	const float2 dataTopLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(0, 1), sliceIndex)];
+	const float2 dataTopRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 1), sliceIndex)];
+
+	return lerp(
+		lerp( dataBotLeft, dataBotRight, pixelCoordCentersFrac.x ),
+		lerp( dataTopLeft, dataTopRight, pixelCoordCentersFrac.x ),
+		pixelCoordCentersFrac.y
+	);
+}
+float4 InterpolateTexture4(
+	in RWTexture2DArray<float4> i_dispSampler,
+	in float i_width, in float i_height, in float3 i_uv_slice
+) {
+	// NOTE: We have to roll our own bilinear filter in Compute shaders when
+	// reading from a RWTexture. The documentation below explains how SRV
+	// and UAV mappings of the same texture cannot exist at the same time.
+	// https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/sm5-object-rwtexture2d
+
+	// Convert from UV to coordinates
+	const float2 pixelCoord = i_uv_slice.xy * float2(i_width, i_height);
+
+	// Make relative to pixel centers
+	float2 pixelCoordCenters = pixelCoord - 0.5;
+
+	// Clamp from below and above (desired?)
+	pixelCoordCenters = clamp( pixelCoordCenters, 0.0, float2(i_width, i_height) - 1.0 );
+
+	// Compute integral and fractional parts
+	const uint2 pixelCoordCentersBotLeft = floor( pixelCoordCenters );
+	const uint sliceIndex = i_uv_slice.z;
+	const float2 pixelCoordCentersFrac = frac( pixelCoordCenters );
+
+	const float4 dataBotLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft, sliceIndex)];
+	const float4 dataBotRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 0), sliceIndex)];
+	const float4 dataTopLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(0, 1), sliceIndex)];
+	const float4 dataTopRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 1), sliceIndex)];
+
+	return lerp(
+		lerp( dataBotLeft, dataBotRight, pixelCoordCentersFrac.x ),
+		lerp( dataTopLeft, dataTopRight, pixelCoordCentersFrac.x ),
+		pixelCoordCentersFrac.y
+	);
+}
+
+uint _Slice;
+
+[numthreads( 8, 8, 1 )]
+void MomentsCombine( uint3 id : SV_DispatchThreadID )
+{
+	uint res, depth;
+	{
+		uint height;
+		_OutputMoments1.GetDimensions( res, height, depth );
+	}
+
+	const float3 uvLower = float3(frac( 2.0 * (id.xy + 0.5) / res ), _Slice - 1);
+
+	// First order moments
+	float2 moment1This = _OutputMoments1[uint3(id.xy, _Slice)];
+	float2 moment1Lower = InterpolateTexture2( _OutputMoments1, res, res, uvLower );
+	_OutputMoments1[uint3(id.xy, _Slice)] = moment1Lower + moment1This;
+
+	// Second order moments and covariance
+	float4 moment2This = _OutputMoments2[uint3(id.xy, _Slice)];
+	float4 moment2Lower = InterpolateTexture4( _OutputMoments2, res, res, uvLower );
+	float Ex2 = moment2Lower.x + moment2This.x + 2.0 * moment1This.x * moment1Lower.x;
+	float Ey2 = moment2Lower.y + moment2This.y + 2.0 * moment1This.y * moment1Lower.y;
+	float Exy = moment2Lower.z + moment2This.z + moment1This.x * moment1Lower.y + moment1This.y * moment1Lower.x;
+
+	_OutputMoments2[uint3(id.xy, _Slice)] = float4(Ex2, Ey2, Exy, 0.0);
 }

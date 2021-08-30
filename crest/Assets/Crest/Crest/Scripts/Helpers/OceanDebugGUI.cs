@@ -277,7 +277,7 @@ namespace Crest
                             s_textureArrayMaterials.Add(lodData.DataTexture, material);
                         }
 
-                        //var tex = lodData.DataTexture;
+                        var tex = lodData.DataTexture;
                         //if (lodData is LodDataMgrAnimWaves)
                         //{
                         //    tex = (lodData as LodDataMgrAnimWaves)._waveMoments2;

@@ -214,7 +214,11 @@ namespace Crest
                 FFTCompute.OnGenerationDataUpdated(_resolution, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _spectrum);
             }
 
-            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, _windTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+            var waveData = FFTCompute.GenerateDisplacements(
+                buf, _resolution,
+                _windTurbulence, windDirRad, windSpeedMPS,
+                OceanRenderer.Instance.CurrentTime, _activeSpectrum,
+                updateDataEachFrame, OceanRenderer.Instance._lodDataAnimWaves._computeGradients);
 
             _windTurbulenceOld = _windTurbulence;
             _windDirRadOld = windDirRad;

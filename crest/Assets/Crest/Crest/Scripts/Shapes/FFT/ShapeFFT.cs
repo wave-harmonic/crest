@@ -103,6 +103,8 @@ namespace Crest
         OceanWaveSpectrum _spectrumOld;
 
         public RenderTexture _waveDisplacements;
+        public RenderTexture _waveMoments1;
+        public RenderTexture _waveMoments2;
 
         public class FFTBatch : ILodDataInput
         {
@@ -133,7 +135,8 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
-            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements)
+            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx,
+                RenderTexture displacements, RenderTexture moments1, RenderTexture moments2)
             {
                 var finalWeight = weight * _shapeFFT._weight;
                 if (finalWeight > 0f)
@@ -156,7 +159,11 @@ namespace Crest
                         //buf.SetComputeFloatParam(_fftGlobal, sp_AverageWavelength, Wavelength * 1.5f);
                         //buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                         buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_WaveDisplacements", _shapeFFT._waveDisplacements);
+                        buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_WaveMoments1", _shapeFFT._waveMoments1);
+                        buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_WaveMoments2", _shapeFFT._waveMoments2);
                         buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_OutputDisplacements", displacements);
+                        buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_OutputMoments1", moments1);
+                        buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_OutputMoments2", moments2);
                         buf.SetComputeBufferParam(_fftGlobal, _kernelFFTGlobal, OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
                         buf.DispatchCompute(_fftGlobal, _kernelFFTGlobal, displacements.width / 8, displacements.height / 8, 1);
                     }
@@ -262,6 +269,8 @@ namespace Crest
                 }
 
                 _waveDisplacements = waveDisplacements;
+                _waveMoments1 = waveMoments1;
+                _waveMoments2 = waveMoments2;
             }
 
             ReportMaxDisplacement();

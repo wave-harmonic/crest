@@ -112,7 +112,7 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
-            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements)
+            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements, RenderTexture moments1, RenderTexture moments2)
             {
                 var finalWeight = weight * _gerstner._weight;
                 if (finalWeight > 0f)

@@ -90,7 +90,7 @@ namespace Crest
 
             public bool HasWaves { get; set; }
 
-            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements)
+            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements, RenderTexture moments1, RenderTexture moments2)
             {
                 HasWaves = false;
                 _gerstner.UpdateBatch(this, _batchIndex);

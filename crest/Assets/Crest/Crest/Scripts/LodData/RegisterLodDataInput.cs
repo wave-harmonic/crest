@@ -35,7 +35,7 @@ namespace Crest
         /// <summary>
         /// Draw the input (the render target will be bound)
         /// </summary>
-        void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements);
+        void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements, RenderTexture moments1, RenderTexture moments2);
 
         /// <summary>
         /// The wavelength of the input - used to choose which level of detail to apply the input to.
@@ -130,7 +130,7 @@ namespace Crest
 #endif
         }
 
-        public virtual void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements)
+        public virtual void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements, RenderTexture moments1, RenderTexture moments2)
         {
             if (_renderer && _material && weight > 0f)
             {
@@ -302,7 +302,7 @@ namespace Crest
             }
         }
 
-        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements)
+        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements, RenderTexture moments1, RenderTexture moments2)
         {
             if (weight <= 0f) return;
 
@@ -315,7 +315,7 @@ namespace Crest
             }
             else
             {
-                base.Draw(buf, weight, isTransition, lodIdx, displacements);
+                base.Draw(buf, weight, isTransition, lodIdx, displacements, moments1, moments2);
             }
         }
 

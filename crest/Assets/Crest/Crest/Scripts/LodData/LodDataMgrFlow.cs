@@ -83,7 +83,7 @@ namespace Crest
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
-                SubmitDraws(lodIdx, buf, _targets);
+                SubmitDraws(lodIdx, buf, _targets, null, null);
             }
 
             // Targets are only clear if nothing was drawn

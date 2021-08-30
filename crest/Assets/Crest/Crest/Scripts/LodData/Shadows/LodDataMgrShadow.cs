@@ -265,7 +265,7 @@ namespace Crest
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
                     BufCopyShadowMap.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
-                    SubmitDraws(lodIdx, BufCopyShadowMap, _targets);
+                    SubmitDraws(lodIdx, BufCopyShadowMap, _targets, null, null);
                 }
 
 #if ENABLE_VR && ENABLE_VR_MODULE

@@ -157,7 +157,7 @@ namespace Crest
                         buf.SetGlobalFloat("_MinWavelength", ocean._lodTransform.MaxWavelength(lodIdx) / 2f);
                         buf.SetGlobalFloat("_LodIdx", lodIdx);
                         buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
-                        SubmitDraws(lodIdx, buf, _targets);
+                        SubmitDraws(lodIdx, buf, _targets, null, null);
                     }
                 }
 

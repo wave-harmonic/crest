@@ -277,11 +277,17 @@ namespace Crest
                             s_textureArrayMaterials.Add(lodData.DataTexture, material);
                         }
 
+                        //var tex = lodData.DataTexture;
+                        //if (lodData is LodDataMgrAnimWaves)
+                        //{
+                        //    tex = (lodData as LodDataMgrAnimWaves)._waveMoments2;
+                        //}
+
                         // Render specific slice of 2D texture array
                         material.SetInt("_Depth", idx);
                         material.SetFloat("_Scale", scale);
                         material.SetFloat("_Bias", bias);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, material);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), tex, material);
                     }
                 }
             }

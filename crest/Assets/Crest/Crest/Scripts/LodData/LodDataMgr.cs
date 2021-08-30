@@ -169,7 +169,7 @@ namespace Crest
             float Filter(ILodDataInput data, out int isTransition);
         }
 
-        protected void SubmitDraws(int lodIdx, CommandBuffer buf, RenderTexture target)
+        protected void SubmitDraws(int lodIdx, CommandBuffer buf, RenderTexture target, RenderTexture moments1, RenderTexture moments2)
         {
             var lt = OceanRenderer.Instance._lodTransform;
             lt._renderData[lodIdx].Validate(0, SimName);
@@ -184,11 +184,11 @@ namespace Crest
                     continue;
                 }
 
-                draw.Value.Draw(buf, 1f, 0, lodIdx, target);
+                draw.Value.Draw(buf, 1f, 0, lodIdx, target, moments1, moments2);
             }
         }
 
-        protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter, RenderTexture target)
+        protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter, RenderTexture target, RenderTexture moments1, RenderTexture moments2)
         {
             var lt = OceanRenderer.Instance._lodTransform;
             lt._renderData[lodIdx].Validate(0, SimName);
@@ -207,7 +207,7 @@ namespace Crest
                 float weight = filter.Filter(draw.Value, out isTransition);
                 if (weight > 0f)
                 {
-                    draw.Value.Draw(buf, weight, isTransition, lodIdx, target);
+                    draw.Value.Draw(buf, weight, isTransition, lodIdx, target, moments1, moments2);
                 }
             }
         }

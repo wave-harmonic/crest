@@ -41,7 +41,9 @@ namespace Crest
         /// </summary>
         public static bool _shapeCombinePass = true;
 
-        RenderTexture _waveBuffers;
+        RenderTexture _waveDisplacements;
+        public RenderTexture _waveMoments1;
+        public RenderTexture _waveMoments2;
         RenderTexture _combineBuffer;
 
         const string ShaderName = "ShapeCombine";
@@ -89,9 +91,11 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
 
-            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", true);
+            _waveDisplacements = CreateLodDataTextures(desc, "WaveBuffer", true);
 
             _combineBuffer = CreateCombineBuffer(desc);
+
+            CreateMomentsBuffer(desc);
 
             // Combine graphics shader - for 'ping pong' approach (legacy hardware)
             var combineShaderNameGraphics = "Hidden/Crest/Simulation/Combine Animated Wave LODs";
@@ -141,6 +145,26 @@ namespace Crest
             result.enableRandomWrite = false;
             result.Create();
             return result;
+        }
+
+        void CreateMomentsBuffer(RenderTextureDescriptor desc)
+        {
+            desc.useMipMap = false;
+            desc.vrUsage = VRTextureUsage.None;
+            desc.dimension = TextureDimension.Tex2DArray;
+            desc.enableRandomWrite = true;
+            
+            // Wave first order moments - gradient of y displacement in x and z directions
+            _waveMoments1 = new RenderTexture(desc);
+            _waveMoments1.format = RenderTextureFormat.RG16;
+            _waveMoments1.name = "Wave Moments 1";
+            _waveMoments1.Create();
+
+            // Wave second order moments - squares of gradients and covariance
+            _waveMoments2 = new RenderTexture(desc);
+            _waveMoments2.format = RenderTextureFormat.ARGBHalf;
+            _waveMoments2.name = "Wave Moments 2";
+            _waveMoments2.Create();
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
@@ -223,11 +247,14 @@ namespace Crest
                 gerstner.CrestUpdate(buf);
             }
 
+            TextureArrayHelpers.ClearToBlack(_waveMoments1);
+            TextureArrayHelpers.ClearToBlack(_waveMoments2);
+
             // lod-dependent data
             _filterWavelength._lodCount = lodCount;
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_waveDisplacements, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
 
                 // draw any data with lod preference
@@ -235,7 +262,7 @@ namespace Crest
                 _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
                 _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
                 _filterWavelength._globalMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
-                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength, _waveBuffers);
+                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength, _waveDisplacements, _waveMoments1, _waveMoments2);
             }
 
             // Combine the LODs - copy results from biggest LOD down to LOD 0
@@ -254,7 +281,7 @@ namespace Crest
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
-                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference, _targets);
+                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference, _targets, _waveMoments1, _waveMoments2);
             }
         }
 
@@ -377,7 +404,7 @@ namespace Crest
 
         public void BindWaveBuffer(IPropertyWrapper properties)
         {
-            properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveBuffers);
+            properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveDisplacements);
         }
 
         // TODO theres probably a pop because this used to have its own BindData() function which probably handled the cross fade add the end of the cascade chain

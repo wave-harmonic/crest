@@ -24,10 +24,12 @@ float _RespectShallowWaterAttenuation;
 CBUFFER_END
 
 Texture2DArray<float4> _WaveDisplacements;
-//Texture2DArray<float2> _WaveMoments1;
-//Texture2DArray<float4> _WaveMoments2;
+Texture2DArray<float2> _WaveMoments1;
+Texture2DArray<float4> _WaveMoments2;
 
 RWTexture2DArray<float4> _OutputDisplacements;
+RWTexture2DArray<float2> _OutputMoments1;
+RWTexture2DArray<float4> _OutputMoments2;
 
 [numthreads( 8, 8, 1 )]
 void AnimWavesFFTGlobal( uint3 id : SV_DispatchThreadID )
@@ -74,4 +76,14 @@ void AnimWavesFFTGlobal( uint3 id : SV_DispatchThreadID )
 	}
 
 	_OutputDisplacements[uint3(id.xy, _LD_SliceIndex)] += wt * disp_variance;
+
+	// Rotate moments
+	float2 moments1 = _WaveMoments1.SampleLevel( sampler_Crest_linear_repeat, float3(uvWaves, _WaveBufferSliceIndex), 0 );
+	moments1 = moments1.x * _AxisX + moments1.y * float2(-_AxisX.y, _AxisX.x);
+	_OutputMoments1[uint3(id.xy, _LD_SliceIndex)] += wt * moments1;
+
+	float4 moments2 = _WaveMoments2.SampleLevel( sampler_Crest_linear_repeat, float3(uvWaves, _WaveBufferSliceIndex), 0 );
+	moments2.xy = moments2.x * _AxisX + moments2.y * float2(-_AxisX.y, _AxisX.x);
+	// TODO - probably completely wrong - prob need to rotate covariance matrix
+	_OutputMoments2[uint3(id.xy, _LD_SliceIndex)] += wt * moments2;
 }

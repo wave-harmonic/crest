@@ -2,14 +2,18 @@
 
 // Copyright 2021 Wave Harmonic Ltd
 
-#pragma kernel Gradients
+// First output is first order moments which are just gradients of the surface
+// Second output is second order moments (squares of slopes) and covariance
+
+#pragma kernel Moments
 
 Texture2DArray<float4> _FFTDisplacements;
-RWTexture2DArray<float2> _OutputGradients;
+RWTexture2DArray<float2> _OutputMoments1;
+RWTexture2DArray<float4> _OutputMoments2;
 SamplerState linear_clamp_sampler;
 
 [numthreads(8, 8, 1)]
-void Gradients(uint3 id : SV_DispatchThreadID)
+void Moments(uint3 id : SV_DispatchThreadID)
 {
 	uint res;
 	{
@@ -27,6 +31,11 @@ void Gradients(uint3 id : SV_DispatchThreadID)
 	// Rise / run
 	const float gradientX = (dispE.y - dispW.y) / max( 0.01, texelWorldSize + dispE.x - dispW.x );
 	const float gradientZ = (dispN.y - dispS.y) / max( 0.01, texelWorldSize + dispN.z - dispS.z );
-	
-	_OutputGradients[id] = float2(gradientX, gradientZ);
+
+	// First order moments - gradients
+	_OutputMoments1[id] = float2(gradientX, gradientZ);
+
+	// Second order moments - squares of gradients and covariance
+	// TODO - maybe this can be computed later when addint to anim data
+	_OutputMoments2[id] = float4(gradientX * gradientX, gradientZ * gradientZ, gradientX * gradientZ, 0.0f);
 }

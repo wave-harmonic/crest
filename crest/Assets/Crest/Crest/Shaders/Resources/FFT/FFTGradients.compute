@@ -1,0 +1,32 @@
+// Crest Ocean System
+
+// Copyright 2021 Wave Harmonic Ltd
+
+#pragma kernel Gradients
+
+Texture2DArray<float4> _FFTDisplacements;
+RWTexture2DArray<float2> _OutputGradients;
+SamplerState linear_clamp_sampler;
+
+[numthreads(8, 8, 1)]
+void Gradients(uint3 id : SV_DispatchThreadID)
+{
+	uint res;
+	{
+		uint height, depth;
+		_FFTDisplacements.GetDimensions( res, height, depth );
+	}
+
+	const float texelWorldSize = (0.5 * (1 << id.z)) / res;
+
+	const float4 dispN = _FFTDisplacements[uint3(id.x, min( id.y + 1, res - 1 ), id.z)];
+	const float4 dispS = _FFTDisplacements[uint3(id.x, max( id.y - 1, 0 ), id.z)];
+	const float4 dispE = _FFTDisplacements[uint3(min( id.x + 1, res - 1 ), id.yz)];
+	const float4 dispW = _FFTDisplacements[uint3(max( id.x - 1, 0 ), id.yz)];
+
+	// Rise / run
+	const float gradientX = (dispE.y - dispW.y) / max( 0.01, texelWorldSize + dispE.x - dispW.x );
+	const float gradientZ = (dispN.y - dispS.y) / max( 0.01, texelWorldSize + dispN.z - dispS.z );
+	
+	_OutputGradients[id] = float2(gradientX, gradientZ);
+}

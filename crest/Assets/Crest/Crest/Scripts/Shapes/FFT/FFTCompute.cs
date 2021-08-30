@@ -40,6 +40,7 @@ namespace Crest
         /// Generated 'raw', uncombined, wave data. Input for putting into AnimWaves data before combine pass.
         /// </summary>
         RenderTexture _waveBuffers;
+        RenderTexture _gradients;
 
         Texture2D _texSpectrumControls;
         bool _spectrumInitialised = false;
@@ -47,9 +48,11 @@ namespace Crest
 
         ComputeShader _shaderSpectrum;
         ComputeShader _shaderFFT;
+        ComputeShader _shaderGradients;
 
         int _kernelSpectrumInit;
         int _kernelSpectrumUpdate;
+        int _kernelGradients;
 
         // Generation data
         int _resolution;
@@ -98,6 +101,21 @@ namespace Crest
                 _waveBuffers = null;
             }
 
+            if (_gradients != null)
+            {
+#if UNITY_EDITOR
+                if (!EditorApplication.isPlaying)
+                {
+                    Object.DestroyImmediate(_gradients);
+                }
+                else
+#endif
+                {
+                    Object.Destroy(_gradients);
+                }
+                _gradients = null;
+            }
+
             _isInitialised = false;
         }
 
@@ -109,6 +127,9 @@ namespace Crest
             _kernelSpectrumInit = _shaderSpectrum.FindKernel("SpectrumInitalize");
             _kernelSpectrumUpdate = _shaderSpectrum.FindKernel("SpectrumUpdate");
             _shaderFFT = Resources.Load<ComputeShader>("FFT/FFTCompute");
+
+            _shaderGradients = Resources.Load<ComputeShader>("FFT/FFTGradients");
+            _kernelGradients = _shaderGradients.FindKernel("Gradients");
 
             _texButterfly = new Texture2D(_resolution, Mathf.RoundToInt(Mathf.Log(_resolution, 2)), TextureFormat.RGBAFloat, false, true);
 
@@ -149,11 +170,24 @@ namespace Crest
             _waveBuffers.filterMode = FilterMode.Bilinear;
             _waveBuffers.anisoLevel = 0;
             _waveBuffers.useMipMap = false;
-            _waveBuffers.name = "FFTCascades";
+            _waveBuffers.name = "FFT Displacements";
             _waveBuffers.dimension = TextureDimension.Tex2DArray;
             _waveBuffers.volumeDepth = CASCADE_COUNT;
             _waveBuffers.enableRandomWrite = true;
             _waveBuffers.Create();
+
+            // Wave gradients - gradient of y displacement in x and z directions
+            _gradients = new RenderTexture(_resolution, _resolution, 0, GraphicsFormat.R16G16_SFloat);
+            _gradients.wrapMode = TextureWrapMode.Repeat;
+            _gradients.antiAliasing = 1;
+            _gradients.filterMode = FilterMode.Bilinear;
+            _gradients.anisoLevel = 0;
+            _gradients.useMipMap = false;
+            _gradients.name = "FFT Gradients";
+            _gradients.dimension = TextureDimension.Tex2DArray;
+            _gradients.volumeDepth = CASCADE_COUNT;
+            _gradients.enableRandomWrite = true;
+            _gradients.Create();
 
             InitializeButterfly(_resolution);
 
@@ -181,7 +215,7 @@ namespace Crest
         /// <summary>
         /// Computes water surface displacement, with wave components split across slices of the output texture array
         /// </summary>
-        public static RenderTexture GenerateDisplacements(CommandBuffer buf, int resolution, float windTurbulence, float windDirRad, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum)
+        public static RenderTexture GenerateDisplacements(CommandBuffer buf, int resolution, float windTurbulence, float windDirRad, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum, bool computeGradients)
         {
             // All static data arguments should be hashed here and passed to the generator constructor
             var conditionsHash = CalculateWaveConditionsHash(resolution, windTurbulence, windDirRad, windSpeed, spectrum);
@@ -194,10 +228,10 @@ namespace Crest
             }
 
             // The remaining dynamic data arguments should be passed in to the generation here
-            return generator.GenerateDisplacementsInternal(buf, time, updateSpectrum);
+            return generator.GenerateDisplacementsInternal(buf, time, updateSpectrum, computeGradients);
         }
 
-        RenderTexture GenerateDisplacementsInternal(CommandBuffer buf, float time, bool updateSpectrum)
+        RenderTexture GenerateDisplacementsInternal(CommandBuffer buf, float time, bool updateSpectrum, bool computeGradients)
         {
             // Check if already generated, and we're not being asked to re-update the spectrum
             if (_generationTime == time)
@@ -220,6 +254,11 @@ namespace Crest
             UpdateSpectrum(buf, time);
 
             DispatchFFT(buf);
+
+            if (computeGradients)
+            {
+                ComputeGradients(buf);
+            }
 
             _generationTime = time;
 
@@ -370,6 +409,7 @@ namespace Crest
         {
             var kernelOffset = 2 * Mathf.RoundToInt(Mathf.Log(_resolution / FFT_KERNEL_0_RESOLUTION, 2f));
 
+            // FFT pass 1
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputH", _spectrumHeight);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputX", _spectrumDisplaceX);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputZ", _spectrumDisplaceZ);
@@ -379,12 +419,23 @@ namespace Crest
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_Output3", _tempFFT3);
             buf.DispatchCompute(_shaderFFT, kernelOffset, 1, _resolution, CASCADE_COUNT);
 
+            // FFT pass 2
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputH", _tempFFT1);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputX", _tempFFT2);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputZ", _tempFFT3);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputButterfly", _texButterfly);
             buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_Output", _waveBuffers);
             buf.DispatchCompute(_shaderFFT, kernelOffset + 1, _resolution, 1, CASCADE_COUNT);
+        }
+
+        /// <summary>
+        /// Compute gradients of y displacement in x and z directions
+        /// </summary>
+        void ComputeGradients(CommandBuffer buf)
+        {
+            buf.SetComputeTextureParam(_shaderGradients, _kernelGradients, "_FFTDisplacements", _waveBuffers);
+            buf.SetComputeTextureParam(_shaderGradients, _kernelGradients, "_OutputGradients", _gradients);
+            buf.DispatchCompute(_shaderGradients, _kernelGradients, _resolution / 8, _resolution / 8, CASCADE_COUNT);
         }
 
         public static void OnGUI(int resolution, float windTurbulence, float windDirRad, float windSpeed, OceanWaveSpectrum spectrum)

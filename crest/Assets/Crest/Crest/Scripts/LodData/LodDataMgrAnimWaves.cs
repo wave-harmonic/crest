@@ -31,6 +31,8 @@ namespace Crest
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
+        public bool _computeGradients = true;
+
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
 

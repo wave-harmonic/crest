@@ -70,7 +70,7 @@ namespace Crest
                 var defaultToClip = OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
                 buf.ClearRenderTarget(false, true, defaultToClip ? Color.white : Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
-                SubmitDraws(lodIdx, buf);
+                SubmitDraws(lodIdx, buf, _targets);
             }
 
             // Targets are only clear if nothing was drawn

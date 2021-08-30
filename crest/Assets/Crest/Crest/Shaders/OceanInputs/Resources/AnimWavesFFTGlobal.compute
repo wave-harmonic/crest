@@ -1,0 +1,77 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// Adds FFT waves to world
+
+#pragma enable_d3d11_debug_symbols
+
+#pragma kernel AnimWavesFFTGlobal
+
+#include "HLSLSupport.cginc"
+
+#include "../../OceanConstants.hlsl"
+#include "../../OceanGlobals.hlsl"
+#include "../../OceanInputsDriven.hlsl"
+#include "../../OceanHelpersNew.hlsl"
+
+CBUFFER_START( CrestPerOceanInput )
+int _WaveBufferSliceIndex;
+float _Weight;
+float _AttenuationInShallows;
+float2 _AxisX;
+float _RespectShallowWaterAttenuation;
+CBUFFER_END
+
+Texture2DArray<float4> _WaveDisplacements;
+//Texture2DArray<float2> _WaveMoments1;
+//Texture2DArray<float4> _WaveMoments2;
+
+RWTexture2DArray<float4> _OutputDisplacements;
+
+[numthreads( 8, 8, 1 )]
+void AnimWavesFFTGlobal( uint3 id : SV_DispatchThreadID )
+{
+	float width, height;
+	{
+		float dummy;
+		_OutputDisplacements.GetDimensions( width, height, dummy );
+	}
+
+	const float2 input_uv = IDtoUV( id.xy, width, height );
+
+	const CascadeParams cascadeData = _CrestCascadeData[_LD_SliceIndex];
+
+	const float2 worldPosXZ = UVToWorld( input_uv, _LD_SliceIndex, cascadeData );
+
+	// UV coordinate into wave buffer
+	const float2 wavePos = float2(dot( worldPosXZ, _AxisX ), dot( worldPosXZ, float2(-_AxisX.y, _AxisX.x) ));
+	const float worldSize = 0.5f * (1 << _WaveBufferSliceIndex);
+	const float2 uvWaves = wavePos / worldSize;
+
+	// Nyquist rate
+	const float wavelengthMin = 2.0 * worldSize / width;
+	const float wavelengthAvg = 1.5 * wavelengthMin;
+
+	float wt = _Weight;
+
+	// Attenuate if depth is less than half of the average wavelength
+	const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel( LODData_linear_clamp_sampler, float3(input_uv, _LD_SliceIndex), 0.0 ).x;
+	half depth_wt = saturate( 2.0 * depth / wavelengthAvg );
+	const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
+	wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
+
+	// Sample displacement, rotate into frame
+	float4 disp_variance = _WaveDisplacements.SampleLevel( sampler_Crest_linear_repeat, float3(uvWaves, _WaveBufferSliceIndex), 0 );
+	disp_variance.xz = disp_variance.x * _AxisX + disp_variance.z * float2(-_AxisX.y, _AxisX.x);
+
+	// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
+	// for the last fitting wave cascade captures everything needed.
+	const float minWavelength = wavelengthMin;
+	if( minWavelength > cascadeData._maxWavelength )
+	{
+		disp_variance.w = 0.0;
+	}
+
+	_OutputDisplacements[uint3(id.xy, _LD_SliceIndex)] += wt * disp_variance;
+}

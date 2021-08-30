@@ -244,7 +244,10 @@ namespace Crest
         /// <summary>
         /// Computes water surface displacement, with wave components split across slices of the output texture array
         /// </summary>
-        public static RenderTexture GenerateDisplacements(CommandBuffer buf, int resolution, float windTurbulence, float windDirRad, float windSpeed, float time, OceanWaveSpectrum spectrum, bool updateSpectrum, bool computeGradients)
+        public static bool GenerateDisplacements(
+            CommandBuffer buf, int resolution, float windTurbulence, float windDirRad, float windSpeed,
+            float time, OceanWaveSpectrum spectrum, bool updateSpectrum, bool computeGradients,
+            out RenderTexture waveDisplacements, out RenderTexture waveMoments1, out RenderTexture waveMoments2)
         {
             // All static data arguments should be hashed here and passed to the generator constructor
             var conditionsHash = CalculateWaveConditionsHash(resolution, windTurbulence, windDirRad, windSpeed, spectrum);
@@ -257,15 +260,22 @@ namespace Crest
             }
 
             // The remaining dynamic data arguments should be passed in to the generation here
-            return generator.GenerateDisplacementsInternal(buf, time, updateSpectrum, computeGradients);
+            return generator.GenerateDisplacementsInternal(
+                buf, time, updateSpectrum, computeGradients,
+                out waveDisplacements, out waveMoments1, out waveMoments2);
         }
 
-        RenderTexture GenerateDisplacementsInternal(CommandBuffer buf, float time, bool updateSpectrum, bool computeGradients)
+        bool GenerateDisplacementsInternal(
+            CommandBuffer buf, float time, bool updateSpectrum, bool computeGradients,
+            out RenderTexture waveDisplacements, out RenderTexture waveMoments1, out RenderTexture waveMoments2)
         {
             // Check if already generated, and we're not being asked to re-update the spectrum
             if (_generationTime == time)
             {
-                return _waveBuffers;
+                waveDisplacements = _waveBuffers;
+                waveMoments1 = _waveMoments1;
+                waveMoments2 = _waveMoments2;
+                return true;
             }
 
             if (!_isInitialised || _spectrumHeight == null)
@@ -291,7 +301,10 @@ namespace Crest
 
             _generationTime = time;
 
-            return _waveBuffers;
+            waveDisplacements = _waveBuffers;
+            waveMoments1 = _waveMoments1;
+            waveMoments2 = _waveMoments2;
+            return true;
         }
 
         /// <summary>

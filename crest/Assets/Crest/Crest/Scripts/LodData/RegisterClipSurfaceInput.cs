@@ -132,7 +132,7 @@ namespace Crest
             }
         }
 
-        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements)
         {
             if (weight <= 0f)
             {

@@ -89,7 +89,7 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
 
-            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
+            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", true);
 
             _combineBuffer = CreateCombineBuffer(desc);
 
@@ -235,7 +235,7 @@ namespace Crest
                 _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
                 _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
                 _filterWavelength._globalMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
-                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
+                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength, _waveBuffers);
             }
 
             // Combine the LODs - copy results from biggest LOD down to LOD 0
@@ -254,7 +254,7 @@ namespace Crest
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
-                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
+                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference, _targets);
             }
         }
 

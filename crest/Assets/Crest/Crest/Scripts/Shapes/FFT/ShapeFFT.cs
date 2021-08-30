@@ -102,6 +102,8 @@ namespace Crest
         float _windDirRadOld;
         OceanWaveSpectrum _spectrumOld;
 
+        public RenderTexture _waveDisplacements;
+
         public class FFTBatch : ILodDataInput
         {
             ShapeFFT _shapeFFT;
@@ -111,6 +113,9 @@ namespace Crest
 
             int _waveBufferSliceIndex;
 
+            ComputeShader _fftGlobal;
+            int _kernelFFTGlobal;
+
             public FFTBatch(ShapeFFT shapeFFT, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeFFT = shapeFFT;
@@ -118,6 +123,9 @@ namespace Crest
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
+
+                _fftGlobal = Resources.Load<ComputeShader>("AnimWavesFFTGlobal");
+                _kernelFFTGlobal = _fftGlobal.FindKernel("AnimWavesFFTGlobal");
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -125,22 +133,40 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
-            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx, RenderTexture displacements)
             {
                 var finalWeight = weight * _shapeFFT._weight;
                 if (finalWeight > 0f)
                 {
-                    buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
-                    buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
-                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
                     {
-                        buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
+                        buf.SetComputeFloatParam(_fftGlobal, sp_RespectShallowWaterAttenuation, _shapeFFT._respectShallowWaterAttenuation);
+                        buf.SetComputeFloatParam(_fftGlobal, sp_FeatherWaveStart, _shapeFFT._featherWaveStart);
+
+                        // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
+                        // to the geo rotation. If not, the wind direction is already used in the FFT gen.
+                        var waveDir = _shapeFFT.PrimaryWaveDirection;// _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
+                        buf.SetComputeVectorParam(_fftGlobal, sp_AxisX, waveDir);
+
+                        buf.SetComputeIntParam(_fftGlobal, LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                        buf.SetComputeFloatParam(_fftGlobal, RegisterLodDataInputBase.sp_Weight, finalWeight);
+                        buf.SetComputeIntParam(_fftGlobal, sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
+                        buf.SetComputeFloatParam(_fftGlobal, OceanRenderer.sp_sliceCount, OceanRenderer.Instance.CurrentLodCount);
+                        //buf.SetComputeFloatParam(_fftGlobal, sp_AverageWavelength, Wavelength * 1.5f);
+                        //buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
+                        buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_WaveDisplacements", _shapeFFT._waveDisplacements);
+                        buf.SetComputeTextureParam(_fftGlobal, _kernelFFTGlobal, "_OutputDisplacements", displacements);
+                        buf.SetComputeBufferParam(_fftGlobal, _kernelFFTGlobal, OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
+                        buf.DispatchCompute(_fftGlobal, _kernelFFTGlobal, displacements.width / 8, displacements.height / 8, 1);
                     }
                     else if (_material != null)
                     {
+                        buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                        buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
+                        buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
+                        buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+
                         buf.DrawMesh(_mesh, _shapeFFT.transform.localToWorldMatrix, _material);
                     }
                 }
@@ -160,12 +186,14 @@ namespace Crest
         Material _matGenerateWavesGlobal;
         Material _matGenerateWavesGeometry;
 
-        static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
+        static readonly int sp_WaveDisplacements = Shader.PropertyToID("_WaveDisplacements");
+        static readonly int sp_WaveMoments1 = Shader.PropertyToID("_WaveMoments1");
+        static readonly int sp_WaveMoments2 = Shader.PropertyToID("_WaveMoments2");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
-        readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
+        static readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         /// <summary>
         /// Min wavelength for a cascade in the wave buffer. Does not depend on viewpoint.
@@ -196,13 +224,13 @@ namespace Crest
                 _firstUpdate = false;
             }
 
-            _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
-            _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            //_matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
+            //_matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
-            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
-            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
+            //var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
+            //_matGenerateWaves.SetVector(sp_AxisX, waveDir);
 
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
             var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
@@ -214,17 +242,27 @@ namespace Crest
                 FFTCompute.OnGenerationDataUpdated(_resolution, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _spectrum);
             }
 
-            var waveData = FFTCompute.GenerateDisplacements(
-                buf, _resolution,
-                _windTurbulence, windDirRad, windSpeedMPS,
-                OceanRenderer.Instance.CurrentTime, _activeSpectrum,
-                updateDataEachFrame, OceanRenderer.Instance._lodDataAnimWaves._computeGradients);
+            if (FFTCompute.GenerateDisplacements(
+                    buf, _resolution,
+                    _windTurbulence, windDirRad, windSpeedMPS,
+                    OceanRenderer.Instance.CurrentTime, _activeSpectrum,
+                    updateDataEachFrame, OceanRenderer.Instance._lodDataAnimWaves._computeGradients,
+                    out var waveDisplacements, out var waveMoments1, out var waveMoments2))
+            {
+                _windTurbulenceOld = _windTurbulence;
+                _windDirRadOld = windDirRad;
+                _windSpeedOld = windSpeedMPS;
+                _spectrumOld = _spectrum;
 
-            _windTurbulenceOld = _windTurbulence;
-            _windDirRadOld = windDirRad;
-            _windSpeedOld = windSpeedMPS;
-            _spectrumOld = _spectrum;
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
+                if (_matGenerateWaves)
+                {
+                    _matGenerateWaves.SetTexture(sp_WaveDisplacements, waveDisplacements);
+                    _matGenerateWaves.SetTexture(sp_WaveMoments1, waveMoments1);
+                    _matGenerateWaves.SetTexture(sp_WaveMoments2, waveMoments2);
+                }
+
+                _waveDisplacements = waveDisplacements;
+            }
 
             ReportMaxDisplacement();
         }
@@ -281,11 +319,11 @@ namespace Crest
 
             if (_meshForDrawingWaves == null)
             {
-                if (_matGenerateWavesGlobal == null)
-                {
-                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
-                    _matGenerateWavesGlobal.hideFlags = HideFlags.HideAndDontSave;
-                }
+                //if (_matGenerateWavesGlobal == null)
+                //{
+                //    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/FFT Global"));
+                //    _matGenerateWavesGlobal.hideFlags = HideFlags.HideAndDontSave;
+                //}
 
                 _matGenerateWaves = _matGenerateWavesGlobal;
             }

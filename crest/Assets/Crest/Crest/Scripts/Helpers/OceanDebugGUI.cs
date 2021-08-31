@@ -265,28 +265,38 @@ namespace Crest
                 // Only use Graphics.DrawTexture in EventType.Repaint events if called in OnGUI
                 if (Event.current.type.Equals(EventType.Repaint))
                 {
+                    var tex = lodData.DataTexture;
+                    if (lodData is LodDataMgrAnimWaves)
+                    {
+                        // scale and bias match FFTCompute.OnGUIInternal()
+#if false
+                        tex = (lodData as LodDataMgrAnimWaves)._waveMoments1;
+                        scale = 5f;
+                        bias = 0.5f;
+#elif true
+                        tex = (lodData as LodDataMgrAnimWaves)._waveMoments2;
+                        scale = 1f;
+                        bias = 0f;
+#endif
+                    }
+
+                    s_textureArrayMaterials.TryGetValue(tex, out var material);
+                    if (material == null)
+                    {
+                        material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                        s_textureArrayMaterials.Add(tex, material);
+                    }
+
+                    material.SetFloat("_Scale", scale);
+                    material.SetFloat("_Bias", bias);
+
                     for (int idx = 0; idx < lodData.DataTexture.volumeDepth; idx++)
                     {
                         float y = idx * h;
                         if (offset == 1f) w += b;
 
-                        s_textureArrayMaterials.TryGetValue(lodData.DataTexture, out var material);
-                        if (material == null)
-                        {
-                            material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
-                            s_textureArrayMaterials.Add(lodData.DataTexture, material);
-                        }
-
-                        var tex = lodData.DataTexture;
-                        //if (lodData is LodDataMgrAnimWaves)
-                        //{
-                        //    tex = (lodData as LodDataMgrAnimWaves)._waveMoments2;
-                        //}
-
                         // Render specific slice of 2D texture array
                         material.SetInt("_Depth", idx);
-                        material.SetFloat("_Scale", scale);
-                        material.SetFloat("_Bias", bias);
                         Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), tex, material);
                     }
                 }

@@ -153,7 +153,8 @@ namespace Crest
             desc.vrUsage = VRTextureUsage.None;
             desc.dimension = TextureDimension.Tex2DArray;
             desc.enableRandomWrite = true;
-            
+            desc.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+
             // Wave first order moments - gradient of y displacement in x and z directions
             _waveMoments1 = new RenderTexture(desc);
             _waveMoments1.format = RenderTextureFormat.RG16;

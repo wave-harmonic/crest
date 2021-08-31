@@ -74,16 +74,18 @@ void AnimWavesFFTGlobal( uint3 id : SV_DispatchThreadID )
 	{
 		disp_variance.w = 0.0;
 	}
+	else
+	{
+		// Rotate moments
+		float2 moments1 = _WaveMoments1.SampleLevel( sampler_Crest_linear_repeat, float3(uvWaves, _WaveBufferSliceIndex), 0 );
+		moments1 = moments1.x * _AxisX + moments1.y * float2(-_AxisX.y, _AxisX.x);
+		_OutputMoments1[uint3(id.xy, _LD_SliceIndex)] += wt * moments1;
+
+		float4 moments2 = _WaveMoments2.SampleLevel( sampler_Crest_linear_repeat, float3(uvWaves, _WaveBufferSliceIndex), 0 );
+		// TODO - probably completely wrong - prob need to rotate covariance matrix
+		//moments2.xy = moments2.x * _AxisX + moments2.y * float2(-_AxisX.y, _AxisX.x);
+		_OutputMoments2[uint3(id.xy, _LD_SliceIndex)] += wt * moments2;
+	}
 
 	_OutputDisplacements[uint3(id.xy, _LD_SliceIndex)] += wt * disp_variance;
-
-	// Rotate moments
-	float2 moments1 = _WaveMoments1.SampleLevel( sampler_Crest_linear_repeat, float3(uvWaves, _WaveBufferSliceIndex), 0 );
-	moments1 = moments1.x * _AxisX + moments1.y * float2(-_AxisX.y, _AxisX.x);
-	_OutputMoments1[uint3(id.xy, _LD_SliceIndex)] += wt * moments1;
-
-	float4 moments2 = _WaveMoments2.SampleLevel( sampler_Crest_linear_repeat, float3(uvWaves, _WaveBufferSliceIndex), 0 );
-	moments2.xy = moments2.x * _AxisX + moments2.y * float2(-_AxisX.y, _AxisX.x);
-	// TODO - probably completely wrong - prob need to rotate covariance matrix
-	_OutputMoments2[uint3(id.xy, _LD_SliceIndex)] += wt * moments2;
 }

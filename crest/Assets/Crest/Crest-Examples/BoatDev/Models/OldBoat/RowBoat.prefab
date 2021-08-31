@@ -105,7 +105,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _checkShaderName: 1
   _disableRenderer: 1
-  _version: 0
+  _version: 1
+  _mode: 0
+  _primitive: 3
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
 --- !u!1001 &2226860581654032180
@@ -117,7 +119,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100002, guid: 62ccde94e774dba4c8620e847d94f072, type: 3}
       propertyPath: m_Name
-      value: OldBoat Variant
+      value: RowBoat
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 62ccde94e774dba4c8620e847d94f072, type: 3}
       propertyPath: m_RootOrder

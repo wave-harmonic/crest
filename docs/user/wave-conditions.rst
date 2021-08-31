@@ -13,7 +13,7 @@ The following sections describe how to define the wave conditions.
 
 
 Wave Systems
-============
+------------
 
 There are a few different systems that generate waves in Crest:
 

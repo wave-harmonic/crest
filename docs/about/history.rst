@@ -18,6 +18,7 @@ Changed
 .. bullet_list::
 
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
+   -  Always report displacement in *Register Height Input* to solve culling issues.
 
 
 Fixed

@@ -554,7 +554,7 @@ Shader "Crest/Ocean"
 				const float baseCascadeScale = cascadeData0._scale;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				half3 scatterCol = ScatterColour(AmbientLight(), input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, rawDepth, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, input.positionCS.z, uvDepth, sceneZ, rawDepth, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface
 

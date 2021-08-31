@@ -21,6 +21,9 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#include "UnityCG.cginc"
 
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
+			float4 _CameraDepthTexture_TexelSize;
+
 			#include "../UnderwaterMaskShared.hlsl"
 			ENDCG
 		}

@@ -52,6 +52,7 @@ Fixed
       -  Fix ocean disappearing when viewed from an area clipped by a clip surface input. `[HDRP]`
       -  Fix shadows breaking builds when XR package is present. `[HDRP]`
       -  Fix shadows not working with XR `SPI`. `[HDRP]`
+      -  Fix 2021.2.0b9 shader compile errors. `[HDRP]`
 
    .. only:: birp or urp
 

@@ -12,7 +12,7 @@
 #if defined(SHADERGRAPH_SAMPLE_SCENE_DEPTH)
 #define CREST_SAMPLE_SCENE_DEPTH(coordinates) SHADERGRAPH_SAMPLE_SCENE_DEPTH(coordinates)
 #elif defined(TEXTURE2D_X)
-#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, coordinates)
+#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, coordinates).r
 #elif defined(SAMPLE_DEPTH_TEXTURE)
 #define CREST_SAMPLE_SCENE_DEPTH(coordinates) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, coordinates)
 #endif

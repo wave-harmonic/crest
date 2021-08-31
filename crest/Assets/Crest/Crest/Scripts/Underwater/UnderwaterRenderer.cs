@@ -103,6 +103,10 @@ namespace Crest
                 _camera = GetComponent<Camera>();
             }
 
+#if UNITY_EDITOR
+            Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
+#endif
+
             // Setup here because it is the same across pipelines.
             if (_cameraFrustumPlanes == null)
             {

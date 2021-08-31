@@ -30,6 +30,8 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			Name "Ocean Horizon Mask"
 			Cull Off
 			ZWrite Off
+			// Horizon must be rendered first or it will overwrite the mask with incorrect values. ZTest not needed.
+			ZTest Off
 
 			CGPROGRAM
 			#pragma vertex Vert

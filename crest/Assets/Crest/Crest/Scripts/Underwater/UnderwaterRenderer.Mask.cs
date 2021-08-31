@@ -107,29 +107,8 @@ namespace Crest
             bool debugDisableOceanMask
         )
         {
-            GeometryUtility.CalculateFrustumPlanes(camera, frustumPlanes);
-
-            // Get all ocean chunks and render them using cmd buffer, but with mask shader.
-            if (!debugDisableOceanMask)
-            {
-                // Spends approx 0.2-0.3ms here on 2018 Dell XPS 15.
-                foreach (OceanChunkRenderer chunk in chunksToRender)
-                {
-                    Renderer renderer = chunk.Rend;
-                    Bounds bounds = renderer.bounds;
-                    if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
-                    {
-                        if ((!chunk._oceanDataHasBeenBound) && chunk.enabled)
-                        {
-                            chunk.BindOceanData(camera);
-                        }
-                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial, submeshIndex: 0, shaderPass: k_ShaderPassOceanSurfaceMask);
-                    }
-                    chunk._oceanDataHasBeenBound = false;
-                }
-            }
-
-            // Render horizon into mask using a quad at the far plane. After ocean for z-testing.
+            // Render horizon into mask using a fullscreen triangle at the far plane. Horizon must be rendered first or
+            // it will overwrite the mask with incorrect values.
             {
                 // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function.
                 if (XRHelpers.IsSinglePass)
@@ -164,6 +143,28 @@ namespace Crest
 
                 // Render fullscreen triangle with horizon mask pass.
                 commandBuffer.DrawProcedural(Matrix4x4.identity, oceanMaskMaterial, shaderPass: k_ShaderPassOceanHorizonMask, MeshTopology.Triangles, 3, 1);
+            }
+
+            GeometryUtility.CalculateFrustumPlanes(camera, frustumPlanes);
+
+            // Get all ocean chunks and render them using cmd buffer, but with mask shader.
+            if (!debugDisableOceanMask)
+            {
+                // Spends approx 0.2-0.3ms here on 2018 Dell XPS 15.
+                foreach (OceanChunkRenderer chunk in chunksToRender)
+                {
+                    Renderer renderer = chunk.Rend;
+                    Bounds bounds = renderer.bounds;
+                    if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
+                    {
+                        if ((!chunk._oceanDataHasBeenBound) && chunk.enabled)
+                        {
+                            chunk.BindOceanData(camera);
+                        }
+                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial, submeshIndex: 0, shaderPass: k_ShaderPassOceanSurfaceMask);
+                    }
+                    chunk._oceanDataHasBeenBound = false;
+                }
             }
         }
     }

@@ -63,6 +63,8 @@ namespace Crest
 
         readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
+        static readonly int sp_LD_TexArray_AnimWavesMoments1 = Shader.PropertyToID("_LD_TexArray_AnimWavesMoments1");
+        static readonly int sp_LD_TexArray_AnimWavesMoments2 = Shader.PropertyToID("_LD_TexArray_AnimWavesMoments2");
         public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
@@ -166,6 +168,9 @@ namespace Crest
             _waveMoments2.format = RenderTextureFormat.ARGBHalf;
             _waveMoments2.name = "Wave Moments 2";
             _waveMoments2.Create();
+
+            Shader.SetGlobalTexture(sp_LD_TexArray_AnimWavesMoments1, _waveMoments1);
+            Shader.SetGlobalTexture(sp_LD_TexArray_AnimWavesMoments2, _waveMoments2);
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
@@ -456,10 +461,14 @@ namespace Crest
             if (OceanRenderer.Instance._lodDataAnimWaves != null)
             {
                 properties.SetTexture(OceanRenderer.Instance._lodDataAnimWaves.GetParamIdSampler(), OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+                properties.SetTexture(sp_LD_TexArray_AnimWavesMoments1, OceanRenderer.Instance._lodDataAnimWaves._waveMoments1);
+                properties.SetTexture(sp_LD_TexArray_AnimWavesMoments2, OceanRenderer.Instance._lodDataAnimWaves._waveMoments2);
             }
             else
             {
                 properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(sp_LD_TexArray_AnimWavesMoments1, TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(sp_LD_TexArray_AnimWavesMoments2, TextureArrayHelpers.BlackTextureArray);
             }
         }
 

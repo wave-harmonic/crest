@@ -91,6 +91,16 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 	io_nxz += i_wt * n.xz;
 }
 
+void SampleDisplacementMoments1( in Texture2DArray i_oceanMoments1Sampler, in float3 i_uv_slice, in float i_wt, inout float2 io_moments1 )
+{
+	io_moments1 += i_wt * i_oceanMoments1Sampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 ).xy;
+}
+
+void SampleDisplacementMoments2( in Texture2DArray i_oceanMoments2Sampler, in float3 i_uv_slice, in float i_wt, inout float4 io_moments2 )
+{
+	io_moments2 += i_wt * i_oceanMoments2Sampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 );
+}
+
 void SampleClip(in Texture2DArray i_oceanClipSurfaceSampler, in float3 i_uv_slice, in float i_wt, inout half io_clipValue)
 {
 	io_clipValue += i_wt * (i_oceanClipSurfaceSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).x);

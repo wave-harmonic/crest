@@ -504,6 +504,8 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				float foam = 0.0;
 				#endif
+				float2 moments1 = 0.0;
+				float4 moments2 = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(positionXZWSUndisplaced, cascadeData0, _LD_SliceIndex);
@@ -512,6 +514,9 @@ Shader "Crest/Ocean"
 					#if _FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, foam);
 					#endif
+
+					SampleDisplacementMoments1( _LD_TexArray_AnimWavesMoments1, uv_slice_smallerLod, wt_smallerLod, moments1 );
+					SampleDisplacementMoments2( _LD_TexArray_AnimWavesMoments2, uv_slice_smallerLod, wt_smallerLod, moments2 );
 				}
 				if (wt_biggerLod > 0.001)
 				{
@@ -521,6 +526,9 @@ Shader "Crest/Ocean"
 					#if _FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
 					#endif
+
+					SampleDisplacementMoments1( _LD_TexArray_AnimWavesMoments1, uv_slice_biggerLod, wt_biggerLod, moments1 );
+					SampleDisplacementMoments2( _LD_TexArray_AnimWavesMoments2, uv_slice_biggerLod, wt_biggerLod, moments2 );
 				}
 
 				#if _APPLYNORMALMAPPING_ON

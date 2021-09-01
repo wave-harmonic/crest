@@ -41,6 +41,8 @@ struct PerCascadeInstanceData
 StructuredBuffer<PerCascadeInstanceData> _CrestPerCascadeInstanceData;
 
 Texture2DArray _LD_TexArray_AnimatedWaves;
+Texture2DArray _LD_TexArray_AnimWavesMoments1;
+Texture2DArray _LD_TexArray_AnimWavesMoments2;
 Texture2DArray _LD_TexArray_WaveBuffer;
 Texture2DArray _LD_TexArray_SeaFloorDepth;
 Texture2DArray _LD_TexArray_ClipSurface;

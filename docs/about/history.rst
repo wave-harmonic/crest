@@ -60,6 +60,7 @@ Fixed
       -  Fix shadows not working with XR `SPI`. `[HDRP]`
       -  Fix 2021.2.0b9 shader compile errors. `[HDRP]`
       -  Fix ocean material properties missing for 2021.2 material inspector. `[HDRP]`
+      -  Fix outline around refracted objects by making it less noticeable. `[HDRP]`
 
    .. only:: birp or urp
 

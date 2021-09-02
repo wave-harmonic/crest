@@ -27,6 +27,10 @@ Changed
    -  Improve foam detail at medium to long distance.
    -  Add *Scale By Factor* shader for all inputs which is particularly useful when used with *Animated Waves* for reducing waves.
 
+   .. only:: hdrp
+
+      -  Add a simpler custom material inspector. `[HDRP]`
+
    .. only:: urp
 
       -  Add XR `SPI` support to *Underwater Renderer*. `[URP]`
@@ -55,6 +59,7 @@ Fixed
       -  Fix shadows breaking builds when XR package is present. `[HDRP]`
       -  Fix shadows not working with XR `SPI`. `[HDRP]`
       -  Fix 2021.2.0b9 shader compile errors. `[HDRP]`
+      -  Fix ocean material properties missing for 2021.2 material inspector. `[HDRP]`
 
    .. only:: birp or urp
 

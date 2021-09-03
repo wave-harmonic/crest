@@ -8,6 +8,15 @@ using UnityEngine;
 [AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ripple Generator")]
 public class RippleGenerator : MonoBehaviour
 {
+    /// <summary>
+    /// The version of this asset. Can be used to migrate across versions. This value should
+    /// only be changed when the editor upgrades the version.
+    /// </summary>
+    [SerializeField, HideInInspector]
+#pragma warning disable 414
+    int _version = 0;
+#pragma warning restore 414
+
     public bool _animate = true;
     public float _warmUp = 3f;
     public float _onTime = 0.2f;

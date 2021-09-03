@@ -15,6 +15,15 @@ namespace Crest
     [HelpURL(HELP_URL)]
     public class SimSettingsFoam : SimSettingsBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#id5";
 
         [Header("General settings")]
@@ -38,6 +47,12 @@ namespace Crest
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16_SFloat;
         [Range(15f, 200f), Tooltip("Frequency to run the foam sim, in updates per second. Lower frequencies can be more efficient but may lead to visible jitter. Default is 30 updates per second.")]
         public float _simulationFrequency = 30f;
+
+        public override void AddToSettingsHash(ref int settingsHash)
+        {
+            base.AddToSettingsHash(ref settingsHash);
+            Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
+        }
     }
 
 #if UNITY_EDITOR

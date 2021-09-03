@@ -22,15 +22,18 @@ live:
 
 pdf-hdrp:
 	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -E -a -t hdrp -t no-tabs $(O)
-	mv -f _build/latex/crest.pdf _build/crest-hdrp.pdf
+	cp -f _build/latex/crest.pdf ../crest/Assets/Crest/userguide.pdf
+	cp -f _build/latex/crest.pdf _build/crest-hdrp.pdf
 
 pdf-urp:
 	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -E -a -t urp -t no-tabs $(O)
-	mv -f _build/latex/crest.pdf _build/crest-urp.pdf
+	cp -f _build/latex/crest.pdf ../crest/Assets/Crest/userguide.pdf
+	cp -f _build/latex/crest.pdf _build/crest-urp.pdf
 
 pdf-birp:
 	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -E -a -t birp -t no-tabs $(O)
-	mv -f _build/latex/crest.pdf _build/crest-birp.pdf
+	cp -f _build/latex/crest.pdf ../crest/Assets/Crest/userguide.pdf
+	cp -f _build/latex/crest.pdf _build/crest-birp.pdf
 
 pdf:
 	make pdf-birp

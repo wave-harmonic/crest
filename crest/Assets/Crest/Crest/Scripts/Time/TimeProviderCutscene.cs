@@ -13,9 +13,18 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Cutscene Time Provider")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "other-features.html" + Internal.Constants.HELP_URL_RP + "#time-providers")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "time-providers.html" + Internal.Constants.HELP_URL_RP + "#timelines-and-cutscenes")]
     public class TimeProviderCutscene : TimeProviderBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("Playable Director to take time from"), SerializeField]
         PlayableDirector _playableDirector;
 

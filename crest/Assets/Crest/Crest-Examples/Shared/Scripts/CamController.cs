@@ -6,13 +6,24 @@ using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
+#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
+#endif
 
 /// <summary>
 /// A simple and dumb camera script that can be controlled using WASD and the mouse.
 /// </summary>
 public class CamController : MonoBehaviour
 {
+    /// <summary>
+    /// The version of this asset. Can be used to migrate across versions. This value should
+    /// only be changed when the editor upgrades the version.
+    /// </summary>
+    [SerializeField, HideInInspector]
+#pragma warning disable 414
+    int _version = 0;
+#pragma warning restore 414
+
     public float linSpeed = 10f;
     public float rotSpeed = 70f;
 
@@ -26,19 +37,28 @@ public class CamController : MonoBehaviour
 
     Transform _targetTransform;
 
-    new Camera camera;
+#pragma warning disable CS0108
+    // In editor we need to use "new" to suppress warning but then gives warning when building so use pragma instead.
+    Camera camera;
+#pragma warning restore CS0108
+
+    [Space(10)]
+
+    [SerializeField]
+    DebugFields _debug = new DebugFields();
 
     [System.Serializable]
     class DebugFields
     {
+        [Tooltip("Allows the camera to roll (rotating on the z axis).")]
+        public bool _enableCameraRoll = false;
+
         [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
-        public bool disableOcclusionMesh = false;
+        public bool _disableOcclusionMesh = false;
 
         [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), UnityEngine.Range(1f, 2f)]
-        public float occlusionMeshScale = 1f;
+        public float _occlusionMeshScale = 1f;
     }
-
-    [SerializeField] DebugFields _debug = new DebugFields();
 
     void Awake()
     {
@@ -52,29 +72,12 @@ public class CamController : MonoBehaviour
         }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-        // We cannot change the Camera's transform when XR is enabled. This is not an issue with the new XR plugin.
         if (XRSettings.enabled)
         {
-            // Disable XR temporarily so we can change the transform of the camera.
-            XRSettings.enabled = false;
-            // The VR camera is moved in local space, so we can move the camera if we move its parent we create instead.
-            var parent = new GameObject("VRCameraOffset");
-            parent.transform.parent = _targetTransform.parent;
-            // Copy the transform over to the parent.
-            parent.transform.position = _targetTransform.position;
-            parent.transform.rotation = _targetTransform.rotation;
-            // Parent camera to offset and reset transform. Scale changes slightly in editor so we will reset that too.
-            _targetTransform.parent = parent.transform;
-            _targetTransform.localPosition = Vector3.zero;
-            _targetTransform.localRotation = Quaternion.identity;
-            _targetTransform.localScale = Vector3.one;
-            // We want to manipulate this transform.
-            _targetTransform = parent.transform;
-            XRSettings.enabled = true;
-
             // Seems like the best place to put this for now. Most XR debugging happens using this component.
-            XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
-            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
+            // @FixMe: useOcclusionMesh doesn't work anymore. Might be a Unity bug.
+            XRSettings.useOcclusionMesh = !_debug._disableOcclusionMesh;
+            XRSettings.occlusionMaskScale = _debug._occlusionMeshScale;
         }
 #endif
     }
@@ -89,7 +92,7 @@ public class CamController : MonoBehaviour
 
 #if ENABLE_VR && ENABLE_VR_MODULE
         // These aren't useful and can break for XR hardware.
-        if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
+        if (!XRSettings.enabled || XRSettings.loadedDeviceName.Contains("MockHMD"))
 #endif
         {
             UpdateDragging(dt);
@@ -100,18 +103,24 @@ public class CamController : MonoBehaviour
         if (XRSettings.enabled)
         {
             // Check if property has changed.
-            if (XRSettings.useOcclusionMesh == _debug.disableOcclusionMesh)
+            if (XRSettings.useOcclusionMesh == _debug._disableOcclusionMesh)
             {
-                XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+                // @FixMe: useOcclusionMesh doesn't work anymore. Might be a Unity bug.
+                XRSettings.useOcclusionMesh = !_debug._disableOcclusionMesh;
             }
 
-            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
+            XRSettings.occlusionMaskScale = _debug._occlusionMeshScale;
         }
 #endif
     }
 
     void UpdateMovement(float dt)
     {
+        // New input system works even when game view is not focused.
+        if (!Application.isFocused)
+        {
+            return;
+        }
 
 #if ENABLE_INPUT_SYSTEM
         if (!Mouse.current.leftButton.isPressed && _requireLMBToMove) return;
@@ -177,6 +186,12 @@ public class CamController : MonoBehaviour
 
     void UpdateDragging(float dt)
     {
+        // New input system works even when game view is not focused.
+        if (!Application.isFocused)
+        {
+            return;
+        }
+
         Vector2 mousePos =
 #if ENABLE_INPUT_SYSTEM
             Mouse.current.position.ReadValue();
@@ -222,6 +237,7 @@ public class CamController : MonoBehaviour
 
     void UpdateKillRoll()
     {
+        if (_debug._enableCameraRoll) return;
         Vector3 ea = _targetTransform.eulerAngles;
         ea.z = 0f;
         transform.eulerAngles = ea;

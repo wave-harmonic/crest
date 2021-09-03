@@ -14,7 +14,7 @@ Water Bodies
 By default the system generates a water surface that expands our to the horizon in every direction.
 There are mechanisms to limit the area:
 
--  The waves can be generated in a limited area - see the :ref:`local-waves-section` section.
+-  The waves can be generated in a limited area - see the :ref:`wave-splines-section` section.
 -  The *WaterBody* component, if present, marks areas of the scene where water should be present.
    It can be created by attaching this component to a GameObject and setting the X/Z scale to set the size of the water body.
    If gizmos are enabled an outline showing the size will be drawn in the Scene View.

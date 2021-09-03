@@ -13,9 +13,18 @@ namespace Crest
     /// delta from this client's time to the shared server time.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Networked Time Provider")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "other-features.html" + Internal.Constants.HELP_URL_RP + "#time-providers")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "time-providers.html" + Internal.Constants.HELP_URL_RP + "#network-synchronisation")]
     public class TimeProviderNetworked : TimeProviderBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         /// <summary>
         /// If Time.time on this client is 1.5s ahead of the shared/server Time.time, set
         /// this field to -1.5.

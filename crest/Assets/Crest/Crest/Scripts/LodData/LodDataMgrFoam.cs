@@ -34,21 +34,8 @@ namespace Crest
         readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsFoam != null) return _ocean._simSettingsFoam;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsFoam != null ? _ocean._simSettingsFoam : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrFoam(OceanRenderer ocean) : base(ocean)
         {
@@ -64,7 +51,7 @@ namespace Crest
                 && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
+                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }
@@ -115,9 +102,7 @@ namespace Crest
 
         public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards

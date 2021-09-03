@@ -28,7 +28,7 @@ namespace Crest
     {
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16B16A16_SFloat;
+        protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
         public override int BufferCount => 3;
 
@@ -63,25 +63,13 @@ namespace Crest
         public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
-        static List<ShapeGerstner> _gerstners = new List<ShapeGerstner>();
-        public static void RegisterUpdatable(ShapeGerstner updatable) => _gerstners.Add(updatable);
-        public static void DeregisterUpdatable(ShapeGerstner updatable) => _gerstners.RemoveAll(candidate => candidate == updatable);
+        public interface IShapeUpdatable { void CrestUpdate(CommandBuffer buf); }
+        static List<IShapeUpdatable> _updatables = new List<IShapeUpdatable>();
+        public static void RegisterUpdatable(IShapeUpdatable updatable) => _updatables.Add(updatable);
+        public static void DeregisterUpdatable(IShapeUpdatable updatable) => _updatables.RemoveAll(candidate => candidate == updatable);
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsAnimatedWaves != null) return _ocean._simSettingsAnimatedWaves;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsAnimatedWaves : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
         {
@@ -229,7 +217,7 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Current.Validate(0, SimName);
             }
 
-            foreach (var gerstner in _gerstners)
+            foreach (var gerstner in _updatables)
             {
                 gerstner.CrestUpdate(buf);
             }
@@ -446,16 +434,14 @@ namespace Crest
             }
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
             sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
             sp_LODChange = Shader.PropertyToID("_LODChange");
             s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-            _gerstners.Clear();
+            _updatables.Clear();
         }
     }
 }

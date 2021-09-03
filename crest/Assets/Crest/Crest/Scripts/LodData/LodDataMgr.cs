@@ -107,6 +107,25 @@ namespace Crest
 
         protected OceanRenderer _ocean;
 
+        // Implement in any sub-class which supports having an asset file for settings. This is used for polymorphic
+        // operations. A sub-class will also implement an alternative for the specialised type called Settings.
+        public virtual SimSettingsBase SettingsBase => null;
+        SimSettingsBase _defaultSettings;
+
+        /// <summary>
+        /// Returns the default value of the settings asset for the provided type.
+        /// </summary>
+        protected SettingsType GetDefaultSettings<SettingsType>() where SettingsType : SimSettingsBase
+        {
+            if (_defaultSettings == null)
+            {
+                _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                _defaultSettings.name = SimName + " Auto-generated Settings";
+            }
+
+            return (SettingsType)_defaultSettings;
+        }
+
         public LodDataMgr(OceanRenderer ocean)
         {
             _ocean = ocean;
@@ -141,9 +160,9 @@ namespace Crest
             CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(RequestedTextureFormat, formatUsage);
             if (CompatibleTextureFormat != RequestedTextureFormat)
             {
-                Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {RequestedTextureFormat}");
+                Debug.Log($"Crest: Using render texture format {CompatibleTextureFormat} instead of {RequestedTextureFormat}");
             }
-            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {RequestedTextureFormat}");
+            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"Crest: The graphics device does not support the render texture format {RequestedTextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
@@ -274,9 +293,7 @@ namespace Crest
             Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);
         }
 
-#if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
         static void InitStatics()
         {
             // Init here from 2019.3 onwards

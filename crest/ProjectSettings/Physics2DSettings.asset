@@ -3,7 +3,7 @@
 --- !u!19 &1
 Physics2DSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 3
+  serializedVersion: 5
   m_Gravity: {x: 0, y: -9.81}
   m_DefaultMaterial: {fileID: 0}
   m_VelocityIterations: 8
@@ -19,10 +19,31 @@ Physics2DSettings:
   m_LinearSleepTolerance: 0.01
   m_AngularSleepTolerance: 2
   m_DefaultContactOffset: 0.01
+  m_JobOptions:
+    serializedVersion: 2
+    useMultithreading: 0
+    useConsistencySorting: 0
+    m_InterpolationPosesPerJob: 100
+    m_NewContactsPerJob: 30
+    m_CollideContactsPerJob: 100
+    m_ClearFlagsPerJob: 200
+    m_ClearBodyForcesPerJob: 200
+    m_SyncDiscreteFixturesPerJob: 50
+    m_SyncContinuousFixturesPerJob: 50
+    m_FindNearestContactsPerJob: 100
+    m_UpdateTriggerContactsPerJob: 100
+    m_IslandSolverCostThreshold: 100
+    m_IslandSolverBodyCostScale: 1
+    m_IslandSolverContactCostScale: 10
+    m_IslandSolverJointCostScale: 10
+    m_IslandSolverBodiesPerJob: 50
+    m_IslandSolverContactsPerJob: 50
+  m_SimulationMode: 0
   m_QueriesHitTriggers: 1
   m_QueriesStartInColliders: 1
-  m_ChangeStopsCallbacks: 0
   m_CallbacksOnDisable: 1
+  m_ReuseCollisionCallbacks: 0
+  m_AutoSyncTransforms: 1
   m_AlwaysShowColliders: 0
   m_ShowColliderSleep: 1
   m_ShowColliderContacts: 0

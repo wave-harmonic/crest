@@ -7,7 +7,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using Crest.Spline;
-using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -20,13 +19,22 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapegerstner-preview")]
-    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
+    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin, LodDataMgrAnimWaves.IShapeUpdatable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
         OceanWaveSpectrum _activeSpectrum = null;
@@ -236,7 +244,8 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            return texelSize * OceanRenderer.Instance.MinTexelsPerWave;
+            // Nyquist rate
+            return texelSize * 2f;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -324,7 +333,7 @@ namespace Crest
             {
                 componentIdx++;
             }
-            //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+            //Debug.Log($"Crest: {cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
 
             for (; componentIdx < _wavelengths.Length; componentIdx++)
             {
@@ -366,7 +375,7 @@ namespace Crest
                     _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
                     minWl *= 2f;
 
-                    //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                    //Debug.Log($"Crest: {cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
                 }
                 if (cascadeIdx == CASCADE_COUNT) break;
 
@@ -452,7 +461,7 @@ namespace Crest
                 cascadeIdx++;
                 minWl *= 2f;
                 _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
-                //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                //Debug.Log($"Crest: {cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
             }
 
             _lastCascade = CASCADE_COUNT - 1;
@@ -590,7 +599,7 @@ namespace Crest
         {
             if (_activeSpectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
             {
-                Debug.LogError($"OceanWaveSpectrum {_activeSpectrum.name} is out of date, please open this asset and resave in editor.", _activeSpectrum);
+                Debug.LogError($"Crest: OceanWaveSpectrum {_activeSpectrum.name} is out of date, please open this asset and resave in editor.", _activeSpectrum);
             }
 
             float ampSum = 0f;
@@ -655,20 +664,19 @@ namespace Crest
             {
                 _activeSpectrum = _spectrum;
             }
-#if UNITY_EDITOR
+
             if (_activeSpectrum == null)
             {
                 _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _activeSpectrum.name = "Default Waves (auto)";
             }
 
+#if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
             }
-
-            _activeSpectrum.Upgrade();
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
@@ -700,6 +708,21 @@ namespace Crest
             {
                 _bufWaveData.Dispose();
                 _bufWaveData = null;
+            }
+
+            if (_waveBuffers != null)
+            {
+#if UNITY_EDITOR
+                if (!EditorApplication.isPlaying)
+                {
+                    DestroyImmediate(_waveBuffers);
+                }
+                else
+#endif
+                {
+                    Destroy(_waveBuffers);
+                }
+                _waveBuffers = null;
             }
         }
 

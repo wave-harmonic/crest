@@ -15,6 +15,15 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Simple Floating Object")]
     public class SimpleFloatingObject : FloatingObjectBase
     {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
+#pragma warning disable 414
+        int _version = 0;
+#pragma warning restore 414
+
         [Header("Buoyancy Force")]
         [Tooltip("Offsets center of object to raise it (or lower it) in the water.")]
         public float _raiseObject = 1f;

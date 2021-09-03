@@ -14,6 +14,15 @@ using UnityEngine.InputSystem;
 [AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Boat Align Normal")]
 public class BoatAlignNormal : FloatingObjectBase
 {
+    /// <summary>
+    /// The version of this asset. Can be used to migrate across versions. This value should
+    /// only be changed when the editor upgrades the version.
+    /// </summary>
+    [SerializeField, HideInInspector]
+#pragma warning disable 414
+    int _version = 0;
+#pragma warning restore 414
+
     [Header("Buoyancy Force")]
     [Tooltip("Height offset from transform center to bottom of boat (if any).")]
     public float _bottomH = 0f;
@@ -139,7 +148,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
         float forward = _throttleBias;
 #if ENABLE_INPUT_SYSTEM
-        float rawForward = (Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0);
+        float rawForward = !Application.isFocused ? 0 : ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
 #else
         float rawForward = Input.GetAxis("Vertical");
 #endif
@@ -150,8 +159,9 @@ public class BoatAlignNormal : FloatingObjectBase
         float sideways = _steerBias;
         if (_playerControlled) sideways +=
 #if ENABLE_INPUT_SYSTEM
-                (Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
-                (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f);
+                !Application.isFocused ? 0 :
+                ((Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
+                (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f));
 #else
                 (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);

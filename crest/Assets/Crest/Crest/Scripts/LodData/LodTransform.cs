@@ -12,6 +12,11 @@ namespace Crest
     /// </summary>
     public class LodTransform : IFloatingOrigin
     {
+        // Anything higher (minus 1 for near plane) will be clipped.
+        const float k_RenderAboveSeaLevel = 10000f;
+        // Anything lower will be clipped.
+        const float k_RenderBelowSeaLevel = 10000f;
+
         protected int[] _transformUpdateFrame;
 
         [System.Serializable]
@@ -28,7 +33,7 @@ namespace Crest
                 // ignore first frame - this patches errors when using edit & continue in editor
                 if (_frame > 0 && _frame != OceanRenderer.FrameCount + frameOffset)
                 {
-                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
+                    Debug.LogWarning($"Crest: RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
                 }
                 return this;
             }
@@ -104,9 +109,9 @@ namespace Crest
                 //     _renderDataSource[lodIdx].Current._maxWavelength = _renderData[lodIdx].Current._maxWavelength;
                 // }
 
-                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx].Current._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx].Current._posSnapped + Vector3.up * k_RenderAboveSeaLevel, Quaternion.AngleAxis(90f, Vector3.right));
 
-                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, 500f);
+                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, k_RenderAboveSeaLevel + k_RenderBelowSeaLevel);
             }
         }
 

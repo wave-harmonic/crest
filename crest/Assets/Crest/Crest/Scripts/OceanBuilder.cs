@@ -131,7 +131,7 @@ namespace Crest
         {
             if (lodCount < 1)
             {
-                Debug.LogError("Invalid LOD count: " + lodCount.ToString(), ocean);
+                Debug.LogError("Crest: Invalid LOD count: " + lodCount.ToString(), ocean);
                 return null;
             }
 
@@ -143,7 +143,7 @@ namespace Crest
                 oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
                 if (oceanLayer == -1)
                 {
-                    Debug.LogError("Invalid ocean layer: " + ocean.LayerName + " please add this layer.", ocean);
+                    Debug.LogError("Crest: Invalid ocean layer: " + ocean.LayerName + " please add this layer.", ocean);
                     oceanLayer = 0;
                 }
             }
@@ -157,7 +157,7 @@ namespace Crest
             ClearOutTiles(ocean, tiles);
 
             var root = new GameObject("Root");
-            Debug.Assert(root != null, "The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
+            Debug.Assert(root != null, "Crest: The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
 
             root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
             root.transform.parent = ocean.transform;
@@ -185,7 +185,7 @@ namespace Crest
 
 #if PROFILE_CONSTRUCTION
             sw.Stop();
-            Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
+            Debug.Log( "Crest: Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
 
             return root.transform;
@@ -504,7 +504,7 @@ namespace Crest
                     Vector3 to = patch.transform.localPosition.normalized;
                     if (Mathf.Abs(patch.transform.localPosition.x) < 0.0001f || Mathf.Abs(Mathf.Abs(patch.transform.localPosition.x) - Mathf.Abs(patch.transform.localPosition.z)) > 0.001f)
                     {
-                        Debug.LogWarning("Skipped rotating a patch because it isn't a corner, click here to highlight.", patch);
+                        Debug.LogWarning("Crest: Skipped rotating a patch because it isn't a corner, click here to highlight.", patch);
                         continue;
                     }
 

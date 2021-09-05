@@ -32,6 +32,8 @@ public class BoatAlignNormal : FloatingObjectBase
     public float _boyancyTorque = 8f;
     [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), Crest.Range(0, 1)]
     public float _accelerateDownhill = 0f;
+    [Tooltip("Clamps the buoyancy force to this value. Useful for handling fully submerged objects. Use Infinity to disable.")]
+    public float _maximumBuoyancyForce = Mathf.Infinity;
 
     [Header("Engine Power")]
     [Tooltip("Vertical offset for where engine force should be applied.")]
@@ -139,6 +141,10 @@ public class BoatAlignNormal : FloatingObjectBase
         }
 
         var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
+        if (_maximumBuoyancyForce < Mathf.Infinity)
+        {
+            buoyancy = Vector3.ClampMagnitude(buoyancy, _maximumBuoyancyForce);
+        }
         _rb.AddForce(buoyancy, ForceMode.Acceleration);
 
         // Approximate hydrodynamics of sliding along water

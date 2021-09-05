@@ -17,6 +17,17 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
+
+
+
+4.13
+----
+
+Changed
+^^^^^^^
+.. bullet_list::
+
    -  Add signed-distance primitives for more accurate clipping and overlapping.
       See :ref:`clip-surface-section` for more information.
    -  Add *Render Texture Graphics Format* option to *Clip Surface Sim Settings* to support even more accurate clipping for signed-distance primitives.

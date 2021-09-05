@@ -13,9 +13,12 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: TODO
+Changed
+^^^^^^^
+.. bullet_list::
 
-   Work in progress
+   -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
+
 
 
 4.13

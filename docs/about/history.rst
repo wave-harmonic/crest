@@ -18,7 +18,7 @@ Changed
 .. bullet_list::
 
    -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
-
+   -  Add inverted option to *Clip Surface* signed-distance primitives and convex hulls which removes clipping.
 
 
 4.13

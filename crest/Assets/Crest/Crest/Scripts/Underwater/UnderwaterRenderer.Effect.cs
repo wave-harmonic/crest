@@ -4,6 +4,7 @@
 
 namespace Crest
 {
+    using System.Collections.Generic;
     using Unity.Collections;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -24,6 +25,7 @@ namespace Crest
         CommandBuffer _underwaterEffectCommandBuffer;
         PropertyWrapperMaterial _underwaterEffectMaterial;
         internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
+        MaterialPropertyBlock _materialPropertyBlock;
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -31,11 +33,26 @@ namespace Crest
             internal Vector3[] _shDirections = { new Vector3(0.0f, 0.0f, 0.0f) };
         }
 
+        CrestSortedList<float, ApplyUnderwaterFogToTransparent> _registry = new CrestSortedList<float, ApplyUnderwaterFogToTransparent>(new TransparentRenderOrderComparer());
+
+        internal class TransparentRenderOrderComparer : IComparer<float>
+        {
+            int IComparer<float>.Compare(float x, float y)
+            {
+                return x.CompareTo(y) * -1;
+            }
+        }
+
         void SetupUnderwaterEffect()
         {
             if (_underwaterEffectMaterial?.material == null)
             {
                 _underwaterEffectMaterial = new PropertyWrapperMaterial(SHADER_UNDERWATER_EFFECT);
+            }
+
+            if (_materialPropertyBlock == null)
+            {
+                _materialPropertyBlock = new MaterialPropertyBlock();
             }
 
             if (_underwaterEffectCommandBuffer == null)
@@ -77,24 +94,94 @@ namespace Crest
 
             _underwaterEffectCommandBuffer.Clear();
 
-            if (_camera.allowMSAA)
-            {
-                // Use blit if MSAA is active because transparents were not included with CopyTexture.
-                // Not sure if we need an MSAA resolve? Not sure how to do that...
-                _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
-            }
-            else
-            {
-                // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
-                _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
-            }
+            CopyTexture(_underwaterEffectCommandBuffer, temporaryColorBuffer, _camera);
 
             _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 
             _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material,
+                shaderPass: 0, MeshTopology.Triangles, vertexCount: 3, instanceCount: 1);
+
+            // NOTE: Sorting Transparent Objects Manually
+            // We are sorting manually but Unity might provide a way as we still need to take TransparencySortMode
+            // into account.
+
+            // Add renderers if within frustum and sort transparency as Unity does.
+            _registry.Clear();
+            foreach (var input in ApplyUnderwaterFogToTransparent.s_Renderers)
+            {
+                // Disabled renderer means we control the rendering.
+                if (input.IsEnabled && GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, input._renderer.bounds))
+                {
+                    _registry.Add(Vector3.Distance(_camera.transform.position, input.transform.position), input);
+                }
+            }
+
+            // Enable probe sampling.
+            _underwaterEffectCommandBuffer.EnableShaderKeyword("LIGHTPROBE_SH");
+
+            foreach (var registered in _registry)
+            {
+                var input = registered.Value;
+                var renderer = input._renderer;
+
+                renderer.GetPropertyBlock(_materialPropertyBlock);
+
+                // Set _MainTex so we can get the alpha channel for blending.
+                var texture = renderer.sharedMaterial.HasProperty(input._textureProperty) ? renderer.sharedMaterial.GetTexture(input._textureProperty) : null;
+                if (texture != null)
+                {
+                    _materialPropertyBlock.SetTexture(input._textureProperty, renderer.sharedMaterial.GetTexture(input._textureProperty));
+                    _materialPropertyBlock.SetVector(input._texturePropertyST, renderer.sharedMaterial.GetVector(input._texturePropertyST));
+                }
+                else
+                {
+                    _materialPropertyBlock.SetTexture(input._textureProperty, Texture2D.whiteTexture);
+                }
+
+                // Add missing probe data.
+                // LightProbeUtility.SetSHCoefficients(renderer.gameObject.transform.position, _materialPropertyBlock);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+
+                if (input._highQuality)
+                {
+                    // Render into temporary render texture so the effect shader will have colour to work with. I could not
+                    // work out how to use GPU blending to apply the underwater fog correctly.
+                    CopyTexture(_underwaterEffectCommandBuffer, temporaryColorBuffer, _camera);
+                    _underwaterEffectCommandBuffer.SetRenderTarget(temporaryColorBuffer, 0, CubemapFace.Unknown, -1);
+                }
+                else
+                {
+                    _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+                }
+
+                _underwaterEffectCommandBuffer.DrawRenderer(renderer, renderer.sharedMaterial, submeshIndex: 0, shaderPass: input._shaderPass);
+
+                int shaderPass = input._highQuality ? 2 : 1;
+
+                // Render the fog and apply to camera target.
+                _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+                _underwaterEffectCommandBuffer.DrawRenderer(renderer, _underwaterEffectMaterial.material, submeshIndex: 0, shaderPass);
+            }
+
+            _underwaterEffectCommandBuffer.DisableShaderKeyword("LIGHTPROBE_SH");
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
+        }
+
+        static void CopyTexture(CommandBuffer buffer, RenderTexture texture, Camera camera)
+        {
+            if (camera.allowMSAA)
+            {
+                // Use blit if MSAA is active because transparents were not included with CopyTexture.
+                // Not sure if we need an MSAA resolve? Not sure how to do that...
+                buffer.Blit(BuiltinRenderTextureType.CameraTarget, texture);
+            }
+            else
+            {
+                // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
+                buffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, texture);
+            }
         }
 
         internal static void UpdatePostProcessMaterial(

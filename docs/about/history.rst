@@ -17,14 +17,30 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
+   -  Add inverted option to *Clip Surface* signed-distance primitives and convex hulls which removes clipping.
+
+
+4.13
+----
+
+Changed
+^^^^^^^
+.. bullet_list::
+
    -  Add signed-distance primitives for more accurate clipping and overlapping.
       See :ref:`clip-surface-section` for more information.
    -  Add *Render Texture Graphics Format* option to *Clip Surface Sim Settings* to support even more accurate clipping for signed-distance primitives.
    -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
+   -  Always report displacement in *Register Height Input* to solve culling issues.
    -  Add default textures to ocean shader.
    -  Update ocean shader default values.
    -  Improve foam detail at medium to long distance.
    -  Add *Scale By Factor* shader for all inputs which is particularly useful when used with *Animated Waves* for reducing waves.
+
+   .. only:: hdrp
+
+      -  Add a simpler custom material inspector. `[HDRP]`
 
    .. only:: urp
 
@@ -40,13 +56,22 @@ Fixed
    -  Fix FFT shader build errors for Game Core platforms.
    -  Fix FFT material allocations every frame.
    -  Fix flow simulation sometimes not clearing after disabling last input.
+   -  Fix outline around objects when MSAA is enabled by making it less noticeable.
    -  Fix pixelated looking foam bubbles at medium to long distance.
+   -  Fix underwater effect undershooting or overshooting ocean surface when XR camera is nearly aligned with horizon.
+   -  Fix underwater effect being flipped at certain camera orientations.
+   -  Fix meniscus thickness consistency (in some cases disappearing) with different camera orientations.
+   -  Fix inputs (eg keyboard) working when game view is not focused.
+   -  Fix *Ocean Depth Cache* disabling itself in edit mode when no ocean is present.
 
    .. only:: hdrp
 
       -  Fix ocean disappearing when viewed from an area clipped by a clip surface input. `[HDRP]`
       -  Fix shadows breaking builds when XR package is present. `[HDRP]`
       -  Fix shadows not working with XR `SPI`. `[HDRP]`
+      -  Fix 2021.2.0b9 shader compile errors. `[HDRP]`
+      -  Fix ocean material properties missing for 2021.2 material inspector. `[HDRP]`
+      -  Fix outline around refracted objects by making it less noticeable. `[HDRP]`
 
    .. only:: birp or urp
 

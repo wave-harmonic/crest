@@ -6,6 +6,11 @@
 
 Shader "Crest/Inputs/Clip Surface/Convex Hull"
 {
+	Properties
+	{
+		[Toggle] _Inverted("Inverted", Float) = 0
+	}
+
 	SubShader
 	{
 		ZWrite Off
@@ -28,6 +33,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			CBUFFER_START(CrestPerOceanInput)
 			uint _DisplacementSamplingIterations;
+			float _Inverted;
 			CBUFFER_END
 
 			struct Attributes
@@ -66,7 +72,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				{
 					clip(-1);
 				}
-				return float4(1, 0, 0, 1);
+				return float4(_Inverted == 0, 0, 0, 1);
 			}
 			ENDCG
 		}
@@ -86,8 +92,10 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#include "../../OceanHelpersNew.hlsl"
 			#include "../../OceanHelpersDriven.hlsl"
 
+
 			CBUFFER_START(CrestPerOceanInput)
 			uint _DisplacementSamplingIterations;
+			float _Inverted;
 			CBUFFER_END
 
 			struct Attributes
@@ -126,7 +134,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				{
 					clip(-1);
 				}
-				return float4(0, 0, 0, 1);
+				return float4(_Inverted, 0, 0, 1);
 			}
 			ENDCG
 		}

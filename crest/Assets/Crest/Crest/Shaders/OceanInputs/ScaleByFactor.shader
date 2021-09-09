@@ -43,7 +43,8 @@ Shader "Crest/Inputs/All/Scale By Factor"
 			#include "UnityCG.cginc"
 
 			#include "../OceanGlobals.hlsl"
-			#include "../OceanShaderHelpers.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 
 #if defined(_TEXTURE_ON) || defined(_FEATHERATUVEXTENTS_ON)
 #define _NEED_UVS

@@ -3,7 +3,7 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2020.3.10 and later.
 The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
@@ -43,7 +43,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 * Unity version:
   * The SRP assets on the Asset Store specify the minimum version required.
-  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.4.8 or later is the minimum version. See further down for 2018.4 support.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2020.3.10 or later is the minimum version. See further down for 2018.4 support.
 * *Crest* example content:
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime

@@ -123,9 +123,9 @@ MonoBehaviour:
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
   _debug:
-    disableCameraRollPrevention: 0
-    disableOcclusionMesh: 0
-    occlusionMeshScale: 1
+    _enableCameraRoll: 0
+    _disableOcclusionMesh: 0
+    _occlusionMeshScale: 1
 --- !u!114 &8981585090060889922
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,14 +139,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  filterOceanData: 13
-  meniscus: 1
-  copyOceanMaterialParamsEachFrame: 1
-  farPlaneMultiplier: 0.68
-  useHorizonSafetyMarginMultiplier: 0
-  horizonSafetyMarginMultiplier: 0.01
-  scaleSafetyMarginWithDynamicResolution: 1
-  debug:
-    viewOceanMask: 0
-    disableOceanMask: 0
-    disableHeightAboveWaterOptimization: 0
+  _filterOceanData: 13
+  _meniscus: 1
+  _copyOceanMaterialParamsEachFrame: 1
+  _farPlaneMultiplier: 0.68
+  _debug:
+    _viewOceanMask: 0
+    _disableOceanMask: 0
+    _disableHeightAboveWaterOptimization: 0

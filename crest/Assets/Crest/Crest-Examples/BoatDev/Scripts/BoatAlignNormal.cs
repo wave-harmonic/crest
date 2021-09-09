@@ -148,7 +148,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
         float forward = _throttleBias;
 #if ENABLE_INPUT_SYSTEM
-        float rawForward = (Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0);
+        float rawForward = !Application.isFocused ? 0 : ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
 #else
         float rawForward = Input.GetAxis("Vertical");
 #endif
@@ -159,8 +159,9 @@ public class BoatAlignNormal : FloatingObjectBase
         float sideways = _steerBias;
         if (_playerControlled) sideways +=
 #if ENABLE_INPUT_SYSTEM
-                (Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
-                (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f);
+                !Application.isFocused ? 0 :
+                ((Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
+                (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f));
 #else
                 (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);

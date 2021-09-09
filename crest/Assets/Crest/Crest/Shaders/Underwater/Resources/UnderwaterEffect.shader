@@ -127,9 +127,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				float2 uv = input.uv;
 #endif
 
-				float4 horizonPositionNormal; bool isBelowHorizon;
-				GetHorizonData(uv, horizonPositionNormal, isBelowHorizon);
-
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(uv);
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
 				float rawDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
@@ -137,7 +134,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				const float rawOceanDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
 
 				bool isOceanSurface; bool isUnderwater; float sceneZ;
-				GetOceanSurfaceAndUnderwaterData(rawOceanDepth, mask, isBelowHorizon, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+				GetOceanSurfaceAndUnderwaterData(uvScreenSpace, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
 #if _GEOMETRY_EFFECT_CONVEX_HULL
 				const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uvScreenSpace).x;
@@ -169,7 +166,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				}
 #endif
 
-				float wt = ComputeMeniscusWeight(uvScreenSpace, mask, horizonPositionNormal, sceneZ);
+				float wt = ComputeMeniscusWeight(uvScreenSpace, mask, _HorizonNormal, sceneZ);
 
 #if _DEBUG_VIEW_OCEAN_MASK
 				return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);

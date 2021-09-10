@@ -9,12 +9,9 @@
 
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
-#include "../FullScreenTriangle.hlsl"
 
 // Driven by scripting. It is a non-linear converted from a linear 0-1 value.
 float _FarPlaneOffset;
-float4x4 _InvViewProjection;
-float4x4 _InvViewProjectionRight;
 
 struct Attributes
 {
@@ -25,7 +22,7 @@ struct Attributes
 struct Varyings
 {
 	float4 positionCS : SV_POSITION;
-	float3 positionWS : TEXCOORD0;
+	float2 uv : TEXCOORD0;
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -37,25 +34,17 @@ Varyings Vert(Attributes input)
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 	output.positionCS = GetFullScreenTriangleVertexPosition(input.id, _FarPlaneOffset);
-	float2 uv = GetFullScreenTriangleTexCoord(input.id);
-
-	const float2 pixelCS = uv * 2.0 - float2(1.0, 1.0);
-#if CREST_HANDLE_XR
-	const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
-#else
-	const float4x4 InvViewProjection = _InvViewProjection;
-#endif
-	const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, _FarPlaneOffset, 1.0));
-	const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
-
-	output.positionWS = pixelWS;
+	output.uv = GetFullScreenTriangleTexCoord(input.id);
 
 	return output;
 }
 
 half4 Frag(Varyings input) : SV_Target
 {
-	return (half4) input.positionWS.y > _OceanCenterPosWorld.y
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+	float3 positionWS = ComputeWorldSpacePosition(input.uv, _FarPlaneOffset, UNITY_MATRIX_I_VP);
+	return (half4) positionWS.y > _OceanCenterPosWorld.y
 		? UNDERWATER_MASK_ABOVE_SURFACE
 		: UNDERWATER_MASK_BELOW_SURFACE;
 }

@@ -44,6 +44,10 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#include "UnityCG.cginc"
 
+			#include "../../Helpers/Legacy/Common.hlsl"
+			#include "../../Helpers/Legacy/InputsDriven.hlsl"
+			#include "../../FullScreenTriangle.hlsl"
+
 			#include "../UnderwaterMaskHorizonShared.hlsl"
 			ENDCG
 		}

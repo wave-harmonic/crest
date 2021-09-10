@@ -136,14 +136,14 @@ namespace Crest
         {
             SetupOceanMask();
             SetupUnderwaterEffect();
-            _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _waterBoundaryGeometryCommandBuffer);
+            _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _boundaryCommandBuffer);
             _camera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
         }
 
         void Disable()
         {
-            _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _waterBoundaryGeometryCommandBuffer);
+            _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _boundaryCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
         }

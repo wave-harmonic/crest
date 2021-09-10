@@ -252,9 +252,6 @@ Shader "Crest/Ocean"
 
 			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
-			// Clipping the ocean surface for underwater volumes.
-			#pragma multi_compile_local __ _UNDERWATER_GEOMETRY_EFFECT
-
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
 			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
@@ -262,6 +259,13 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
 			#pragma multi_compile_local _ _OLD_UNDERWATER
+
+			// Clipping the ocean surface for underwater volumes.
+			#pragma multi_compile_local _UNDERWATER_GEOMETRY_EFFECT_NONE _UNDERWATER_GEOMETRY_EFFECT_PLANE _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+
+#if defined(_UNDERWATER_GEOMETRY_EFFECT_PLANE) || defined(_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL)
+			#define _UNDERWATER_GEOMETRY_EFFECT 1
+#endif
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -459,6 +463,43 @@ Shader "Crest/Ocean"
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 
+				half3 screenPos = input.screenPosXYW;
+				half2 uvDepth = screenPos.xy / screenPos.z;
+
+#if _UNDERWATER_GEOMETRY_EFFECT
+				{
+					float rawClipSurfaceBackZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, uvDepth).x;
+
+					if (rawClipSurfaceBackZ > 0)
+					{
+						if (rawClipSurfaceBackZ >= input.positionCS.z)
+						{
+							discard;
+						}
+					}
+#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+					else
+					{
+						discard;
+					}
+#endif
+
+					float rawClipSurfaceFrontZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, uvDepth).x;
+
+					if (rawClipSurfaceFrontZ != 0 && rawClipSurfaceFrontZ < input.positionCS.z)
+					{
+						discard;
+					}
+
+#if _UNDERWATER_GEOMETRY_EFFECT_PLANE
+					if (rawClipSurfaceFrontZ == 0 && rawClipSurfaceBackZ == 0)
+					{
+						discard;
+					}
+				}
+#endif
+#endif
+
 				#if _CLIPSURFACE_ON
 				// Clip surface
 				half clipVal = 0.0;
@@ -480,19 +521,6 @@ Shader "Crest/Ocean"
 				#if _CLIPUNDERTERRAIN_ON
 				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);
 				#endif
-
-				half3 screenPos = input.screenPosXYW;
-				half2 uvDepth = screenPos.xy / screenPos.z;
-
-#if _UNDERWATER_GEOMETRY_EFFECT
-				{
-					const float rawClipSurfaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uvDepth);
-					if (rawClipSurfaceZ != 0 && rawClipSurfaceZ < input.positionCS.z)
-					{
-						discard;
-					}
-				}
-#endif
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 

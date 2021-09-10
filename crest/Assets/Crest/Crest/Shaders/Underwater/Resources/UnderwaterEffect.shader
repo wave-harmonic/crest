@@ -137,7 +137,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				GetOceanSurfaceAndUnderwaterData(uvScreenSpace, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
 #if _GEOMETRY_EFFECT_CONVEX_HULL
-				const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, uvScreenSpace).x;
+				const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, uvScreenSpace).x;
 				bool isBeforeFrontFaceBoundary = false;
 				bool isAfterBackFaceBoundary = false;
 

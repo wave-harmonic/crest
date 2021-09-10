@@ -35,7 +35,7 @@ struct Varyings
 float _ForceUnderwater;
 
 #if _UNDERWATER_GEOMETRY_EFFECT
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture);
+UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture);
 #endif
 
 Varyings Vert(Attributes v)
@@ -114,8 +114,9 @@ half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV
 {
 #if _UNDERWATER_GEOMETRY_EFFECT
 	half2 screenUV = input.screenPosition.xy / input.screenPosition.z;
-	const float deviceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryTexture, screenUV.xy).x;
+	const float deviceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, screenUV.xy).x;
 
+	// Discard any pixels in front of the boundary geometry otherwise the mask will be incorrect at eye level.
 	if (deviceZ != 0 && deviceZ < input.positionCS.z)
 	{
 		discard;

@@ -13,10 +13,13 @@ namespace Crest
         internal const string SHADER_OCEAN_MASK = "Hidden/Crest/Underwater/Ocean Mask";
         internal const int k_ShaderPassOceanSurfaceMask = 0;
         internal const int k_ShaderPassOceanHorizonMask = 1;
+        internal const int k_ShaderPassWaterBoundaryOuter = 0;
+        internal const int k_ShaderPassWaterBoundaryInner = 1;
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
-        public static readonly int sp_CrestWaterBoundaryGeometryTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryTexture");
+        public static readonly int sp_CrestWaterBoundaryGeometryOuterTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryOuterTexture");
+        public static readonly int sp_CrestWaterBoundaryGeometryInnerTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryInnerTexture");
         public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
 
         internal Plane[] _cameraFrustumPlanes;
@@ -25,9 +28,10 @@ namespace Crest
         RenderTexture _maskTexture;
         RenderTexture _depthTexture;
 
-        RenderTexture _waterBoundaryGeometryTexture;
-        CommandBuffer _waterBoundaryGeometryCommandBuffer;
-        Material _waterBoundaryGeometryMaterial = null;
+        CommandBuffer _boundaryCommandBuffer;
+        Material _boundaryMaterial = null;
+        RenderTexture _boundaryInnerTexture;
+        RenderTexture _boundaryOuterTexture;
 
         void SetupOceanMask()
         {
@@ -44,14 +48,14 @@ namespace Crest
                 };
             }
 
-            if (_waterBoundaryGeometryMaterial == null)
+            if (_boundaryMaterial == null)
             {
-                _waterBoundaryGeometryMaterial = new Material(Shader.Find("Crest/Hidden/Water Boundary Geometry"));
+                _boundaryMaterial = new Material(Shader.Find("Crest/Hidden/Water Boundary Geometry"));
             }
 
-            if (_waterBoundaryGeometryCommandBuffer == null)
+            if (_boundaryCommandBuffer == null)
             {
-                _waterBoundaryGeometryCommandBuffer = new CommandBuffer()
+                _boundaryCommandBuffer = new CommandBuffer()
                 {
                     name = "Water Boundary Geometry",
                 };
@@ -69,23 +73,45 @@ namespace Crest
             // convex hull, but could be skipped if we sample the clip surface in the mask.
             if (_waterVolumeBoundaryGeometry != null)
             {
-                InitialiseClipSurfaceMaskTextures(descriptor, ref _waterBoundaryGeometryTexture);
-
                 // Keep separate from mask.
-                _waterBoundaryGeometryCommandBuffer.Clear();
-                _waterBoundaryGeometryCommandBuffer.SetRenderTarget(_waterBoundaryGeometryTexture.depthBuffer);
-                _waterBoundaryGeometryCommandBuffer.ClearRenderTarget(true, false, Color.black);
-                _waterBoundaryGeometryCommandBuffer.SetViewProjectionMatrices(_camera.worldToCameraMatrix, _camera.projectionMatrix);
-                _waterBoundaryGeometryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryTexture, _waterBoundaryGeometryTexture.depthBuffer);
-                _waterBoundaryGeometryCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _waterBoundaryGeometryMaterial, 0, 0);
+                _boundaryCommandBuffer.Clear();
+                _boundaryCommandBuffer.SetViewProjectionMatrices(_camera.worldToCameraMatrix, _camera.projectionMatrix);
+
+                // Outer boundary.
+                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryInnerTexture, "Outer");
+                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryOuterTexture, _boundaryInnerTexture.depthBuffer);
+                _boundaryCommandBuffer.SetRenderTarget(_boundaryInnerTexture.depthBuffer);
+                _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
+                _boundaryCommandBuffer.DrawMesh
+                (
+                    _waterVolumeBoundaryGeometry.mesh,
+                    _waterVolumeBoundaryGeometry.transform.localToWorldMatrix,
+                    _boundaryMaterial,
+                    submeshIndex: 0,
+                    k_ShaderPassWaterBoundaryOuter
+                );
+
+                // Inner boundary.
+                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryOuterTexture, "Inner");
+                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryInnerTexture, _boundaryOuterTexture.depthBuffer);
+                _boundaryCommandBuffer.SetRenderTarget(_boundaryOuterTexture.depthBuffer);
+                _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
+                _boundaryCommandBuffer.DrawMesh
+                (
+                    _waterVolumeBoundaryGeometry.mesh,
+                    _waterVolumeBoundaryGeometry.transform.localToWorldMatrix,
+                    _boundaryMaterial,
+                    submeshIndex: 0,
+                    k_ShaderPassWaterBoundaryInner
+                );
 
                 _oceanMaskMaterial.material.EnableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
-                OceanRenderer.Instance.OceanMaterial.EnableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
+                OceanRenderer.Instance.OceanMaterial.EnableKeyword(_isConvexHull ? "_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL" : "_UNDERWATER_GEOMETRY_EFFECT_PLANE");
             }
             else
             {
                 _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
-                OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
+                OceanRenderer.Instance.OceanMaterial.EnableKeyword("_UNDERWATER_GEOMETRY_EFFECT_NONE");
             }
 
             _oceanMaskCommandBuffer.Clear();
@@ -136,7 +162,7 @@ namespace Crest
             }
         }
 
-        internal static void InitialiseClipSurfaceMaskTextures(RenderTextureDescriptor desc, ref RenderTexture depthBuffer)
+        internal static void InitialiseClipSurfaceMaskTextures(RenderTextureDescriptor desc, ref RenderTexture depthBuffer, string name)
         {
             // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
             if (depthBuffer == null || depthBuffer.width != desc.width || depthBuffer.height != desc.height)
@@ -152,7 +178,7 @@ namespace Crest
                 {
                     depth = 24,
                     enableRandomWrite = false,
-                    name = "Clip Surface Mask",
+                    name = $"Clip Surface Mask {name}",
                     format = RenderTextureFormat.Depth,
                 };
 

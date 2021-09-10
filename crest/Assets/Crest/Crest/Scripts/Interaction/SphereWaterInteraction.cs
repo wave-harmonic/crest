@@ -153,7 +153,7 @@ namespace Crest
 
                 if (_warnOnTeleport)
                 {
-                    Debug.LogWarning("Teleport detected (speed = " + speedKmh.ToString() + "), velocity discarded.", this);
+                    Debug.LogWarning("Crest: Teleport detected (speed = " + speedKmh.ToString() + "), velocity discarded.", this);
                 }
             }
             else if (speedKmh > _maxSpeed)
@@ -163,7 +163,7 @@ namespace Crest
 
                 if (_warnOnSpeedClamp)
                 {
-                    Debug.LogWarning("Speed (" + speedKmh.ToString() + ") exceeded max limited, clamped.", this);
+                    Debug.LogWarning("Crest: Speed (" + speedKmh.ToString() + ") exceeded max limited, clamped.", this);
                 }
             }
 

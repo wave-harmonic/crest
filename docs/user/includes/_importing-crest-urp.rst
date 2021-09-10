@@ -20,22 +20,14 @@ Transparency requires the following two options to be enabled, *Depth Texture* a
 
 .. image:: /_media/UrpPipelineSettings.png
 
+.. note::
+
+   If you are using the underwater effect, it is recommended to set *Opaque Downsampling* to *None*.
+   *Opaque Downsampling* will make everything appear at a lower resolution when underwater.
+   Be sure to test to see if recommendation is suitable for your project.
+
 .. TODO:
 .. We should ask Unity to improve documentation on locating the URP asset(s) so we can just link to it.
 .. The best they have is /configuring-universalrp-for-use.html#adding-the-asset-to-your-graphics-settings.
 
 Read :link:`Unity's documentation on the {URP} Asset <{URPDocLink}/universalrp-asset.html#general>` for more information on these options.
-
-
-.. only:: html
-
-   .. raw:: html
-
-      <h4>Shadowing</h4>
-
-.. only:: latex
-
-   Shadowing
-   """""""""
-
-To enable shadowing of the water surface which will darken the appearance in shadows, add the *Sample Shadows* Render Feature by following :link:`How to add a Renderer Feature to a Renderer <{URPDocLink}/urp-renderer-feature-how-to-add.html>`.

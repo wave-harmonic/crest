@@ -8,6 +8,8 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsClipSurface;
+
     /// <summary>
     /// Drives ocean surface clipping (carving holes). 0-1 values, surface clipped when > 0.5.
     /// </summary>
@@ -15,8 +17,7 @@ namespace Crest
     {
         public override string SimName { get { return "ClipSurface"; } }
 
-        // The clip values only really need 8bits
-        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8_UNorm;
+        protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
@@ -29,6 +30,9 @@ namespace Crest
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Clip Surface Data</i> option on this component to turn it on, or disable the <i>Clipping</i> feature on the ocean material to save performance.";
 
         bool _targetsClear = false;
+
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsClipSurface != null ? _ocean._simSettingsClipSurface : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrClipSurface(OceanRenderer ocean) : base(ocean)
         {
@@ -44,7 +48,7 @@ namespace Crest
                 && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
+                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }

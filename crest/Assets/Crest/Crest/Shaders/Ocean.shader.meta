@@ -1,9 +1,14 @@
 fileFormatVersion: 2
 guid: 668aecf91371c8b4997e42c0c7b19527
-timeCreated: 1464517534
-licenseType: Free
 ShaderImporter:
-  defaultTextures: []
+  externalObjects: {}
+  defaultTextures:
+  - _Normals: {fileID: 2800000, guid: 800e061692ff7a84e887f439d3364410, type: 3}
+  - _ReflectionCubemapOverride: {instanceID: 0}
+  - _FoamTexture: {fileID: 2800000, guid: 02e417d5711139342884479f53dbecea, type: 3}
+  - _CausticsTexture: {fileID: 2800000, guid: 1712f23cb5185144fa2614d2da21b39e, type: 3}
+  nonModifiableTextures: []
+  preprocessorOverride: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

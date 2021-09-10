@@ -6,7 +6,9 @@ using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace Crest
 {
@@ -55,21 +57,8 @@ namespace Crest
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
         readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsShadow != null) return _ocean._simSettingsShadow;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrShadow(OceanRenderer ocean) : base(ocean)
         {
@@ -94,7 +83,7 @@ namespace Crest
             }
             catch (Exception)
             {
-                Debug.LogError("Could not load shadow update kernel. Disabling shadows.", _ocean);
+                Debug.LogError("Crest: Could not load shadow update kernel. Disabling shadows.", _ocean);
                 enabled = false;
                 return;
             }
@@ -104,7 +93,7 @@ namespace Crest
                 && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
+                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }
@@ -127,13 +116,13 @@ namespace Crest
 
             if (_mainLight.type != LightType.Directional)
             {
-                Debug.LogError("Primary light must be of type Directional.", OceanRenderer.Instance);
+                Debug.LogError("Crest: Primary light must be of type Directional.", OceanRenderer.Instance);
                 return false;
             }
 
             if (_mainLight.shadows == LightShadows.None)
             {
-                Debug.LogError("Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
+                Debug.LogError("Crest: Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
                 return false;
             }
 
@@ -165,7 +154,7 @@ namespace Crest
             {
                 if (!Settings._allowNullLight)
                 {
-                    Debug.LogWarning("Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
+                    Debug.LogWarning("Crest: Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
                 }
                 return;
             }
@@ -265,13 +254,10 @@ namespace Crest
                 }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-                // Disable single pass double-wide stereo rendering for these commands since we are rendering to
-                // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
-                // appears to be a Unity bug only for the legacy VR system.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                // Disable for XR SPI otherwise input will not have correct world position.
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
-                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
-                    BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                    BufCopyShadowMap.DisableShaderKeyword("STEREO_INSTANCING_ON");
                 }
 #endif
 
@@ -283,11 +269,10 @@ namespace Crest
                 }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-                // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
-                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                // Restore XR SPI as we cannot rely on remaining pipeline to do it for us.
+                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
                 {
-                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
-                    BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                    BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
                 }
 #endif
             }

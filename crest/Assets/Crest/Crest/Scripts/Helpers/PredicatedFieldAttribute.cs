@@ -95,7 +95,7 @@ namespace Crest
             }
             else
             {
-                Debug.LogError($"PredicatedAttribute - property type not implemented yet: {prop.type}.", prop.serializedObject.targetObject);
+                Debug.LogError($"Crest: PredicatedAttribute: property type not implemented yet: {prop.type}.", prop.serializedObject.targetObject);
                 return true;
             }
 

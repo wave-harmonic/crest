@@ -60,13 +60,13 @@ float PostProcessHandleOccluderMask(float2 uv, float oceanMask, float oceanDepth
 	// parts of this based on which underwater features we have enabled.
 	if(occluderMask == OCCLUDER_MASK_OCCLUDE_ALL || occluderMask == OCCLUDER_MASK_OCCLUDE_WATER_IN_FRONT)
 	{
-		oceanMask = UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+		oceanMask = UNDERWATER_MASK_ABOVE_SURFACE;
 	}
 	else if(occluderMask == OCCLUDER_MASK_OCCLUDE_WATER_BEHIND)
 	{
 		// We want to disable underwater behind the occluder surface,
 		// but therefore if we are already underwater, we need to ensure that we apply for to the appropriate pixels.
-		oceanMask = UNDERWATER_MASK_WATER_SURFACE_BELOW;
+		oceanMask = UNDERWATER_MASK_BELOW_SURFACE;
 	}
 	return oceanMask;
 }

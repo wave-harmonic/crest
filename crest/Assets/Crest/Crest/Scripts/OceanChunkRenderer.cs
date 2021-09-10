@@ -113,15 +113,6 @@ namespace Crest
                 return;
             }
 
-            // Camera.current is only supported in built-in pipeline.
-            if (Camera.current != null)
-            {
-                _currentCamera = Camera.current;
-            }
-
-            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
-            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
-
             if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
                 Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
@@ -137,7 +128,7 @@ namespace Crest
 
             // Only done here because current camera is defined. This could be done just once, probably on the OnRender function
             // or similar on the OceanPlanarReflection script?
-            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
+            var reflTex = PreparedReflections.GetRenderTexture(camera.GetHashCode());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);
@@ -154,10 +145,16 @@ namespace Crest
         // Called when visible to a camera
         void OnWillRenderObject()
         {
-            // check if built-in pipeline being used
+            // Camera.current is only supported in built-in pipeline.
             if (Camera.current != null)
             {
                 _currentCamera = Camera.current;
+            }
+
+            // If only the game view is visible, this reference will be dropped for SRP on recompile.
+            if (_currentCamera == null)
+            {
+                return;
             }
 
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.

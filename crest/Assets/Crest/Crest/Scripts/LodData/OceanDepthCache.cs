@@ -90,12 +90,6 @@ namespace Crest
 
         void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && _runValidationOnStart)
             {
@@ -158,7 +152,7 @@ namespace Crest
 #endif
             }
 
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
+            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "Crest: The graphics device does not support the render texture format " + fmt.ToString());
             var result = new RenderTexture(_resolution, _resolution, depthStencilTarget ? 24 : 0);
             result.name = gameObject.name + "_oceanDepth_" + (depthStencilTarget ? "DepthOnly" : "Cache");
             result.format = fmt;
@@ -186,7 +180,7 @@ namespace Crest
 
             if (_layers == 0)
             {
-                Debug.LogError("No valid layers for populating depth cache, aborting.", this);
+                Debug.LogError("Crest: No valid layers for populating depth cache, aborting.", this);
                 return false;
             }
 
@@ -424,7 +418,7 @@ namespace Crest
                 ti.alphaIsTransparency = false;
                 ti.SaveAndReimport();
 
-                Debug.Log("Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
+                Debug.Log("Crest: Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
             }
 
             ShowValidationMessages();
@@ -641,6 +635,17 @@ namespace Crest
                 );
 
                 isValid = false;
+            }
+
+            if (ocean == null)
+            {
+                showMessage
+                (
+                    "The <i>Ocean Depth Cache</i> uses the <i>Ocean Renderer</i> height which is not present. " +
+                    "The transform height will be used instead.",
+                    "", // Leave fix message blank as this could be a valid option.
+                    ValidatedHelper.MessageType.Info, this
+                );
             }
 
             if (ocean != null && ocean.Root != null && !Mathf.Approximately(transform.position.y, ocean.Root.position.y))

@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -101,4 +102,9 @@ namespace Crest
             UpdateMaterials();
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(Whirlpool))]
+    public class WhirlpoolEditor : Editor { }
+#endif
 }

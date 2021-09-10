@@ -40,11 +40,17 @@ Transparent Object Underwater
 
 This is tricky because the underwater effect uses the opaque scene depths in order to render the water fog, which will not include transparents.
 
+The following only applies to the *Underwater Renderer*.
+
 .. only:: birp
 
    .. tab:: `BIRP`
 
-      .. include:: includes/_underwater-curtain-transparents.rst
+      Transparents will need to be rendered after the underwater effect.
+      The underwater effect is rendered at the :link:`CameraEvent.AfterForwardAlpha <{UnityDocScriptLink}/Rendering.CameraEvent.AfterForwardAlpha.html>` event.
+      They can be rendered after the underwater effect using :link:`Command Buffers <{BIRPDocLink}/GraphicsCommandBuffers.html>`.
+      Transparents rendered after the underwater effect will not have the underwater water fog shading applied to them.
+      The effect of the fog either needs to be faked by simply ramping the opacity down to 0 based on distance from the camera, or the water fog shader code needs to be included and called from the transparent shader.
 
 .. only:: hdrp
 
@@ -52,17 +58,22 @@ This is tricky because the underwater effect uses the opaque scene depths in ord
 
       The Submarine example scene demonstrates an underwater transparent effect - the bubbles from the propellors when the submarine is in motion.
       This effect is from the *Bubbles Propellor* GameObject, which is assigned a specific layer *TransparentFX*.
-      To drive the rendering, the *CustomPassForUnderwaterParticles* GameObject has a *Custom Pass Volume* component attached which is configured to render the *TransparentFX* layer in the *After Post Process* injection point, i.e. after the underwater postprocess has rendered.
-      Transparents rendered after the underwater postprocess will not have the underwater water fog shading applied to them.
-      The effect of the fog either needs to be faked by simply ramping the opacity down to 0 based on distance from the camera, or the water fog shader code needs included and called from teh transparent shader.
-      The shader *UnderwaterPostProcessHDRP.shader* is a good reference for calculating the underwater effect.
+      The particles need to be rendered between the underwater and post-processing passes which is achieved using a *Custom Pass Volume* component attached to the *CustomPassForUnderwaterParticles* GameObject.
+      It is configured to render the *TransparentFX* layer in the *Before Post Process* injection point with a priority of "-1" (which orders it to render after the underwater pass).
+      Transparents rendered after the underwater effect will not have the underwater water fog shading applied to them.
+      The effect of the fog either needs to be faked by simply ramping the opacity down to 0 based on distance from the camera, or the water fog shader code needs to be included and called from the transparent shader.
+      The shader *UnderwaterEffectPassHDRP.shader* is a good reference for calculating the underwater effect.
       This will require various parameters on the shader like fog density and others.
 
 .. only:: urp
 
    .. tab:: `URP`
 
-      .. include:: includes/_underwater-curtain-transparents.rst
+      Transparents will need to be rendered after the underwater effect.
+      The underwater effect is rendered at the *BeforeRenderingPostProcessing* event.
+      They can be rendered after the underwater effect using the :link:`Render Objects Render Feature <{URPDocLink}/urp-renderer-feature-how-to-add.html>` set to *BeforeRenderingPostProcessing*.
+      Transparents rendered after the underwater effect will not have the underwater water fog shading applied to them.
+      The effect of the fog either needs to be faked by simply ramping the opacity down to 0 based on distance from the camera, or the water fog shader code needs to be included and called from the transparent shader.
 
 .. only:: birp or urp
 

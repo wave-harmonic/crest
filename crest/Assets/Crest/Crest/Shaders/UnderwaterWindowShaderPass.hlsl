@@ -63,7 +63,7 @@ void CrestApplyUnderwaterFog (in float2 uvScreenSpace, in float3 viewWS, in floa
 	}
 
 	const bool isBelowHorizon = dot(uvScreenSpace - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0;
-	bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+	bool isUnderwater = oceanMask == UNDERWATER_MASK_BELOW_SURFACE || (isBelowHorizon && oceanMask != UNDERWATER_MASK_ABOVE_SURFACE);
 
 	float sceneDepth = LinearEyeDepth(sceneZ01);
 	float fogDistance = sceneDepth - LinearEyeDepth(surfaceZ01);
@@ -72,16 +72,18 @@ void CrestApplyUnderwaterFog (in float2 uvScreenSpace, in float3 viewWS, in floa
 	if(isUnderwater)
 	{
 		half3 view = normalize(viewWS);
+		float3 scenePos = _WorldSpaceCameraPos - view * sceneDepth / dot(unity_CameraToWorld._m02_m12_m22, -view);
+		const float3 lightDir = _WorldSpaceLightPos0.xyz;
+		const half3 lightCol = _LightColor0;
 		sceneColour.xyz = ApplyUnderwaterEffect(
-			_LD_TexArray_AnimatedWaves,
-			_Normals,
-			_WorldSpaceCameraPos,
-			_CrestAmbientLighting,
+			scenePos,
 			sceneColour.xyz,
+			lightCol,
+			lightDir,
+			sceneZ01,
 			sceneDepth,
 			fogDistance,
 			view,
-			_DepthFogDensity,
 			isOceanSurface
 		);
 	}

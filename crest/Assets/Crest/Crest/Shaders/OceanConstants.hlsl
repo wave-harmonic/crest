@@ -23,18 +23,14 @@
 #define CREST_SHADOW_INDEX_SOFT 0
 #define CREST_SHADOW_INDEX_HARD 1
 
-// @volatile: UnderwaterMaskValues These MUST match the values in UnderwaterPostProcessUtils.cs
-
-// Background
-#define UNDERWATER_MASK_NO_MASK 1.0
-// Water rendered from above
-#define UNDERWATER_MASK_WATER_SURFACE_ABOVE 0.0
-// Water rendered from below
-#define UNDERWATER_MASK_WATER_SURFACE_BELOW 2.0
+// Water rendered from above.
+#define UNDERWATER_MASK_ABOVE_SURFACE 0.0
+// Water rendered from below. Used to invert meniscus sampling so keep as 2.0.
+#define UNDERWATER_MASK_BELOW_SURFACE 2.0
 // Underwater effect applied from a distance (Only works for geometry not in the depth buffer)
 #define UNDERWATER_MASK_WINDOW 3.0
 
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#if defined(STEREO_INSTANCING_ON) || defined(STEREO_MULTIVIEW_ON)
 #define CREST_HANDLE_XR 1
 #else
 #define CREST_HANDLE_XR 0

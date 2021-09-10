@@ -53,6 +53,12 @@ namespace Crest
 
         private void Update()
         {
+            // New input system works even when game view is not focused.
+            if (!Application.isFocused)
+            {
+                return;
+            }
+
 #if ENABLE_INPUT_SYSTEM
             if (Keyboard.current.gKey.wasPressedThisFrame)
 #else
@@ -197,6 +203,8 @@ namespace Crest
 #endif
                 y += h;
             }
+
+            GUI.Label(new Rect(x, y, w, h), $"FFT generator(s): {FFTCompute.GeneratorCount}"); y += h;
         }
 
         void DrawShapeTargets()

@@ -1,7 +1,20 @@
 `Crest` makes full use of the flexible lighting options in `HDRP` (it is lit the same as a shadergraph shader would be).
 
+
+.. only:: html
+
+   .. raw:: html
+
+      <h4>Planar Reflection Probes</h4>
+
+.. only:: latex
+
+   Planar Reflection Probes
+   """"""""""""""""""""""""
+
 `HDRP` comes with a *Planar Reflection Probe* feature which enables dynamic reflection of the environment at run-time, with a corresponding cost.
-See Unity's documentation on :link:`Planar Reflection Probes <{HDRPDocLink}/Planar-Reflection-Probe.html>`. At time of writing we used the following steps:
+See Unity's documentation on :link:`Planar Reflection Probes <{HDRPDocLink}/Planar-Reflection-Probe.html>`.
+At time of writing we used the following steps:
 
 -  Create new GameObject
 -  Set the height of the GameObject to the sea level.
@@ -17,8 +30,28 @@ The planar reflection probe assumes the reflecting surface is a flat plane.
 This is not the case for for a wavey water surface and this can also produce 'leaky' reflections.
 In such cases it can help to lower the reflection probe below sea level slightly.
 
-.. tip::
 
-   If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
-   We provide a simple test shadergraph for debugging purposes - enable the *Apply Test Material* debug option on the *OceanRenderer* component to apply it.
-   If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.
+.. only:: html
+
+   .. raw:: html
+
+      <h4>Screen-Space Reflections</h4>
+
+.. only:: latex
+
+   Screen-Space Reflections
+   """"""""""""""""""""""""
+
+`HDRP` has a separate setting for transparents to receive `SSR` and it is not enabled by default.
+It is important that you understand the basics of `HDRP` before proceeding.
+
+#. Enable *Screen Space Refection* and the *Transparent* sub-option in the :link:`Frame Settings <{HDRPDocLink}/Frame-Settings.html>`.
+#. Add and configure the :link:`{SSR} Volume Override <{HDRPDocLink}/Override-Screen-Space-Reflection.html>`
+
+   -  Please learn how to use the *Volume Framework* before proceeding as covering this is beyond the scope of our documentation:
+
+      .. youtube:: vczkfjLoPf8
+
+         Adding Volumes to `HDRP` (Tutorial)
+
+#. Enable *Receives Screen-Space Reflections* on the ocean material.

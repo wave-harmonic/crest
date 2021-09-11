@@ -206,7 +206,7 @@ namespace Crest
 
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
             var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
-            var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
+            var windSpeedMPS = _overrideGlobalWindSpeed ? (_windSpeed / 3.6f) : 10000f;
 
             // Don't create tons of generators when values are varying. Notify so that existing generators may be adapted.
             if (_windTurbulenceOld != _windTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _spectrum)
@@ -369,7 +369,7 @@ namespace Crest
             if (_debugDrawSlicesInEditor)
             {
                 var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
-                var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
+                var windSpeedMPS = _overrideGlobalWindSpeed ? (_windSpeed / 3.6f) : 10000f;
                 FFTCompute.OnGUI(_resolution, _windTurbulence, windDirRad, windSpeedMPS, _activeSpectrum);
             }
         }

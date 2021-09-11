@@ -265,8 +265,7 @@ namespace Crest
 #endif
 
             // Calc wind speed in m/s
-            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
-            windSpeed /= 3.6f;
+            var windSpeed = _overrideGlobalWindSpeed ? (_windSpeed / 3.6f) : 10000f;
 
             if (_firstUpdate || updateDataEachFrame || windSpeed != _windSpeedWhenGenerated)
             {
@@ -559,8 +558,7 @@ namespace Crest
             }
 
             // Calc wind speed in m/s
-            var windSpeed = _overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed;
-            windSpeed /= 3.6f;
+            var windSpeed = _overrideGlobalWindSpeed ? (_windSpeed / 3.6f) : 10000f;
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {

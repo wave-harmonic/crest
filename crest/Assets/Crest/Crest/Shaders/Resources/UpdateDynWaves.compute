@@ -49,8 +49,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, cascadeData);
 	const float gridSize = cascadeData._texelWidth;
 
-	// average wavelength for this scale
-	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
+	// Min wavelength for this scale
+	const float wavelength = 2.0 * gridSize;
 	// could make velocity depend on waves
 	//float h = max(waterSignedDepth + ft, 0.);
 	float c = ComputeWaveSpeed(wavelength, _Gravity);

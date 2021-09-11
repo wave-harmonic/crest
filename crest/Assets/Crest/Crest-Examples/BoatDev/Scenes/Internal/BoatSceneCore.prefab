@@ -46,10 +46,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1709276512157696607}
-  - component: {fileID: 1709276512157696608}
   - component: {fileID: 1709276512157696609}
-  - component: {fileID: 1709276512157696605}
-  - component: {fileID: 1709276512157696606}
   m_Layer: 0
   m_Name: ProceduralInteraction
   m_TagString: Untagged
@@ -71,21 +68,6 @@ Transform:
   m_Father: {fileID: 1709276513319080691}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!114 &1709276512157696608
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1709276512157696610}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _checkShaderName: 1
-  _disableRenderer: 1
-  _version: 0
 --- !u!114 &1709276512157696609
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -106,55 +88,6 @@ MonoBehaviour:
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
---- !u!33 &1709276512157696605
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1709276512157696610}
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &1709276512157696606
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1709276512157696610}
-  m_Enabled: 0
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: b0bf1df974228684ebe00bfe0f45a79b, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1709276512207953767
 GameObject:
   m_ObjectHideFlags: 0
@@ -315,8 +248,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -366,8 +299,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -417,8 +350,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -1017,8 +950,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -1099,8 +1032,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -1150,8 +1083,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -1526,8 +1459,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -1577,8 +1510,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -1883,8 +1816,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -2068,8 +2001,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -2658,8 +2591,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -2709,8 +2642,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -3072,8 +3005,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -3123,8 +3056,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -3212,8 +3145,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -3831,8 +3764,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -3882,8 +3815,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -4297,8 +4230,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 0.25
+  _radius: 2
+  _weight: 3
   _weightUpDownMul: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -4464,6 +4397,8 @@ MonoBehaviour:
   _version: 1
   _mode: 1
   _primitive: 3
+  _order: 0
+  _inverted: 0
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
 --- !u!1 &5831241881590923069

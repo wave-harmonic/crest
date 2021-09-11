@@ -18,9 +18,22 @@ namespace Crest
     {
         enum QueryStatus
         {
+            /// <summary>
+            /// Valid query results returned
+            /// </summary>
             Success,
+            /// <summary>
+            /// No results to return - before first round of results have been processed
+            /// </summary>
             ResultsNotReadyYet,
+            /// <summary>
+            /// Data needs to be rebaked - data reference null
+            /// </summary>
             CollisionDataMissing,
+            /// <summary>
+            /// Out of query data space. Increase CollProviderBakedFFT.MAX_QUERY_QUADS to allow
+            /// more queries to be executed
+            /// </summary>
             TooManyQueries,
         }
 
@@ -84,7 +97,8 @@ namespace Crest
                 {
                     if (_lastQueryQuadIndex + numQuads > MAX_QUERY_QUADS)
                     {
-                        Debug.LogError("Crest: Out of query data space. Try calling Compact() to reorganise query segments.");
+                        Debug.LogError("Crest: Out of query data space. Increase CollProviderBakedFFT.MAX_QUERY_QUADS" +
+                            "to allow more queries to be executed.");
                         return (int)QueryStatus.TooManyQueries;
                     }
 

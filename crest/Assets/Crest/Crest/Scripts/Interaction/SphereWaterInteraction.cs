@@ -119,7 +119,7 @@ namespace Crest
             _mpb.SetFloat(sp_radius, _radius);
 
             // Weighting with this value helps keep ripples consistent for different gravity values
-            var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
+            var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier) / 5f;
             _weightThisFrame *= gravityMul;
 
             // Matrix used for rendering this input

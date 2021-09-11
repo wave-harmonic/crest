@@ -19,6 +19,8 @@ Changed
 
    -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
    -  Add inverted option to *Clip Surface* signed-distance primitives and convex hulls which removes clipping.
+   -  *Sphere Water Interaction* component simplified - no mesh renderer/shader setup required, and no 'register' component required.
+   -  *Sphere Water Interaction* produces more consistent results at different radii/scales.
 
 
 4.13

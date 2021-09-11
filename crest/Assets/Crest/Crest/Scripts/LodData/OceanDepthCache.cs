@@ -90,12 +90,6 @@ namespace Crest
 
         void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && _runValidationOnStart)
             {
@@ -641,6 +635,17 @@ namespace Crest
                 );
 
                 isValid = false;
+            }
+
+            if (ocean == null)
+            {
+                showMessage
+                (
+                    "The <i>Ocean Depth Cache</i> uses the <i>Ocean Renderer</i> height which is not present. " +
+                    "The transform height will be used instead.",
+                    "", // Leave fix message blank as this could be a valid option.
+                    ValidatedHelper.MessageType.Info, this
+                );
             }
 
             if (ocean != null && ocean.Root != null && !Mathf.Approximately(transform.position.y, ocean.Root.position.y))

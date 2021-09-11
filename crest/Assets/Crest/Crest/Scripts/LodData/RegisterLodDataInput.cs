@@ -192,7 +192,7 @@ namespace Crest
 
         int _registeredQueueValue = int.MinValue;
 
-        bool GetQueue(out int queue)
+        protected virtual bool GetQueue(out int queue)
         {
             var rend = GetComponent<Renderer>();
             if (rend && rend.sharedMaterial != null)

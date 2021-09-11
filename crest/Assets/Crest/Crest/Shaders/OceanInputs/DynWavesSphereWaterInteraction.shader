@@ -118,7 +118,11 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				}
 
 				// Add to velocity (y-channel) to accelerate water.
-				float accel = 60.0 * _Weight * (forceUpDown + forceHoriz) * _Strength;
+				float accel = _Weight * (forceUpDown + forceHoriz) * _Strength;
+
+				// Helps interaction to work at different scales
+				accel /= _MinWavelength;
+
 				return half4(0.0, accel * _SimDeltaTime, 0.0, 0.0);
 			}
 			ENDCG

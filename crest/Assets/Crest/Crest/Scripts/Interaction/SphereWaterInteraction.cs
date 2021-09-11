@@ -30,7 +30,7 @@ namespace Crest
         [Range(0.01f, 50f), SerializeField]
         float _radius = 1f;
 
-        [Range(-1f, 1f), SerializeField]
+        [Range(-4f, 4f), SerializeField]
         float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
@@ -107,7 +107,9 @@ namespace Crest
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
             var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
-            _weightThisFrame = _weight;
+
+            // Use weight from user with a multiplier to make interactions look plausible
+            _weightThisFrame = 3.75f * _weight;
 
             var waterHeight = disp.y + ocean.SeaLevel;
             LateUpdateSphereWeight(waterHeight, ref _weightThisFrame);

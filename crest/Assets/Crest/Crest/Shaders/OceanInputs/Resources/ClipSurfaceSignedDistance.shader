@@ -10,7 +10,7 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Signed Distance"
 	{
 		ZWrite Off
 		ColorMask R
-		BlendOp Max
+		BlendOp [_BlendOp]
 
 		Pass
 		{
@@ -21,6 +21,7 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Signed Distance"
 			#pragma fragment Frag
 
 			#pragma multi_compile_local _SPHERE _CUBE
+			#pragma multi_compile_local _ _INVERTED
 
 			#include "UnityCG.cginc"
 			#include "../../OceanGlobals.hlsl"
@@ -89,7 +90,11 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Signed Distance"
 				float signedDistance = signedDistanceSphere(positionWS);
 #endif
 
-				return float4(1.0 - signedDistance, 0.0, 0.0, 1.0);
+#if !_INVERTED
+				signedDistance = 1.0 - signedDistance;
+#endif
+
+				return float4(signedDistance, 0.0, 0.0, 1.0);
 			}
 			ENDCG
 		}

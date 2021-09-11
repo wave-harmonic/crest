@@ -53,7 +53,7 @@ namespace Crest
 
         public static void DebugLog(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
-            message = $"Validation: {message} {fixDescription} Click this message to highlight the problem object.";
+            message = $"Crest Validation: {message} {fixDescription} Click this message to highlight the problem object.";
 
             switch (type)
             {
@@ -177,7 +177,7 @@ namespace Crest
                 return false;
             }
 
-            if (!material || material.shader && !material.shader.name.StartsWith(shaderPrefix))
+            if (!material || material.shader && (!material.shader.name.StartsWith(shaderPrefix) && !material.shader.name.Contains("/All/")))
             {
                 showMessage
                 (

@@ -116,6 +116,11 @@ public class CamController : MonoBehaviour
 
     void UpdateMovement(float dt)
     {
+        // New input system works even when game view is not focused.
+        if (!Application.isFocused)
+        {
+            return;
+        }
 
 #if ENABLE_INPUT_SYSTEM
         if (!Mouse.current.leftButton.isPressed && _requireLMBToMove) return;
@@ -181,6 +186,12 @@ public class CamController : MonoBehaviour
 
     void UpdateDragging(float dt)
     {
+        // New input system works even when game view is not focused.
+        if (!Application.isFocused)
+        {
+            return;
+        }
+
         Vector2 mousePos =
 #if ENABLE_INPUT_SYSTEM
             Mouse.current.position.ReadValue();

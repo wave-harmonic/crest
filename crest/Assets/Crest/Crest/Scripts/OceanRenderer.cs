@@ -1101,6 +1101,17 @@ namespace Crest
                         if (overlapping)
                         {
                             overlappingOne = true;
+
+                            if (body._overrideMaterial != null)
+                            {
+                                tile.Rend.sharedMaterial = body._overrideMaterial;
+                                tile.MaterialOverridden = true;
+                            }
+                            else
+                            {
+                                tile.MaterialOverridden = false;
+                            }
+
                             break;
                         }
                     }

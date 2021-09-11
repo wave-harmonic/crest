@@ -38,6 +38,8 @@ namespace Crest
 
         public Bounds AABB { get; private set; }
 
+        public Material _overrideMaterial = null;
+
         private void OnEnable()
         {
             CalculateBounds();

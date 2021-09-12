@@ -130,7 +130,8 @@ Shader "Crest/Underwater Curtain"
 						{
 							const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[_LD_SliceIndex], 0.0);
 							float waterDepth = 0.0;
-							SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, waterDepth, seaLevel);
+							float2 derivs = 0.0;
+							SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, waterDepth, seaLevel, _CrestCascadeData[_LD_SliceIndex], derivs);
 						}
 
 						// move vert in the up direction, but only to an extent, otherwise numerical issues can cause weirdness

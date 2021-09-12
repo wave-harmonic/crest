@@ -113,11 +113,25 @@ void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice,
 	io_oceanDepth += i_wt * (waterDepth - CREST_OCEAN_DEPTH_BASELINE);
 }
 
-void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth, inout half io_seaLevelOffset )
+void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth, inout half io_seaLevelOffset, const CascadeParams i_cascadeParams, inout float2 io_seaLevelDerivs)
 {
 	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 );
 	io_oceanDepth += i_wt * (terrainHeight_seaLevelOffset.x - CREST_OCEAN_DEPTH_BASELINE);
 	io_seaLevelOffset += i_wt * terrainHeight_seaLevelOffset.y;
+
+	{
+		// No idea why x4 .. even with this deriv quality looks bad. Looks like its not working properly,
+		// and doesnt seem to deal with the geomorph.
+		float offWorld = i_cascadeParams._texelWidth * 4.0;
+		float offUV = i_cascadeParams._oneOverTextureRes * offWorld / i_cascadeParams._texelWidth;
+
+		const float seaLevelOffset_x =
+			i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(offUV, 0.0, 0.0), 0.0 ).y;
+		const float seaLevelOffset_z =
+			i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(0.0, offUV, 0.0), 0.0 ).y;
+		io_seaLevelDerivs.x += i_wt * (seaLevelOffset_x - terrainHeight_seaLevelOffset.y) / offWorld;
+		io_seaLevelDerivs.y += i_wt * (seaLevelOffset_z - terrainHeight_seaLevelOffset.y) / offWorld;
+	}
 }
 
 void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_shadow)

@@ -84,7 +84,8 @@ Shader "Crest/Underwater Meniscus"
 					{
 						const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[_LD_SliceIndex], 0.0);
 						float waterDepth = 0.0;
-						SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, waterDepth, seaLevel);
+						float2 derivs = 0.0;
+						SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, waterDepth, seaLevel, _CrestCascadeData[_LD_SliceIndex], derivs);
 					}
 
 					o.worldPos += min(IntersectRayWithWaterSurface(seaLevel, o.worldPos, up, _CrestCascadeData[_LD_SliceIndex]), MAX_OFFSET) * up;

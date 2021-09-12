@@ -41,15 +41,14 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			struct Varyings
 			{
 				float4 position : SV_POSITION;
-				float3 uv_worldY : TEXCOORD0;
+				float2 uv : TEXCOORD0;
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings output;
 				output.position = UnityObjectToClipPos(input.positionOS);
-				output.uv_worldY.xy = TRANSFORM_TEX(input.uv, _MainTex);
-				output.uv_worldY.z = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
+				output.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				return output;
 			}
 

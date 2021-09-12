@@ -292,11 +292,6 @@ namespace Crest
                 return;
             }
 
-            // Set average water height from this cache position, relative to which water depth is computed. This assumes that
-            // this cache is correctly placed. I don't think there is a good way to know at validation time, so this is a pitfall
-            // at the moment.
-            Shader.SetGlobalFloat("_SeaLevel", transform.position.y);
-
             // Render scene, saving depths in depth buffer.
             _camDepthCache.Render();
 

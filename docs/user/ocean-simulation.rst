@@ -258,8 +258,10 @@ These settings should generally be left unchanged unless one is experiencing iss
 Sea Floor Depth
 ---------------
 
-This simulation stores water depth information.
-This is useful information for the system; it is used to attenuate large waves in
+This simulation stores information that can be used to calculate the water depth.
+Specifically it stores the terrain height, which can then be differenced with the sea level
+to obtain the water depth.
+This water depth is useful information to the system; it is used to attenuate large waves in
 shallow water, to generate foam near shorelines, and to provide shallow water shading.
 It is calculated by rendering the render geometry in the scene for each LOD from a top down perspective and recording the Y value of the surface.
 

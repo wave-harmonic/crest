@@ -240,7 +240,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 4
+  _flowVelocity: 3
 --- !u!1 &227134465
 GameObject:
   m_ObjectHideFlags: 0
@@ -752,7 +752,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 6
+  _flowVelocity: 3
 --- !u!850595691 &831929785
 LightingSettings:
   m_ObjectHideFlags: 0
@@ -1033,7 +1033,7 @@ MonoBehaviour:
   _subdivisions: 1
   _smoothingIterations: 0
   _version: 0
-  _maxDisplacementVertical: 0
+  _maxDisplacementVertical: 100
 --- !u!114 &1046764280
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1049,8 +1049,8 @@ MonoBehaviour:
   _version: 0
   _closed: 0
   _radius: 20
-  _subdivisions: 2
-  _smoothingIterations: 50
+  _subdivisions: 3
+  _smoothingIterations: 70
 --- !u!4 &1046764281
 Transform:
   m_ObjectHideFlags: 0
@@ -2100,7 +2100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 5
+  _flowVelocity: 3
 --- !u!1 &1778401323
 GameObject:
   m_ObjectHideFlags: 0
@@ -2159,7 +2159,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 4
+  _flowVelocity: 3
 --- !u!1 &1834203423
 GameObject:
   m_ObjectHideFlags: 0
@@ -2369,7 +2369,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 2
+  _flowVelocity: 3
 --- !u!114 &1898388340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2688,7 +2688,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 2
+  _flowVelocity: 0
 --- !u!114 &2107085463
 MonoBehaviour:
   m_ObjectHideFlags: 0

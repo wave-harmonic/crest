@@ -300,13 +300,6 @@ namespace Crest
                 _copyDepthMaterial = new Material(Shader.Find("Crest/Copy Depth Buffer Into Cache"));
             }
 
-            // Shader needs sea level to determine water depth. Ocean instance might not be available in prefabs.
-            var centerPoint = Vector3.zero;
-            centerPoint.y = OceanRenderer.Instance != null
-                ? OceanRenderer.Instance.Root.position.y : transform.position.y;
-
-            _copyDepthMaterial.SetVector("_OceanCenterPosWorld", centerPoint);
-
             _copyDepthMaterial.SetTexture("_CamDepthBuffer", _camDepthCache.targetTexture);
 
             // Zbuffer params
@@ -482,23 +475,6 @@ namespace Crest
             if (localScale.z == 0f) localScale.z = localScale.x;
 
             dc.transform.localScale = localScale;
-
-            if (dc.Type == OceanDepthCacheType.Realtime)
-            {
-                dc.PopulateCache(true);
-            }
-        }
-
-        void FixHeight(SerializedObject depthCache)
-        {
-            var dc = depthCache.targetObject as OceanDepthCache;
-
-            Undo.RecordObject(dc.transform, "Fix depth cache scale");
-            EditorUtility.SetDirty(dc.transform);
-
-            var pos = dc.transform.position;
-            pos.y = OceanRenderer.Instance.transform.position.y;
-            dc.transform.position = pos;
 
             if (dc.Type == OceanDepthCacheType.Realtime)
             {

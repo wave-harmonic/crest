@@ -12,14 +12,14 @@ namespace Crest
 
     /// <summary>
     /// Data that gives depth of the ocean (height of sea level above ocean floor). Stores terrain height and water level
-    /// offset.
+    /// offset in x & y channels.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
         protected override GraphicsFormat RequestedTextureFormat { get { return Settings._allowMultipleSeaLevels ? GraphicsFormat.R16G16_SFloat : GraphicsFormat.R16_SFloat; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
-        // We want the clear colour to be the min terrain height (-1000m)
+        // We want the clear colour to be the min terrain height (-1000m) in X, and sea level offset 0m in Y.
         readonly static Color s_nullColor = Color.red * -1000f;
         static Texture2DArray s_nullTexture;
         protected override Texture2DArray NullTexture => s_nullTexture;
@@ -31,21 +31,8 @@ namespace Crest
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsSeaFloorDepth != null) return _ocean._simSettingsSeaFloorDepth;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {

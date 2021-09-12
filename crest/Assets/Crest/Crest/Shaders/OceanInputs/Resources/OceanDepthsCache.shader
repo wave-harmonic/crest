@@ -24,7 +24,6 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			#pragma fragment Frag
 		
 			#include "UnityCG.cginc"
-			#include "../../OceanGlobals.hlsl"
 
 			sampler2D _MainTex;
 

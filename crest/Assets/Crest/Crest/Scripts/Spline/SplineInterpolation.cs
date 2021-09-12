@@ -68,7 +68,7 @@ namespace Crest.Spline
             if (splinePoints.Length < 2) return false;
 
             //Debug.Assert(splinePointsAndTangents != null && splinePointsAndTangents.Length == (splinePoints.Length - 1) * 3 + 1,
-            //    "splinePointsAndTangents array must be length {(splinePoints.Length - 1) * 3 + 1}");
+            //    "Crest: splinePointsAndTangents array must be length {(splinePoints.Length - 1) * 3 + 1}");
 
             for (int i = 0; i < splinePointsAndTangents.Length; i++)
             {

@@ -34,6 +34,13 @@ namespace Crest
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
+
+        // We need to ensure that all ocean data has been bound for the mask to
+        // render properly - this is something that needs to happen irrespective
+        // of occlusion culling because we need the mask to render as a
+        // contiguous surface.
+        internal bool _oceanDataHasBeenBound = true;
+
         int _lodIndex = -1;
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
@@ -96,22 +103,15 @@ namespace Crest
             _currentCamera = camera;
         }
 
-        // Called when visible to a camera
-        void OnWillRenderObject()
+        // Used by the ocean mask system if we need to render the ocean mask in situations
+        // where the ocean itself doesn't need to be rendered or has otherwise been disabled
+        internal void BindOceanData(Camera camera)
         {
+            _oceanDataHasBeenBound = true;
             if (OceanRenderer.Instance == null || Rend == null)
             {
                 return;
             }
-
-            // Camera.current is only supported in built-in pipeline.
-            if (Camera.current != null)
-            {
-                _currentCamera = Camera.current;
-            }
-
-            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
-            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
             if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
@@ -128,7 +128,7 @@ namespace Crest
 
             // Only done here because current camera is defined. This could be done just once, probably on the OnRender function
             // or similar on the OceanPlanarReflection script?
-            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
+            var reflTex = PreparedReflections.GetRenderTexture(camera.GetHashCode());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);
@@ -139,6 +139,33 @@ namespace Crest
             }
 
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+        }
+
+
+        // Called when visible to a camera
+        void OnWillRenderObject()
+        {
+            // Camera.current is only supported in built-in pipeline.
+            if (Camera.current != null)
+            {
+                _currentCamera = Camera.current;
+            }
+
+            // If only the game view is visible, this reference will be dropped for SRP on recompile.
+            if (_currentCamera == null)
+            {
+                return;
+            }
+
+            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
+            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
+
+            BindOceanData(_currentCamera);
+
+            if (_drawRenderBounds)
+            {
+                Rend.bounds.DebugDraw();
+            }
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

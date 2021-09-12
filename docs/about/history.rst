@@ -13,11 +13,157 @@ Release Notes
 |version|
 ---------
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
+   -  Add inverted option to *Clip Surface* signed-distance primitives and convex hulls which removes clipping.
+
+
+4.13
+----
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Add signed-distance primitives for more accurate clipping and overlapping.
+      See :ref:`clip-surface-section` for more information.
+   -  Add *Render Texture Graphics Format* option to *Clip Surface Sim Settings* to support even more accurate clipping for signed-distance primitives.
+   -  Add *Render Texture Graphics Format* option to *Animated Waves Sim Settings* to solve precision issues when using height inputs.
+   -  Always report displacement in *Register Height Input* to solve culling issues.
+   -  Add default textures to ocean shader.
+   -  Update ocean shader default values.
+   -  Improve foam detail at medium to long distance.
+   -  Add *Scale By Factor* shader for all inputs which is particularly useful when used with *Animated Waves* for reducing waves.
+
+   .. only:: hdrp
+
+      -  Add a simpler custom material inspector. `[HDRP]`
+
+   .. only:: urp
+
+      -  Add XR `SPI` support to *Underwater Renderer*. `[URP]`
+
+
 Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fixed case where normal could be NaN, which could make screen flash black in HDRP
+   -  Fix ocean not rendering on Xbox One and Xbox Series X.
+   -  Fix height input (and others) from not working 100m above sea level and 500m below sea level.
+   -  Fix FFT shader build errors for Game Core platforms.
+   -  Fix FFT material allocations every frame.
+   -  Fix flow simulation sometimes not clearing after disabling last input.
+   -  Fix outline around objects when MSAA is enabled by making it less noticeable.
+   -  Fix pixelated looking foam bubbles at medium to long distance.
+   -  Fix underwater effect undershooting or overshooting ocean surface when XR camera is nearly aligned with horizon.
+   -  Fix underwater effect being flipped at certain camera orientations.
+   -  Fix meniscus thickness consistency (in some cases disappearing) with different camera orientations.
+   -  Fix inputs (eg keyboard) working when game view is not focused.
+   -  Fix *Ocean Depth Cache* disabling itself in edit mode when no ocean is present.
+
+   .. only:: hdrp
+
+      -  Fix ocean disappearing when viewed from an area clipped by a clip surface input. `[HDRP]`
+      -  Fix shadows breaking builds when XR package is present. `[HDRP]`
+      -  Fix shadows not working with XR `SPI`. `[HDRP]`
+      -  Fix 2021.2.0b9 shader compile errors. `[HDRP]`
+      -  Fix ocean material properties missing for 2021.2 material inspector. `[HDRP]`
+      -  Fix outline around refracted objects by making it less noticeable. `[HDRP]`
+
+   .. only:: birp or urp
+
+      -  Fix *Underwater Renderer* caustics jittering for some XR devices. `[BIRP] [URP]`
+
+   .. only:: urp
+
+      -  Fix shadow artefacts when no shadow casters are within view. `[URP]`
+      -  Remove sample shadow scriptable render feature error. `[URP]`
+
+
+4.12
+----
+
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Set minimum Unity version to 2020.3.10.
+
+   .. only:: hdrp or urp
+
+      -  Set minimum render pipeline package version to 10.5. `[HDRP] [URP]`
+
+   .. only:: hdrp
+
+      -  *Underwater Post-Processing* is disabled by default which means it will be inactive if the *Underwater Volume Override* is not present in the scene. `[HDRP]`
+
+   .. only:: urp
+
+      -  Remove *Sample Shadows* Render Feature as it is now scripted.
+         Unity will raise a missing Render Feature reference error.
+         Remove the missing Render Feature to resolve. `[URP]`
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Add new *Underwater Renderer* component which executes a fullscreen pass between transparent and post-processing pass.
+      Please see :ref:`underwater` for more information.
+   -  FFT generator count added to debug GUI.
+   -  *ShapeFFT* component allows smooth changing of wind direction everywhere in world.
+   -  Default *Wind Speed* setting on *OceanRenderer* component to 10m/s.
+   -  *CustomTimeProvider* override time/delta time functions are now defaulted to opt-in instead of opt-out.
+
+   .. only:: hdrp
+
+      -  Improve meniscus rendering by also rendering below ocean surface line. `[HDRP]`
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix case where normal could be NaN, which could make screen flash black in `HDRP`.
+   -  Fix *ShapeFFT* *Spectrum Fixed At Runtime* option not working.
+   -  Fix shader compile errors on Windows 7.
+   -  Fix ocean depth cache shader compile error.
+   -  Fix ocean not rendering on *Unity Cloud Build* (unconfirmed).
+   -  Fix ShapeGerstner and ShapeFFT having no default spectrum in builds.
+   -  Fix "missing custom editor" error for *Whirlpool* component.
+   -  Fix ocean breaking after leaving a prefab scene.
+
+   .. only:: hdrp
+
+      -  Fix underwater breaking for XR `SPI`. `[HDRP]`
+      -  Fix underwater artefacts for XR `MP`. `[HDRP]`
+      -  Fix meniscus rendering incorrectly when camera is rotated. `[HDRP]`
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  FFT wave generation factored out so that multiple *ShapeFFT* components sharing the same settings will only run one FFT.
+
+   .. only:: hdrp
+
+      -  Underwater ocean mask now deactivates when the underwater effect is not active. `[HDRP]`
+
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
+
+   .. only:: birp or urp
+
+      -  The *Underwater Effect* component (including *UnderWaterCurtainGeom.prefab* and *UnderWaterMeniscus.prefab*) has been superseded by the *Underwater Renderer*.
+         Please see :ref:`underwater` for more information. `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  The *Underwater Post-Process* effect has been superseded by the *Underwater Renderer*.
+         Please see :ref:`underwater` for more information. `[HDRP]`
+
 
 4.11
 ----
@@ -34,8 +180,7 @@ Preview
 ^^^^^^^
 .. bullet_list::
 
-   -  `FFT` wave simulation added via new Shape `FFT` component.
-      Read :ref:`shape-fft-section` for more information.
+   -  `FFT` wave simulation added via new ShapeFFT component.
 
 Changed
 ^^^^^^^

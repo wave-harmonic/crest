@@ -37,21 +37,8 @@ namespace Crest
         readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
         readonly int sp_CourantNumber = Shader.PropertyToID("_CourantNumber");
 
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_ocean._simSettingsDynamicWaves != null) return _ocean._simSettingsDynamicWaves;
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-                return _defaultSettings;
-            }
-        }
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsDynamicWaves != null ? _ocean._simSettingsDynamicWaves : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrDynWaves(OceanRenderer ocean) : base(ocean)
         {

@@ -47,6 +47,12 @@ namespace Crest
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16_SFloat;
         [Range(15f, 200f), Tooltip("Frequency to run the foam sim, in updates per second. Lower frequencies can be more efficient but may lead to visible jitter. Default is 30 updates per second.")]
         public float _simulationFrequency = 30f;
+
+        public override void AddToSettingsHash(ref int settingsHash)
+        {
+            base.AddToSettingsHash(ref settingsHash);
+            Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
+        }
     }
 
 #if UNITY_EDITOR

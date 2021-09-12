@@ -13,7 +13,7 @@ namespace Crest
     /// delta from this client's time to the shared server time.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Networked Time Provider")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "other-features.html" + Internal.Constants.HELP_URL_RP + "#time-providers")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "time-providers.html" + Internal.Constants.HELP_URL_RP + "#network-synchronisation")]
     public class TimeProviderNetworked : TimeProviderBase
     {
         /// <summary>

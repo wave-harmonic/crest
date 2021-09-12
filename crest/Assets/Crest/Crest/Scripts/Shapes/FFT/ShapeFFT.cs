@@ -5,7 +5,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
-using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -18,7 +17,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#shapefft-preview")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -96,12 +95,12 @@ namespace Crest
         [Tooltip("Maximum amount a point on the surface will be displaced horizontally by waves from its rest position. Increase this if gaps appear at sides of screen."), SerializeField]
         float _maxHorizontalDisplacement = 15f;
 
-        /// <summary>
-        /// 'Raw', uncombined, wave data. Input for putting into AnimWaves data before combine pass.
-        /// </summary>
-        RenderTexture _waveBuffers;
-
         Mesh _meshForDrawingWaves;
+
+        float _windTurbulenceOld;
+        float _windSpeedOld;
+        float _windDirRadOld;
+        OceanWaveSpectrum _spectrumOld;
 
         public class FFTBatch : ILodDataInput
         {
@@ -151,12 +150,15 @@ namespace Crest
         const int CASCADE_COUNT = 16;
 
         FFTBatch[] _batches = null;
-        FFTCompute _compute = null;
 
         // Used to populate data on first frame
         bool _firstUpdate = true;
 
+        // Active material.
         Material _matGenerateWaves;
+        // Cache material options.
+        Material _matGenerateWavesGlobal;
+        Material _matGenerateWavesGeometry;
 
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
@@ -164,25 +166,6 @@ namespace Crest
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
-
-        void InitData()
-        {
-            // Raw wave data buffer
-            _waveBuffers = new RenderTexture(_resolution, _resolution, 0, GraphicsFormat.R16G16B16A16_SFloat);
-            _waveBuffers.wrapMode = TextureWrapMode.Repeat;
-            _waveBuffers.antiAliasing = 1;
-            _waveBuffers.filterMode = FilterMode.Bilinear;
-            _waveBuffers.anisoLevel = 0;
-            _waveBuffers.useMipMap = false;
-            _waveBuffers.name = "FFTCascades";
-            _waveBuffers.dimension = TextureDimension.Tex2DArray;
-            _waveBuffers.volumeDepth = CASCADE_COUNT;
-            _waveBuffers.enableRandomWrite = true;
-            _waveBuffers.Create();
-
-            Debug.Assert(Mathf.NextPowerOfTwo(_resolution) == _resolution, "Resolution must be power of 2");
-            _compute = new FFTCompute();
-        }
 
         /// <summary>
         /// Min wavelength for a cascade in the wave buffer. Does not depend on viewpoint.
@@ -201,17 +184,12 @@ namespace Crest
             UpdateEditorOnly();
 #endif
 
-            if (_compute == null || _waveBuffers == null || _resolution != _waveBuffers.width)
-            {
-                InitData();
-            }
-
             var updateDataEachFrame = !_spectrumFixedAtRuntime;
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame || (_waveBuffers != null))
+            if (_firstUpdate || updateDataEachFrame)
             {
                 InitBatches();
 
@@ -220,17 +198,31 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
-            // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
+
+            // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
+            // to the geo rotation. If not, the wind direction is already used in the FFT gen.
+            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
+            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
+
+            // If geometry is being used, the ocean input shader will rotate the waves to align to geo
+            var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
+            var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
+
+            // Don't create tons of generators when values are varying. Notify so that existing generators may be adapted.
+            if (_windTurbulenceOld != _windTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _spectrum)
+            {
+                FFTCompute.OnGenerationDataUpdated(_resolution, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _spectrum);
+            }
+
+            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, _windTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame);
+
+            _windTurbulenceOld = _windTurbulence;
+            _windDirRadOld = windDirRad;
+            _windSpeedOld = windSpeedMPS;
+            _spectrumOld = _spectrum;
+            _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
 
             ReportMaxDisplacement();
-
-            var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
-            _compute.GenerateDisplacements(buf, _windTurbulence, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, updateDataEachFrame, _waveBuffers);
-
-            // Seems to come unbound when editing shaders at runtime, so rebinding here.
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }
 
 #if UNITY_EDITOR
@@ -285,11 +277,23 @@ namespace Crest
 
             if (_meshForDrawingWaves == null)
             {
-                _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                if (_matGenerateWavesGlobal == null)
+                {
+                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                    _matGenerateWavesGlobal.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGlobal;
             }
             else
             {
-                _matGenerateWaves = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                if (_matGenerateWavesGeometry == null)
+                {
+                    _matGenerateWavesGeometry = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    _matGenerateWavesGeometry.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGeometry;
             }
 
             // Submit draws to create the FFT waves
@@ -311,20 +315,19 @@ namespace Crest
             {
                 _activeSpectrum = _spectrum;
             }
-#if UNITY_EDITOR
+
             if (_activeSpectrum == null)
             {
                 _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _activeSpectrum.name = "Default Waves (auto)";
             }
 
+#if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
             }
-
-            _activeSpectrum.Upgrade();
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
@@ -343,27 +346,6 @@ namespace Crest
                 }
 
                 _batches = null;
-            }
-
-            if (_compute != null)
-            {
-                _compute.Release();
-                _compute = null;
-            }
-
-            if (_waveBuffers != null)
-            {
-#if UNITY_EDITOR
-                if (!EditorApplication.isPlaying)
-                {
-                    DestroyImmediate(_waveBuffers);
-                }
-                else
-#endif
-                {
-                    Destroy(_waveBuffers);
-                }
-                _waveBuffers = null;
             }
         }
 
@@ -384,12 +366,11 @@ namespace Crest
 
         void OnGUI()
         {
-            if (_debugDrawSlicesInEditor && _compute != null)
+            if (_debugDrawSlicesInEditor)
             {
-                OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f, 20f);
-                //OceanDebugGUI.DrawTextureArray(_compute.spectrumHeight, 9, 0.5f, 120f);
-
-                _compute.OnGUI();
+                var windDirRad = _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
+                var windSpeedMPS = (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
+                FFTCompute.OnGUI(_resolution, _windTurbulence, windDirRad, windSpeedMPS, _activeSpectrum);
             }
         }
 

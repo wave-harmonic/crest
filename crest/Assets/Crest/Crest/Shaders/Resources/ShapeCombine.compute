@@ -17,6 +17,7 @@
 
 #include "HLSLSupport.cginc"
 
+#include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"

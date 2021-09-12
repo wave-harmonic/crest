@@ -37,7 +37,7 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f, power: 2f)]
-        public float _globalWindSpeed = 150f;
+        public float _globalWindSpeed = 10f;
 
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
@@ -127,7 +127,7 @@ namespace Crest
         // Put a time provider at the top of the stack
         public void PushTimeProvider(ITimeProvider tp)
         {
-            Debug.Assert(tp != null, "Null time provider pushed");
+            Debug.Assert(tp != null, "Crest: Null time provider pushed");
 
             // Remove any instances of it already in the stack
             PopTimeProvider(tp);
@@ -139,7 +139,7 @@ namespace Crest
         // Remove a time provider from the stack
         public void PopTimeProvider(ITimeProvider tp)
         {
-            Debug.Assert(tp != null, "Null time provider popped");
+            Debug.Assert(tp != null, "Crest: Null time provider popped");
 
             _timeProviderStack.RemoveAll(candidate => candidate == tp);
         }
@@ -202,6 +202,12 @@ namespace Crest
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
+        [SerializeField, Range(UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM)]
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled.")]
+        public float _underwaterCullLimit = 0.001f;
+        internal const float UNDERWATER_CULL_LIMIT_MINIMUM = 0.000001f;
+        internal const float UNDERWATER_CULL_LIMIT_MAXIMUM = 0.01f;
+
 
         [Header("Simulation Params")]
 
@@ -240,6 +246,10 @@ namespace Crest
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
+
+        [Predicated("_createClipSurfaceData"), Embedded]
+        public SimSettingsClipSurface _simSettingsClipSurface;
+
         public enum DefaultClippingState
         {
             NothingClipped,
@@ -328,6 +338,7 @@ namespace Crest
         List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
+        public List<OceanChunkRenderer> Tiles => _oceanChunkRenderers;
 
         /// <summary>
         /// Smoothly varying version of viewer height to combat sudden changes in water level that are possible
@@ -374,6 +385,7 @@ namespace Crest
         readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
+        readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
         public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
         public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
@@ -424,9 +436,24 @@ namespace Crest
 
         PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
 
+        // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
+        // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
+#pragma warning disable 414
+        static bool s_IsPrefabStage = false;
+#pragma warning restore 414
+
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+#if UNITY_EDITOR
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                s_IsPrefabStage = true;
+                return;
+            }
+#endif
+
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
 
@@ -438,14 +465,6 @@ namespace Crest
             {
                 PushTimeProvider(_timeProvider);
             }
-
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-#if UNITY_EDITOR
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                return;
-            }
-#endif
 
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
             {
@@ -490,7 +509,6 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
-            _generatedSettingsHash = CalculateSettingsHash();
 
             // Make sure we have correct defaults in case simulations are not enabled.
             LodDataMgrClipSurface.BindNullToGraphicsShaders();
@@ -521,6 +539,8 @@ namespace Crest
             }
 
             _canSkipCulling = false;
+
+            _generatedSettingsHash = CalculateSettingsHash();
         }
 
         private void OnDisable()
@@ -529,6 +549,14 @@ namespace Crest
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
+                // We have just left a prefab scene on the stack and are now in another prefab scene.
+                return;
+            }
+            else if (s_IsPrefabStage)
+            {
+                // We have left the last prefab scene and are now back to a normal scene. We do not want to disable the
+                // OceanRenderer.
+                s_IsPrefabStage = false;
                 return;
             }
 #endif
@@ -725,11 +753,20 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+#if UNITY_EDITOR
+            // If running a build, don't assert any requirements at all. Requirements are for
+            // the runtime, not for making builds.
+            if (BuildPipeline.isBuildingPlayer)
+            {
+                return true;
+            }
+#endif
+
             if (!RunningWithoutGPU)
             {
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {
-                    Debug.LogError("Crest does not support WebGL backends.", this);
+                    Debug.LogError("Crest: Crest does not support WebGL backends.", this);
                     return false;
                 }
 #if UNITY_EDITOR
@@ -737,23 +774,23 @@ namespace Crest
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
                 {
-                    Debug.LogError("Crest does not support OpenGL backends.", this);
+                    Debug.LogError("Crest: Crest does not support OpenGL backends.", this);
                     return false;
                 }
 #endif
                 if (SystemInfo.graphicsShaderLevel < 45)
                 {
-                    Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                    Debug.LogError("Crest: Crest requires graphics devices that support shader level 4.5 or above.", this);
                     return false;
                 }
                 if (!SystemInfo.supportsComputeShaders)
                 {
-                    Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
+                    Debug.LogError("Crest: Crest requires graphics devices that support compute shaders.", this);
                     return false;
                 }
                 if (!SystemInfo.supports2DArrayTextures)
                 {
-                    Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
+                    Debug.LogError("Crest: Crest requires graphics devices that support 2D array textures.", this);
                     return false;
                 }
             }
@@ -765,7 +802,7 @@ namespace Crest
         {
             if (Viewpoint == null)
             {
-                Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
+                Debug.LogError("Crest: Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
             }
         }
 
@@ -811,6 +848,16 @@ namespace Crest
             Hashy.AddObject(_layerName, ref settingsHash);
 #pragma warning restore 0618
 
+            // Also include anything from the simulation settings for rebuilding.
+            foreach (var lod in _lodDatas)
+            {
+                // Null means it does not support settings.
+                if (lod.SettingsBase != null)
+                {
+                    lod.SettingsBase.AddToSettingsHash(ref settingsHash);
+                }
+            }
+
             return settingsHash;
         }
 
@@ -843,6 +890,7 @@ namespace Crest
             Shader.SetGlobalFloat(sp_clipByDefault, _defaultClippingState == DefaultClippingState.EverythingClipped ? 1f : 0f);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointFade, _lodAlphaBlackPointFade);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
+            Shader.SetGlobalInt(sp_CrestDepthTextureOffset, Helpers.IsMSAAEnabled(ViewCamera) ? 1 : 0);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
             // is applied to LOD0 tiles only through instance data. This global can be used in compute, where we only apply this factor for slice 0.
@@ -1025,12 +1073,21 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            // If there are local bodies of water, this will do overlap tests between the ocean tiles
-            // and the water bodies and turn off any that don't overlap.
-            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
+            var isUnderwaterActive = UnderwaterRenderer.Instance != null && UnderwaterRenderer.Instance.IsActive;
+
+            var definitelyUnderwater = false;
+            var volumeExtinctionLength = 0f;
+
+            if (isUnderwaterActive)
             {
-                return;
+                definitelyUnderwater = ViewerHeightAboveWater < -5f;
+                var density = _material.GetVector("_DepthFogDensity");
+                var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+                var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
+                volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
             }
+
+            var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
@@ -1039,24 +1096,39 @@ namespace Crest
                     continue;
                 }
 
-                var chunkBounds = tile.Rend.bounds;
+                var isCulled = false;
 
-                var overlappingOne = false;
-                foreach (var body in WaterBody.WaterBodies)
+                // If there are local bodies of water, this will do overlap tests between the ocean tiles
+                // and the water bodies and turn off any that don't overlap.
+                if (!canSkipCulling)
                 {
-                    var bounds = body.AABB;
+                    var chunkBounds = tile.Rend.bounds;
 
-                    bool overlapping =
-                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
-                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
-                    if (overlapping)
+                    var overlappingOne = false;
+                    foreach (var body in WaterBody.WaterBodies)
                     {
-                        overlappingOne = true;
-                        break;
+                        var bounds = body.AABB;
+
+                        bool overlapping =
+                            bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                            bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
+                        if (overlapping)
+                        {
+                            overlappingOne = true;
+                            break;
+                        }
                     }
+
+                    isCulled = !overlappingOne && WaterBody.WaterBodies.Count > 0;
                 }
 
-                tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
+                // Cull tiles the viewer cannot see through the underwater fog.
+                if (!isCulled && isUnderwaterActive)
+                {
+                    isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
+                }
+
+                tile.Rend.enabled = !isCulled;
             }
 
             // Can skip culling next time around if water body count stays at 0
@@ -1234,12 +1306,14 @@ namespace Crest
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+#pragma warning disable 0618
             // UnderwaterEffect
             var underwaters = FindObjectsOfType<UnderwaterEffect>();
             foreach (var underwater in underwaters)
             {
                 underwater.Validate(ocean, ValidatedHelper.DebugLog);
             }
+#pragma warning restore 0618
 
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();
@@ -1269,7 +1343,7 @@ namespace Crest
                 waterBody.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
-            Debug.Log("Validation complete!", ocean);
+            Debug.Log("Crest: Validation complete!", ocean);
         }
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
@@ -1561,7 +1635,7 @@ namespace Crest
                 var newLDR = _lodDataResolution - (_lodDataResolution % _geometryDownSampleFactor);
                 Debug.LogWarning
                 (
-                    "Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").",
+                    $"Crest: Adjusted Lod Data Resolution from {_lodDataResolution} to {newLDR} to ensure the Geometry Down Sample Factor is a factor ({_geometryDownSampleFactor}).",
                     this
                 );
 

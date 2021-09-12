@@ -5,11 +5,6 @@
 #ifndef CREST_OCEAN_FOAM_INCLUDED
 #define CREST_OCEAN_FOAM_INCLUDED
 
-half3 AmbientLight()
-{
-	return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-}
-
 #if _FOAM_ON
 
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)

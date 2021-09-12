@@ -21,7 +21,9 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 		{
 			BlendOp [_BlendOp]
 			Blend [_BlendModeSrc] [_BlendModeTgt]
-			ColorMask [_ColorWriteMask]
+
+			// Second channel is sea level offset
+			ColorMask G
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -63,7 +65,7 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
 				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
-				return _Weight * half4(0.0, addHeight, 0.0, 0.0);
+				return _Weight * half4(0.0, -addHeight, 0.0, 0.0);
 			}
 			ENDCG
 		}

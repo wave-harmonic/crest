@@ -648,18 +648,18 @@ namespace Crest
                 );
             }
 
-            if (ocean != null && ocean.Root != null && transform.position.y < ocean.Root.position.y)
-            {
-                showMessage
-                (
-                    "The depth cache must be placed at the same height as the ocean object, or higher. Depth caches must be above sea level.",
-                    "Set the Y position to the same height as the ocean object.",
-                    ValidatedHelper.MessageType.Error, this,
-                    FixHeight
-                );
+            //if (ocean != null && ocean.Root != null && transform.position.y < ocean.Root.position.y)
+            //{
+            //    showMessage
+            //    (
+            //        "The depth cache must be placed at the same height as the ocean object, or higher. Depth caches must be above sea level.",
+            //        "Set the Y position to the same height as the ocean object.",
+            //        ValidatedHelper.MessageType.Error, this,
+            //        FixHeight
+            //    );
 
-                isValid = false;
-            }
+            //    isValid = false;
+            //}
 
             if (!Mathf.Approximately(transform.eulerAngles.x, 0f) || !Mathf.Approximately(transform.eulerAngles.z, 0f))
             {

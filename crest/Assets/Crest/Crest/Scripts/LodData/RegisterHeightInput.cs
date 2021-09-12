@@ -83,7 +83,8 @@ namespace Crest
 
             if (isValid)
             {
-                if (ocean != null && ocean._simSettingsAnimatedWaves._renderTextureGraphicsFormat != GraphicsFormat.R32G32B32A32_SFloat)
+                if (ocean != null && ocean._simSettingsAnimatedWaves != null &&
+                    ocean._simSettingsAnimatedWaves._renderTextureGraphicsFormat != GraphicsFormat.R32G32B32A32_SFloat)
                 {
                     showMessage(
                         "Changing the height of the ocean can reduce precision leading to artefacts like tearing or incorrect normals. " +

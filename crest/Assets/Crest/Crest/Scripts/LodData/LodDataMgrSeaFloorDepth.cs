@@ -17,7 +17,7 @@ namespace Crest
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
         // We want the null colour to be the depth where wave attenuation begins (1000 metres)
-        readonly static Color s_nullColor = Color.red * 1000f;
+        readonly static Color s_nullColor = Color.red * -1000f;
         static Texture2DArray s_nullTexture;
         protected override Texture2DArray NullTexture => s_nullTexture;
 

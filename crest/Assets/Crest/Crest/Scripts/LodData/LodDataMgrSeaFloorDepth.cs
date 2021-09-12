@@ -11,16 +11,15 @@ namespace Crest
     using SettingsType = SimSettingsSeaFloorDepth;
 
     /// <summary>
-    /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
-    /// Y channel is negative of the height offset from global sea level. So if water level should be 50m above the base sea level, sea floor
-    /// offset value will be -50. Currently only above/upwards offsets are supported - meaning every water body is at the base sea level or higher.
+    /// Data that gives depth of the ocean (height of sea level above ocean floor). Stores terrain height and water level
+    /// offset.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
         protected override GraphicsFormat RequestedTextureFormat { get { return Settings._allowMultipleSeaLevels ? GraphicsFormat.R16G16_SFloat : GraphicsFormat.R16_SFloat; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
-        // We want the null colour to be the depth where wave attenuation begins (1000 metres)
+        // We want the clear colour to be the min terrain height (-1000m)
         readonly static Color s_nullColor = Color.red * -1000f;
         static Texture2DArray s_nullTexture;
         protected override Texture2DArray NullTexture => s_nullTexture;

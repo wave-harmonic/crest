@@ -308,7 +308,8 @@ namespace Crest
             // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
             // in the last LOD - then this is the best we can do.
             float minWavelength = i_minSpatialLength / 2f;
-            float minGridSize = minWavelength / OceanRenderer.Instance.MinTexelsPerWave;
+            float samplesPerWave = 2f;
+            float minGridSize = minWavelength / samplesPerWave;
 
             if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
             {

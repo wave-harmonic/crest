@@ -78,7 +78,15 @@ namespace Crest
 
             for (int textureArrayIndex = 0; textureArrayIndex < LodDataMgr.MAX_LOD_COUNT; textureArrayIndex++)
             {
+                // There is a bug using Graphics.CopyTexture with Texture2DArray when "Texture Quality"
+                // (QualitySettings.masterTextureLimit) is not "Full Res" (0) where result is junk (white from what I
+                // have seen). Reported to Unity on 2021.09.15.
+                // https://issuetracker.unity3d.com/product/unity/issues/guid/1365775
+                // https://docs.unity3d.com/ScriptReference/QualitySettings-masterTextureLimit.html
+                var originalMTL = QualitySettings.masterTextureLimit;
+                QualitySettings.masterTextureLimit = 0;
                 Graphics.CopyTexture(texture, 0, 0, array, textureArrayIndex, 0);
+                QualitySettings.masterTextureLimit = originalMTL;
             }
 
             return array;

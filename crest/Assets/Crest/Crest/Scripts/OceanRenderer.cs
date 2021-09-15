@@ -365,8 +365,10 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
+        public static readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         public static int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
+        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
         readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
@@ -374,8 +376,6 @@ namespace Crest
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
-        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -1094,6 +1094,17 @@ namespace Crest
                         if (overlapping)
                         {
                             overlappingOne = true;
+
+                            if (body._overrideMaterial != null)
+                            {
+                                tile.Rend.sharedMaterial = body._overrideMaterial;
+                                tile.MaterialOverridden = true;
+                            }
+                            else
+                            {
+                                tile.MaterialOverridden = false;
+                            }
+
                             break;
                         }
                     }

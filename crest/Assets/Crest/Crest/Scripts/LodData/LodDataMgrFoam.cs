@@ -65,6 +65,7 @@ namespace Crest
             simMaterial.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);
             simMaterial.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
+            simMaterial.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
 
             // assign animated waves - to slot 1 current frame data
             LodDataMgrAnimWaves.Bind(simMaterial);

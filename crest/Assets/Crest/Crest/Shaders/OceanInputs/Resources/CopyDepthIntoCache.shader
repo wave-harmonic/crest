@@ -69,7 +69,7 @@ Shader "Crest/Copy Depth Buffer Into Cache"
 				altitude = lerp(_HeightNearHeightFar.x, _HeightNearHeightFar.y, linear01Z);
 #endif
 
-				return float4(_OceanCenterPosWorld.y - altitude, 0.0, 0.0, 1.0);
+				return float4(altitude, 0.0, 0.0, 1.0);
 			}
 
 			ENDCG

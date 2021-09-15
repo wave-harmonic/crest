@@ -107,7 +107,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 float wt = input.invNormDistToShoreline_weight.y;
 
                 // Attenuate if depth is less than half of the average wavelength
-                const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
+                const half depth = _OceanCenterPosWorld.y - _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
                 const half depth_wt = saturate(2.0 * depth / _AverageWavelength);
                 const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
                 wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);

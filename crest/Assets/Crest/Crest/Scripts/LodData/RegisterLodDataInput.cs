@@ -160,6 +160,20 @@ namespace Crest
             s_registrar.Clear();
             sp_Weight = Shader.PropertyToID("_Weight");
         }
+
+        static Mesh s_Quad;
+        /// <summary>
+        /// Quad geometry
+        /// </summary>
+        public static Mesh QuadMesh
+        {
+            get
+            {
+                if (s_Quad) return s_Quad;
+
+                return s_Quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            }
+        }
     }
 
     /// <summary>

@@ -34,6 +34,7 @@ namespace Crest
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
+        public bool MaterialOverridden { get; set; }
 
         // We need to ensure that all ocean data has been bound for the mask to
         // render properly - this is something that needs to happen irrespective
@@ -113,7 +114,7 @@ namespace Crest
                 return;
             }
 
-            if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
+            if (!MaterialOverridden && Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
                 Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
             }

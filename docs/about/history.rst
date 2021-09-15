@@ -20,6 +20,8 @@ Changed
    -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
    -  Add inverted option to *Clip Surface* signed-distance primitives and convex hulls which removes clipping.
    -  Add *Override Material* field to the *Water Body* component to enable varying water material across water bodies.
+   -  *Sphere Water Interaction* component simplified - no mesh renderer/shader setup required, and no 'register' component required.
+   -  *Sphere Water Interaction* produces more consistent results at different radii/scales.
 
 
 4.13

@@ -38,6 +38,11 @@ namespace Crest
 
         public Bounds AABB { get; private set; }
 
+        [Tooltip("Water geometry tiles that overlap this waterbody area will be assigned this material. This " +
+            "is useful for varying water appearance across different water bodies. If no override material is " +
+            "specified, the default material assigned to the OceanRenderer component will be used.")]
+        public Material _overrideMaterial = null;
+
         private void OnEnable()
         {
             CalculateBounds();

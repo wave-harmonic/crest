@@ -11,7 +11,7 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 	{
 		[Enum(BlendOp)] _BlendOp("Blend Op", Int) = 0
 		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 1
+		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 0
 		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
 	}
 

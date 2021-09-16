@@ -20,6 +20,12 @@ Changed
    -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
    -  Add inverted option to *Clip Surface* signed-distance primitives and convex hulls which removes clipping.
 
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Only calculate inverse view projection matrix when required.
+
 
 4.13
 ----

@@ -38,8 +38,8 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
-			#include "../../Helpers/Legacy/Common.hlsl"
-			#include "../../Helpers/Legacy/InputsDriven.hlsl"
+			#include "../../Helpers/BIRP/Common.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
 
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"

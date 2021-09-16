@@ -37,6 +37,12 @@ Removed
 
    -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit as it is required for `FFT`\ s to work well.
 
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Only calculate inverse view projection matrix when required.
+
 
 4.13
 ----

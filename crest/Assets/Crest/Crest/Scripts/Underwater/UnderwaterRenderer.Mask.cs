@@ -54,6 +54,8 @@ namespace Crest
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTexture.colorBuffer);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTexture.depthBuffer);
 
+            SetInverseViewProjectionMatrix(_oceanMaskMaterial.material);
+
             PopulateOceanMask(
                 _oceanMaskCommandBuffer,
                 _camera,
@@ -110,20 +112,6 @@ namespace Crest
             // Render horizon into mask using a fullscreen triangle at the far plane. Horizon must be rendered first or
             // it will overwrite the mask with incorrect values.
             {
-                // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function.
-                if (XRHelpers.IsSinglePass)
-                {
-                    // NOTE: Not needed for HDRP.
-                    oceanMaskMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
-                    oceanMaskMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
-                }
-                else
-                {
-                    // NOTE: Not needed for HDRP.
-                    var inverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(camera.projectionMatrix, false) * camera.worldToCameraMatrix).inverse;
-                    oceanMaskMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
-                }
-
                 // Compute _ZBufferParams x and y values.
                 float zBufferParamsX; float zBufferParamsY;
                 if (SystemInfo.usesReversedZBuffer)

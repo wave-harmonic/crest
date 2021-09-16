@@ -10,8 +10,8 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 	Properties
 	{
 		[Enum(BlendOp)] _BlendOp("Blend Op", Int) = 0
-		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 0
+		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 5 // SrcAlpha
+		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 0 // Zero
 		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
 	}
 
@@ -64,8 +64,8 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
-				return _Weight * half4(0.0, addHeight, 0.0, 0.0);
+				const float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
+				return half4(0.0, addHeight, 0.0, _Weight);
 			}
 			ENDCG
 		}

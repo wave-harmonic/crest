@@ -28,13 +28,14 @@ Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fix lines in foam data producing noticeable, repeating patterns whn using `FFT` waves.
+   -  Fix lines in foam data producing noticeable repeating patterns when using `FFT` waves.
    -  Fix caustics jittering when far from zero and underwater in XR.
 
 Removed
 ^^^^^^^
+.. bullet_list::
 
-   -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit.
+   -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit as it is required for `FFT`\ s to work well.
 
 
 4.13

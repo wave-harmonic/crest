@@ -13,12 +13,12 @@ namespace Crest.Spline
     }
 
     /// <summary>
-    /// Simple spline object. Spline points are child gameobjects.
+    /// Simple spline object. Spline points are child GameObjects.
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines-preview")]
-    public partial class Spline : MonoBehaviour
+    public partial class Spline : MonoBehaviour, ISplinePointCustomDataSetup
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -42,6 +42,18 @@ namespace Crest.Spline
         public float Radius => _radius;
         public int Subdivisions => _subdivisions;
         public int SmoothingIterations => _smoothingIterations;
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (splinePoint.TryGetComponent<SplinePointData>(out _))
+            {
+                // Already added, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointData>();
+            return true;
+        }
     }
 
 #if UNITY_EDITOR

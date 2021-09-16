@@ -29,6 +29,7 @@ Fixed
 .. bullet_list::
 
    -  Fix lines in foam data producing noticeable, repeating patterns whn using `FFT` waves.
+   -  Fix caustics jittering when far from zero and underwater in XR.
 
 Removed
 ^^^^^^^

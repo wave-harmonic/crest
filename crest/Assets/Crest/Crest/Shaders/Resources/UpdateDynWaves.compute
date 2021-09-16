@@ -62,6 +62,15 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
+	const float waterDepth = _OceanCenterPosWorld.y - SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
+
+	// Wave reflections off geometry.
+	if (waterDepth <= 0.0)
+	{
+		_LD_TexArray_Target[id] = float2(0.0, 0.0);
+		return;
+	}
+
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
 	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _CascadeDataSrc[sliceIndexSource], sliceIndexSource);
 
@@ -118,10 +127,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	const float waterDepth = _OceanCenterPosWorld.y - SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
 	const float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
-	// Zero multiplier for zero depth to relfect waves.
-	ftp *= waterDepth > 0.0 ? depthMul : 0.0;
+	ftp *= depthMul;
 
 	_LD_TexArray_Target[id] = float2(ftp, vtp);
 }

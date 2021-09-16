@@ -32,7 +32,7 @@ namespace Crest
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
         public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
+        public SettingsType Settings => _ocean._simSettingsSeaFloorDepth != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {

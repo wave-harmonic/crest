@@ -44,6 +44,10 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#include "UnityCG.cginc"
 
+			#include "../../Helpers/BIRP/Common.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
+			#include "../../FullScreenTriangle.hlsl"
+
 			#include "../UnderwaterMaskHorizonShared.hlsl"
 			ENDCG
 		}

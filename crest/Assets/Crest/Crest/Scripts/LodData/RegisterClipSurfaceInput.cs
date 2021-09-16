@@ -89,7 +89,6 @@ namespace Crest
         Primitive _activePrimitive;
 
         // For rendering signed distance shapes and gizmos.
-        static Mesh s_Quad;
         Matrix4x4 QuadMatrix
         {
             get
@@ -178,18 +177,13 @@ namespace Crest
 
             if (_mode == Mode.Primitive)
             {
-                if (s_Quad == null)
-                {
-                    s_Quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                }
-
                 // Need this here or will see NullReferenceException on recompile.
                 if (_mpb == null)
                 {
                     _mpb = new PropertyWrapperMPB();
                 }
 
-                buf.DrawMesh(s_Quad, QuadMatrix, _signedDistancedMaterial, submeshIndex: 0, shaderPass: 0, _mpb.materialPropertyBlock);
+                buf.DrawMesh(QuadMesh, QuadMatrix, _signedDistancedMaterial, submeshIndex: 0, shaderPass: 0, _mpb.materialPropertyBlock);
             }
             else
             {
@@ -294,14 +288,9 @@ namespace Crest
                 return;
             }
 
-            if (s_Quad == null)
-            {
-                s_Quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-            }
-
             // Show gizmo for quad which encompasses the shape.
             Gizmos.matrix = QuadMatrix;
-            Gizmos.DrawWireMesh(s_Quad);
+            Gizmos.DrawWireMesh(QuadMesh);
 
             Gizmos.matrix = transform.localToWorldMatrix;
 

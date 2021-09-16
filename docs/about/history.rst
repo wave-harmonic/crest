@@ -22,6 +22,18 @@ Changed
    -  Add *Override Material* field to the *Water Body* component to enable varying water material across water bodies.
    -  *Sphere Water Interaction* component simplified - no mesh renderer/shader setup required, and no 'register' component required.
    -  *Sphere Water Interaction* produces more consistent results at different radii/scales.
+   -  Improve `FFT` wave quality by doubling the sampling from two to four.
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix lines in foam data producing noticeable, repeating patterns whn using `FFT` waves.
+
+Removed
+^^^^^^^
+
+   -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit.
 
 
 4.13

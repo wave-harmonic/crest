@@ -160,6 +160,7 @@ The following input shaders are provided under *Crest/Inputs/Dynamic Waves*:
    Can be used for boat wakes.
    The mesh needs to be a capsule.
    See the boat example scenes.
+   Note that this setup is planned to be deprecated in favour of the following *SphereWaterInteraction* component.
 
 -  **Sphere-Water Interaction** is a more specialized and accurate version of the *Object Interaction* input.
    It models the interaction between a sphere and takes into account how submerged the sphere is.

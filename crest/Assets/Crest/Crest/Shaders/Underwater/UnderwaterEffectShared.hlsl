@@ -6,11 +6,8 @@
 #define CREST_UNDERWATER_EFFECT_SHARED_INCLUDED
 
 half3 _AmbientLighting;
-float4x4 _InvViewProjection;
-float4x4 _InvViewProjectionRight;
 half _DataSliceOffset;
 float2 _HorizonNormal;
-
 
 float4 _CrestOceanMaskDepthTexture_TexelSize;
 

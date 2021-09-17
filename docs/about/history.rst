@@ -28,12 +28,22 @@ Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fix lines in foam data producing noticeable, repeating patterns whn using `FFT` waves.
+   -  Fix lines in foam data producing noticeable repeating patterns when using `FFT` waves.
+   -  Fix caustics jittering when far from zero and underwater in XR.
+   -  Fix disabled simulations' data being at maximum when "Texture Quality" is not "Full Res".
+      In one case this manifested as the entire ocean being shadowed in builds.
 
 Removed
 ^^^^^^^
+.. bullet_list::
 
-   -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit.
+   -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit as it is required for `FFT`\ s to work well.
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Only calculate inverse view projection matrix when required.
 
 
 4.13

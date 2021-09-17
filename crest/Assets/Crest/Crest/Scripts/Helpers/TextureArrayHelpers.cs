@@ -78,8 +78,15 @@ namespace Crest
 
             for (int textureArrayIndex = 0; textureArrayIndex < LodDataMgr.MAX_LOD_COUNT; textureArrayIndex++)
             {
-                Graphics.CopyTexture(texture, 0, 0, array, textureArrayIndex, 0);
+                // There is a bug using Graphics.CopyTexture with Texture2DArray when "Texture Quality"
+                // (QualitySettings.masterTextureLimit) is not "Full Res" (0) where result is junk (white from what I
+                // have seen). Changing this setting at runtime might cause a hitch so use SetPixels for now.
+                // Reported to Unity on 2021.09.15.
+                // https://issuetracker.unity3d.com/product/unity/issues/guid/1365775
+                array.SetPixels(texture.GetPixels(0), textureArrayIndex, 0);
             }
+
+            array.Apply();
 
             return array;
         }

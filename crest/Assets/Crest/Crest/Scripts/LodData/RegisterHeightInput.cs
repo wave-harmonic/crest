@@ -31,9 +31,9 @@ namespace Crest
         public readonly static Color s_gizmoColor = new Color(0f, 1f, 0f, 0.5f);
         protected override Color GizmoColor => s_gizmoColor;
 
-        protected override string ShaderPrefix => "Crest/Inputs/Animated Waves";
+        protected override string ShaderPrefix => "Crest/Inputs/Sea Floor Depth";
 
-        protected override string SplineShaderName => "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry";
+        protected override string SplineShaderName => "Crest/Inputs/Sea Floor Depth/Set Base Water Height Using Geometry";
         protected override Vector2 DefaultCustomData => Vector2.zero;
 
         protected override bool FollowHorizontalMotion => true;

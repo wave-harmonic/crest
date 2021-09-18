@@ -9,6 +9,7 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 {
 	Properties
 	{
+		[HideInInspector] _ObsoleteMessage( "Use <i>Crest/Inputs/Sea Floor Depth/Set Base Water Height Using Geometry</i> instead.", Float ) = 0
 		[Enum(BlendOp)] _BlendOp("Blend Op", Int) = 0
 		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 5 // SrcAlpha
 		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 0 // Zero
@@ -70,4 +71,6 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 			ENDCG
 		}
 	}
+
+	CustomEditor "Crest.ObsoleteShaderGUI"
 }

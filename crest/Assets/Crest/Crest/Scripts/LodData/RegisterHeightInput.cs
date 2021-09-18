@@ -73,31 +73,4 @@ namespace Crest
         protected override bool FeatureEnabled(OceanRenderer ocean) => true;
 #endif // UNITY_EDITOR
     }
-
-#if UNITY_EDITOR
-    public partial class RegisterHeightInput
-    {
-        public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
-        {
-            var isValid = base.Validate(ocean, showMessage);
-
-            if (isValid)
-            {
-                if (ocean != null && ocean._simSettingsAnimatedWaves != null &&
-                    ocean._simSettingsAnimatedWaves._renderTextureGraphicsFormat != GraphicsFormat.R32G32B32A32_SFloat)
-                {
-                    showMessage(
-                        "Changing the height of the ocean can reduce precision leading to artefacts like tearing or incorrect normals. " +
-                        $"{ocean._simSettingsAnimatedWaves._renderTextureGraphicsFormat} may not have enough precision.",
-                        "Change graphics format to <i>R32G32B32A32_SFloat</i>.",
-                        ValidatedHelper.MessageType.Warning,
-                        ocean
-                    );
-                }
-            }
-
-            return isValid;
-        }
-    }
-#endif
 }

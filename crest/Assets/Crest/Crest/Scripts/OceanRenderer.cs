@@ -212,6 +212,7 @@ namespace Crest
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
         bool _createSeaFloorDepthData = true;
         public bool CreateSeaFloorDepthData { get { return _createSeaFloorDepthData; } }
+        [Predicated("_createSeaFloorDepthData"), Embedded]
         public SimSettingsSeaFloorDepth _simSettingsSeaFloorDepth;
 
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]

@@ -1044,7 +1044,7 @@ namespace Crest
             _sampleHeightHelper.Sample(out var waterHeight);
 
             ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
-            
+
             // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
             // when there are local bodies of water
             _viewerHeightAboveWaterSmooth = Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);

@@ -299,7 +299,6 @@ Shader "Crest/Ocean"
 				half3 debugtint : TEXCOORD8;
 				#endif
 				half4 grabPos : TEXCOORD9;
-
 				float2 seaLevelDerivs : TEXCOORD10;
 
 				UNITY_FOG_COORDS(3)

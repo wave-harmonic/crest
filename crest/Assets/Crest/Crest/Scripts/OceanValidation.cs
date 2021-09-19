@@ -9,6 +9,7 @@
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Crest.EditorHelpers;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -106,6 +107,16 @@ namespace Crest
             var renderer = gameObject.GetComponent<MeshRenderer>();
             Undo.DestroyObjectImmediate(renderer);
             EditorUtility.SetDirty(gameObject);
+        }
+
+        public static void FixAddMissingMathPackage(SerializedObject componentOrGameObject)
+        {
+            PackageManagerHelpers.AddMissingPackage("com.unity.mathematics");
+        }
+
+        public static void FixAddMissingBurstPackage(SerializedObject componentOrGameObject)
+        {
+            PackageManagerHelpers.AddMissingPackage("com.unity.burst");
         }
 
         public static bool ValidateRenderer(GameObject gameObject, ShowMessage showMessage, string shaderPrefix)
@@ -262,11 +273,20 @@ namespace Crest
                         foreach (var message in messages)
                         {
                             EditorGUILayout.BeginHorizontal();
+
                             var fixDescription = message._fixDescription;
+                            var originalGUIEnabled = GUI.enabled;
+
                             if (message._action != null)
                             {
                                 fixDescription += " Click the fix/repair button on the right to fix.";
+
+                                if ((message._action == ValidatedHelper.FixAddMissingMathPackage || message._action == ValidatedHelper.FixAddMissingBurstPackage) && PackageManagerHelpers.IsBusy)
+                                {
+                                    GUI.enabled = false;
+                                }
                             }
+
                             EditorGUILayout.HelpBox($"{message._message} {fixDescription}", messageType);
 
                             // Jump to object button.
@@ -321,6 +341,8 @@ namespace Crest
                                     }
                                 }
                             }
+
+                            GUI.enabled = originalGUIEnabled;
 
                             EditorGUILayout.EndHorizontal();
                         }

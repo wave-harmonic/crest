@@ -411,6 +411,19 @@ namespace Crest
                 );
             }
 
+#if !CREST_UNITY_MATHEMATICS
+            if (_enableBakedCollision)
+            {
+                showMessage
+                (
+                    "The <i>Unity Mathematics (com.unity.mathematics)</i> package is required for baking.",
+                    "Add the <i>Unity Mathematics</i> package.",
+                    ValidatedHelper.MessageType.Warning, this,
+                    ValidatedHelper.FixAddMissingMathPackage
+                );
+            }
+#endif
+
             return isValid;
         }
     }
@@ -419,6 +432,7 @@ namespace Crest
     [CustomEditor(typeof(ShapeFFT))]
     public class ShapeFFTEditor : ValidatedEditor
     {
+#if CREST_UNITY_MATHEMATICS
         /// <summary>
         /// Display some validation and statistics about the bake.
         /// </summary>
@@ -522,6 +536,7 @@ namespace Crest
                 GUI.enabled = true;
             }
         }
+#endif // CREST_UNITY_MATHEMATICS
     }
 #endif
 }

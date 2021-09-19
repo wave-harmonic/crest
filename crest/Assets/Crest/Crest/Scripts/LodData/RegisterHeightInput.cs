@@ -42,10 +42,6 @@ namespace Crest
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
 
-        [SerializeField, Tooltip("Use the bounding box of an attached renderer component to determine the max vertical displacement.")]
-        [Predicated(typeof(MeshRenderer)), DecoratedField]
-        bool _reportRendererBoundsToOceanSystem = false;
-
         protected override void Update()
         {
             base.Update();
@@ -58,7 +54,7 @@ namespace Crest
             var maxDispVert = _maxDisplacementVertical;
 
             // let ocean system know how far from the sea level this shape may displace the surface
-            if (_reportRendererBoundsToOceanSystem && _renderer != null)
+            if (_renderer != null)
             {
                 var minY = _renderer.bounds.min.y;
                 var maxY = _renderer.bounds.max.y;

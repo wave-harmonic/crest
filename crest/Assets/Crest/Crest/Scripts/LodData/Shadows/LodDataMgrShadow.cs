@@ -83,7 +83,7 @@ namespace Crest
             }
             catch (Exception)
             {
-                Debug.LogError("Could not load shadow update kernel. Disabling shadows.", _ocean);
+                Debug.LogError("Crest: Could not load shadow update kernel. Disabling shadows.", _ocean);
                 enabled = false;
                 return;
             }
@@ -93,7 +93,7 @@ namespace Crest
                 && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
+                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }
@@ -116,13 +116,13 @@ namespace Crest
 
             if (_mainLight.type != LightType.Directional)
             {
-                Debug.LogError("Primary light must be of type Directional.", OceanRenderer.Instance);
+                Debug.LogError("Crest: Primary light must be of type Directional.", OceanRenderer.Instance);
                 return false;
             }
 
             if (_mainLight.shadows == LightShadows.None)
             {
-                Debug.LogError("Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
+                Debug.LogError("Crest: Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
                 return false;
             }
 
@@ -154,7 +154,7 @@ namespace Crest
             {
                 if (!Settings._allowNullLight)
                 {
-                    Debug.LogWarning("Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
+                    Debug.LogWarning("Crest: Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
                 }
                 return;
             }

@@ -38,7 +38,7 @@ namespace Crest
             {
                 stepCount = maxStepCount;
                 _rayStepSize = _rayLength / (stepCount - 1f);
-                Debug.LogWarning($"RayTraceHelper: ray steps exceed maximum ({maxStepCount}), step size increased to {_rayStepSize} to reduce step count.");
+                Debug.LogWarning($"Crest: RayTraceHelper: ray steps exceed maximum ({maxStepCount}), step size increased to {_rayStepSize} to reduce step count.");
             }
 
             _queryPos = new Vector3[stepCount];

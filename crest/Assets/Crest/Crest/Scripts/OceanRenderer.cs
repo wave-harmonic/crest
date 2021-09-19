@@ -127,7 +127,7 @@ namespace Crest
         // Put a time provider at the top of the stack
         public void PushTimeProvider(ITimeProvider tp)
         {
-            Debug.Assert(tp != null, "Null time provider pushed");
+            Debug.Assert(tp != null, "Crest: Null time provider pushed");
 
             // Remove any instances of it already in the stack
             PopTimeProvider(tp);
@@ -139,7 +139,7 @@ namespace Crest
         // Remove a time provider from the stack
         public void PopTimeProvider(ITimeProvider tp)
         {
-            Debug.Assert(tp != null, "Null time provider popped");
+            Debug.Assert(tp != null, "Crest: Null time provider popped");
 
             _timeProviderStack.RemoveAll(candidate => candidate == tp);
         }
@@ -245,6 +245,10 @@ namespace Crest
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
+
+        [Predicated("_createClipSurfaceData"), Embedded]
+        public SimSettingsClipSurface _simSettingsClipSurface;
+
         public enum DefaultClippingState
         {
             NothingClipped,
@@ -374,6 +378,7 @@ namespace Crest
         readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
+        readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
         public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
         public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
@@ -754,7 +759,7 @@ namespace Crest
             {
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {
-                    Debug.LogError("Crest does not support WebGL backends.", this);
+                    Debug.LogError("Crest: Crest does not support WebGL backends.", this);
                     return false;
                 }
 #if UNITY_EDITOR
@@ -762,23 +767,23 @@ namespace Crest
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
                 {
-                    Debug.LogError("Crest does not support OpenGL backends.", this);
+                    Debug.LogError("Crest: Crest does not support OpenGL backends.", this);
                     return false;
                 }
 #endif
                 if (SystemInfo.graphicsShaderLevel < 45)
                 {
-                    Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                    Debug.LogError("Crest: Crest requires graphics devices that support shader level 4.5 or above.", this);
                     return false;
                 }
                 if (!SystemInfo.supportsComputeShaders)
                 {
-                    Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
+                    Debug.LogError("Crest: Crest requires graphics devices that support compute shaders.", this);
                     return false;
                 }
                 if (!SystemInfo.supports2DArrayTextures)
                 {
-                    Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
+                    Debug.LogError("Crest: Crest requires graphics devices that support 2D array textures.", this);
                     return false;
                 }
             }
@@ -790,7 +795,7 @@ namespace Crest
         {
             if (Viewpoint == null)
             {
-                Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
+                Debug.LogError("Crest: Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
             }
         }
 
@@ -867,6 +872,7 @@ namespace Crest
             Shader.SetGlobalFloat(sp_clipByDefault, _defaultClippingState == DefaultClippingState.EverythingClipped ? 1f : 0f);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointFade, _lodAlphaBlackPointFade);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
+            Shader.SetGlobalInt(sp_CrestDepthTextureOffset, Helpers.IsMSAAEnabled(ViewCamera) ? 1 : 0);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
             // is applied to LOD0 tiles only through instance data. This global can be used in compute, where we only apply this factor for slice 0.
@@ -1326,7 +1332,7 @@ namespace Crest
                 waterBody.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
-            Debug.Log("Validation complete!", ocean);
+            Debug.Log("Crest: Validation complete!", ocean);
         }
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
@@ -1618,7 +1624,7 @@ namespace Crest
                 var newLDR = _lodDataResolution - (_lodDataResolution % _geometryDownSampleFactor);
                 Debug.LogWarning
                 (
-                    "Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").",
+                    $"Crest: Adjusted Lod Data Resolution from {_lodDataResolution} to {newLDR} to ensure the Geometry Down Sample Factor is a factor ({_geometryDownSampleFactor}).",
                     this
                 );
 

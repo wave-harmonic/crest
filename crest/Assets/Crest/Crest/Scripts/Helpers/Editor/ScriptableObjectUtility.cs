@@ -26,7 +26,7 @@ namespace Crest.EditorHelpers
             ScriptableObject asset = ScriptableObject.CreateInstance(assetType);
             if (asset == null)
             {
-                Debug.LogError("failed to create instance of " + assetType.Name + " at " + assetPath);
+                Debug.LogError("Crest: Failed to create instance of " + assetType.Name + " at " + assetPath);
                 return null;
             }
             AssetDatabase.CreateAsset(asset, assetPath);
@@ -62,7 +62,7 @@ namespace Crest.EditorHelpers
             ScriptableObject asset = ScriptableObject.CreateInstance(className);
             if (asset == null)
             {
-                Debug.LogError("failed to create instance of " + className);
+                Debug.LogError("Crest: Failed to create instance of " + className);
                 return null;
             }
 

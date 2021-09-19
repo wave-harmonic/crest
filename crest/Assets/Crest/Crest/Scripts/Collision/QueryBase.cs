@@ -98,7 +98,7 @@ namespace Crest
                         // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
                         // and the pipeline blocks up.
 #if !UNITY_EDITOR
-                        Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
+                        Debug.LogError("Crest: Query ring buffer exhausted. Please report this to developers.");
 #endif
                         return;
                     }
@@ -235,7 +235,7 @@ namespace Crest
             _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
             if (_shaderProcessQueries == null)
             {
-                Debug.LogError($"Could not load Query compute shader {QueryShaderName}");
+                Debug.LogError($"Crest: Could not load Query compute shader {QueryShaderName}");
                 return;
             }
             _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
@@ -252,7 +252,7 @@ namespace Crest
         {
             if (queryPoints.Length + _segmentRegistrarRingBuffer.Current._numQueries > _maxQueryCount)
             {
-                Debug.LogError($"Max query count ({_maxQueryCount}) exceeded, increase the max query count in the Animated Waves Settings to support a higher number of queries.");
+                Debug.LogError($"Crest: Max query count ({_maxQueryCount}) exceeded, increase the max query count in the Animated Waves Settings to support a higher number of queries.");
                 return false;
             }
 
@@ -291,7 +291,7 @@ namespace Crest
             {
                 if (_segmentRegistrarRingBuffer.Current._segments.Count >= s_maxGuids)
                 {
-                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.");
+                    Debug.LogError("Crest: Too many guids registered with CollProviderCompute. Increase s_maxGuids.");
                     return false;
                 }
 
@@ -302,7 +302,7 @@ namespace Crest
 
                 _segmentRegistrarRingBuffer.Current._numQueries += countTotal;
 
-                //Debug.Log("Added points for " + guid);
+                //Debug.Log("Crest: Added points for " + guid);
             }
 
             // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
@@ -312,7 +312,7 @@ namespace Crest
 
             if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
             {
-                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.");
+                Debug.LogError("Crest: Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.");
                 return false;
             }
 

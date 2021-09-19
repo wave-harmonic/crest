@@ -136,7 +136,7 @@ namespace Crest
             _camViewpoint = GetComponent<Camera>();
             if (!_camViewpoint)
             {
-                Debug.LogWarning("Disabling planar reflections as no camera found on gameobject to generate reflection from.", this);
+                Debug.LogWarning("Crest: Disabling planar reflections as no camera found on gameobject to generate reflection from.", this);
                 enabled = false;
                 return;
             }
@@ -149,7 +149,7 @@ namespace Crest
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
             {
-                Debug.LogWarning("Planar reflections are not enabled on the current ocean material and will not be visible.", this);
+                Debug.LogWarning("Crest: Planar reflections are not enabled on the current ocean material and will not be visible.", this);
             }
 #endif
         }
@@ -316,7 +316,7 @@ namespace Crest
                 }
 
                 var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
-                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(format), "The graphics device does not support the render texture format " + format.ToString());
+                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(format), "Crest: The graphics device does not support the render texture format " + format.ToString());
                 _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format)
                 {
                     name = "__WaterReflection" + GetHashCode(),

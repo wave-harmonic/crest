@@ -290,7 +290,7 @@ namespace Crest
             var renderer = GetComponent<Renderer>();
             if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
             {
-                ValidatedHelper.ValidateMaterial(renderer.sharedMaterial, shaderPrefix, gameObject, showMessage);
+                ValidatedHelper.ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix);
 
                 isValid = false;
             }

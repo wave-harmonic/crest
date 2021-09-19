@@ -168,7 +168,11 @@ namespace Crest
         // Used to populate data on first frame
         bool _firstUpdate = true;
 
+        // Active material.
         Material _matGenerateWaves;
+        // Cache material options.
+        Material _matGenerateWavesGlobal;
+        Material _matGenerateWavesGeometry;
 
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
@@ -288,11 +292,23 @@ namespace Crest
 
             if (_meshForDrawingWaves == null)
             {
-                _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                if (_matGenerateWavesGlobal == null)
+                {
+                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                    _matGenerateWavesGlobal.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGlobal;
             }
             else
             {
-                _matGenerateWaves = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                if (_matGenerateWavesGeometry == null)
+                {
+                    _matGenerateWavesGeometry = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    _matGenerateWavesGeometry.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGeometry;
             }
 
             // Submit draws to create the FFT waves

@@ -33,12 +33,12 @@
         {
             "name": "com.unity.burst",
             "expression": "1.0.0",
-            "define": "CREST_BURST"
+            "define": "CREST_UNITY_BURST"
         },
         {
             "name": "com.unity.mathematics",
             "expression": "1.0.0",
-            "define": "CREST_MATH"
+            "define": "CREST_UNITY_MATHEMATICS"
         }
     ],
     "noEngineReferences": false

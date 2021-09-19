@@ -17,7 +17,7 @@
 // - We could potentially avoid starting a job for less than ~10 or so queries, assuming we can run the query
 //   code directly and still be Burst compiled.
 
-#if CREST_MATH
+#if CREST_UNITY_MATHEMATICS
 
 using System;
 using System.Runtime.CompilerServices;
@@ -330,4 +330,4 @@ namespace Crest
 #endif // UNITY_EDITOR
 }
 
-#endif // CREST_MATH
+#endif // CREST_UNITY_MATHEMATICS

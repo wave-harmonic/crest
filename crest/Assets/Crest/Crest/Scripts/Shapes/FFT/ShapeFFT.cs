@@ -395,7 +395,7 @@ namespace Crest
                 );
             }
 
-#if !CREST_MATH
+#if !CREST_UNITY_MATHEMATICS
             if (_enableBakedCollision)
             {
                 showMessage
@@ -416,7 +416,7 @@ namespace Crest
     [CustomEditor(typeof(ShapeFFT))]
     public class ShapeFFTEditor : ValidatedEditor
     {
-#if CREST_MATH
+#if CREST_UNITY_MATHEMATICS
         /// <summary>
         /// Display some validation and statistics about the bake.
         /// </summary>
@@ -520,7 +520,7 @@ namespace Crest
                 GUI.enabled = true;
             }
         }
-#endif // CREST_MATH
+#endif // CREST_UNITY_MATHEMATICS
     }
 #endif
 }

@@ -468,37 +468,31 @@ Shader "Crest/Ocean"
 
 #if _UNDERWATER_GEOMETRY_EFFECT
 				{
-					float rawClipSurfaceBackZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, uvDepth).x;
-
-					if (rawClipSurfaceBackZ > 0)
-					{
-						if (rawClipSurfaceBackZ >= input.positionCS.z)
-						{
-							discard;
-						}
-					}
 #if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
-					else
+					// Discard ocean after boundary or when not on pixel.
+					float rawClipSurfaceBackZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, uvDepth).x;
+					if (rawClipSurfaceBackZ == 0 || rawClipSurfaceBackZ > input.positionCS.z)
 					{
 						discard;
 					}
-#endif
+#endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 
+					// Discard ocean before boundary.
 					float rawClipSurfaceFrontZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, uvDepth).x;
-
-					if (rawClipSurfaceFrontZ != 0 && rawClipSurfaceFrontZ < input.positionCS.z)
+					if (rawClipSurfaceFrontZ > 0 && rawClipSurfaceFrontZ < input.positionCS.z)
 					{
 						discard;
 					}
 
 #if _UNDERWATER_GEOMETRY_EFFECT_PLANE
-					if (rawClipSurfaceFrontZ == 0 && rawClipSurfaceBackZ == 0)
+					// Discard ocean when plane is not in view.
+					if (rawClipSurfaceFrontZ == 0.0)
 					{
 						discard;
 					}
+#endif // _UNDERWATER_GEOMETRY_EFFECT_PLANE
 				}
-#endif
-#endif
+#endif // _UNDERWATER_GEOMETRY_EFFECT
 
 				#if _CLIPSURFACE_ON
 				// Clip surface

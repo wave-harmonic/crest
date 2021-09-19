@@ -58,10 +58,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
 
-#if _GEOMETRY_EFFECT_CONVEX_HULL
-
-#endif
-
 			#include "../UnderwaterEffectShared.hlsl"
 
 			struct Attributes
@@ -141,8 +137,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				bool isBeforeFrontFaceBoundary = false;
 				bool isAfterBackFaceBoundary = false;
 
-				// return float4(sceneZ01, oceanDepth01, frontFaceBoundaryDepth01, 1);
-
 				if (isUnderwater)
 				{
 					// scene is after back face boundary
@@ -190,7 +184,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 					}
 #elif _GEOMETRY_EFFECT_PLANE
 					sceneZ -= CrestLinearEyeDepth(input.positionCS.z);
-#endif
+#endif // _GEOMETRY_EFFECT
 					const float3 lightDir = _WorldSpaceLightPos0.xyz;
 					const half3 lightCol = _LightColor0;
 					sceneColour = ApplyUnderwaterEffect(scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);

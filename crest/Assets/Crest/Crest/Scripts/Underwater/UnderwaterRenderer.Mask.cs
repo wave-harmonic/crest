@@ -69,6 +69,14 @@ namespace Crest
 
             InitialiseMaskTextures(descriptor, ref _maskTexture, ref _depthTexture);
 
+            // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
+            // to disable all keywords from a set first.
+            // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
+            _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_PLANE");
+            _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL");
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_PLANE");
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL");
+
             // Needed for convex hull as we need to clip the mask right up until the volume begins. It is used for non
             // convex hull, but could be skipped if we sample the clip surface in the mask.
             if (_waterVolumeBoundaryGeometry != null)
@@ -95,7 +103,7 @@ namespace Crest
                 InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryOuterTexture, "Inner");
                 _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryInnerTexture, _boundaryOuterTexture.depthBuffer);
                 _boundaryCommandBuffer.SetRenderTarget(_boundaryOuterTexture.depthBuffer);
-                _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
+                _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.white * 0.5f); // TODO: 0.5 is no mask
                 _boundaryCommandBuffer.DrawMesh
                 (
                     _waterVolumeBoundaryGeometry.mesh,
@@ -105,13 +113,8 @@ namespace Crest
                     k_ShaderPassWaterBoundaryInner
                 );
 
-                _oceanMaskMaterial.material.EnableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
+                _oceanMaskMaterial.material.EnableKeyword(_isConvexHull ? "_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL" : "_UNDERWATER_GEOMETRY_EFFECT_PLANE");
                 OceanRenderer.Instance.OceanMaterial.EnableKeyword(_isConvexHull ? "_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL" : "_UNDERWATER_GEOMETRY_EFFECT_PLANE");
-            }
-            else
-            {
-                _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT");
-                OceanRenderer.Instance.OceanMaterial.EnableKeyword("_UNDERWATER_GEOMETRY_EFFECT_NONE");
             }
 
             _oceanMaskCommandBuffer.Clear();
@@ -151,6 +154,9 @@ namespace Crest
                 // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
                 // We could also potentially try a half res mask as the mensicus could mask res issues.
                 textureMask.format = RenderTextureFormat.RHalf;
+                // Needs point filtering otherwise meniscus will produce artefacts at geometry edges due to loss of
+                // discrete values.
+                textureMask.filterMode = FilterMode.Point;
                 textureMask.Create();
 
                 depthBuffer = new RenderTexture(desc);

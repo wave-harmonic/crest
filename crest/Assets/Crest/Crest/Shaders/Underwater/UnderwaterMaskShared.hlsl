@@ -34,10 +34,6 @@ struct Varyings
 // i'm not sure why cracks are not visible in this case.
 float _ForceUnderwater;
 
-#if _UNDERWATER_GEOMETRY_EFFECT
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture);
-#endif
-
 Varyings Vert(Attributes v)
 {
 	// This will work for all pipelines.
@@ -113,15 +109,24 @@ Varyings Vert(Attributes v)
 half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 {
 #if _UNDERWATER_GEOMETRY_EFFECT
-	half2 screenUV = input.screenPosition.xy / input.screenPosition.z;
-	const float deviceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, screenUV.xy).x;
-
-	// Discard any pixels in front of the boundary geometry otherwise the mask will be incorrect at eye level.
-	if (deviceZ != 0 && deviceZ < input.positionCS.z)
 	{
-		discard;
+		half2 screenUV = input.screenPosition.xy / input.screenPosition.z;
+#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+		// If no geometry in view, do not render otherwise meniscus will appear at edges.
+		if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, screenUV).x == 0)
+		{
+			discard;
+		}
+#endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+
+		// Discard any pixels in front of the boundary geometry otherwise the mask will be incorrect at eye level.
+		float rawOuterZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, screenUV).x;
+		if (rawOuterZ > 0 && rawOuterZ < input.positionCS.z)
+		{
+			discard;
+		}
 	}
-#endif
+#endif // _UNDERWATER_GEOMETRY_EFFECT
 
 	// @MSAAOutlineFix:
 	// The edge of the ocean surface at the near plane will be MSAA'd leaving a noticeable edge. By rendering the mask

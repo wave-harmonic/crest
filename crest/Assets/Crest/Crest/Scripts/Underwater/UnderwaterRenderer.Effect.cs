@@ -92,10 +92,14 @@ namespace Crest
             _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
             _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
 
+            // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
+            // to disable all keywords from a set first.
+            // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
+            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_PLANE");
+            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_CONVEX_HULL");
+
             if (_waterVolumeBoundaryGeometry == null)
             {
-                _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_PLANE");
-                _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_CONVEX_HULL");
                 _underwaterEffectMaterial.material.SetInt("_CullMode", (int)CullMode.Off);
                 _underwaterEffectMaterial.material.SetInt("_ZTest", (int)CompareFunction.Always);
 

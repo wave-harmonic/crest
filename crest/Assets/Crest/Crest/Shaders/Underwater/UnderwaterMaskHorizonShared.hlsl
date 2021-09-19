@@ -26,6 +26,9 @@ struct Varyings
 {
 	float4 positionCS : SV_POSITION;
 	float3 positionWS : TEXCOORD0;
+#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+	float2 uv : TEXCOORD1;
+#endif
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -38,6 +41,10 @@ Varyings Vert(Attributes input)
 
 	output.positionCS = GetFullScreenTriangleVertexPosition(input.id, _FarPlaneOffset);
 	float2 uv = GetFullScreenTriangleTexCoord(input.id);
+
+#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+	output.uv = uv;
+#endif
 
 	const float2 pixelCS = uv * 2.0 - float2(1.0, 1.0);
 #if CREST_HANDLE_XR
@@ -55,6 +62,14 @@ Varyings Vert(Attributes input)
 
 half4 Frag(Varyings input) : SV_Target
 {
+#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+	if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, input.uv).x == 0.0)
+	{
+		// We need mask none for the meniscus. Otherwise, it will appear at geometry edges.
+		return (half4) UNDERWATER_MASK_NONE;
+	}
+#endif
+
 	return (half4) input.positionWS.y > _OceanCenterPosWorld.y
 		? UNDERWATER_MASK_ABOVE_SURFACE
 		: UNDERWATER_MASK_BELOW_SURFACE;

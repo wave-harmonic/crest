@@ -39,10 +39,14 @@ float3 ComputeWorldSpaceView(const float2 uv)
 	return _WorldSpaceCameraPos - pixelWS;
 }
 
-float MeniscusSampleOceanMask(const float2 uvScreenSpace, const float2 offset, const half magnitude)
+float MeniscusSampleOceanMask(const float mask, const float2 uvScreenSpace, const float2 offset, const half magnitude)
 {
 	float2 uv = uvScreenSpace + offset * magnitude;
-	return UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uv).r;
+	float newMask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uv).r;
+#if _GEOMETRY_EFFECT
+	return (newMask == UNDERWATER_MASK_NONE ? mask : newMask);
+#endif
+	return newMask;
 }
 
 half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const float2 horizonNormal, const float sceneZ)
@@ -56,9 +60,9 @@ half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const f
 	float multiplier = 0.9;
 
 	// Sample three pixels along the normal. If the sample is different than the current mask, apply meniscus.
-	weight *= (MeniscusSampleOceanMask(uvScreenSpace, offset, 1.0) != mask) ? multiplier : 1.0;
-	weight *= (MeniscusSampleOceanMask(uvScreenSpace, offset, 2.0) != mask) ? multiplier : 1.0;
-	weight *= (MeniscusSampleOceanMask(uvScreenSpace, offset, 3.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, uvScreenSpace, offset, 1.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, uvScreenSpace, offset, 2.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, uvScreenSpace, offset, 3.0) != mask) ? multiplier : 1.0;
 #endif // _FULL_SCREEN_EFFECT
 #endif // CREST_MENISCUS
 	return weight;

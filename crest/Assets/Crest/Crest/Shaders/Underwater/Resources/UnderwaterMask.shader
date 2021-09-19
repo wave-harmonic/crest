@@ -19,9 +19,21 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			// for VFACE
 			#pragma target 3.0
 
-			#pragma multi_compile_local __ _UNDERWATER_GEOMETRY_EFFECT
+			// Clipping the ocean surface for underwater volumes.
+			#pragma multi_compile_local _UNDERWATER_GEOMETRY_EFFECT_NONE _UNDERWATER_GEOMETRY_EFFECT_PLANE _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 
 			#include "UnityCG.cginc"
+
+#if defined(_UNDERWATER_GEOMETRY_EFFECT_PLANE) || defined(_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL)
+			#define _UNDERWATER_GEOMETRY_EFFECT 1
+#endif
+
+#if _UNDERWATER_GEOMETRY_EFFECT
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture);
+#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture);
+#endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+#endif // _UNDERWATER_GEOMETRY_EFFECT
 
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 			float4 _CameraDepthTexture_TexelSize;
@@ -44,7 +56,17 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#pragma multi_compile_instancing
 
+			#pragma multi_compile_local _UNDERWATER_GEOMETRY_EFFECT_NONE _UNDERWATER_GEOMETRY_EFFECT_PLANE _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+
 			#include "UnityCG.cginc"
+
+#if defined(_UNDERWATER_GEOMETRY_EFFECT_PLANE) || defined(_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL)
+			#define _UNDERWATER_GEOMETRY_EFFECT 1
+#endif
+
+#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture);
+#endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 
 			#include "../UnderwaterMaskHorizonShared.hlsl"
 			ENDCG

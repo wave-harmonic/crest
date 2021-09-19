@@ -13,25 +13,26 @@ namespace Crest.EditorHelpers
 
     public static class PackageManagerHelpers
     {
-        static AddRequest Request;
+        static AddRequest s_Request;
+        public static bool IsBusy => s_Request?.IsCompleted == false;
 
         public static void AddMissingPackage(string packageName)
         {
-            Request = Client.Add(packageName);
+            s_Request = Client.Add(packageName);
             EditorApplication.update += AddMissingPackageProgress;
         }
 
         static void AddMissingPackageProgress()
         {
-            if (Request.IsCompleted)
+            if (s_Request.IsCompleted)
             {
-                if (Request.Status == StatusCode.Success)
+                if (s_Request.Status == StatusCode.Success)
                 {
-                    Debug.Log("Installed: " + Request.Result.packageId);
+                    Debug.Log("Installed: " + s_Request.Result.packageId);
                 }
-                else if (Request.Status >= StatusCode.Failure)
+                else if (s_Request.Status >= StatusCode.Failure)
                 {
-                    Debug.Log(Request.Error.message);
+                    Debug.Log(s_Request.Error.message);
                 }
 
                 EditorApplication.update -= AddMissingPackageProgress;

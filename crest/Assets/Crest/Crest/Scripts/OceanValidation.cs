@@ -265,11 +265,20 @@ namespace Crest
                         foreach (var message in messages)
                         {
                             EditorGUILayout.BeginHorizontal();
+
                             var fixDescription = message._fixDescription;
+                            var originalGUIEnabled = GUI.enabled;
+
                             if (message._action != null)
                             {
                                 fixDescription += " Click the fix/repair button on the right to fix.";
+
+                                if ((message._action == ValidatedHelper.FixAddMissingMathPackage || message._action == ValidatedHelper.FixAddMissingBurstPackage) && PackageManagerHelpers.IsBusy)
+                                {
+                                    GUI.enabled = false;
+                                }
                             }
+
                             EditorGUILayout.HelpBox($"{message._message} {fixDescription}", messageType);
 
                             // Jump to object button.
@@ -324,6 +333,8 @@ namespace Crest
                                     }
                                 }
                             }
+
+                            GUI.enabled = originalGUIEnabled;
 
                             EditorGUILayout.EndHorizontal();
                         }

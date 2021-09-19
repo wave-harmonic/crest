@@ -102,7 +102,8 @@ void ApplyCaustics(in const float3 i_scenePos, in const half3 i_lightDir, in con
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
 	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp);
-	half waterHeight = _OceanCenterPosWorld.y + disp.y;
+	half seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, scenePosUV, 0.0).y;
+	half waterHeight = _OceanCenterPosWorld.y + disp.y + seaLevelOffset;
 	half sceneDepth = waterHeight - i_scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
 	// where samples are stretched/dilated. The bias is to give a focusing effect to caustics - they are sharpest at a particular depth. This doesn't work amazingly

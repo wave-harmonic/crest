@@ -96,14 +96,18 @@ Varyings Vert(Attributes v)
 	if (wt_smallerLod > 0.0001)
 	{
 		half seaDepth = 0.0;
+		float2 seaLevelDerivs = 0.0;
 		const float3 uv_slice_smallerLodDisp = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
-		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, seaDepth, seaLevelOffset);
+		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, seaDepth, seaLevelOffset,
+			cascadeData0, seaLevelDerivs);
 	}
 	if (wt_biggerLod > 0.0001)
 	{
 		half seaDepth = 0.0;
+		float2 seaLevelDerivs = 0.0;
 		const float3 uv_slice_biggerLodDisp = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
-		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, seaDepth, seaLevelOffset);
+		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, seaDepth, seaLevelOffset,
+			cascadeData1, seaLevelDerivs);
 	}
 
 	worldPos.y += seaLevelOffset;

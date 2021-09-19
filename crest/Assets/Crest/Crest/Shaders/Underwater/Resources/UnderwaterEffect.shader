@@ -38,6 +38,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
+			#include "../../Helpers/BIRP/Common.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
+
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanShaderData.hlsl"
@@ -62,7 +65,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				float3 viewWS : TEXCOORD1;
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
@@ -76,9 +78,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 				output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
 				output.uv = GetFullScreenTriangleTexCoord(input.id);
-
-				// Compute world space view vector
-				output.viewWS = ComputeWorldSpaceView(output.uv);
 
 				return output;
 			}
@@ -105,7 +104,10 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 				if (isUnderwater)
 				{
-					const half3 view = normalize(input.viewWS);
+					// Position needs to be reconstructed in the fragment shader to avoid precision issues as per
+					// Unity's lead. Fixes caustics stuttering when far from zero.
+					const float3 positionWS = ComputeWorldSpacePosition(uvScreenSpace, rawDepth, UNITY_MATRIX_I_VP);
+					const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
 					const float3 lightDir = _WorldSpaceLightPos0.xyz;
 					const half3 lightCol = _LightColor0;

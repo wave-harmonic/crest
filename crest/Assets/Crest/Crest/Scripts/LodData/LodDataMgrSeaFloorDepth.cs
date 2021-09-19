@@ -17,7 +17,7 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-        protected override GraphicsFormat RequestedTextureFormat { get { return Settings._allowMultipleSeaLevels ? GraphicsFormat.R16G16_SFloat : GraphicsFormat.R16_SFloat; } }
+        protected override GraphicsFormat RequestedTextureFormat { get { return Settings._allowVaryingWaterLevel ? GraphicsFormat.R16G16_SFloat : GraphicsFormat.R16_SFloat; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
         // We want the clear colour to be the min terrain height (-1000m) in X, and sea level offset 0m in Y.
         readonly static Color s_nullColor = Color.red * -1000f;
@@ -32,7 +32,7 @@ namespace Crest
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
         public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
+        public SettingsType Settings => _ocean._simSettingsSeaFloorDepth != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {

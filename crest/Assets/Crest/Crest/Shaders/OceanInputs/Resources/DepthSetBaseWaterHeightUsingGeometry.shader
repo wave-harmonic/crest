@@ -2,27 +2,18 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This adds the height from the geometry. This allows setting the water height to some level for rivers etc, but still
-// getting the waves added on top.
+// This sets base water height to Y value of geometry.
 
-Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
+Shader "Crest/Inputs/Sea Floor Depth/Set Base Water Height Using Geometry"
 {
-	Properties
-	{
-		[HideInInspector] _ObsoleteMessage( "Use <i>Crest/Inputs/Sea Floor Depth/Set Base Water Height Using Geometry</i> instead.", Float ) = 0
-		[Enum(BlendOp)] _BlendOp("Blend Op", Int) = 0
-		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 1
-		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
-	}
-
 	SubShader
 	{
 		Pass
 		{
-			BlendOp [_BlendOp]
-			Blend [_BlendModeSrc] [_BlendModeTgt]
-			ColorMask [_ColorWriteMask]
+			Blend Off
+
+			// Second channel is sea level offset
+			ColorMask G
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -63,12 +54,10 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
-				return _Weight * half4(0.0, addHeight, 0.0, 0.0);
+				const float heightOffset = input.worldPos.y - _OceanCenterPosWorld.y;
+				return half4(0.0, heightOffset, 0.0, _Weight);
 			}
 			ENDCG
 		}
 	}
-
-	CustomEditor "Crest.ObsoleteShaderGUI"
 }

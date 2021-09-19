@@ -98,9 +98,14 @@ Crest includes a multi-resolution dynamic wave simulation, which allows objects 
 
 To turn on this feature, enable the *Create Dynamic Wave Sim* option on the *OceanRenderer* script, and to configure the sim, create or assign a *Dynamic Wave Sim Settings* asset on the *Sim Settings Dynamic Waves* option.
 
+To generate dynamic ripples from a spherical object, attach a *SphereWaterInteraction* component to the object and set the *Radius* as appropriate to fit the shape.
+Non-spherical objects can be approximated with multiple spheres, for an example see the *Spinner* object in the *boat.unity* example scene which is composed of multiple sphere interactions.
+The intensity of the interaction can be scaled using the *Weight* setting.
+
 One use case for this is boat wakes.
 In the *boat.unity* scene, the geometry and shader on the *WaterObjectInteractionSphere0* GameObject will apply forces to the water.
 It has the *RegisterDynWavesInput* component attached to register it with the system.
+Note that this setup is planned to be deprecated in favour of the aforementioned *SphereWaterInteraction* component.
 
 The dynamic wave simulation is added on top of the animated Gerstner waves to give the final shape.
 
@@ -155,6 +160,7 @@ The following input shaders are provided under *Crest/Inputs/Dynamic Waves*:
    Can be used for boat wakes.
    The mesh needs to be a capsule.
    See the boat example scenes.
+   Note that this setup is planned to be deprecated in favour of the following *SphereWaterInteraction* component.
 
 -  **Sphere-Water Interaction** is a more specialized and accurate version of the *Object Interaction* input.
    It models the interaction between a sphere and takes into account how submerged the sphere is.

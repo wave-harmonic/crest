@@ -2,9 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -31,9 +29,9 @@ namespace Crest
         public readonly static Color s_gizmoColor = new Color(0f, 1f, 0f, 0.5f);
         protected override Color GizmoColor => s_gizmoColor;
 
-        protected override string ShaderPrefix => "Crest/Inputs/Animated Waves";
+        protected override string ShaderPrefix => "Crest/Inputs/Sea Floor Depth";
 
-        protected override string SplineShaderName => "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry";
+        protected override string SplineShaderName => "Crest/Inputs/Sea Floor Depth/Set Base Water Height Using Geometry";
         protected override Vector2 DefaultCustomData => Vector2.zero;
 
         protected override bool FollowHorizontalMotion => true;
@@ -73,31 +71,4 @@ namespace Crest
         protected override bool FeatureEnabled(OceanRenderer ocean) => true;
 #endif // UNITY_EDITOR
     }
-
-#if UNITY_EDITOR
-    public partial class RegisterHeightInput
-    {
-        public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
-        {
-            var isValid = base.Validate(ocean, showMessage);
-
-            if (isValid)
-            {
-                if (ocean != null && ocean._simSettingsAnimatedWaves != null &&
-                    ocean._simSettingsAnimatedWaves._renderTextureGraphicsFormat != GraphicsFormat.R32G32B32A32_SFloat)
-                {
-                    showMessage(
-                        "Changing the height of the ocean can reduce precision leading to artefacts like tearing or incorrect normals. " +
-                        $"{ocean._simSettingsAnimatedWaves._renderTextureGraphicsFormat} may not have enough precision.",
-                        "Change graphics format to <i>R32G32B32A32_SFloat</i>.",
-                        ValidatedHelper.MessageType.Warning,
-                        ocean
-                    );
-                }
-            }
-
-            return isValid;
-        }
-    }
-#endif
 }

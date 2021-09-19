@@ -90,24 +90,35 @@ Shader "Crest/Ocean Surface Alpha"
 				// sample displacement textures, add results to current world pos / normal / foam
 				half foam = 0.0;
 				// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				const float cascadeWt0 = cascadeData0._weight;
-				float wt_smallerLod = (1.0 - lodAlpha) * cascadeWt0;
+				float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				{
 					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
 					half variance = 0.0;
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_smallerLod, worldPos, variance);
 				}
+				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 				{
 					// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-					const float cascadeWt1 = cascadeData1._weight;
-					const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeWt1;
 					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 					half variance = 0.0;
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_biggerLod, worldPos, variance);
 				}
 
+				// Data that needs to be sampled at the displaced position.
+				half seaLevelOffset = 0.0;
+				{
+					half seaDepth = 0.0;
+					const float3 uv_slice_smallerLodDisp = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, seaDepth, seaLevelOffset);
+				}
+				{
+					half seaDepth = 0.0;
+					const float3 uv_slice_biggerLodDisp = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, seaDepth, seaLevelOffset);
+				}
+
 				// move to sea level
-				worldPos.y += _OceanCenterPosWorld.y;
+				worldPos.y += _OceanCenterPosWorld.y + seaLevelOffset;
 
 				// view-projection
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));

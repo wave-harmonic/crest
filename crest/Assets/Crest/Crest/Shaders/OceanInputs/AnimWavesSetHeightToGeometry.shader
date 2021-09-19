@@ -25,6 +25,8 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
 			#include "UnityCG.cginc"
 
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
@@ -45,11 +47,11 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				
+
 				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
 				o.worldPos.xz -= _DisplacementAtInputPosition.xz;
-				
+
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
 
 				return o;
@@ -57,8 +59,11 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				float3 uv = WorldToUV(input.worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				half seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).y;
+
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float height = input.worldPos.y - _OceanCenterPosWorld.y;
+				float height = input.worldPos.y - _OceanCenterPosWorld.y - seaLevelOffset;
 				return half4(0.0, _Weight * height, 0.0, 0.0);
 			}
 			ENDCG

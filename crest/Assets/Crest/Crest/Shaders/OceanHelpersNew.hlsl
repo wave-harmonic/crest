@@ -120,17 +120,15 @@ void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice,
 	io_seaLevelOffset += i_wt * terrainHeight_seaLevelOffset.y;
 
 	{
-		// No idea why x4 .. even with this deriv quality looks bad. Looks like its not working properly,
-		// and doesnt seem to deal with the geomorph.
-		float offWorld = i_cascadeParams._texelWidth * 4.0;
-		float offUV = i_cascadeParams._oneOverTextureRes * offWorld / i_cascadeParams._texelWidth;
+		// Compute derivative of sea level - needed to get base normal of water. Gerstner normal / normal map
+		// normal is then added to base normal.
+		const float seaLevelOffset_x = i_oceanDepthSampler.SampleLevel(
+			LODData_linear_clamp_sampler, i_uv_slice + float3(i_cascadeParams._oneOverTextureRes, 0.0, 0.0), 0.0 ).y;
+		const float seaLevelOffset_z = i_oceanDepthSampler.SampleLevel(
+				LODData_linear_clamp_sampler, i_uv_slice + float3(0.0, i_cascadeParams._oneOverTextureRes, 0.0), 0.0 ).y;
 
-		const float seaLevelOffset_x =
-			i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(offUV, 0.0, 0.0), 0.0 ).y;
-		const float seaLevelOffset_z =
-			i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(0.0, offUV, 0.0), 0.0 ).y;
-		io_seaLevelDerivs.x += i_wt * (seaLevelOffset_x - terrainHeight_seaLevelOffset.y) / offWorld;
-		io_seaLevelDerivs.y += i_wt * (seaLevelOffset_z - terrainHeight_seaLevelOffset.y) / offWorld;
+		io_seaLevelDerivs.x += i_wt * (seaLevelOffset_x - terrainHeight_seaLevelOffset.y) / i_cascadeParams._texelWidth;
+		io_seaLevelDerivs.y += i_wt * (seaLevelOffset_z - terrainHeight_seaLevelOffset.y) / i_cascadeParams._texelWidth;
 	}
 }
 

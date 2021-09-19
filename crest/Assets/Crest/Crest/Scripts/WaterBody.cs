@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -43,16 +44,60 @@ namespace Crest
             "specified, the default material assigned to the OceanRenderer component will be used.")]
         public Material _overrideMaterial = null;
 
+        class ClipInput : ILodDataInput
+        {
+            Material _renderMat;
+
+            // Render to all cascades
+            public float Wavelength => 0f;
+            public bool Enabled => true;
+
+            public Matrix4x4 _transform;
+
+            public ClipInput(WaterBody owner)
+            {
+                var rotateQuadFaceUp = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.right));
+                _transform = owner.transform.localToWorldMatrix * rotateQuadFaceUp;
+
+                _renderMat = new Material(Shader.Find("Crest/Inputs/Clip Surface/Include Area"));
+            }
+
+            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+            {
+                buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, _transform, _renderMat);
+            }
+        }
+
+        ClipInput _clipInput;
+
         private void OnEnable()
         {
             CalculateBounds();
 
             _waterBodies.Add(this);
+
+            if (OceanRenderer.Instance && OceanRenderer.Instance.CreateClipSurfaceData
+                && OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped)
+            {
+                if (_clipInput == null)
+                {
+                    _clipInput = new ClipInput(this);
+                }
+
+                var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface));
+                registrar.Remove(_clipInput);
+                registrar.Add(0, _clipInput);
+            }
         }
 
         private void OnDisable()
         {
             _waterBodies.Remove(this);
+
+            if (_clipInput != null)
+            {
+                RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface)).Remove(_clipInput);
+            }
         }
 
         private void CalculateBounds()
@@ -73,6 +118,15 @@ namespace Crest
             if (EditorApplication.isPlaying && _runValidationOnStart)
             {
                 Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
+            }
+        }
+
+        private void Update()
+        {
+            if (_clipInput != null)
+            {
+                var rotateQuadFaceUp = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.right));
+                _clipInput._transform = transform.localToWorldMatrix * rotateQuadFaceUp;
             }
         }
 

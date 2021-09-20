@@ -289,7 +289,7 @@ namespace Crest
             {
                 if (_matGenerateWavesGeometry == null)
                 {
-                    _matGenerateWavesGeometry = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
                     _matGenerateWavesGeometry.hideFlags = HideFlags.HideAndDontSave;
                 }
 

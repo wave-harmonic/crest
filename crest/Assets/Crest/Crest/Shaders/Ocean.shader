@@ -439,8 +439,6 @@ Shader "Crest/Ocean"
 
 			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 			{
-				//return half4(abs(input.seaLevelDerivs), 0.,1.);
-
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 

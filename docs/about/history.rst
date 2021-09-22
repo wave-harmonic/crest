@@ -32,6 +32,7 @@ Fixed
    -  Fix caustics jittering when far from zero and underwater in XR.
    -  Fix disabled simulations' data being at maximum when "Texture Quality" is not "Full Res".
       In one case this manifested as the entire ocean being shadowed in builds.
+   -  Fix high CPU memory usage from underwater effect shader in builds.
 
 Removed
 ^^^^^^^

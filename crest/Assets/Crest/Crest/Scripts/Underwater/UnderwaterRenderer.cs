@@ -39,6 +39,7 @@ namespace Crest
         [SerializeField]
         [Tooltip("Add a meniscus to the boundary between water and air.")]
         internal bool _meniscus = true;
+        public bool IsMeniscusEnabled => _meniscus;
 
 
         [Header("Advanced")]

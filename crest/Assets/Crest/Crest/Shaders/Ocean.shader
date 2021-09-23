@@ -355,11 +355,13 @@ Shader "Crest/Ocean"
 				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = o.worldPos.xz;
-
+				half3 a = 0;
 				// Data that needs to be sampled at the undisplaced position
-				if (wt_smallerLod > 0.001)
+				// if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
+
+					 a += wt_smallerLod * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_smallerLod, 0.0);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
@@ -369,9 +371,11 @@ Shader "Crest/Ocean"
 					SampleFlow(_LD_TexArray_Flow, uv_slice_smallerLod, wt_smallerLod, o.flow_shadow.xy);
 					#endif
 				}
-				if (wt_biggerLod > 0.001)
+				// if (wt_biggerLod > 0.001)
 				{
 					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
+
+					a += wt_biggerLod * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_biggerLod, 0.0);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
@@ -432,7 +436,8 @@ Shader "Crest/Ocean"
 				// colours may or may not come from the backbuffer, which means they may or may not be flipped in y. use these macros
 				// to get the right results, every time.
 				o.grabPos = ComputeGrabScreenPos(o.positionCS);
-				o.screenPosXYW = ComputeScreenPos(o.positionCS).xyw;
+				o.screenPosXYW = a;//  ComputeScreenPos(o.positionCS).xyw;
+
 				return o;
 			}
 
@@ -459,16 +464,18 @@ Shader "Crest/Ocean"
 				#if _CLIPSURFACE_ON
 				// Clip surface
 				half clipVal = 0.0;
-				if (wt_smallerLod > 0.001)
+				// if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, cascadeData0, _LD_SliceIndex);
 					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
 				}
-				if (wt_biggerLod > 0.001)
+				// if (wt_biggerLod > 0.001)
 				{
 					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
 				}
+				// return float4(input.screenPosXYW.x, clipVal, input.screenPosXYW.z , 1);
+				// return float4(clipVal, 0, 0, 1);
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);

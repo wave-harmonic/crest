@@ -36,11 +36,39 @@ half4 SampleOceanDataAtWorldPosition(in Texture2DArray i_oceanData, in const flo
 	return result;
 }
 
+float3 ComputeDisplacement(float2 undispPos, float minSlice, const float baseScale)
+{
+	uint slice0, slice1;
+	float lodAlpha;
+	PosToSliceIndices(undispPos, minSlice, baseScale, slice0, slice1, lodAlpha);
+
+	const float3 uv0 = WorldToUV(undispPos, _CrestCascadeData[slice0], slice0);
+	const float3 uv1 = WorldToUV(undispPos, _CrestCascadeData[slice1], slice1);
+
+	const float wt_0 = (1. - lodAlpha) * _CrestCascadeData[slice0]._weight;
+	const float wt_1 = (1. - wt_0) * _CrestCascadeData[slice1]._weight;
+
+	return
+		wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz +
+		wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xyz;
+}
+
 // Used to get the world position of the ocean surface from the world position by using fixed-point iteration
 float3 SampleOceanDataDisplacedToWorldPosition(in const Texture2DArray i_oceanData, in const float3 i_positionWS, in const uint i_iterations)
 {
 	float3 undisplacedPosition = InvertDisplacement(i_oceanData, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex, i_positionWS, i_iterations);
-	return SampleOceanDataAtWorldPosition(i_oceanData, undisplacedPosition);
+	// return SampleOceanDataAtWorldPosition(i_oceanData, undisplacedPosition);
+
+	const float minSlice = clamp(_LD_SliceIndex, 0.0, _SliceCount - 2.0);
+	const float baseScale = _CrestCascadeData[0]._scale;
+	float2 undispPos = i_positionWS.xz;
+	for (uint i = 0; i < i_iterations; i++)
+	{
+		float3 displacement = ComputeDisplacement(undispPos, minSlice, baseScale);
+		float2 error = (undispPos + displacement.xz) - i_positionWS.xz;
+		undispPos -= error;
+	}
+	return ComputeDisplacement(undispPos, minSlice, baseScale);
 }
 
 #endif // CREST_OCEAN_HELPERS_H

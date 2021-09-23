@@ -172,6 +172,15 @@ namespace Crest
             Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
         }
 
+        /// <summary>
+        /// Clears persistent LOD data. Some simulations have persistent data which can linger for a little while after
+        /// being disabled. This will manually clear that data.
+        /// </summary>
+        public virtual void ClearLodData()
+        {
+            // Intentionally left empty.
+        }
+
         public virtual void UpdateLodData()
         {
             int width = OceanRenderer.Instance.LodDataResolution;

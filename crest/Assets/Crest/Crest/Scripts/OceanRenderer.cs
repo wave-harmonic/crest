@@ -1403,6 +1403,18 @@ namespace Crest
             _bufPerCascadeInstanceDataSource?.Dispose();
         }
 
+        /// <summary>
+        /// Clears persistent LOD data. Some simulations have persistent data which can linger for a little while after
+        /// being disabled. This will manually clear that data.
+        /// </summary>
+        public void ClearLodData()
+        {
+            foreach (var lodData in _lodDatas)
+            {
+                lodData.ClearLodData();
+            }
+        }
+
 #if UNITY_EDITOR
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnReLoadScripts()

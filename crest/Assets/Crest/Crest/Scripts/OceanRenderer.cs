@@ -107,6 +107,9 @@ namespace Crest
             }
         }
 
+        [SerializeField]
+        bool _displacementCorrection;
+
         public Transform Root { get; private set; }
 
         // does not respond to _timeProvider changing in inspector
@@ -976,6 +979,10 @@ namespace Crest
         void LateUpdatePosition()
         {
             Vector3 pos = Viewpoint.position;
+
+            _sampleHeightHelper.Init(ViewCamera.transform.position, 0f, true);
+            _sampleHeightHelper.Sample(out Vector3 position, out _, out _);
+            if (_displacementCorrection) pos = new Vector3(pos.x - position.x, pos.y, pos.z - position.z);
 
             // maintain y coordinate - sea level
             pos.y = Root.position.y;

@@ -438,6 +438,36 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+#if _CLIPSURFACE_ON
+				{
+					// Clip surface
+					half clipValue = 0.0;
+
+					uint slice0; uint slice1; float alpha;
+					PosToSliceIndices(input.worldPos.xz, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, alpha);
+
+					const CascadeParams cascadeData0 = _CrestCascadeData[slice0];
+					const CascadeParams cascadeData1 = _CrestCascadeData[slice1];
+					const float weight0 = (1.0 - alpha) * cascadeData0._weight;
+					const float weight1 = (1.0 - weight0) * cascadeData1._weight;
+
+					if (weight0 > 0.001)
+					{
+						const float3 uv = WorldToUV(input.worldPos.xz, cascadeData0, slice0);
+						SampleClip(_LD_TexArray_ClipSurface, uv, weight0, clipValue);
+					}
+					if (weight1 > 0.001)
+					{
+						const float3 uv = WorldToUV(input.worldPos.xz, cascadeData1, slice1);
+						SampleClip(_LD_TexArray_ClipSurface, uv, weight1, clipValue);
+					}
+
+					clipValue = lerp(_CrestClipByDefault, clipValue, weight0 + weight1);
+					// Add 0.5 bias to tighten and smooth clipped edges.
+					clip(-clipValue + 0.5);
+				}
+#endif // _CLIPSURFACE_ON
+
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
@@ -452,24 +482,6 @@ Shader "Crest/Ocean"
 				const float2 positionXZWSUndisplaced = input.lodAlpha_worldXZUndisplaced_oceanDepth.yz;
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
-
-				#if _CLIPSURFACE_ON
-				// Clip surface
-				half clipVal = 0.0;
-				if (wt_smallerLod > 0.001)
-				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, cascadeData0, _LD_SliceIndex);
-					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
-				}
-				if (wt_biggerLod > 0.001)
-				{
-					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
-					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
-				}
-				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
-				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
-				clip(-clipVal + 0.5);
-				#endif
 
 				#if _CLIPUNDERTERRAIN_ON
 				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);

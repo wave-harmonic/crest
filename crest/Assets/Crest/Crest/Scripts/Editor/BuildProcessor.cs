@@ -16,6 +16,11 @@ namespace Crest
 {
     /// <summary>
     /// Optimises Crest for builds by stripping shader variants to reduce build times and size.
+    ///
+    /// Candidates for stripping:
+    /// - multi_compile keywords in the underwater effect shader which mirror the ocean shader are candidates for
+    ///   stripping (eg _CAUSTICS_ON). We determine this by checking the keywords used in the ocean material.
+    /// - the meniscus keyword (CREST_MENISCUS) which is set on the underwater renderer.
     /// </summary>
     class BuildProcessor : IPreprocessShaders, IProcessSceneWithReport, IPostprocessBuildWithReport
     {
@@ -116,20 +121,21 @@ namespace Crest
                 // way to get a list of keywords without trying to extract them from shader property names. Lastly,
                 // shader_feature will be returned only if they are enabled.
                 var skipped = data[i].shaderKeywordSet.GetShaderKeywords()
-                    // Skip Unity keywords.
+                    // Ignore Unity keywords.
                     .Where(x => ShaderKeyword.GetKeywordType(shader, x) == ShaderKeywordType.UserDefined)
-                    // Skip keywords we want to skip.
+                    // Ignore keywords from our list above.
                     .Where(x => !s_ShaderKeywordsToIgnoreStripping.Contains(ShaderKeyword.GetKeywordName(shader, x)));
                 shaderKeywords.UnionWith(skipped);
             }
 
-            // Get used shader keywords so we can exclude them.
+            // Get a list of active shader keywords.
             var usedShaderKeywords = new HashSet<ShaderKeyword>();
             foreach (var shaderKeyword in shaderKeywords)
             {
                 // GetKeywordName will work for both global and local keywords.
                 var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
 
+                // Mensicus is set on the UnderwaterRenderer component.
                 if (shaderKeywordName.Contains("CREST_MENISCUS"))
                 {
                     foreach (var underwaterRenderer in _underwaterRenderers)
@@ -154,12 +160,14 @@ namespace Crest
                 }
             }
 
-            // Get unused keywords and also removed used keywords if both used and unused.
+            // Get a list of inactive keywords. Also, remove active keywords from list that are also inactive as this
+            // means it could either active or inactive in a build so we must skip stripping.
             var unusedShaderKeyowrds = new HashSet<ShaderKeyword>();
             foreach (var shaderKeyword in shaderKeywords)
             {
                 var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
 
+                // Mensicus is set on the UnderwaterRenderer component.
                 if (shaderKeywordName.Contains("CREST_MENISCUS"))
                 {
                     foreach (var underwaterRenderer in _underwaterRenderers)
@@ -202,13 +210,14 @@ namespace Crest
                 }
             }
 
+            // Loop over and strip variants.
             for (int index = 0; index < data.Count; index++)
             {
                 var isStripped = false;
 
                 foreach (var unusedShaderKeyword in unusedShaderKeyowrds)
                 {
-                    // IsEnabled means this variant uses this keyword and we can strip it.
+                    // Variant uses this inactive keyword so we can strip it.
                     if (data[index].shaderKeywordSet.IsEnabled(unusedShaderKeyword))
                     {
                         // Strip variant.
@@ -228,7 +237,7 @@ namespace Crest
 
                 foreach (var usedShaderKeyword in usedShaderKeywords)
                 {
-                    // Strip if variant does not use this keyword.
+                    // Variant does not use this active keyword so we can strip it.
                     if (!data[index].shaderKeywordSet.IsEnabled(usedShaderKeyword))
                     {
                         // Strip variant.

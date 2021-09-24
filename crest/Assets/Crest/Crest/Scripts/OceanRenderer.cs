@@ -130,6 +130,11 @@ namespace Crest
         internal bool _hasTeleportedThisFrame = false;
         Vector3 _oldViewerPosition = Vector3.zero;
 
+        [SerializeField]
+        bool _displacementCorrection;
+        [SerializeField]
+        bool _detailAtCameraRay;
+
         public Transform Root { get; private set; }
 
         public GameObject Container { get; private set; }
@@ -435,6 +440,10 @@ namespace Crest
         float _viewerHeightAboveWaterSmooth = 0f;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+
+        SampleHeightHelper _displacementCorrectionHelper = new SampleHeightHelper();
+
+        RayTraceHelper _detailAtCameraRayHelper = new RayTraceHelper(50f, 2f);
 
         public static OceanRenderer Instance { get; private set; }
 
@@ -1227,6 +1236,13 @@ namespace Crest
         void LateUpdatePosition()
         {
             var pos = Viewpoint.position;
+
+            _detailAtCameraRayHelper.Init(Viewpoint.position, Viewpoint.forward);
+            if (_detailAtCameraRayHelper.Trace(out float dist) && _detailAtCameraRay) pos = Viewpoint.position + Viewpoint.forward * dist;
+
+            _displacementCorrectionHelper.Init(ViewCamera.transform.position, 0f, true);
+            _displacementCorrectionHelper.Sample(out Vector3 position, out _, out _);
+            if (_displacementCorrection) pos = new Vector3(pos.x - position.x, pos.y, pos.z - position.z);
 
             // maintain y coordinate - sea level
             pos.y = Root.position.y;

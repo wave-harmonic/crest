@@ -34,6 +34,10 @@ Fixed
       In one case this manifested as the entire ocean being shadowed in builds.
    -  Fix high CPU memory usage from underwater effect shader in builds.
 
+   .. only:: hdrp
+
+      -  Fix *Default Clipping State > Everything Clipped* not clipping extents. `[HDRP]`
+
 Removed
 ^^^^^^^
 .. bullet_list::

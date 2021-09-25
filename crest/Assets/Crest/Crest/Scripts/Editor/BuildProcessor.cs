@@ -10,23 +10,32 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 namespace Crest
 {
     /// <summary>
     /// Optimises Crest for builds by stripping shader variants to reduce build times and size.
+    ///
+    /// Candidates for stripping:
+    /// - multi_compile keywords in the underwater effect shader which mirror the ocean shader are candidates for
+    ///   stripping (eg _CAUSTICS_ON). We determine this by checking the keywords used in the ocean material.
+    /// - the meniscus keyword (CREST_MENISCUS) which is set on the underwater renderer.
     /// </summary>
     class BuildProcessor : IPreprocessShaders, IProcessSceneWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
         readonly List<Material> _oceanMaterials = new List<Material>();
+        readonly List<UnderwaterRenderer> _underwaterRenderers = new List<UnderwaterRenderer>();
+
+        static readonly string[] s_ShaderKeywordsToIgnoreStripping = new string[] { "_FULL_SCREEN_EFFECT", "_DEBUG_VIEW_OCEAN_MASK" };
 
         bool IsUnderwaterShader(string shaderName)
         {
             // According to the docs it's possible to change RP at runtime, so I guess all relevant
             // shaders should be built.
             return shaderName == "Crest/Underwater Curtain"
-                || shaderName == "Hidden/Crest/Underwater/Underwater Effect"
+                || shaderName.StartsWith("Hidden/Crest/Underwater/Underwater Effect")
                 || shaderName == "Hidden/Crest/Underwater/Post Process HDRP";
         }
 
@@ -51,12 +60,29 @@ namespace Crest
                     continue;
                 }
 
+                if (_oceanMaterials.Contains(material))
+                {
+                    continue;
+                }
+
                 _oceanMaterials.Add(material);
+            }
+
+            // Finds them in scenes and prefabs. Instances found is higher than expected.
+            foreach (var underwaterRenderer in Resources.FindObjectsOfTypeAll<UnderwaterRenderer>())
+            {
+                if (!_underwaterRenderers.Contains(underwaterRenderer))
+                {
+                    _underwaterRenderers.Add(underwaterRenderer);
+                }
             }
         }
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
+            // This method will be called once per combination of shader, shader type (eg vertex or fragment), and
+            // shader pass. For underwater, it will at minimum be called twice since it has vertex and fragment.
+
 #if CREST_DEBUG
             if (shader.name.StartsWith("Crest") || shader.name.StartsWith("Hidden/Crest"))
             {
@@ -87,41 +113,40 @@ namespace Crest
 #endif
 
             // Collect all shader keywords.
-            var unusedShaderKeywords = new HashSet<ShaderKeyword>();
+            var shaderKeywords = new HashSet<ShaderKeyword>();
             for (int i = 0; i < data.Count; i++)
             {
                 // Each ShaderCompilerData is a variant which is a combination of keywords. Since each list will be
                 // different, simply getting a list of all keywords is not possible. This also appears to be the only
                 // way to get a list of keywords without trying to extract them from shader property names. Lastly,
                 // shader_feature will be returned only if they are enabled.
-                unusedShaderKeywords.UnionWith(data[i].shaderKeywordSet.GetShaderKeywords());
+                var skipped = data[i].shaderKeywordSet.GetShaderKeywords()
+                    // Ignore Unity keywords.
+                    .Where(x => ShaderKeyword.GetKeywordType(shader, x) == ShaderKeywordType.UserDefined)
+                    // Ignore keywords from our list above.
+                    .Where(x => !s_ShaderKeywordsToIgnoreStripping.Contains(ShaderKeyword.GetKeywordName(shader, x)));
+                shaderKeywords.UnionWith(skipped);
             }
 
-            // Get used shader keywords so we can exclude them.
-            var usedShaderKeywords = new List<ShaderKeyword>();
-            foreach (var shaderKeyword in unusedShaderKeywords)
+            // Get a list of active shader keywords.
+            var usedShaderKeywords = new HashSet<ShaderKeyword>();
+            foreach (var shaderKeyword in shaderKeywords)
             {
-                // Do not handle built-in shader keywords.
-                if (ShaderKeyword.GetKeywordType(shader, shaderKeyword) != ShaderKeywordType.UserDefined)
-                {
-                    usedShaderKeywords.Add(shaderKeyword);
-                    continue;
-                }
-
                 // GetKeywordName will work for both global and local keywords.
                 var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
 
-                // These keywords will not be on ocean material.
-                if (shaderKeywordName.Contains("CREST_MENISCUS") || shaderKeywordName.Contains("_FULL_SCREEN_EFFECT"))
+                // Mensicus is set on the UnderwaterRenderer component.
+                if (shaderKeywordName.Contains("CREST_MENISCUS"))
                 {
-                    usedShaderKeywords.Add(shaderKeyword);
-                    continue;
-                }
+                    foreach (var underwaterRenderer in _underwaterRenderers)
+                    {
+                        if (underwaterRenderer.IsMeniscusEnabled)
+                        {
+                            usedShaderKeywords.Add(shaderKeyword);
+                            break;
+                        }
+                    }
 
-                // TODO: Strip this once post-processing is more unified.
-                if (shaderKeywordName.Contains("_DEBUG_VIEW_OCEAN_MASK"))
-                {
-                    usedShaderKeywords.Add(shaderKeyword);
                     continue;
                 }
 
@@ -135,16 +160,87 @@ namespace Crest
                 }
             }
 
-            // Exclude used keywords to obtain list of unused keywords.
-            unusedShaderKeywords.ExceptWith(usedShaderKeywords);
+            // Get a list of inactive keywords. Also, remove active keywords from list that are also inactive as this
+            // means it could either active or inactive in a build so we must skip stripping.
+            var unusedShaderKeyowrds = new HashSet<ShaderKeyword>();
+            foreach (var shaderKeyword in shaderKeywords)
+            {
+                var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
 
+                // Mensicus is set on the UnderwaterRenderer component.
+                if (shaderKeywordName.Contains("CREST_MENISCUS"))
+                {
+                    foreach (var underwaterRenderer in _underwaterRenderers)
+                    {
+                        if (!underwaterRenderer.IsMeniscusEnabled)
+                        {
+                            if (usedShaderKeywords.Contains(shaderKeyword))
+                            {
+                                // Keyword is both used and unused so we must skip stripping.
+                                usedShaderKeywords.Remove(shaderKeyword);
+                            }
+                            else
+                            {
+                                unusedShaderKeyowrds.Add(shaderKeyword);
+                            }
+
+                            break;
+                        }
+                    }
+
+                    continue;
+                }
+
+                foreach (var oceanMaterial in _oceanMaterials)
+                {
+                    if (!oceanMaterial.IsKeywordEnabled(shaderKeywordName))
+                    {
+                        if (usedShaderKeywords.Contains(shaderKeyword))
+                        {
+                            // Keyword is both used and unused so we must skip stripping.
+                            usedShaderKeywords.Remove(shaderKeyword);
+                        }
+                        else
+                        {
+                            unusedShaderKeyowrds.Add(shaderKeyword);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            // Loop over and strip variants.
             for (int index = 0; index < data.Count; index++)
             {
-                foreach (var unusedShaderKeyword in unusedShaderKeywords)
+                var isStripped = false;
+
+                foreach (var unusedShaderKeyword in unusedShaderKeyowrds)
                 {
-                    // IsEnabled means this variant uses this keyword and we can strip it.
+                    // Variant uses this inactive keyword so we can strip it.
                     if (data[index].shaderKeywordSet.IsEnabled(unusedShaderKeyword))
                     {
+                        // Strip variant.
+                        data.RemoveAt(index--);
+#if CREST_DEBUG
+                        shaderVarientStrippedCount++;
+#endif
+                        isStripped = true;
+                        break;
+                    }
+                }
+
+                if (isStripped)
+                {
+                    continue;
+                }
+
+                foreach (var usedShaderKeyword in usedShaderKeywords)
+                {
+                    // Variant does not use this active keyword so we can strip it.
+                    if (!data[index].shaderKeywordSet.IsEnabled(usedShaderKeyword))
+                    {
+                        // Strip variant.
                         data.RemoveAt(index--);
 #if CREST_DEBUG
                         shaderVarientStrippedCount++;

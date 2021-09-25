@@ -23,19 +23,6 @@ float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, 
 	}
 }
 
-float3 ComputeWorldSpaceView(const float2 uv)
-{
-	const float2 pixelCS = uv * 2.0 - float2(1.0, 1.0);
-#if CREST_HANDLE_XR
-	const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
-#else
-	const float4x4 InvViewProjection = _InvViewProjection;
-#endif
-	const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
-	const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
-	return _WorldSpaceCameraPos - pixelWS;
-}
-
 float MeniscusSampleOceanMask(const float2 uvScreenSpace, const float2 offset, const half magnitude)
 {
 	float2 uv = uvScreenSpace + offset * magnitude;

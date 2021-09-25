@@ -105,16 +105,12 @@ Shader "Crest/Ocean Surface Alpha"
 				}
 
 				// Data that needs to be sampled at the displaced position.
-				half seaLevelOffset = 0.0;
+				float seaLevelOffset = 0.0;
 				{
-					half seaDepth = 0.0;
 					const float3 uv_slice_smallerLodDisp = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, seaDepth, seaLevelOffset);
-				}
-				{
-					half seaDepth = 0.0;
-					const float3 uv_slice_biggerLodDisp = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, seaDepth, seaLevelOffset);
+					const float3 uv_slice_biggerLodDisp = WorldToUV( worldPos.xz, cascadeData1, _LD_SliceIndex + 1 );
+					seaLevelOffset += wt_smallerLod * SampleSeaLevelOffset( _LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp );
+					seaLevelOffset += wt_biggerLod * SampleSeaLevelOffset( _LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp );
 				}
 
 				// move to sea level

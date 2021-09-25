@@ -23,6 +23,8 @@ Changed
    -  *Sphere Water Interaction* component simplified - no mesh renderer/shader setup required, and no 'register' component required.
    -  *Sphere Water Interaction* produces more consistent results at different radii/scales.
    -  Improve `FFT` wave quality by doubling the sampling from two to four.
+   -  *RegisterHeightInput* can be used in conjunction with our *Spline* component to offset the water level. This can be used to create water bodies at different altitudes, and to create rivers that flow between them.
+   -  All water features updated to support varying water level.
 
 Fixed
 ^^^^^

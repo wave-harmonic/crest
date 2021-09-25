@@ -224,11 +224,13 @@ namespace Crest
                 _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, camera.projectionMatrix * camera.worldToCameraMatrix);
                 _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
-                _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources);
+                _renderProperties.SetTexture(GetParamIdSampler(true), _sources);
 
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
 
                 _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
+
+                LodDataMgrSeaFloorDepth.Bind(_renderProperties);
 
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)

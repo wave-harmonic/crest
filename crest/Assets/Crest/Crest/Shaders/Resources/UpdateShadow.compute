@@ -102,8 +102,8 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	ShadowCoords shadowCoords;
 	{
 		// World pos from [0,1] texture
-		float2 uv = float2(((id.x + 0.5) / width) - 0.5, ((id.y + 0.5) / height) - 0.5);
-		float4 wpos = float4(float3(uv.x, 0.0, uv.y) * _Scale * 4.0 + _CenterPos, 1.0);
+		const float2 uv = float2((id.x + 0.5) / width, (id.y + 0.5) / height);
+		float4 wpos = float4(float3(uv.x - 0.5, 0.0, uv.y - 0.5) * _Scale * 4.0 + _CenterPos, 1.0);
 
 		wpos.y = _OceanCenterPosWorld.y;
 

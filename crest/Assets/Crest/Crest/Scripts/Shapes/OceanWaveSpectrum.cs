@@ -65,32 +65,35 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
 
-#if !UNITY_EDITOR
         void Awake()
         {
-            // If it is version zero, and we are in a build, then it must be the default.
-            if (_version == 0)
-            {
-                // Reset is called in the editor only so manually call here for standalone builds.
-                Reset();
-            }
+            // For builds and when Shape* component is enabled in play mode.
+            Upgrade();
         }
-#endif
 
         void Reset()
         {
-            // Auto-upgrade any new data objects directly to v1. This is in lieu of simply
-            // giving _version a default value of 1 to distuingish new data, which we can't do
-            // because _version is not present in the old data at all.
-            // TODO: after a few releases, we can be sure _version will be present in the data.
-            // At this point we can bump _version to a default value of 1 and from that point
-            // onwards know that version is correct, and this auto upgrade path can go away.
-            for (int i = 0; i < _powerLog.Length; i++)
+            // For when the reset button is used.
+            Upgrade();
+        }
+
+        void Upgrade()
+        {
+            if (_version == 0)
             {
-                // This is equivalent to power /= 25, in log10 space
-                _powerLog[i] -= 1.39794f;
+                // Auto-upgrade any new data objects directly to v1. This is in lieu of simply
+                // giving _version a default value of 1 to distuingish new data, which we can't do
+                // because _version is not present in the old data at all.
+                // TODO: after a few releases, we can be sure _version will be present in the data.
+                // At this point we can bump _version to a default value of 1 and from that point
+                // onwards know that version is correct, and this auto upgrade path can go away.
+                for (int i = 0; i < _powerLog.Length; i++)
+                {
+                    // This is equivalent to power /= 25, in log10 space
+                    _powerLog[i] -= 1.39794f;
+                }
+                _version = 1;
             }
-            _version = 1;
         }
 
 #if UNITY_EDITOR

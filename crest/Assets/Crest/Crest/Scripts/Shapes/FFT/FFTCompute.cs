@@ -200,7 +200,7 @@ namespace Crest
         RenderTexture GenerateDisplacementsInternal(CommandBuffer buf, float time, bool updateSpectrum)
         {
             // Check if already generated, and we're not being asked to re-update the spectrum
-            if (_generationTime == time)
+            if (_generationTime == time && !updateSpectrum)
             {
                 return _waveBuffers;
             }

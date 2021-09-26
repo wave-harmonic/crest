@@ -33,6 +33,7 @@ Fixed
    -  Fix disabled simulations' data being at maximum when "Texture Quality" is not "Full Res".
       In one case this manifested as the entire ocean being shadowed in builds.
    -  Fix high CPU memory usage from underwater effect shader in builds.
+   -  Fix FFT spectrum not being editable when time is paused.
    -  Fix *ShapeFFT* component producing inverted looking waves when enabled in editor play mode.
 
    .. only:: hdrp

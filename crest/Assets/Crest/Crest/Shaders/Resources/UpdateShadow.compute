@@ -108,7 +108,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		wpos.y = _OceanCenterPosWorld.y;
 
 		// Offset world position by sea level offset
-		wpos.y += SampleSeaLevelOffset(_LD_TexArray_SeaFloorDepth, float3(uv, _LD_SliceIndex));
+		wpos.y += _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, float3(uv, _LD_SliceIndex), 0.0).y;
 
 		shadowCoords._WorldPosViewZ.xyz = wpos.xyz;
 		shadowCoords._WorldPosViewZ.w = dot(wpos.xyz - _CamPos, _CamForward);

@@ -109,8 +109,8 @@ Shader "Crest/Ocean Surface Alpha"
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
 					const float3 uv_slice_biggerLodDisp = WorldToUV( worldPos.xz, cascadeData1, _LD_SliceIndex + 1 );
-					seaLevelOffset += wt_smallerLod * SampleSeaLevelOffset( _LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp );
-					seaLevelOffset += wt_biggerLod * SampleSeaLevelOffset( _LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp );
+					SampleSeaLevelOffset(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, seaLevelOffset);
+					SampleSeaLevelOffset(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, seaLevelOffset);
 				}
 
 				// move to sea level

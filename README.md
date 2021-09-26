@@ -101,4 +101,4 @@ https://github.com/sponsors/wave-harmonic
 
 ### Board Members 🚀
 
-[@celeronpm](https://github.com/celeronpm) [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)
+[@pachermann](https://github.com/pachermann) [@celeronpm](https://github.com/celeronpm) [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)

@@ -6,11 +6,8 @@
 #define CREST_UNDERWATER_EFFECT_SHARED_INCLUDED
 
 half3 _AmbientLighting;
-float4x4 _InvViewProjection;
-float4x4 _InvViewProjectionRight;
 half _DataSliceOffset;
 float2 _HorizonNormal;
-
 
 float4 _CrestOceanMaskDepthTexture_TexelSize;
 
@@ -24,19 +21,6 @@ float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, 
 	{
 		return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
 	}
-}
-
-float3 ComputeWorldSpaceView(const float2 uv)
-{
-	const float2 pixelCS = uv * 2.0 - float2(1.0, 1.0);
-#if CREST_HANDLE_XR
-	const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
-#else
-	const float4x4 InvViewProjection = _InvViewProjection;
-#endif
-	const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
-	const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
-	return _WorldSpaceCameraPos - pixelWS;
 }
 
 float MeniscusSampleOceanMask(const float mask, const float2 uvScreenSpace, const float2 offset, const half magnitude)

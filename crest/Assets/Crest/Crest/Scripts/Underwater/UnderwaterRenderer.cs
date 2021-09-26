@@ -39,6 +39,7 @@ namespace Crest
         [SerializeField]
         [Tooltip("Add a meniscus to the boundary between water and air.")]
         internal bool _meniscus = true;
+        public bool IsMeniscusEnabled => _meniscus;
 
 
         [Header("Geometry")]
@@ -74,6 +75,10 @@ namespace Crest
 
         Camera _camera;
         bool _firstRender = true;
+
+        Matrix4x4 _gpuInverseViewProjectionMatrix;
+        Matrix4x4 _gpuInverseViewProjectionMatrixRight;
+
         // XR MP will create two instances of this class so it needs to be static to track the pass/eye.
         internal static int s_xrPassIndex = -1;
 
@@ -170,10 +175,35 @@ namespace Crest
             XRHelpers.Update(_camera);
             XRHelpers.UpdatePassIndex(ref s_xrPassIndex);
 
+            // Built-in renderer does not provide these matrices.
+            if (XRHelpers.IsSinglePass)
+            {
+                _gpuInverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse;
+                _gpuInverseViewProjectionMatrixRight = (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse;
+            }
+            else
+            {
+                _gpuInverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(_camera.projectionMatrix, false) * _camera.worldToCameraMatrix).inverse;
+            }
+
             OnPreRenderOceanMask();
             OnPreRenderUnderwaterEffect();
 
             _firstRender = false;
+        }
+
+        void SetInverseViewProjectionMatrix(Material material)
+        {
+            // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function.
+            if (XRHelpers.IsSinglePass)
+            {
+                material.SetMatrix(sp_InvViewProjection, _gpuInverseViewProjectionMatrix);
+                material.SetMatrix(sp_InvViewProjectionRight, _gpuInverseViewProjectionMatrixRight);
+            }
+            else
+            {
+                material.SetMatrix(sp_InvViewProjection, _gpuInverseViewProjectionMatrix);
+            }
         }
     }
 

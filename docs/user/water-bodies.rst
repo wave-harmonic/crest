@@ -22,6 +22,9 @@ There are mechanisms to limit the area:
    The *Clip Surface* feature can be used to precisely remove any remaining water outside the intended area.
    Additionally, the clipping system can be configured to clip everything by default, and then areas can be defined where water should be included. See the :ref:`clip-surface-section` section.
 
+Another advantage of the *WaterBody* component is it allows an optional override material to be provided, to change the appearance of the water.
+This currently only changes the appearance of the water surface, it does not currently affect the underwater effect.
+
 
 Wizard (preview)
 ----------------

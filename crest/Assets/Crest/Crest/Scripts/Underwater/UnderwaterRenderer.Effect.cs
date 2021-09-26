@@ -75,6 +75,9 @@ namespace Crest
                 _filterOceanData
             );
 
+            // Call after UpdatePostProcessMaterial as it copies material from ocean which will overwrite this.
+            SetInverseViewProjectionMatrix(_underwaterEffectMaterial.material);
+
             _underwaterEffectCommandBuffer.Clear();
 
             if (_camera.allowMSAA)
@@ -203,20 +206,6 @@ namespace Crest
             else
             {
                 underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
-            }
-
-            // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
-            if (XRHelpers.IsSinglePass)
-            {
-                // NOTE: Not needed for HDRP.
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse);
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse);
-            }
-            else
-            {
-                // NOTE: Not needed for HDRP.
-                var inverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(camera.projectionMatrix, false) * camera.worldToCameraMatrix).inverse;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
             }
 
             // Project ocean normal onto camera plane.

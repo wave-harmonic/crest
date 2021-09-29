@@ -112,11 +112,8 @@ half3 ApplyUnderwaterEffect
 	half3 scatterCol = 0.0;
 	int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
 	{
-		float3 dummy;
-		half sss = 0.0;
 		// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
 		const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[sliceIndex], sliceIndex);
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 		half shadow = 1.0;
 #if _SHADOWS_ON
@@ -130,12 +127,10 @@ half3 ApplyUnderwaterEffect
 #endif // _SHADOWS_ON
 
 		{
-			// Depth is computed in ScatterColour when underwater==true, using the LOD1 texture.
-			const float depth = 0.0;
 			scatterCol = ScatterColour
 			(
 				_AmbientLighting,
-				depth,
+				0.0, // Depth is computed in ScatterColour when underwater==true, using the LOD1 texture.
 				_WorldSpaceCameraPos,
 				lightDir,
 				view,
@@ -143,7 +138,7 @@ half3 ApplyUnderwaterEffect
 				true,
 				true,
 				lightCol,
-				sss,
+				1.0, // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
 				_CrestCascadeData[sliceIndex]
 			);
 		}

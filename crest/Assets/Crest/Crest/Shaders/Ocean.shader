@@ -588,11 +588,11 @@ Shader "Crest/Ocean"
 				(
 					AmbientLight(),
 					input.lodAlpha_worldXZUndisplaced_oceanDepth.w,
+					lightCol,
 					lightDir,
 					view,
 					shadow.x,
 					underwater,
-					lightCol,
 					sss
 				);
 				half3 col = OceanEmission

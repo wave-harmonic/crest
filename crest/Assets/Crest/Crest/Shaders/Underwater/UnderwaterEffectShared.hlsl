@@ -144,11 +144,11 @@ half3 ApplyUnderwaterEffect
 			(
 				_AmbientLighting,
 				seaFloorDepth,
+				lightCol,
 				lightDir,
 				view,
 				shadow,
 				true,
-				lightCol,
 				1.0 // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
 			);
 		}

@@ -69,7 +69,8 @@ float CrestMultiSampleOceanDepth(const float i_rawDepth, const float2 i_position
 }
 #endif
 
-void GetOceanSurfaceAndUnderwaterData(
+void GetOceanSurfaceAndUnderwaterData
+(
 	const float2 positionNDC,
 	const float rawOceanDepth,
 	const float mask,
@@ -96,7 +97,8 @@ void GetOceanSurfaceAndUnderwaterData(
 }
 
 #ifdef CREST_OCEAN_EMISSION_INCLUDED
-half3 ApplyUnderwaterEffect(
+half3 ApplyUnderwaterEffect
+(
 	const float3 scenePos,
 	half3 sceneColour,
 	const half3 lightCol,
@@ -122,14 +124,39 @@ half3 ApplyUnderwaterEffect(
 		{
 			const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
 			const float baseCascadeScale = _CrestCascadeData[0]._scale;
-			scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
+			scatterCol = ScatterColour
+			(
+				_AmbientLighting,
+				depth,
+				_WorldSpaceCameraPos,
+				lightDir,
+				view,
+				shadow,
+				true,
+				true,
+				lightCol,
+				sss,
+				meshScaleLerp,
+				baseCascadeScale,
+				_CrestCascadeData[sliceIndex]
+			);
 		}
 	}
 
 #if _CAUSTICS_ON
 	if (rawDepth != 0.0 && !isOceanSurface)
 	{
-		ApplyCaustics(scenePos, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
+		ApplyCaustics
+		(
+			scenePos,
+			lightDir,
+			sceneZ,
+			_Normals,
+			true,
+			sceneColour,
+			_CrestCascadeData[sliceIndex],
+			_CrestCascadeData[sliceIndex + 1]
+		);
 	}
 #endif // _CAUSTICS_ON
 

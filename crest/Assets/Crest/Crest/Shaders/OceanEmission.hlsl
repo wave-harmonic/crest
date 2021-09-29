@@ -5,12 +5,22 @@
 #ifndef CREST_OCEAN_EMISSION_INCLUDED
 #define CREST_OCEAN_EMISSION_INCLUDED
 
-half3 ScatterColour(
-	in const half3 i_ambientLighting, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
-	in const half3 i_lightDir, in const half3 i_view, in const float i_shadow,
-	in const bool i_underwater, in const bool i_outscatterLight, const half3 lightColour, half sss,
-	in const float i_meshScaleLerp, in const float i_scaleBase,
-	in const CascadeParams cascadeData0)
+half3 ScatterColour
+(
+	in const half3 i_ambientLighting,
+	in const half i_surfaceOceanDepth,
+	in const float3 i_cameraPos,
+	in const half3 i_lightDir,
+	in const half3 i_view,
+	in const float i_shadow,
+	in const bool i_underwater,
+	in const bool i_outscatterLight,
+	const half3 lightColour,
+	half sss,
+	in const float i_meshScaleLerp,
+	in const float i_scaleBase,
+	in const CascadeParams cascadeData0
+)
 {
 	half depth;
 	half shadow = 1.0;
@@ -91,8 +101,17 @@ half3 ScatterColour(
 
 
 #if _CAUSTICS_ON
-void ApplyCaustics(in const float3 i_scenePos, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour,
-	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+void ApplyCaustics
+(
+	in const float3 i_scenePos,
+	in const half3 i_lightDir,
+	in const float i_sceneZ,
+	in sampler2D i_normals,
+	in const bool i_underwater,
+	inout half3 io_sceneColour,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
@@ -148,10 +167,24 @@ void ApplyCaustics(in const float3 i_scenePos, in const half3 i_lightDir, in con
 #endif // _CAUSTICS_ON
 
 
-half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
-	in const half4 i_grabPos, in const float i_pixelZ, const float i_rawPixelZ, in const half2 i_uvDepth, in const float i_sceneZ, const float i_rawDepth,
-	in const half3 i_bubbleCol, in sampler2D i_normals, in const bool i_underwater, in const half3 i_scatterCol,
-	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+half3 OceanEmission
+(
+	in const half3 i_view,
+	in const half3 i_n_pixel,
+	in const float3 i_lightDir,
+	in const half4 i_grabPos,
+	in const float i_pixelZ,
+	const float i_rawPixelZ,
+	in const half2 i_uvDepth,
+	in const float i_sceneZ,
+	const float i_rawDepth,
+	in const half3 i_bubbleCol,
+	in sampler2D i_normals,
+	in const bool i_underwater,
+	in const half3 i_scatterCol,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	half3 col = i_scatterCol;
 

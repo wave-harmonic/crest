@@ -593,7 +593,6 @@ Shader "Crest/Ocean"
 					view,
 					shadow.x,
 					underwater,
-					true,
 					lightCol,
 					sss,
 					cascadeData0

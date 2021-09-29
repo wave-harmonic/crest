@@ -14,7 +14,6 @@ half3 ScatterColour
 	in const half3 i_view,
 	in const float i_shadow,
 	in const bool i_underwater,
-	in const bool i_outscatterLight,
 	const half3 lightColour,
 	half sss,
 	in const CascadeParams cascadeData0

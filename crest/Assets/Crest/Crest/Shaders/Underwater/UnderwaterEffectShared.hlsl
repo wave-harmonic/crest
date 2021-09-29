@@ -136,7 +136,6 @@ half3 ApplyUnderwaterEffect
 				view,
 				shadow,
 				true,
-				true,
 				lightCol,
 				1.0, // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
 				_CrestCascadeData[sliceIndex]

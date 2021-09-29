@@ -142,14 +142,14 @@ half3 ApplyUnderwaterEffect
 		{
 			scatterCol = ScatterColour
 			(
-				_AmbientLighting,
 				seaFloorDepth,
-				lightCol,
-				lightDir,
-				view,
 				shadow,
-				true,
-				1.0 // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
+				1.0, // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
+				view,
+				_AmbientLighting,
+				lightDir,
+				lightCol,
+				true
 			);
 		}
 	}

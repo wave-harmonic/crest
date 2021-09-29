@@ -7,14 +7,14 @@
 
 half3 ScatterColour
 (
-	in const half3 i_ambientLighting,
 	in const half i_surfaceOceanDepth,
-	in const half3 i_lightCol,
-	in const half3 i_lightDir,
-	in const half3 i_view,
 	in const float i_shadow,
-	in const bool i_underwater,
-	half sss
+	in const half sss,
+	in const half3 i_view,
+	in const half3 i_ambientLighting,
+	in const half3 i_lightDir,
+	in const half3 i_lightCol,
+	in const bool i_underwater
 )
 {
 	// base colour

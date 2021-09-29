@@ -586,14 +586,14 @@ Shader "Crest/Ocean"
 				// Compute color of ocean - in-scattered light + refracted scene
 				half3 scatterCol = ScatterColour
 				(
-					AmbientLight(),
 					input.lodAlpha_worldXZUndisplaced_oceanDepth.w,
-					lightCol,
-					lightDir,
-					view,
 					shadow.x,
-					underwater,
-					sss
+					sss,
+					view,
+					AmbientLight(),
+					lightDir,
+					lightCol,
+					underwater
 				);
 				half3 col = OceanEmission
 				(

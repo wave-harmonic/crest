@@ -126,19 +126,30 @@ half3 ApplyUnderwaterEffect
 		}
 #endif // _SHADOWS_ON
 
+		half seaFloorDepth = CREST_OCEAN_DEPTH_BASELINE;
+#if _SUBSURFACESHALLOWCOLOUR_ON
+		{
+			// compute scatter colour from cam pos. two scenarios this can be called:
+			// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
+			//    colour at the camera, not at the surface, to make sure its consistent.
+			// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
+			//    so just approximate by sampling at the camera position.
+			// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
+			SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, seaFloorDepth);
+		}
+#endif // _SUBSURFACESHALLOWCOLOUR_ON
+
 		{
 			scatterCol = ScatterColour
 			(
 				_AmbientLighting,
-				0.0, // Depth is computed in ScatterColour when underwater==true, using the LOD1 texture.
-				_WorldSpaceCameraPos,
+				seaFloorDepth,
 				lightDir,
 				view,
 				shadow,
 				true,
 				lightCol,
-				1.0, // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
-				_CrestCascadeData[sliceIndex]
+				1.0 // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
 			);
 		}
 	}

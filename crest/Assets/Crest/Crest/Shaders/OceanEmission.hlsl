@@ -9,35 +9,14 @@ half3 ScatterColour
 (
 	in const half3 i_ambientLighting,
 	in const half i_surfaceOceanDepth,
-	in const float3 i_cameraPos,
 	in const half3 i_lightDir,
 	in const half3 i_view,
 	in const float i_shadow,
 	in const bool i_underwater,
 	const half3 lightColour,
-	half sss,
-	in const CascadeParams cascadeData0
+	half sss
 )
 {
-	half depth;
-	if (i_underwater)
-	{
-		// compute scatter colour from cam pos. two scenarios this can be called:
-		// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
-		//    colour at the camera, not at the surface, to make sure its consistent.
-		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
-		//    so just approximate by sampling at the camera position.
-		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, cascadeData0, _LD_SliceIndex);
-		depth = CREST_OCEAN_DEPTH_BASELINE;
-		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
-	}
-	else
-	{
-		// above water - take data from geometry
-		depth = i_surfaceOceanDepth;
-	}
-
 	// base colour
 	float v = abs(i_view.y);
 	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
@@ -49,7 +28,7 @@ half3 ScatterColour
 #if _SUBSURFACESCATTERING_ON
 	{
 #if _SUBSURFACESHALLOWCOLOUR_ON
-		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
+		float shallowness = pow(1. - saturate(i_surfaceOceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
 		half3 shallowCol = _SubSurfaceShallowCol;
 #if _SHADOWS_ON
 		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);

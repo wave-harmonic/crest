@@ -17,13 +17,10 @@ half3 ScatterColour
 	in const bool i_outscatterLight,
 	const half3 lightColour,
 	half sss,
-	in const float i_meshScaleLerp,
-	in const float i_scaleBase,
 	in const CascadeParams cascadeData0
 )
 {
 	half depth;
-	half shadow = 1.0;
 	if (i_underwater)
 	{
 		// compute scatter colour from cam pos. two scenarios this can be called:
@@ -35,33 +32,11 @@ half3 ScatterColour
 		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, cascadeData0, _LD_SliceIndex);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
-
-#if _SHADOWS_ON
-		const float2 samplePoint = i_cameraPos.xz;
-
-		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
-		const float minSliceIndex = 4.0;
-		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, minSliceIndex, i_scaleBase, slice0, slice1, lodAlpha);
-
-		half2 shadowSoftHard = 0.0;
-		{
-			const float3 uv = WorldToUV(samplePoint, _CrestCascadeData[slice0], slice0);
-			SampleShadow(_LD_TexArray_Shadow, uv, 1.0 - lodAlpha, shadowSoftHard);
-		}
-		{
-			const float3 uv = WorldToUV(samplePoint, _CrestCascadeData[slice1], slice1);
-			SampleShadow(_LD_TexArray_Shadow, uv, lodAlpha, shadowSoftHard);
-		}
-
-		shadow = saturate(1.0 - shadowSoftHard.x);
-#endif
 	}
 	else
 	{
 		// above water - take data from geometry
 		depth = i_surfaceOceanDepth;
-		shadow = i_shadow;
 	}
 
 	// base colour
@@ -69,7 +44,7 @@ half3 ScatterColour
 	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
 
 #if _SHADOWS_ON
-	col = lerp(_DiffuseShadow, col, shadow);
+	col = lerp(_DiffuseShadow, col, i_shadow);
 #endif
 
 #if _SUBSURFACESCATTERING_ON
@@ -78,7 +53,7 @@ half3 ScatterColour
 		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
 		half3 shallowCol = _SubSurfaceShallowCol;
 #if _SHADOWS_ON
-		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, shadow);
+		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
 #endif
 		col = lerp(col, shallowCol, shallowness);
 #endif
@@ -87,7 +62,7 @@ half3 ScatterColour
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * lightColour * shadow;
+		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * lightColour * i_shadow;
 		if (!i_underwater)
 		{
 			subsurface *= (1.0 - v * v) * sss;

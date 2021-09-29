@@ -584,8 +584,6 @@ Shader "Crest/Ocean"
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				const float baseCascadeScale = cascadeData0._scale;
-				const float meshScaleLerp = instanceData._meshScaleLerp;
 				half3 scatterCol = ScatterColour
 				(
 					AmbientLight(),
@@ -598,8 +596,6 @@ Shader "Crest/Ocean"
 					true,
 					lightCol,
 					sss,
-					meshScaleLerp,
-					baseCascadeScale,
 					cascadeData0
 				);
 				half3 col = OceanEmission

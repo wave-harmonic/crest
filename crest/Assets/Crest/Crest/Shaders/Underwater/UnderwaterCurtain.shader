@@ -203,9 +203,7 @@ Shader "Crest/Underwater Curtain"
 				const half shadow = 1.0;
 				const half sss = 0.0;
 
-				const float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
-				const float baseCascadeScale = _CrestCascadeData[0]._scale;
-				const half3 scatterCol = ScatterColour(AmbientLight(), depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				const half3 scatterCol = ScatterColour(AmbientLight(), depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, cascadeData0);
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 

@@ -118,12 +118,20 @@ half3 ApplyUnderwaterEffect
 		const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[sliceIndex], sliceIndex);
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
-		// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
-		const float depth = 0.0;
-		const half shadow = 1.0;
+		half shadow = 1.0;
+#if _SHADOWS_ON
 		{
-			const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
-			const float baseCascadeScale = _CrestCascadeData[0]._scale;
+			// Camera should be at center of LOD system so no need for blending (alpha, weights, etc). This might not be
+			// the case if there is large horizontal displacement, but the _DataSliceOffset should help by setting a
+			// large enough slice as minimum.
+			shadow = _LD_TexArray_Shadow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).x;
+			shadow = saturate(1.0 - shadow);
+		}
+#endif // _SHADOWS_ON
+
+		{
+			// Depth is computed in ScatterColour when underwater==true, using the LOD1 texture.
+			const float depth = 0.0;
 			scatterCol = ScatterColour
 			(
 				_AmbientLighting,
@@ -136,8 +144,6 @@ half3 ApplyUnderwaterEffect
 				true,
 				lightCol,
 				sss,
-				meshScaleLerp,
-				baseCascadeScale,
 				_CrestCascadeData[sliceIndex]
 			);
 		}

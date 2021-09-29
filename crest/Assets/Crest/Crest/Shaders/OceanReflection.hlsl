@@ -79,12 +79,12 @@ void ApplyReflectionSky
 	float interpolator = unity_SpecCube0_BoxMin.w;
 	// Branch optimization recommended by: https://catlikecoding.com/unity/tutorials/rendering/part-8/
 	UNITY_BRANCH
-	if (interpolator < 0.99999) 
+	if (interpolator < 0.99999)
 	{
 		float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 		skyColour = lerp(probe1, probe0, interpolator);
 	}
-	else 
+	else
 	{
 		skyColour = probe0;
 	}

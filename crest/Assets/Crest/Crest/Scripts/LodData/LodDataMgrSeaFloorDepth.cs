@@ -16,9 +16,9 @@ namespace Crest
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
-        public override string SimName { get { return "SeaFloorDepth"; } }
-        protected override GraphicsFormat RequestedTextureFormat { get { return Settings._allowVaryingWaterLevel ? GraphicsFormat.R32G32_SFloat : GraphicsFormat.R16_SFloat; } }
-        protected override bool NeedToReadWriteTextureData { get { return false; } }
+        public override string SimName => "SeaFloorDepth";
+        protected override GraphicsFormat RequestedTextureFormat => Settings._allowVaryingWaterLevel ? GraphicsFormat.R32G32_SFloat : GraphicsFormat.R16_SFloat;
+        protected override bool NeedToReadWriteTextureData => false;
         // We want the clear colour to be the min terrain height (-1000m) in X, and sea level offset 0m in Y.
         readonly static Color s_nullColor = Color.red * -1000f;
         static Texture2DArray s_nullTexture;

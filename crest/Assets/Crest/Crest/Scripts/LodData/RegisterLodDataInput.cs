@@ -300,6 +300,9 @@ namespace Crest
 
         protected override bool RendererRequired => _spline == null;
 
+        protected float _splinePointHeightMin;
+        protected float _splinePointHeightMax;
+
         void Awake()
         {
             if (TryGetComponent<Spline.Spline>(out _spline))
@@ -307,7 +310,8 @@ namespace Crest
                 var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
                 var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData,
+                    ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
 
                 if (_splineMaterial == null)
                 {
@@ -369,7 +373,8 @@ namespace Crest
                     var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                     var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
                     var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData,
+                        ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
 
                     if (_splineMaterial == null)
                     {

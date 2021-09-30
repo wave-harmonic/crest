@@ -59,6 +59,13 @@ namespace Crest
                 var seaLevel = OceanRenderer.Instance.SeaLevel;
                 maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
             }
+            else if (_splineMaterial != null &&
+                ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
+            {
+                var seaLevel = OceanRenderer.Instance.SeaLevel;
+                maxDispVert = Mathf.Max(maxDispVert,
+                    Mathf.Abs(seaLevel - _splinePointHeightMin), Mathf.Abs(seaLevel - _splinePointHeightMax));
+            }
 
             if (maxDispVert > 0f)
             {

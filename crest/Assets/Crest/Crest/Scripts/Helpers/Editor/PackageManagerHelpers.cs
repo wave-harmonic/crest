@@ -4,6 +4,8 @@
 
 // Helpers for using the Unity Package Manager.
 
+#if UNITY_EDITOR
+
 namespace Crest.EditorHelpers
 {
     using UnityEditor;
@@ -40,3 +42,5 @@ namespace Crest.EditorHelpers
         }
     }
 }
+
+#endif // UNITY_EDITOR

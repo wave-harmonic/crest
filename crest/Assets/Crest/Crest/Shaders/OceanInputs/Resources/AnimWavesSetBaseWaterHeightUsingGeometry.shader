@@ -9,6 +9,7 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 {
 	Properties
 	{
+		[HideInInspector] _ObsoleteMessage( "Use <i>Crest/Inputs/Sea Floor Depth/Set Base Water Height Using Geometry</i> instead.", Float ) = 0
 		[Enum(BlendOp)] _BlendOp("Blend Op", Int) = 0
 		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 1
 		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 1
@@ -29,6 +30,8 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 
 			#include "UnityCG.cginc"
 			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
+			#include "../../OceanHelpersNew.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
@@ -61,11 +64,16 @@ Shader "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				float3 uv = WorldToUV(input.worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				half seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).y;
+
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
+				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y - seaLevelOffset;
 				return _Weight * half4(0.0, addHeight, 0.0, 0.0);
 			}
 			ENDCG
 		}
 	}
+
+	CustomEditor "Crest.ObsoleteShaderGUI"
 }

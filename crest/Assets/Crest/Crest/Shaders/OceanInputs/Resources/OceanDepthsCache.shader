@@ -51,9 +51,9 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 				return output;
 			}
 
-			half4 Frag(Varyings input) : SV_Target
+			float2 Frag(Varyings input) : SV_Target
 			{
-				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
+				return float2(tex2D(_MainTex, input.uv).x, 0.0);
 			}
 			ENDCG
 		}

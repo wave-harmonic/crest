@@ -12,15 +12,25 @@ namespace Crest
     /// </summary>
     public static class ShapeGerstnerSplineHandling
     {
-        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh)
+        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
         {
-            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, smoothingIterations, customDataDefault, ref mesh);
+            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, smoothingIterations, customDataDefault, ref mesh, out minHeight, out maxHeight);
         }
 
-        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh)
+        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
             where SplinePointCustomData : ISplinePointCustomData
         {
+            minHeight = 10000f;
+            maxHeight = -10000f;
+
             var splinePoints = spline.GetComponentsInChildren<SplinePoint>();
+
+            foreach (var sp in splinePoints)
+            {
+                minHeight = Mathf.Min(minHeight, sp.transform.position.y);
+                maxHeight = Mathf.Max(maxHeight, sp.transform.position.y);
+            }
+
             if (splinePoints.Length < 2) return false;
 
             var splinePointCount = splinePoints.Length;
@@ -278,5 +288,7 @@ namespace Crest
 
             return true;
         }
+
+        public static bool MinMaxHeightValid(float minHeight, float maxHeight) => maxHeight >= minHeight;
     }
 }

@@ -101,11 +101,14 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	// of rendering real geometry from a worldspace camera.
 	ShadowCoords shadowCoords;
 	{
-		// world pos from [0,1] texture
-		float4 wpos = float4(float3(((id.x + 0.5)/width) - 0.5, 0.0, ((id.y + 0.5)/height) -0.5) * _Scale * 4.0 + _CenterPos, 1.0);
+		// World pos from [0,1] texture
+		const float2 uv = float2((id.x + 0.5) / width, (id.y + 0.5) / height);
+		float4 wpos = float4(float3(uv.x - 0.5, 0.0, uv.y - 0.5) * _Scale * 4.0 + _CenterPos, 1.0);
 
-		// this could add wave height/disp??
 		wpos.y = _OceanCenterPosWorld.y;
+
+		// Offset world position by sea level offset
+		wpos.y += _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, float3(uv, _LD_SliceIndex), 0.0).y;
 
 		shadowCoords._WorldPosViewZ.xyz = wpos.xyz;
 		shadowCoords._WorldPosViewZ.w = dot(wpos.xyz - _CamPos, _CamForward);
@@ -115,7 +118,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		shadowCoords._ShadowCoord2 = mul(unity_WorldToShadow[2], wpos).xyz;
 		shadowCoords._ShadowCoord3 = mul(unity_WorldToShadow[3], wpos).xyz;
 
-		// working hard to get derivatives for shadow uvs, so that i can jitter the world position in the fragment shader. this
+		// Working hard to get derivatives for shadow uvs, so that i can jitter the world position in the fragment shader. this
 		// enables per-fragment noise (required to avoid wobble), and is required because each cascade has a different scale etc.
 		shadowCoords.ShadowCoord0_dxdz.xy = mul(unity_WorldToShadow[0], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - shadowCoords._ShadowCoord0.xz;
 		shadowCoords.ShadowCoord0_dxdz.zw = mul(unity_WorldToShadow[0], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - shadowCoords._ShadowCoord0.xz;

@@ -628,7 +628,8 @@ namespace Crest
                 var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
                 var smooth = _overrideSplineSettings ? _smoothingIterations : splineForWaves.SmoothingIterations;
 
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, smooth, Vector2.one, ref _meshForDrawingWaves))
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, smooth, Vector2.one,
+                    ref _meshForDrawingWaves, out _, out _))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }

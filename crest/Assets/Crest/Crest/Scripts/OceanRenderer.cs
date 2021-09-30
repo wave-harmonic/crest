@@ -212,6 +212,8 @@ namespace Crest
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
         bool _createSeaFloorDepthData = true;
         public bool CreateSeaFloorDepthData { get { return _createSeaFloorDepthData; } }
+        [Predicated("_createSeaFloorDepthData"), Embedded]
+        public SimSettingsSeaFloorDepth _simSettingsSeaFloorDepth;
 
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
@@ -333,6 +335,12 @@ namespace Crest
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
         public List<OceanChunkRenderer> Tiles => _oceanChunkRenderers;
+
+        /// <summary>
+        /// Smoothly varying version of viewer height to combat sudden changes in water level that are possible
+        /// when there are local bodies of water
+        /// </summary>
+        float _viewerHeightAboveWaterSmooth = 0f;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
@@ -889,8 +897,8 @@ namespace Crest
             if (_followViewpoint && Viewpoint != null)
             {
                 LateUpdatePosition();
-                LateUpdateScale();
                 LateUpdateViewerHeight();
+                LateUpdateScale();
             }
 
             CreateDestroySubSystems();
@@ -1000,11 +1008,14 @@ namespace Crest
 
         void LateUpdateScale()
         {
-            // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
+            var viewerHeight = _viewerHeightAboveWaterSmooth;
+
+            // Reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
-            float camDistance = Mathf.Abs(Viewpoint.position.y - maxDetailY);
+            viewerHeight += _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
+
+            var camDistance = Mathf.Abs(viewerHeight);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);
@@ -1033,6 +1044,10 @@ namespace Crest
             _sampleHeightHelper.Sample(out var waterHeight);
 
             ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
+
+            // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
+            // when there are local bodies of water
+            _viewerHeightAboveWaterSmooth = Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
         }
 
         void LateUpdateLods()

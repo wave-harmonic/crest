@@ -299,6 +299,7 @@ Shader "Crest/Ocean"
 				half3 debugtint : TEXCOORD8;
 				#endif
 				half4 grabPos : TEXCOORD9;
+				float2 seaLevelDerivs : TEXCOORD10;
 
 				UNITY_FOG_COORDS(3)
 
@@ -383,16 +384,16 @@ Shader "Crest/Ocean"
 				}
 
 				// Data that needs to be sampled at the displaced position
+				half seaLevelOffset = 0.0;
+				o.seaLevelDerivs = 0.0;
 				if (wt_smallerLod > 0.0001)
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, cascadeData0, _LD_SliceIndex);
 
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData0, o.seaLevelDerivs);
 
 					#if _SHADOWS_ON
+					// The minimum sampling weight is lower than others to fix shallow water colour popping.
 					if (wt_smallerLod > 0.001)
 					{
 						SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
@@ -403,18 +404,18 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData1, o.seaLevelDerivs);
 
 					#if _SHADOWS_ON
+					// The minimum sampling weight is lower than others to fix shallow water colour popping.
 					if (wt_biggerLod > 0.001)
 					{
 						SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
 					}
 					#endif
 				}
+
+				o.worldPos.y += seaLevelOffset;
 
 				// debug tinting to see which shape textures are used
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
@@ -530,6 +531,8 @@ Shader "Crest/Ocean"
 				n_pixel.xz += SampleNormalMaps(positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
 				#endif
 				#endif
+
+				n_pixel.xz += float2(-input.seaLevelDerivs.x, -input.seaLevelDerivs.y);
 
 				// Finalise normal
 				n_pixel.xz *= _NormalsStrengthOverall;

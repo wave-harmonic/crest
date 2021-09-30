@@ -84,6 +84,11 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Signed Distance"
 				// We only need the height as clip surface is sampled at the displaced position in the ocean shader.
 				positionWS.y += surfacePositionWS.y;
 
+				// The sea level is baked into the matrix but not the sea level offset.
+				float3 uv = WorldToUV(input.positionWS.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				half seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).y;
+				positionWS.y += seaLevelOffset;
+
 #if _CUBE
 				float signedDistance = signedDistanceBox(positionWS);
 #else

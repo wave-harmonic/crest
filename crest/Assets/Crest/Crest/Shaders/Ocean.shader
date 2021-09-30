@@ -547,17 +547,75 @@ Shader "Crest/Ocean"
 
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(foam, positionXZWSUndisplaced, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoam
+				(
+					foam,
+					positionXZWSUndisplaced,
+					input.worldPos.xz,
+					n_pixel,
+					pixelZ,
+					sceneZ,
+					view,
+					lightDir,
+					shadow.y,
+					lodAlpha,
+					bubbleCol,
+					whiteFoamCol,
+					cascadeData0,
+					cascadeData1
+				);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, foam, positionXZWSUndisplaced, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoamWithFlow
+				(
+					input.flow_shadow.xy,
+					foam,
+					positionXZWSUndisplaced,
+					input.worldPos.xz,
+					n_pixel,
+					pixelZ,
+					sceneZ,
+					view,
+					lightDir,
+					shadow.y,
+					lodAlpha,
+					bubbleCol,
+					whiteFoamCol,
+					cascadeData0,
+					cascadeData1
+				);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				const float baseCascadeScale = cascadeData0._scale;
-				const float meshScaleLerp = instanceData._meshScaleLerp;
-				half3 scatterCol = ScatterColour(AmbientLight(), input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, input.positionCS.z, uvDepth, sceneZ, rawDepth, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
+				half3 scatterCol = ScatterColour
+				(
+					input.lodAlpha_worldXZUndisplaced_oceanDepth.w,
+					shadow.x,
+					sss,
+					view,
+					AmbientLight(),
+					lightDir,
+					lightCol,
+					underwater
+				);
+				half3 col = OceanEmission
+				(
+					view,
+					n_pixel,
+					lightDir,
+					input.grabPos,
+					pixelZ,
+					input.positionCS.z,
+					uvDepth,
+					sceneZ,
+					rawDepth,
+					bubbleCol,
+					_Normals,
+					underwater,
+					scatterCol,
+					cascadeData0,
+					cascadeData1
+				);
 
 				// Light that reflects off water surface
 

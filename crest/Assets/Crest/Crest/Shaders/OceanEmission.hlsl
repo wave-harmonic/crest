@@ -5,70 +5,33 @@
 #ifndef CREST_OCEAN_EMISSION_INCLUDED
 #define CREST_OCEAN_EMISSION_INCLUDED
 
-half3 ScatterColour(
-	in const half3 i_ambientLighting, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
-	in const half3 i_lightDir, in const half3 i_view, in const float i_shadow,
-	in const bool i_underwater, in const bool i_outscatterLight, const half3 lightColour, half sss,
-	in const float i_meshScaleLerp, in const float i_scaleBase,
-	in const CascadeParams cascadeData0)
+half3 ScatterColour
+(
+	in const half i_surfaceOceanDepth,
+	in const float i_shadow,
+	in const half sss,
+	in const half3 i_view,
+	in const half3 i_ambientLighting,
+	in const half3 i_lightDir,
+	in const half3 i_lightCol,
+	in const bool i_underwater
+)
 {
-	half depth;
-	half shadow = 1.0;
-	if (i_underwater)
-	{
-		// compute scatter colour from cam pos. two scenarios this can be called:
-		// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
-		//    colour at the camera, not at the surface, to make sure its consistent.
-		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
-		//    so just approximate by sampling at the camera position.
-		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, cascadeData0, _LD_SliceIndex);
-		depth = CREST_OCEAN_DEPTH_BASELINE;
-		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
-
-#if _SHADOWS_ON
-		const float2 samplePoint = i_cameraPos.xz;
-
-		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
-		const float minSliceIndex = 4.0;
-		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, minSliceIndex, i_scaleBase, slice0, slice1, lodAlpha);
-
-		half2 shadowSoftHard = 0.0;
-		{
-			const float3 uv = WorldToUV(samplePoint, _CrestCascadeData[slice0], slice0);
-			SampleShadow(_LD_TexArray_Shadow, uv, 1.0 - lodAlpha, shadowSoftHard);
-		}
-		{
-			const float3 uv = WorldToUV(samplePoint, _CrestCascadeData[slice1], slice1);
-			SampleShadow(_LD_TexArray_Shadow, uv, lodAlpha, shadowSoftHard);
-		}
-
-		shadow = saturate(1.0 - shadowSoftHard.x);
-#endif
-	}
-	else
-	{
-		// above water - take data from geometry
-		depth = i_surfaceOceanDepth;
-		shadow = i_shadow;
-	}
-
 	// base colour
 	float v = abs(i_view.y);
 	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
 
 #if _SHADOWS_ON
-	col = lerp(_DiffuseShadow, col, shadow);
+	col = lerp(_DiffuseShadow, col, i_shadow);
 #endif
 
 #if _SUBSURFACESCATTERING_ON
 	{
 #if _SUBSURFACESHALLOWCOLOUR_ON
-		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
+		float shallowness = pow(1. - saturate(i_surfaceOceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
 		half3 shallowCol = _SubSurfaceShallowCol;
 #if _SHADOWS_ON
-		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, shadow);
+		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
 #endif
 		col = lerp(col, shallowCol, shallowness);
 #endif
@@ -77,7 +40,7 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * lightColour * shadow;
+		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * i_lightCol * i_shadow;
 		if (!i_underwater)
 		{
 			subsurface *= (1.0 - v * v) * sss;
@@ -91,8 +54,17 @@ half3 ScatterColour(
 
 
 #if _CAUSTICS_ON
-void ApplyCaustics(in const float3 i_scenePos, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour,
-	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+void ApplyCaustics
+(
+	in const float3 i_scenePos,
+	in const half3 i_lightDir,
+	in const float i_sceneZ,
+	in sampler2D i_normals,
+	in const bool i_underwater,
+	inout half3 io_sceneColour,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
@@ -149,10 +121,24 @@ void ApplyCaustics(in const float3 i_scenePos, in const half3 i_lightDir, in con
 #endif // _CAUSTICS_ON
 
 
-half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
-	in const half4 i_grabPos, in const float i_pixelZ, const float i_rawPixelZ, in const half2 i_uvDepth, in const float i_sceneZ, const float i_rawDepth,
-	in const half3 i_bubbleCol, in sampler2D i_normals, in const bool i_underwater, in const half3 i_scatterCol,
-	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+half3 OceanEmission
+(
+	in const half3 i_view,
+	in const half3 i_n_pixel,
+	in const float3 i_lightDir,
+	in const half4 i_grabPos,
+	in const float i_pixelZ,
+	const float i_rawPixelZ,
+	in const half2 i_uvDepth,
+	in const float i_sceneZ,
+	const float i_rawDepth,
+	in const half3 i_bubbleCol,
+	in sampler2D i_normals,
+	in const bool i_underwater,
+	in const half3 i_scatterCol,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	half3 col = i_scatterCol;
 

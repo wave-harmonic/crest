@@ -25,6 +25,7 @@ Crest can be configured to efficiently generate smaller bodies of water, using t
    The *Clip Surface* feature can be used to precisely remove any remaining water outside the intended area.
    Additionally, the clipping system can be configured to clip everything by default, and then areas can be defined where water should be included. See the :ref:`clip-surface-section` section.
 -  If the lake altitude differs from the global sea level, create a spline that covers the area of the lake and attach the *RegisterHeightInput* component which will set the water level to match the spline.
+   It is recommended to cover a larger area than the lake itself, to give a protective margin against LOD effects in the distance.
 
 Another advantage of the *WaterBody* component is it allows an optional override material to be provided, to change the appearance of the water.
 This currently only changes the appearance of the water surface, it does not currently affect the underwater effect.

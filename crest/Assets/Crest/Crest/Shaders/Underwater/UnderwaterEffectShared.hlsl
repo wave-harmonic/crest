@@ -144,7 +144,7 @@ half3 ApplyUnderwaterEffect
 			(
 				seaFloorDepth,
 				shadow,
-				1.0, // SSS variance is only for ShapeGerstner. HDRP also has this disabled.
+				1.0, // SSS is not used for underwater yet. Calculated in SampleDisplacementsNormals which is costly.
 				view,
 				_AmbientLighting,
 				lightDir,

@@ -47,6 +47,7 @@ Removed
 .. bullet_list::
 
    -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit as it is required for `FFT`\ s to work well.
+   -  Removed *Create Water Body* wizard window. The water body setup has been simplified and works without this additional tooling.
 
 Performance
 ^^^^^^^^^^^

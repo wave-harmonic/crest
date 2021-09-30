@@ -7,7 +7,14 @@
 
 #if _FOAM_ON
 
-half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+half WhiteFoamTexture
+(
+	half i_foam,
+	float2 i_worldXZUndisplaced,
+	half lodVal,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	half ft = lerp(
 		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*cascadeData0._texelWidth*_FoamScale)).r,
@@ -19,7 +26,16 @@ half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in 
 	return smoothstep(i_foam, i_foam + _WaveFoamFeather, ft);
 }
 
-half BubbleFoamTexture(float2 i_worldXZ, float2 i_worldXZUndisplaced, half3 i_n, half3 i_view, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+half BubbleFoamTexture
+(
+	float2 i_worldXZ,
+	float2 i_worldXZUndisplaced,
+	half3 i_n,
+	half3 i_view,
+	half lodVal,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	float2 windDir = float2(0.866, 0.5);
 	float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.7) + 0.5 * _CrestTime * windDir) / _FoamScale + 0.125 * i_n.xz;
@@ -32,9 +48,23 @@ half BubbleFoamTexture(float2 i_worldXZ, float2 i_worldXZUndisplaced, half3 i_n,
 	return ft;
 }
 
-void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view,
-	float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol,
-	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+void ComputeFoam
+(
+	half i_foam,
+	float2 i_worldXZUndisplaced,
+	float2 i_worldXZ,
+	half3 i_n,
+	float i_pixelZ,
+	float i_sceneZ,
+	half3 i_view,
+	float3 i_lightDir,
+	half i_shadow,
+	half lodVal,
+	out half3 o_bubbleCol,
+	out half4 o_whiteFoamCol,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	half foamAmount = i_foam;
 
@@ -71,8 +101,24 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 	o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;
 }
 
-void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol,
-	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
+void ComputeFoamWithFlow
+(
+	half2 flow,
+	half i_foam,
+	float2 i_worldXZUndisplaced,
+	float2 i_worldXZ,
+	half3 i_n,
+	float i_pixelZ,
+	float i_sceneZ,
+	half3 i_view,
+	float3 i_lightDir,
+	half i_shadow,
+	half lodVal,
+	out half3 o_bubbleCol,
+	out half4 o_whiteFoamCol,
+	in const CascadeParams cascadeData0,
+	in const CascadeParams cascadeData1
+)
 {
 	const float half_period = 1;
 	const float period = half_period * 2;

@@ -40,7 +40,17 @@ float CalculateFresnelReflectionCoefficient(float cosTheta)
 	return R_theta;
 }
 
-void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, in const float i_pixelZ, in const half i_weight, inout half3 io_col)
+void ApplyReflectionSky
+(
+	in const half3 i_view,
+	in const half3 i_n_pixel,
+	in const half3 i_lightDir,
+	in const half i_shadow,
+	in const half4 i_screenPos,
+	in const float i_pixelZ,
+	in const half i_weight,
+	inout half3 io_col
+)
 {
 	// Reflection
 	half3 refl = reflect(-i_view, i_n_pixel);
@@ -69,12 +79,12 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 	float interpolator = unity_SpecCube0_BoxMin.w;
 	// Branch optimization recommended by: https://catlikecoding.com/unity/tutorials/rendering/part-8/
 	UNITY_BRANCH
-	if (interpolator < 0.99999) 
+	if (interpolator < 0.99999)
 	{
 		float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 		skyColour = lerp(probe1, probe0, interpolator);
 	}
-	else 
+	else
 	{
 		skyColour = probe0;
 	}
@@ -109,7 +119,17 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 }
 
 #if _UNDERWATER_ON
-void ApplyReflectionUnderwater(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, half3 scatterCol, in const half i_weight, inout half3 io_col)
+void ApplyReflectionUnderwater
+(
+	in const half3 i_view,
+	in const half3 i_n_pixel,
+	in const half3 i_lightDir,
+	in const half i_shadow,
+	in const half4 i_screenPos,
+	half3 scatterCol,
+	in const half i_weight,
+	inout half3 io_col
+)
 {
 	const half3 underwaterColor = scatterCol;
 	// The the angle of outgoing light from water's surface

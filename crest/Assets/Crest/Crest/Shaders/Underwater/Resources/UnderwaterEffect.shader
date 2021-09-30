@@ -15,13 +15,10 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma multi_compile_instancing
-
 			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
 			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
 			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
 			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma multi_compile_local __ _TRANSPARENCY_ON
 			#pragma multi_compile_local __ _CAUSTICS_ON
 			#pragma multi_compile_local __ _SHADOWS_ON
 			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
@@ -37,6 +34,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
+
+			#include "../../Helpers/BIRP/Common.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
 
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
@@ -62,7 +62,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				float3 viewWS : TEXCOORD1;
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
@@ -76,9 +75,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 				output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
 				output.uv = GetFullScreenTriangleTexCoord(input.id);
-
-				// Compute world space view vector
-				output.viewWS = ComputeWorldSpaceView(output.uv);
 
 				return output;
 			}
@@ -105,7 +101,10 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 				if (isUnderwater)
 				{
-					const half3 view = normalize(input.viewWS);
+					// Position needs to be reconstructed in the fragment shader to avoid precision issues as per
+					// Unity's lead. Fixes caustics stuttering when far from zero.
+					const float3 positionWS = ComputeWorldSpacePosition(uvScreenSpace, rawDepth, UNITY_MATRIX_I_VP);
+					const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
 					const float3 lightDir = _WorldSpaceLightPos0.xyz;
 					const half3 lightCol = _LightColor0;

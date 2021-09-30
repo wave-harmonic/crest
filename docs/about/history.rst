@@ -19,6 +19,38 @@ Changed
 
    -  Add *Dynamic Waves* reflections from *Ocean Depth Cache* geometry.
    -  Add inverted option to *Clip Surface* signed-distance primitives and convex hulls which removes clipping.
+   -  Add *Override Material* field to the *Water Body* component to enable varying water material across water bodies.
+   -  *Sphere Water Interaction* component simplified - no mesh renderer/shader setup required, and no 'register' component required.
+   -  *Sphere Water Interaction* produces more consistent results at different radii/scales.
+   -  Improve `FFT` wave quality by doubling the sampling from two to four.
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix lines in foam data producing noticeable repeating patterns when using `FFT` waves.
+   -  Fix caustics jittering when far from zero and underwater in XR.
+   -  Fix disabled simulations' data being at maximum when "Texture Quality" is not "Full Res".
+      In one case this manifested as the entire ocean being shadowed in builds.
+   -  Fix high CPU memory usage from underwater effect shader in builds.
+   -  Fix FFT spectrum not being editable when time is paused.
+   -  Fix *ShapeFFT* component producing inverted looking waves when enabled in editor play mode.
+
+   .. only:: hdrp
+
+      -  Fix *Default Clipping State > Everything Clipped* not clipping extents. `[HDRP]`
+
+Removed
+^^^^^^^
+.. bullet_list::
+
+   -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit as it is required for `FFT`\ s to work well.
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Only calculate inverse view projection matrix when required.
 
 
 4.13

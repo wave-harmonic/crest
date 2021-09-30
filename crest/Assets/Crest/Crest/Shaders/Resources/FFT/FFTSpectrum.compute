@@ -19,6 +19,8 @@
 #define SPECTRUM_OCTAVE_COUNT		14.0
 #define SPECTRUM_SMALLEST_WL_POW_2	-4.0
 
+#define SAMPLES_PER_WAVE 4
+
 uint _Size;
 float _WindSpeed;
 float _Turbulence;
@@ -118,21 +120,30 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	const int2 center = _Size.xx / 2;
 	const int2 coord = id.xy - center;
 
+	if( coord.x == 0 && coord.y == 0 )
+	{
+		_ResultInit[id] = 0.0;
+		return;
+	}
+
 	uint depth;
 	{
 		uint width, height;
 		_ResultInit.GetDimensions( width, height, depth );
 	}
 
-	if ( id.z < (depth - 1) && max( abs( coord.x ), abs( coord.y ) ) < int(_Size / 4) )
+	uint maxCoord = int( max( abs( coord.x ), abs( coord.y ) ) );
+
+	// If not largest cascade which will get all wavelengths, then limit
+	// so we split range of frequencies with no overlaps
+	if ( id.z < (depth - 1) &&
+		// Too low wavelength
+		( maxCoord < _Size / (2 * SAMPLES_PER_WAVE) ||
+		// Too high wavelength
+		maxCoord >= _Size / SAMPLES_PER_WAVE )
+		)
 	{
 		_ResultInit[id] = 0.0;
-		return;
-	}
-
-	if (coord.x == 0 && coord.y == 0)
-	{
-		_ResultInit[id] = float4(0, 0, 0, 0);
 		return;
 	}
 

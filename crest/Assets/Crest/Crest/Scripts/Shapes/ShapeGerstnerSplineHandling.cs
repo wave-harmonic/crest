@@ -52,10 +52,19 @@ namespace Crest
 
             var sampledPtsOnSpline = new Vector3[pointCount];
             var sampledPtsOffSpline = new Vector3[pointCount];
-            var customData = new Vector2[pointCount];
-
             // First set of sample points lie on spline
             sampledPtsOnSpline[0] = points[0];
+
+            // Default spline data - applies to all geom generation / input types
+            var radiusMultiplier = new float[pointCount];
+            radiusMultiplier[0] = 1f;
+            if (splinePoints[0].TryGetComponent(out SplinePointData splineDataComp00))
+            {
+                radiusMultiplier[0] = splineDataComp00.GetData().x;
+            }
+
+            // Custom spline data - specific to this construction
+            var customData = new Vector2[pointCount];
             customData[0] = customDataDefault;
             if (splinePoints[0].TryGetComponent(out SplinePointCustomData customDataComp00))
             {
@@ -71,6 +80,21 @@ namespace Crest
                 var tpts = t * (splinePoints.Length - 1f);
                 var spidx = Mathf.FloorToInt(tpts);
                 var alpha = tpts - spidx;
+
+                // Interpolate default data
+                var splineData0 = 1f;
+                if (splinePoints[spidx].TryGetComponent(out SplinePointData splineDataComp0))
+                {
+                    splineData0 = splineDataComp0.GetData().x;
+                }
+                var splineData1 = 1f;
+                if (splinePoints[Mathf.Min(spidx + 1, splinePoints.Length - 1)].TryGetComponent(out SplinePointData splineDataComp1))
+                {
+                    splineData1 = splineDataComp1.GetData().x;
+                }
+                radiusMultiplier[i] = Mathf.Lerp(splineData0, splineData1, Mathf.SmoothStep(0f, 1f, alpha));
+
+                // Interpolate custom data
                 var customData0 = customDataDefault;
                 if (splinePoints[spidx].TryGetComponent(out SplinePointCustomData customDataComp0))
                 {
@@ -108,7 +132,7 @@ namespace Crest
                 normal.z = -tangent.x;
                 normal.y = 0f;
                 normal = normal.normalized;
-                sampledPtsOffSpline[i] = sampledPtsOnSpline[i] + normal * radius;
+                sampledPtsOffSpline[i] = sampledPtsOnSpline[i] + normal * radius * radiusMultiplier[i];
             }
             if (spline._closed)
             {
@@ -131,7 +155,7 @@ namespace Crest
                         for (var i = 1; i < pointCount - 1; i++)
                         {
                             scratchPoints[i] = (sampledPtsOffSpline[i] + sampledPtsOffSpline[i + 1] + sampledPtsOffSpline[i - 1]) / 3f;
-                            scratchPoints[i] = sampledPtsOnSpline[i] + (scratchPoints[i] - sampledPtsOnSpline[i]).normalized * radius;
+                            scratchPoints[i] = sampledPtsOnSpline[i] + (scratchPoints[i] - sampledPtsOnSpline[i]).normalized * radius * radiusMultiplier[i];
                         }
                         var tmp = sampledPtsOffSpline;
                         sampledPtsOffSpline = scratchPoints;
@@ -153,7 +177,7 @@ namespace Crest
                             if (iafter >= sampledPtsOffSpline.Length) iafter = 1;
 
                             scratchPoints[i] = (sampledPtsOffSpline[i] + sampledPtsOffSpline[iafter] + sampledPtsOffSpline[ibefore]) / 3f;
-                            scratchPoints[i] = sampledPtsOnSpline[i] + (scratchPoints[i] - sampledPtsOnSpline[i]).normalized * radius;
+                            scratchPoints[i] = sampledPtsOnSpline[i] + (scratchPoints[i] - sampledPtsOnSpline[i]).normalized * radius * radiusMultiplier[i];
                         }
                         var tmp = sampledPtsOffSpline;
                         sampledPtsOffSpline = scratchPoints;

@@ -198,14 +198,24 @@ Shader "Crest/Underwater Curtain"
 				const half3 n_pixel = 0.0;
 				const half3 bubbleCol = 0.0;
 
-				// Depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture. SSS is ommitted for now for perf reasons.
-				const float depth = 0.0;
 				const half shadow = 1.0;
 				const half sss = 0.0;
 
-				const float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
-				const float baseCascadeScale = _CrestCascadeData[0]._scale;
-				const half3 scatterCol = ScatterColour(AmbientLight(), depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				half seaFloorDepth = CREST_OCEAN_DEPTH_BASELINE;
+#if _SUBSURFACESHALLOWCOLOUR_ON
+				{
+					// compute scatter colour from cam pos. two scenarios this can be called:
+					// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
+					//    colour at the camera, not at the surface, to make sure its consistent.
+					// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
+					//    so just approximate by sampling at the camera position.
+					// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
+					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, cascadeData0, _LD_SliceIndex);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, seaFloorDepth);
+				}
+#endif // _SUBSURFACESHALLOWCOLOUR_ON
+
+				const half3 scatterCol = ScatterColour(seaFloorDepth, shadow, sss, view, AmbientLight(), lightDir, lightCol, true);
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 

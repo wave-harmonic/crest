@@ -178,11 +178,6 @@ namespace Crest
 
         [Header("Detail Params")]
 
-        [Range(2, 16)]
-        [Tooltip("Min number of verts / shape texels per wave."), SerializeField]
-        float _minTexelsPerWave = 3f;
-        public float MinTexelsPerWave => _minTexelsPerWave;
-
         [Delayed, Tooltip("The smallest scale the ocean can be."), SerializeField]
         float _minScale = 8f;
 
@@ -370,9 +365,10 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
+        public static readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         public static int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
-        readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
+        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
         readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
@@ -380,8 +376,6 @@ namespace Crest
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
-        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -865,8 +859,7 @@ namespace Crest
             }
 #endif
 
-            // set global shader params
-            Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
+            // Set global shader params
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
             Shader.SetGlobalFloat(sp_clipByDefault, _defaultClippingState == DefaultClippingState.EverythingClipped ? 1f : 0f);
@@ -1104,6 +1097,17 @@ namespace Crest
                         if (overlapping)
                         {
                             overlappingOne = true;
+
+                            if (body._overrideMaterial != null)
+                            {
+                                tile.Rend.sharedMaterial = body._overrideMaterial;
+                                tile.MaterialOverridden = true;
+                            }
+                            else
+                            {
+                                tile.MaterialOverridden = false;
+                            }
+
                             break;
                         }
                     }

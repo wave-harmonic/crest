@@ -116,7 +116,7 @@ void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice,
 void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth, inout half io_seaLevelOffset, const CascadeParams i_cascadeParams, inout float2 io_seaLevelDerivs)
 {
 	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 );
-	io_oceanDepth += i_wt * (terrainHeight_seaLevelOffset.x - CREST_OCEAN_DEPTH_BASELINE);
+	io_oceanDepth += i_wt * (_OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y - CREST_OCEAN_DEPTH_BASELINE);
 	io_seaLevelOffset += i_wt * terrainHeight_seaLevelOffset.y;
 
 	{

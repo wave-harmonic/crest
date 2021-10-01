@@ -29,6 +29,16 @@ namespace Crest.Spline
         int _version = 0;
 #pragma warning restore 414
 
+        public enum Offset
+        {
+            Left,
+            Center,
+            Right
+        }
+        [Tooltip("Where generated ribbon should lie relative to spline. If set to Center, ribbon is centered around spline.")]
+        // 01-Oct-21: Default to right for now to support legacy data. In the future we should update this default to Center.
+        public Offset _offset = Offset.Right;
+
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
 

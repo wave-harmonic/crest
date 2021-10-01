@@ -8,16 +8,16 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// Generates mesh suitable for rendering gerstner waves from a spline
+    /// Generates mesh suitable for rendering Gerstner waves from a spline
     /// </summary>
     public static class ShapeGerstnerSplineHandling
     {
-        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
+        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
         {
-            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, smoothingIterations, customDataDefault, ref mesh, out minHeight, out maxHeight);
+            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, customDataDefault, ref mesh, out minHeight, out maxHeight);
         }
 
-        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
+        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
             where SplinePointCustomData : ISplinePointCustomData
         {
             minHeight = 10000f;
@@ -63,6 +63,8 @@ namespace Crest
             var sampledPtsOnSpline = new Vector3[pointCount];
             var sampledPtsOffSplineLeft = new Vector3[pointCount];
             var sampledPtsOffSplineRight = new Vector3[pointCount];
+            var sampledPointsScratch = new Vector3[pointCount];
+
             // First set of sample points lie on spline
             sampledPtsOnSpline[0] = points[0];
 
@@ -168,53 +170,66 @@ namespace Crest
                 sampledPtsOffSplineRight[0] = sampledPtsOffSplineRight[sampledPtsOffSplineRight.Length - 1] = midPoint;
             }
 
-            // Blur the second set of points to help solve overlaps or large distortions. Not perfect but helps in many cases.
-            if (smoothingIterations > 0)
+            // Fix cases where points reverse direction causing flipped triangles in result
+            ResolveOverlaps(ref sampledPtsOffSplineLeft, sampledPtsOnSpline);
+            ResolveOverlaps(ref sampledPtsOffSplineRight, sampledPtsOnSpline);
+
+            // Do a few smoothing iterations just to try to soften results
+            for (int j = 0; j < 5; j++)
             {
-                var scratchPoints = new Vector3[pointCount];
-
-                // Ring buffer style access when closed spline
-                if (!spline._closed)
+                for (int i = 1; i < sampledPtsOffSplineLeft.Length - 1; i++)
                 {
-                    for (var j = 0; j < smoothingIterations; j++)
-                    {
-                        scratchPoints[0] = sampledPtsOffSplineRight[0];
-                        scratchPoints[pointCount - 1] = sampledPtsOffSplineRight[pointCount - 1];
-                        for (var i = 1; i < pointCount - 1; i++)
-                        {
-                            scratchPoints[i] = (sampledPtsOffSplineRight[i] + sampledPtsOffSplineRight[i + 1] + sampledPtsOffSplineRight[i - 1]) / 3f;
-                            scratchPoints[i] = sampledPtsOnSpline[i] + (scratchPoints[i] - sampledPtsOnSpline[i]).normalized * radius * radiusMultiplier[i];
-                        }
-                        var tmp = sampledPtsOffSplineRight;
-                        sampledPtsOffSplineRight = scratchPoints;
-                        scratchPoints = tmp;
-                    }
+                    sampledPointsScratch[i] = 0.5f * (sampledPtsOffSplineLeft[i - 1] + sampledPtsOffSplineLeft[i + 1]);
                 }
-                else
+                for (int i = 1; i < sampledPtsOffSplineLeft.Length - 1; i++)
                 {
-                    for (var j = 0; j < smoothingIterations; j++)
-                    {
-                        for (var i = 0; i < sampledPtsOffSplineRight.Length; i++)
-                        {
-                            // Slightly odd indexing. The first and last point are the same, the indices need to wrap to either the
-                            // second element (if overflow) or the penultimate element (if underflow) to ensure tension is maintained at ends.
-                            var ibefore = i - 1;
-                            var iafter = i + 1;
+                    sampledPtsOffSplineLeft[i] = sampledPointsScratch[i];
+                }
 
-                            if (ibefore < 0) ibefore = sampledPtsOffSplineRight.Length - 2;
-                            if (iafter >= sampledPtsOffSplineRight.Length) iafter = 1;
-
-                            scratchPoints[i] = (sampledPtsOffSplineRight[i] + sampledPtsOffSplineRight[iafter] + sampledPtsOffSplineRight[ibefore]) / 3f;
-                            scratchPoints[i] = sampledPtsOnSpline[i] + (scratchPoints[i] - sampledPtsOnSpline[i]).normalized * radius * radiusMultiplier[i];
-                        }
-                        var tmp = sampledPtsOffSplineRight;
-                        sampledPtsOffSplineRight = scratchPoints;
-                        scratchPoints = tmp;
-                    }
+                for (int i = 1; i < sampledPtsOffSplineRight.Length - 1; i++)
+                {
+                    sampledPointsScratch[i] = 0.5f * (sampledPtsOffSplineRight[i - 1] + sampledPtsOffSplineRight[i + 1]);
+                }
+                for (int i = 1; i < sampledPtsOffSplineRight.Length - 1; i++)
+                {
+                    sampledPtsOffSplineRight[i] = sampledPointsScratch[i];
                 }
             }
 
             return UpdateMesh(transform, sampledPtsOffSplineLeft, sampledPtsOffSplineRight, customData, spline._closed, ref mesh);
+        }
+
+        static void ResolveOverlaps(ref Vector3[] points, Vector3[] pointsOnSpline)
+        {
+            var pointsNew = new Vector3[points.Length];
+            for (int i = 0; i < 1; i++)
+            {
+                pointsNew[i] = points[i];
+            }
+
+            Vector3 lastGoodPoint = points[Mathf.Min(points.Length - 1, 1)];
+            for (int i = 1; i < points.Length; i++)
+            {
+                var tangentSpline = pointsOnSpline[i] - pointsOnSpline[i - 1];
+                var tangent = points[i] - lastGoodPoint;
+
+                tangent.y = tangentSpline.y = 0f;
+
+                float dp = Vector3.Dot(tangent, tangentSpline);
+
+                if (dp > 0f)
+                {
+                    pointsNew[i] = points[i];
+                    lastGoodPoint = points[i];
+                }
+                else
+                {
+                    pointsNew[i].x = lastGoodPoint.x;
+                    pointsNew[i].y = points[i].y;
+                    pointsNew[i].z = lastGoodPoint.z;
+                }
+            }
+            points = pointsNew;
         }
 
         // Generates a mesh from the points sampled along the spline, and corresponding offset points. Bridges points with a ribbon of triangles.

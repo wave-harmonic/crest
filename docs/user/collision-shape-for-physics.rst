@@ -54,6 +54,10 @@ The helper classes always submit a fixed number of points this frame, so satisfy
 Gerstner Waves CPU
 ------------------
 
+.. important::
+
+   The Gerstner wave system in Crest is now deprecated. A CPU query path for the FFT waves is being worked on.
+
 This collision option is serviced directly by the *GerstnerWavesBatched* component which implements the *ICollProvider* interface, check this interface to see functionality.
 This sums over all waves to compute displacements, normals, velocities, etc.
 In contrast to the displacement textures the horizontal range of this collision source is unlimited.

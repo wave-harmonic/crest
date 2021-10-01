@@ -15,22 +15,14 @@ The following sections describe how to define the wave conditions.
 Wave Systems
 ------------
 
-There are a few different systems that generate waves in Crest:
-
--  *ShapeGerstnerBatch* - the original system that manually adds together 'Gerstner' waves.
-   This component is inefficient, and does not support the 'wave spline' tech, and has lower quality waves.
-   It is about to be deprecated.
--  *ShapeGerstner* - high quality 'Gerstner'-based system.
-   Best choice for if running with *nographics* (no GPU).
--  *ShapeFFT* - high quality 'FFT'-based system. Best choice for maximum detail/realism.
-   Our innovative FFT tech supports waves at all scales and is also extremely efficient.
+The *ShapeFFT* component is uesd to generate waves in Crest.
 
 .. _wave-authoring-section:
 
 Authoring
 ---------
 
-To add waves, add the *ShapeGerstner* or *ShapeFFT* component to a GameObject (comparison of the two options above).
+To add waves, add the *ShapeFFT* component to a GameObject (comparison of the two options above).
 
 The appearance and shape of the waves is determined by a *Wave Spectrum*.
 A default wave spectrum will be created if none is specified.
@@ -42,8 +34,7 @@ To control the contribution of 2m wavelengths, use the slider labelled '2'.
 Note that the wind speed may need to be increased on the *OceanRenderer* component in order for large wavelengths to be visible.
 
 There is also control over how aligned waves are to the wind direction.
-When using the *ShapeGerstner* system, this is controlled via the *Wave Direction Variance* control within the spectrum.
-When using the *ShapeFFT* system, this is controlled via the *Wind Turbulence* control on the *ShapeFFT* component.
+This is controlled via the *Wind Turbulence* control on the *ShapeFFT* component.
 
 Another key control is the *Chop* parameter which scales the horizontal displacement.
 Higher chop gives crisper wave crests but can result in self-intersections or 'inversions' if set too high, so it needs to be balanced.
@@ -74,7 +65,7 @@ Wave Splines (preview)
 Wave Splines allow flexible and fast authoring of how waves manifest in the world.
 A couple of use cases are demonstrated in the video above.
 
-If the *Spline* component is attached to the same GameObject as a *ShapeGerstner* or *ShapeFFT* component, the waves will be generated along the spline.
+If the *Spline* component is attached to the same GameObject as a *ShapeFFT* component, the waves will be generated along the spline.
 This allows for quick experimentation with placing and orienting waves in different areas of the environment.
 
 The *Spline* component can also be combined with the *RegisterHeightInput* to make the water level follow the spline, and with the *RegisterFlowInput* to make water move along the spline.

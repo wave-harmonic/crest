@@ -107,7 +107,7 @@ In the *boat.unity* scene, the geometry and shader on the *WaterObjectInteractio
 It has the *RegisterDynWavesInput* component attached to register it with the system.
 Note that this setup is planned to be deprecated in favour of the aforementioned *SphereWaterInteraction* component.
 
-The dynamic wave simulation is added on top of the animated Gerstner waves to give the final shape.
+The dynamic wave simulation is added on top of the animated FFT waves to give the final shape.
 
 
 .. _dynamic_waves_settings:

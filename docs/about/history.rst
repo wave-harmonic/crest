@@ -55,6 +55,12 @@ Performance
 
    -  Only calculate inverse view projection matrix when required.
 
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
+
+   -  Made *ShapeGerstner* and *ShapeGerstnerBatched* components obsolete, *ShapeFFT* should is preferred. Example scenes moved over to *ShapeFFT*.
+
 
 4.13
 ----

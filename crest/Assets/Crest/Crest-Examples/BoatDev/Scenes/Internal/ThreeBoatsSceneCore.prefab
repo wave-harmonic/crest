@@ -44,9 +44,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4156536484387761990}
-  - component: {fileID: 4156536484387761985}
+  - component: {fileID: 4868307447730790658}
   m_Layer: 0
-  m_Name: OceanWavesBatched
+  m_Name: Waves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -66,7 +66,7 @@ Transform:
   m_Father: {fileID: 4156536485657257271}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4156536484387761985
+--- !u!114 &4868307447730790658
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -75,24 +75,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 4156536484387761989}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
+  m_Script: {fileID: 11500000, guid: 7a57126133720c243a7af00a156c9ee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _mode: 0
+  _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 691aad324f2d2be4abf8123c36963da5, type: 2}
-  _windDirectionAngle: 0
-  _componentsPerOctave: 8
+  _spectrumFixedAtRuntime: 1
+  _waveDirectionHeadingAngle: 180
+  _overrideGlobalWindSpeed: 0
+  _windSpeed: 20
   _weight: 1
+  _respectShallowWaterAttenuation: 1
+  _componentsPerOctave: 8
   _randomSeed: 0
-  _evaluateSpectrumAtRuntime: 1
-  _wavelengths: []
-  _amplitudes: []
-  _angleDegs: []
-  _phases: []
-  _directTowardsPoint: 0
-  _pointPositionXZ: {x: 0, y: 0}
-  _pointRadii: {x: 100, y: 200}
+  _resolution: 32
+  _debugDrawSlicesInEditor: 0
+  _overrideSplineSettings: 0
+  _radius: 50
+  _subdivisions: 1
+  _smoothingIterations: 60
+  _featherWaveStart: 0.1
+  _maxVerticalDisplacement: 10
+  _maxHorizontalDisplacement: 15
 --- !u!1 &4156536484472635459
 GameObject:
   m_ObjectHideFlags: 0
@@ -262,7 +267,6 @@ MonoBehaviour:
   _layerName: 
   _layer: 4
   _gravityMultiplier: 1
-  _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
   _dropDetailHeightBasedOnWaves: 0.2
@@ -272,6 +276,7 @@ MonoBehaviour:
   _underwaterCullLimit: 0.001
   _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
+  _simSettingsSeaFloorDepth: {fileID: 0}
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 11400000, guid: 8e1de4c30452ccf499882fefe206c5cd, type: 2}
   _createDynamicWaveSim: 1
@@ -282,6 +287,7 @@ MonoBehaviour:
   _createShadowData: 0
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 0
+  _simSettingsClipSurface: {fileID: 0}
   _defaultClippingState: 0
   _showOceanProxyPlane: 0
   _editModeFPS: 30

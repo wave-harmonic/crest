@@ -187,6 +187,15 @@ namespace Crest.Spline
                     targetSpline.transform.GetChild(i).SetSiblingIndex(0);
                 }
             }
+
+            // Helpers to quickly attach ocean inputs
+            EditorGUILayout.Space();
+            GUILayout.Label("Add Feature", EditorStyles.boldLabel);
+            GUILayout.BeginHorizontal();
+            FeatureButton<RegisterHeightInput>("Set Height", targetSpline.gameObject);
+            FeatureButton<RegisterFlowInput>("Add Flow", targetSpline.gameObject);
+            FeatureButton<ShapeFFT>("Add Waves", targetSpline.gameObject);
+            GUILayout.EndHorizontal();
         }
 
         public static void ExtendSpline(Spline spline)
@@ -194,6 +203,23 @@ namespace Crest.Spline
             var newPoint = SplinePointEditor.AddSplinePointAfter(spline.transform);
 
             Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
+        }
+
+        static void FeatureButton<ComponentType>(string label, GameObject go) where ComponentType : Component
+        {
+            if (!go.TryGetComponent<ComponentType>(out _))
+            {
+                if (GUILayout.Button(label))
+                {
+                    Undo.AddComponent<ComponentType>(go);
+                }
+            }
+            else
+            {
+                GUI.enabled = false;
+                GUILayout.Button(label);
+                GUI.enabled = true;
+            }
         }
     }
 #endif

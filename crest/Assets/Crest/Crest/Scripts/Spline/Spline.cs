@@ -195,7 +195,6 @@ namespace Crest.Spline
             FeatureButton<RegisterHeightInput>("Set Height", targetSpline.gameObject);
             FeatureButton<RegisterFlowInput>("Add Flow", targetSpline.gameObject);
             FeatureButton<ShapeFFT>("Add Waves", targetSpline.gameObject);
-            FeatureButton<RegisterClipSurfaceInput>("Clip Include", targetSpline.gameObject);
             GUILayout.EndHorizontal();
         }
 
@@ -212,7 +211,7 @@ namespace Crest.Spline
             {
                 if (GUILayout.Button(label))
                 {
-                    go.AddComponent<ComponentType>();
+                    Undo.AddComponent<ComponentType>(go);
                 }
             }
             else

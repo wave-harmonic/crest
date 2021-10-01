@@ -180,6 +180,13 @@ namespace Crest
         {
             var isValid = true;
 
+            showMessage
+            (
+                "The <i>ObjectWaterInteraction</i> component is obsolete and is replaced by the simpler and more robust <i>SphereWaterInteraction</i> component.",
+                "Add one or more <i>SphereWaterInteraction</i>'s to match the shape of this object.",
+                ValidatedHelper.MessageType.Warning, this
+            );
+
             if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
             {
                 showMessage

@@ -46,12 +46,9 @@ namespace Crest.Spline
         float _radius = 20f;
         [SerializeField, Delayed]
         int _subdivisions = 1;
-        [SerializeField, Delayed]
-        int _smoothingIterations = 0;
 
         public float Radius => _radius;
         public int Subdivisions => _subdivisions;
-        public int SmoothingIterations => _smoothingIterations;
 
         public bool AttachDataToSplinePoint(GameObject splinePoint)
         {

@@ -199,36 +199,50 @@ namespace Crest
             return UpdateMesh(transform, sampledPtsOffSplineLeft, sampledPtsOffSplineRight, customData, spline._closed, ref mesh);
         }
 
+        // Ensures that the set of points are always moving "forwards", where forwards direction is defined by
+        // the spline points
         static void ResolveOverlaps(ref Vector3[] points, Vector3[] pointsOnSpline)
         {
-            var pointsNew = new Vector3[points.Length];
-            for (int i = 0; i < 1; i++)
+            if (points.Length < 2)
             {
-                pointsNew[i] = points[i];
+                return;
             }
 
-            Vector3 lastGoodPoint = points[Mathf.Min(points.Length - 1, 1)];
+            var pointsNew = new Vector3[points.Length];
+
+            pointsNew[0] = points[0];
+
+            // For each point after the first, check that it is "in front" of the last, compared
+            // to the spline tangent
+            var lastGoodPoint = points[1];
             for (int i = 1; i < points.Length; i++)
             {
                 var tangentSpline = pointsOnSpline[i] - pointsOnSpline[i - 1];
                 var tangent = points[i] - lastGoodPoint;
 
+                // Do things flatland, weird cases can arise in full 3D
                 tangent.y = tangentSpline.y = 0f;
 
-                float dp = Vector3.Dot(tangent, tangentSpline);
+                // Check if point has moved forward or not
+                var dp = Vector3.Dot(tangent, tangentSpline);
 
                 if (dp > 0f)
                 {
+                    // Forward movement, all good
                     pointsNew[i] = points[i];
                     lastGoodPoint = points[i];
                 }
                 else
                 {
-                    pointsNew[i].x = lastGoodPoint.x;
+                    // Backpedal - use last good forward-moving point
+                    pointsNew[i] = lastGoodPoint;
+
+                    // But keep y value, to help avoid a bunch of invalid points collapsing to a single point
                     pointsNew[i].y = points[i].y;
-                    pointsNew[i].z = lastGoodPoint.z;
                 }
             }
+
+            // Use resolved result
             points = pointsNew;
         }
 

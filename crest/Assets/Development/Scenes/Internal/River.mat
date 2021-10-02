@@ -170,7 +170,7 @@ Material:
     - _WaveFoamStart: 0
     - _WaveFoamStrength: 1
     m_Colors:
-    - _DepthFogDensity: {r: 0.9, g: 0.3, b: 0.35, a: 1}
+    - _DepthFogDensity: {r: 2, g: 1.2, b: 1.4, a: 1}
     - _Diffuse: {r: 0, g: 0.003921569, b: 0.16862746, a: 1}
     - _DiffuseGrazing: {r: 0, g: 0.003921569, b: 0.16862746, a: 1}
     - _DiffuseShadow: {r: 0, g: 0, b: 0.08627451, a: 1}

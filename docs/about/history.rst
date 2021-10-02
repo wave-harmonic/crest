@@ -26,6 +26,7 @@ Changed
    -  *RegisterHeightInput* can be used in conjunction with our *Spline* component to offset the water level. This can be used to create water bodies at different altitudes, and to create rivers that flow between them.
    -  All water features updated to support varying water level.
    -  Add buttons to *Spline* inspector to quickly enable water features.
+   -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
 
 Fixed
 ^^^^^
@@ -49,6 +50,7 @@ Removed
 
    -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit as it is required for `FFT`\ s to work well.
    -  Removed *Create Water Body* wizard window. The water body setup has been simplified and works without this additional tooling.
+   -  *Smoothing* feature removed from *Spline*, underlying code made more robust.
 
 Performance
 ^^^^^^^^^^^

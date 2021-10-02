@@ -288,8 +288,6 @@ namespace Crest
         float _radius = 20f;
         [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
         int _subdivisions = 1;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
-        int _smoothingIterations = 0;
 
         protected Material _splineMaterial;
         Spline.Spline _spline;
@@ -309,8 +307,7 @@ namespace Crest
             {
                 var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData,
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
                     ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
 
                 if (_splineMaterial == null)
@@ -372,8 +369,7 @@ namespace Crest
                 {
                     var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                     var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                    var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData,
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
                         ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
 
                     if (_splineMaterial == null)

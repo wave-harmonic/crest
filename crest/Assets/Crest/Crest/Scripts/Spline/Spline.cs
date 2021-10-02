@@ -26,7 +26,7 @@ namespace Crest.Spline
         /// </summary>
         [SerializeField, HideInInspector]
 #pragma warning disable 414
-        int _version = 0;
+        int _version = 1;
 #pragma warning restore 414
 
         public enum Offset
@@ -36,8 +36,7 @@ namespace Crest.Spline
             Right
         }
         [Tooltip("Where generated ribbon should lie relative to spline. If set to Center, ribbon is centered around spline.")]
-        // 01-Oct-21: Default to right for now to support legacy data. In the future we should update this default to Center.
-        public Offset _offset = Offset.Right;
+        public Offset _offset = Offset.Center;
 
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
@@ -60,6 +59,28 @@ namespace Crest.Spline
 
             splinePoint.AddComponent<SplinePointData>();
             return true;
+        }
+    }
+
+    // Version handling - perform data migration after data loaded.
+    public partial class Spline : ISerializationCallbackReceiver
+    {
+        public void OnBeforeSerialize()
+        {
+            // Intentionally left empty.
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Version 1 (2021.10.02)
+            // - Alignment added with default value different than old behaviour
+            if (_version == 0)
+            {
+                // Set alignment to Right to maintain old behaviour
+                _offset = Offset.Right;
+
+                _version = 1;
+            }
         }
     }
 

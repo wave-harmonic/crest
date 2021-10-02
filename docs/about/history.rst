@@ -25,6 +25,7 @@ Changed
    -  Improve `FFT` wave quality by doubling the sampling from two to four.
    -  *RegisterHeightInput* can be used in conjunction with our *Spline* component to offset the water level. This can be used to create water bodies at different altitudes, and to create rivers that flow between them.
    -  All water features updated to support varying water level.
+   -  Add buttons to *Spline* inspector to quickly enable water features.
    -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
 
 Fixed

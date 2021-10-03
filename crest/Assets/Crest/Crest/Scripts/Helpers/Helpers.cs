@@ -170,6 +170,30 @@ namespace Crest
                 properties
             );
         }
+
+        public static void SetShaderVector(Material material, int nameID, Vector4 value, bool global = false)
+        {
+            if (global)
+            {
+                Shader.SetGlobalVector(nameID, value);
+            }
+            else
+            {
+                material.SetVector(nameID, value);
+            }
+        }
+
+        public static void SetShaderInt(Material material, int nameID, int value, bool global = false)
+        {
+            if (global)
+            {
+                Shader.SetGlobalInt(nameID, value);
+            }
+            else
+            {
+                material.SetInt(nameID, value);
+            }
+        }
     }
 
     static class Extensions

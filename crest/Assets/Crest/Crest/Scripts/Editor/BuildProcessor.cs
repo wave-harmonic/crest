@@ -33,6 +33,7 @@ namespace Crest
             "_FULL_SCREEN_EFFECT",
             "_DEBUG_VIEW_OCEAN_MASK",
             "_DEBUG_VIEW_STENCIL",
+            "CREST_UNDERWATER_BEFORE_TRANSPARENT",
 
             // Unity 2021.2 considers this UserDefined."
             "STEREO_ENABLED_ON",

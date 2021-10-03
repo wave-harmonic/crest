@@ -5,15 +5,13 @@
 #ifndef CREST_UNDERWATER_EFFECT_SHARED_INCLUDED
 #define CREST_UNDERWATER_EFFECT_SHARED_INCLUDED
 
-half3 _AmbientLighting;
-half _DataSliceOffset;
 float2 _HorizonNormal;
 
 float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, const float mask, const float3 sceneColour)
 {
 	if (isOceanSurface)
 	{
-		return float4(sceneColour * float3(mask == UNDERWATER_MASK_ABOVE_SURFACE, mask == UNDERWATER_MASK_BELOW_SURFACE, 0.0), 1.0);
+		return float4(sceneColour * float3(mask >= CREST_MASK_ABOVE_SURFACE, mask <= CREST_MASK_BELOW_SURFACE, 0.0), 1.0);
 	}
 	else
 	{
@@ -45,7 +43,7 @@ float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const flo
 	float newMask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, uv).r;
 #if CREST_WATER_VOLUME
 	// No mask means no underwater effect so ignore the value.
-	return (newMask == UNDERWATER_MASK_NONE ? mask : newMask);
+	return (newMask == CREST_MASK_NONE ? mask : newMask);
 #endif
 	return newMask;
 }
@@ -94,12 +92,14 @@ void GetOceanSurfaceAndUnderwaterData
 	inout float rawDepth,
 	inout bool isOceanSurface,
 	inout bool isUnderwater,
+	inout bool hasCaustics,
 	inout float sceneZ,
 	const float oceanDepthTolerance
 )
 {
+	hasCaustics = rawDepth != 0.0;
 	isOceanSurface = false;
-	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
+	isUnderwater = mask <= CREST_MASK_BELOW_SURFACE;
 
 #if defined(CREST_WATER_VOLUME_HAS_BACKFACE) || defined(CREST_WATER_VOLUME_BACK_FACE)
 	const float rawGeometryDepth =
@@ -116,7 +116,7 @@ void GetOceanSurfaceAndUnderwaterData
 	if (rawDepth < rawGeometryDepth && rawOceanDepth < rawGeometryDepth)
 	{
 		// Cancels out caustics.
-		isOceanSurface = true;
+		hasCaustics = false;
 		rawDepth = rawGeometryDepth;
 		// No need to multi-sample.
 		sceneZ = CrestLinearEyeDepth(rawDepth);
@@ -127,7 +127,13 @@ void GetOceanSurfaceAndUnderwaterData
 	// Merge ocean depth with scene depth.
 	if (rawDepth < rawOceanDepth + oceanDepthTolerance)
 	{
+#if CREST_UNDERWATER_BEFORE_TRANSPARENT
+		// Apply fog to culled tiles otherwise there will be no fog as ocean shader can only fog enabled tiles. And
+		// only apply fog to culled tiles otherwise it will be fogged twice (second by ocean shader).
+		isUnderwater = mask <= CREST_MASK_BELOW_SURFACE_CULLED;
+#endif
 		isOceanSurface = true;
+		hasCaustics = false;
 		rawDepth = rawOceanDepth;
 		sceneZ = CrestLinearEyeDepth(CREST_MULTILOAD_DEPTH(_CrestOceanMaskDepthTexture, positionSS, rawDepth));
 	}
@@ -152,15 +158,14 @@ half3 ApplyUnderwaterEffect
 	half3 sceneColour,
 	const half3 lightCol,
 	const float3 lightDir,
-	const float rawDepth,
 	const float sceneZ,
 	const float fogDistance,
 	const half3 view,
-	const bool isOceanSurface
+	const bool hasCaustics
 )
 {
 	half3 scatterCol = 0.0;
-	int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
+	int sliceIndex = clamp(_CrestDataSliceOffset, 0, _SliceCount - 2);
 	{
 		// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
 		const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[sliceIndex], sliceIndex);
@@ -169,7 +174,7 @@ half3 ApplyUnderwaterEffect
 #if _SHADOWS_ON
 		{
 			// Camera should be at center of LOD system so no need for blending (alpha, weights, etc). This might not be
-			// the case if there is large horizontal displacement, but the _DataSliceOffset should help by setting a
+			// the case if there is large horizontal displacement, but the _CrestDataSliceOffset should help by setting a
 			// large enough slice as minimum.
 			shadow = _LD_TexArray_Shadow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).x;
 			shadow = saturate(1.0 - shadow);
@@ -196,7 +201,7 @@ half3 ApplyUnderwaterEffect
 				shadow,
 				1.0, // SSS is not used for underwater yet. Calculated in SampleDisplacementsNormals which is costly.
 				view,
-				_AmbientLighting,
+				_CrestAmbientLighting,
 				lightDir,
 				lightCol,
 				true
@@ -205,7 +210,7 @@ half3 ApplyUnderwaterEffect
 	}
 
 #if _CAUSTICS_ON
-	if (rawDepth != 0.0 && !isOceanSurface)
+	if (hasCaustics)
 	{
 		ApplyCaustics
 		(

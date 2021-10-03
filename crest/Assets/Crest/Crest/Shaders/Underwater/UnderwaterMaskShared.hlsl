@@ -33,6 +33,9 @@ struct Varyings
 // i'm not sure why cracks are not visible in this case.
 float _ForceUnderwater;
 
+// Variable mask for when fog is applied before transparent pass and ocean tile might be culled.
+half _MaskBelowSurface;
+
 Varyings Vert(Attributes v)
 {
 	// This will work for all pipelines.
@@ -135,11 +138,11 @@ half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV
 
 	if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
 	{
-		return (half4)UNDERWATER_MASK_BELOW_SURFACE;
+		return (half4)_MaskBelowSurface;
 	}
 	else
 	{
-		return (half4)UNDERWATER_MASK_ABOVE_SURFACE;
+		return (half4)CREST_MASK_ABOVE_SURFACE;
 	}
 }
 

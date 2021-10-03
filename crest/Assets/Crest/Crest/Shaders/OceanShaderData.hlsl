@@ -13,6 +13,8 @@
 TEXTURE2D_X(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
 UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
 
+half3 _CrestAmbientLighting;
+
 float4 _CameraDepthTexture_TexelSize;
 
 TEXTURE2D_X(_CrestScreenSpaceShadowTexture);

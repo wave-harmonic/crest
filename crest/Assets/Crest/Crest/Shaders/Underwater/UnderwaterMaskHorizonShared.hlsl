@@ -48,8 +48,8 @@ half4 Frag(Varyings input) : SV_Target
 
 	float3 positionWS = ComputeWorldSpacePosition(input.uv, _FarPlaneOffset, UNITY_MATRIX_I_VP);
 	return (half4) positionWS.y > _OceanCenterPosWorld.y
-		? UNDERWATER_MASK_ABOVE_SURFACE
-		: UNDERWATER_MASK_BELOW_SURFACE;
+		? CREST_MASK_ABOVE_SURFACE
+		: CREST_MASK_BELOW_SURFACE;
 }
 
 #endif // CREST_UNDERWATER_MASK_HORIZON_SHARED_INCLUDED

@@ -80,8 +80,20 @@ real4 Frag (Varyings input) : SV_Target
 	return DebugRenderStencil(sceneColour);
 #endif
 
-	bool isOceanSurface; bool isUnderwater; float sceneZ;
-	GetOceanSurfaceAndUnderwaterData(input.positionCS, positionSS, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+	bool isOceanSurface; bool isUnderwater; bool hasCaustics; float sceneZ;
+	GetOceanSurfaceAndUnderwaterData
+	(
+		input.positionCS,
+		positionSS,
+		rawOceanDepth,
+		mask,
+		rawDepth,
+		isOceanSurface,
+		isUnderwater,
+		hasCaustics,
+		sceneZ,
+		0.0
+	);
 
 	float fogDistance = sceneZ;
 	float meniscusDepth = 0.0;
@@ -103,7 +115,18 @@ real4 Frag (Varyings input) : SV_Target
 		const Light lightMain = GetMainLight();
 		const real3 lightDir = lightMain.direction;
 		const real3 lightCol = lightMain.color;
-		sceneColour = ApplyUnderwaterEffect(positionSS, scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, fogDistance, view, isOceanSurface);
+		sceneColour = ApplyUnderwaterEffect
+		(
+			positionSS,
+			scenePos,
+			sceneColour,
+			lightCol,
+			lightDir,
+			sceneZ,
+			fogDistance,
+			view,
+			hasCaustics
+		);
 	}
 
 	float wt = ComputeMeniscusWeight(positionSS, mask, _HorizonNormal, meniscusDepth);

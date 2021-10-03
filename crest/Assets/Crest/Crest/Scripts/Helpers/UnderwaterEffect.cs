@@ -94,10 +94,7 @@ namespace Crest
 
         void OnDisable()
         {
-            if (OceanRenderer.Instance != null)
-            {
-                OceanRenderer.Instance.OceanMaterial.DisableKeyword("_OLD_UNDERWATER");
-            }
+            Shader.DisableKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT");
         }
 
         void ConfigureMaterial()
@@ -147,7 +144,7 @@ namespace Crest
                     _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
 
-                OceanRenderer.Instance.OceanMaterial.EnableKeyword("_OLD_UNDERWATER");
+                Shader.EnableKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT");
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)

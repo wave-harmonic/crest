@@ -260,6 +260,16 @@ bool IsUnderwater(const bool i_isFrontFace, const float i_forceUnderwater)
 	return !i_isFrontFace || i_forceUnderwater > 0.0;
 }
 
+half UnderwaterShadowSSS(const float2 i_positionXZ)
+{
+	const int index = clamp(_CrestDataSliceOffset, 0, _SliceCount - 2);
+	const float3 uv = WorldToUV(i_positionXZ, _CrestCascadeData[index], index);
+	// Camera should be at center of LOD system so no need for blending (alpha, weights, etc). This might not be
+	// the case if there is large horizontal displacement, but the _DataSliceOffset should help by setting a
+	// large enough slice as minimum.
+	return saturate(1.0 - _LD_TexArray_Shadow.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x);
+}
+
 float FeatherWeightFromUV(const float2 i_uv, const half i_featherWidth)
 {
 	float2 offset = abs(i_uv - 0.5);

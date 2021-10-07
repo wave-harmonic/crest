@@ -381,7 +381,9 @@ namespace Crest
         readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
         public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
+        public static int sp_CrestPerCascadeInstanceDataSource = Shader.PropertyToID("_CrestPerCascadeInstanceDataSource");
         public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
+        public static readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CrestCascadeDataSource");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -423,11 +425,13 @@ namespace Crest
             public Vector3 __padding;
         }
         public ComputeBuffer _bufPerCascadeInstanceData;
+        public ComputeBuffer _bufPerCascadeInstanceDataSource;
 
         CascadeParams[] _cascadeParamsSrc = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
         CascadeParams[] _cascadeParamsTgt = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
 
         PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
+        PerCascadeInstanceData[] _perCascadeInstanceDataSource = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
 
         // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
         // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
@@ -482,13 +486,15 @@ namespace Crest
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
             _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
-            Shader.SetGlobalBuffer("_CrestPerCascadeInstanceData", _bufPerCascadeInstanceData);
+            Shader.SetGlobalBuffer(sp_perCascadeInstanceData, _bufPerCascadeInstanceData);
+            _bufPerCascadeInstanceDataSource = new ComputeBuffer(_perCascadeInstanceDataSource.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
+            Shader.SetGlobalBuffer(sp_CrestPerCascadeInstanceDataSource, _bufPerCascadeInstanceDataSource);
 
             _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
 
-            // Not used by graphics shaders, so not set globally (global does not work for compute)
             _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, UnsafeUtility.SizeOf<CascadeParams>());
+            Shader.SetGlobalBuffer(sp_cascadeDataSrc, _bufCascadeDataSrc);
 
             _lodTransform = new LodTransform();
             _lodTransform.InitLODData(_lodCount);
@@ -951,6 +957,9 @@ namespace Crest
 
             WritePerCascadeInstanceData(_perCascadeInstanceData);
             _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
+
+            WritePerCascadeInstanceData(_perCascadeInstanceDataSource);
+            _bufPerCascadeInstanceDataSource.SetData(_perCascadeInstanceDataSource);
         }
 
         void WritePerCascadeInstanceData(PerCascadeInstanceData[] instanceData)
@@ -1026,7 +1035,17 @@ namespace Crest
 
             ViewerAltitudeLevelAlpha = l2 - l2f;
 
-            Scale = Mathf.Pow(2f, l2f);
+            var newScale = Mathf.Pow(2f, l2f);
+
+            if (Scale > 0f)
+            {
+                float ratio = newScale / Scale;
+                float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
+                Shader.SetGlobalFloat("_CrestLodChange", Mathf.RoundToInt(ratio_l2));
+            }
+
+            Scale = newScale;
+
             Root.localScale = new Vector3(Scale, 1f, Scale);
         }
 
@@ -1219,6 +1238,7 @@ namespace Crest
             _bufPerCascadeInstanceData?.Dispose();
             _bufCascadeDataTgt?.Dispose();
             _bufCascadeDataSrc?.Dispose();
+            _bufPerCascadeInstanceDataSource?.Dispose();
         }
 
 #if UNITY_EDITOR

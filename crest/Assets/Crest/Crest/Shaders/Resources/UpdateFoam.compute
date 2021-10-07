@@ -11,7 +11,6 @@
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
 
-StructuredBuffer<CascadeParams> _CascadeDataSrc;
 RWTexture2DArray<float> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
@@ -46,10 +45,10 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float2 worldPosXZ_flowed = worldPosXZ - _SimDeltaTime * velocity;
 
 	half foam = 0.0;
-	const half r_max = 0.5 - _CascadeDataSrc[sliceIndexSource]._oneOverTextureRes;
+	const half r_max = 0.5 - _CrestCascadeDataSource[sliceIndexSource]._oneOverTextureRes;
 
 	// Try to sample the source slice, if it the sample position lies within its footprint
-	const float3 uv_slice_source = WorldToUV(worldPosXZ_flowed, _CascadeDataSrc[sliceIndexSource], sliceIndexSource);
+	const float3 uv_slice_source = WorldToUV(worldPosXZ_flowed, _CrestCascadeDataSource[sliceIndexSource], sliceIndexSource);
 	const half2 r = abs(uv_slice_source.xy - 0.5);
 
 	if (max(r.x, r.y) <= r_max)
@@ -60,7 +59,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	{
 		// Sample lies outside this cascade. Try to use the next cascade in the chain - better to get something rather lower res
 		// than nothing.
-		const float3 uv_slice_source_nextlod = WorldToUV(worldPosXZ_flowed, _CascadeDataSrc[sliceIndexSource + 1], sliceIndexSource + 1);
+		const float3 uv_slice_source_nextlod = WorldToUV(worldPosXZ_flowed, _CrestCascadeDataSource[sliceIndexSource + 1], sliceIndexSource + 1);
 		const half2 r2 = abs(uv_slice_source_nextlod.xy - 0.5);
 		if (max(r2.x, r2.y) <= r_max)
 		{

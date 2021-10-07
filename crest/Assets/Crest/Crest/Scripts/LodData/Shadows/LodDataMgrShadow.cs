@@ -55,7 +55,6 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
-        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
@@ -236,7 +235,7 @@ namespace Crest
 
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets.Current);
 
-                _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
+                _renderProperties.SetBuffer(OceanRenderer.sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
 
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)

@@ -174,7 +174,7 @@ namespace Crest
             Bind();
         }
 
-        internal void Bind()
+        internal virtual void Bind()
         {
             Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
         }

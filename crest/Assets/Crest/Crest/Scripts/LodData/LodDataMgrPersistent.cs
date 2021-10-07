@@ -18,7 +18,6 @@ namespace Crest
         PropertyWrapperCompute _renderSimProperties;
 
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
-        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         protected ComputeShader _shader;
 
@@ -145,7 +144,7 @@ namespace Crest
 
                 // Bind current data
                 // Global shader vars don't carry over to compute
-                _renderSimProperties.SetBuffer(sp_cascadeDataSrc, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
+                _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeDataSrc, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
                 _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
 
                 buf.DispatchCompute(_shader, krnl_ShaderSim,

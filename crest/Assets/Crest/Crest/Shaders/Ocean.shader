@@ -223,7 +223,6 @@ Shader "Crest/Ocean"
 				// the appropriate uniforms.
 				"LightMode"="ForwardBase"
 			}
-			// ZWrite Off // Can be useful for debugging MVs for z-fighting with visualizer.
 			// Culling user defined - can be inverted for under water
 			Cull [_CullMode]
 
@@ -772,8 +771,10 @@ Shader "Crest/Ocean"
 					float4 oldPositionWS = CalculateAnimation
 					(
 						v.vertex,
-						_PreviousM,
-						_WorldSpaceCameraPos - _OceanCenterPosWorldDelta, // TODO: Won't be correct if Viewpoint is not camera.
+						// TODO: This should be _PreviousM but glitched on movement every so often.
+						UNITY_MATRIX_M,
+						// TODO: Won't be correct if Viewpoint is not camera. Probably should change _WorldSpaceCameraPos to _OceanCenterPosWorld
+						_WorldSpaceCameraPos - _OceanCenterPosWorldDelta,
 						_LD_TexArray_AnimatedWaves_Source,
 						_OceanCenterPosWorld - _OceanCenterPosWorldDelta,
 						slice0,

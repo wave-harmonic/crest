@@ -202,12 +202,9 @@ Shader "Crest/Ocean"
 	{
 		Tags
 		{
-			// Tell Unity we're going to render water in forward manner and we're going to do lighting and it will set
-			// the appropriate uniforms.
-			"LightMode"="ForwardBase"
 			// Unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy
 			// out the gbuffer data and do post processing before running it. Discussion of this in issue #53.
-			"Queue"="Geometry+510"
+			"Queue"="Geometry" // TODO: Require for MV pass to run.
 			"IgnoreProjector"="True"
 			"RenderType"="Opaque"
 			"DisableBatching"="True"
@@ -220,6 +217,13 @@ Shader "Crest/Ocean"
 
 		Pass
 		{
+			Tags
+			{
+				// Tell Unity we're going to render water in forward manner and we're going to do lighting and it will set
+				// the appropriate uniforms.
+				"LightMode"="ForwardBase"
+			}
+			// ZWrite Off // Can be useful for debugging MVs for z-fighting with visualizer.
 			// Culling user defined - can be inverted for under water
 			Cull [_CullMode]
 
@@ -325,7 +329,7 @@ Shader "Crest/Ocean"
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
-				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
+				SnapAndTransitionVertLayout(UNITY_MATRIX_M, meshScaleLerp, cascadeData0, gridSize, _OceanCenterPosWorld, o.worldPos, lodAlpha);
 
 				{
 					// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
@@ -611,6 +615,196 @@ Shader "Crest/Ocean"
 				return half4(col, 1.);
 			}
 
+			ENDCG
+		}
+
+		Pass
+		{
+			Name "Motion Vectors"
+			Cull [_CullMode]
+			Tags
+			{
+				"LightMode" = "MotionVectors"
+			}
+
+			CGPROGRAM
+			#pragma vertex Vertex
+			#pragma fragment Fragment
+
+			#pragma target 3.5
+
+			#pragma enable_d3d11_debug_symbols
+
+			#include "UnityCG.cginc"
+
+#if defined(USING_STEREO_MATRICES)
+			float4x4 _StereoNonJitteredVP[2];
+			float4x4 _StereoPreviousVP[2];
+#else
+			float4x4 _NonJitteredVP;
+			float4x4 _PreviousVP;
+#endif
+			float4x4 _PreviousM;
+			bool _HasLastPositionData; // NOTE: This was never used...
+			bool _ForceNoMotion;
+			float _MotionVectorDepthBias;
+
+			#include "OceanConstants.hlsl"
+			#include "OceanInputsDriven.hlsl"
+			#include "OceanGlobals.hlsl"
+			#include "OceanHelpersNew.hlsl"
+			#include "OceanVertHelpers.hlsl"
+
+			struct Attributes
+			{
+				float3 vertex : POSITION;
+				float3 oldVertex : TEXCOORD4; // NOTE: This was never used...
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+
+			struct Varyings
+			{
+				float4 positionCS : SV_POSITION;
+				float4 transferPos : TEXCOORD0;
+				float4 transferPosOld : TEXCOORD1;
+				UNITY_VERTEX_OUTPUT_STEREO
+			};
+
+			float3 _OceanCenterPosWorldDelta;
+
+			float4 CalculateAnimation
+			(
+				const float3 i_positionOS,
+				const float4x4 i_matrix,
+				const float3 i_cameraPositionWS,
+				const Texture2DArray i_dispSampler,
+				const float3 i_oceanPositionWS,
+				int slice0,
+				int slice1,
+				CascadeParams cascadeData0,
+				CascadeParams cascadeData1,
+				PerCascadeInstanceData instanceData
+			)
+			{
+				// Move to world space
+				float3 worldPos = mul(i_matrix, float4(i_positionOS, 1.0));
+
+				// Vertex snapping and lod transition
+				float lodAlpha;
+				const float meshScaleLerp = instanceData._meshScaleLerp;
+				const float gridSize = instanceData._geoGridWidth;
+				SnapAndTransitionVertLayout(i_matrix, meshScaleLerp, cascadeData0, gridSize, i_oceanPositionWS, worldPos, lodAlpha);
+
+				{
+					const float2 tileCenterXZ = i_matrix._m03_m23;
+					const float2 cameraPositionXZ = abs(i_cameraPositionWS.xz);
+					worldPos.xz = lerp(tileCenterXZ, worldPos.xz, lerp(1.0, 1.01, max(cameraPositionXZ.x, cameraPositionXZ.y) * 0.00001));
+				}
+
+				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+				const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;
+				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
+				// Sample displacement textures, add results to current world pos / normal / foam
+				const float2 positionWS_XZ_before = worldPos.xz;
+
+				// Data that needs to be sampled at the undisplaced position
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, slice0);
+					SampleDisplacements(i_dispSampler, uv_slice_smallerLod, wt_smallerLod, worldPos);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, slice1);
+					SampleDisplacements(i_dispSampler, uv_slice_biggerLod, wt_biggerLod, worldPos);
+				}
+
+				return float4(worldPos, 1.0);
+			}
+
+			Varyings Vertex(Attributes v)
+			{
+				Varyings o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+				// Current
+				{
+					const int slice0 = _LD_SliceIndex;
+					const int slice1 = _LD_SliceIndex + 1;
+					CascadeParams cascadeData0 = _CrestCascadeData[slice0];
+					CascadeParams cascadeData1 = _CrestCascadeData[slice1];
+					PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[slice0];
+
+					float4 newPositionWS = CalculateAnimation
+					(
+						v.vertex,
+						UNITY_MATRIX_M,
+						_WorldSpaceCameraPos,
+						_LD_TexArray_AnimatedWaves,
+						_OceanCenterPosWorld,
+						slice0,
+						slice1,
+						cascadeData0,
+						cascadeData1,
+						instanceData
+					);
+
+					o.positionCS = mul(UNITY_MATRIX_VP, newPositionWS);
+					o.transferPos = mul(_NonJitteredVP, newPositionWS);
+				}
+
+#if defined(UNITY_REVERSED_Z)
+				o.positionCS.z -= _MotionVectorDepthBias * o.positionCS.w;
+#else
+				o.positionCS.z += _MotionVectorDepthBias * o.positionCS.w;
+#endif
+
+				// Previous
+				{
+					const int slice0 = clamp(_LD_SliceIndex + _CrestLodChange, 0, _SliceCount - 1);
+					const int slice1 = clamp(slice0 + 1, 0, _SliceCount - 1);
+
+					const CascadeParams cascadeData0 = _CrestCascadeDataSource[slice0];
+					const CascadeParams cascadeData1 = _CrestCascadeDataSource[slice1];
+					const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceDataSource[slice0];
+
+					float4 oldPositionWS = CalculateAnimation
+					(
+						v.vertex,
+						_PreviousM,
+						_WorldSpaceCameraPos - _OceanCenterPosWorldDelta, // TODO: Won't be correct if Viewpoint is not camera.
+						_LD_TexArray_AnimatedWaves_Source,
+						_OceanCenterPosWorld - _OceanCenterPosWorldDelta,
+						slice0,
+						slice1,
+						cascadeData0,
+						cascadeData1,
+						instanceData
+					);
+					o.transferPosOld = mul(_PreviousVP, oldPositionWS);
+				}
+
+				return o;
+			}
+
+			half4 Fragment(Varyings i) : SV_Target
+			{
+				float3 hPos = (i.transferPos.xyz / i.transferPos.w);
+				float3 hPosOld = (i.transferPosOld.xyz / i.transferPosOld.w);
+
+				// V is the viewport position at this pixel in the range 0 to 1.
+				float2 vPos = (hPos.xy + 1.0f) / 2.0f;
+				float2 vPosOld = (hPosOld.xy + 1.0f) / 2.0f;
+
+#if UNITY_UV_STARTS_AT_TOP
+				vPos.y = 1.0 - vPos.y;
+				vPosOld.y = 1.0 - vPosOld.y;
+#endif
+
+				half2 uvDiff = vPos - vPosOld;
+				return lerp(half4(uvDiff, 0, 1), 0, (half)_ForceNoMotion);
+			}
 			ENDCG
 		}
 	}

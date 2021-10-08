@@ -158,12 +158,12 @@ namespace Crest
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         internal Material _material = null;
-        public Material OceanMaterial { get { return _material; } set { _material = value; } }
+        public Material OceanMaterial { get => _material; set => _material = value; }
 
         [System.Obsolete("Use the _layer field instead."), HideInInspector, SerializeField]
         string _layerName = "";
         [System.Obsolete("Use the Layer property instead.")]
-        public string LayerName { get { return _layerName; } }
+        public string LayerName => _layerName;
 
         [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", HelpBoxAttribute.MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
         [Tooltip("The ocean tile renderers will have this layer.")]
@@ -173,7 +173,7 @@ namespace Crest
 
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
-        public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
+        public float Gravity => _gravityMultiplier * Physics.gravity.magnitude;
 
 
         [Header("Detail Params")]
@@ -189,7 +189,7 @@ namespace Crest
 
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
-        public int LodDataResolution { get { return _lodDataResolution; } }
+        public int LodDataResolution => _lodDataResolution;
 
         [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
         int _geometryDownSampleFactor = 2;
@@ -211,37 +211,37 @@ namespace Crest
 
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
         bool _createSeaFloorDepthData = true;
-        public bool CreateSeaFloorDepthData { get { return _createSeaFloorDepthData; } }
+        public bool CreateSeaFloorDepthData => _createSeaFloorDepthData;
         [Predicated("_createSeaFloorDepthData"), Embedded]
         public SimSettingsSeaFloorDepth _simSettingsSeaFloorDepth;
 
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
-        public bool CreateFoamSim { get { return _createFoamSim; } }
+        public bool CreateFoamSim => _createFoamSim;
         [Predicated("_createFoamSim"), Embedded]
         public SimSettingsFoam _simSettingsFoam;
 
         [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
         bool _createDynamicWaveSim = false;
-        public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
+        public bool CreateDynamicWaveSim => _createDynamicWaveSim;
         [Predicated("_createDynamicWaveSim"), Embedded]
         public SimSettingsWave _simSettingsDynamicWaves;
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
-        public bool CreateFlowSim { get { return _createFlowSim; } }
+        public bool CreateFlowSim => _createFlowSim;
         [Predicated("_createFlowSim"), Embedded]
         public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
-        public bool CreateShadowData { get { return _createShadowData; } }
+        public bool CreateShadowData => _createShadowData;
         [Predicated("_createShadowData"), Embedded]
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
-        public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
+        public bool CreateClipSurfaceData => _createClipSurfaceData;
 
         [Predicated("_createClipSurfaceData"), Embedded]
         public SimSettingsClipSurface _simSettingsClipSurface;
@@ -299,8 +299,8 @@ namespace Crest
         /// Current ocean scale (changes with viewer altitude).
         /// </summary>
         public float Scale { get; private set; }
-        public float CalcLodScale(float lodIndex) { return Scale * Mathf.Pow(2f, lodIndex); }
-        public float CalcGridSize(int lodIndex) { return CalcLodScale(lodIndex) / LodDataResolution; }
+        public float CalcLodScale(float lodIndex) => Scale * Mathf.Pow(2f, lodIndex);
+        public float CalcGridSize(int lodIndex) => CalcLodScale(lodIndex) / LodDataResolution;
 
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
@@ -310,7 +310,7 @@ namespace Crest
         /// <summary>
         /// Sea level is given by y coordinate of GameObject with OceanRenderer script.
         /// </summary>
-        public float SeaLevel { get { return Root.position.y; } }
+        public float SeaLevel => Root.position.y;
 
         [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
@@ -324,7 +324,7 @@ namespace Crest
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
-        public int CurrentLodCount { get { return _lodTransform != null ? _lodTransform.LodCount : 0; } }
+        public int CurrentLodCount => _lodTransform != null ? _lodTransform.LodCount : 0;
 
         /// <summary>
         /// Vertical offset of camera vs water surface.
@@ -1153,11 +1153,11 @@ namespace Crest
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
-        public bool ScaleCouldIncrease { get { return _maxScale == -1f || Root.localScale.x < _maxScale * 0.99f; } }
+        public bool ScaleCouldIncrease => _maxScale == -1f || Root.localScale.x < _maxScale * 0.99f;
         /// <summary>
         /// Could the ocean horizontal scale decrease (for e.g. if the viewpoint drops in altitude). Will be false if ocean already at minimum scale.
         /// </summary>
-        public bool ScaleCouldDecrease { get { return _minScale == -1f || Root.localScale.x > _minScale * 1.01f; } }
+        public bool ScaleCouldDecrease => _minScale == -1f || Root.localScale.x > _minScale * 1.01f;
 
         /// <summary>
         /// User shape inputs can report in how far they might displace the shape horizontally and vertically. The max value is
@@ -1176,11 +1176,11 @@ namespace Crest
         /// <summary>
         /// The maximum horizontal distance that the shape scripts are displacing the shape.
         /// </summary>
-        public float MaxHorizDisplacement { get { return _maxHorizDispFromShape; } }
+        public float MaxHorizDisplacement => _maxHorizDispFromShape;
         /// <summary>
         /// The maximum height that the shape scripts are displacing the shape.
         /// </summary>
-        public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
+        public float MaxVertDisplacement => _maxVertDispFromShape;
 
         /// <summary>
         /// Provides ocean shape to CPU.

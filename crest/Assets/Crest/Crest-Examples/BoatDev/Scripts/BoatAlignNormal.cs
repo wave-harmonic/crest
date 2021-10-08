@@ -42,7 +42,7 @@ public class BoatAlignNormal : FloatingObjectBase
     [Header("Wave Response")]
     [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be.")]
     public float _boatWidth = 3f;
-    public override float ObjectWidth { get { return _boatWidth; } }
+    public override float ObjectWidth => _boatWidth;
 
     [Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     public bool _useBoatLength = false;
@@ -66,7 +66,7 @@ public class BoatAlignNormal : FloatingObjectBase
     bool _debugDraw = false;
 
     bool _inWater;
-    public override bool InWater { get { return _inWater; } }
+    public override bool InWater => _inWater;
 
     public override Vector3 Velocity => _rb.velocity;
 

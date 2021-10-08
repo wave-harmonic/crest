@@ -39,7 +39,7 @@ namespace Crest
 
         protected RenderTexture _targets;
 
-        public RenderTexture DataTexture { get { return _targets; } }
+        public RenderTexture DataTexture => _targets;
 
         protected virtual Texture2DArray NullTexture => TextureArrayHelpers.BlackTextureArray;
 
@@ -53,7 +53,7 @@ namespace Crest
         float _oceanLocalScalePrev = -1f;
 
         int _scaleDifferencePow2 = 0;
-        protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
+        protected int ScaleDifferencePow2 => _scaleDifferencePow2;
 
         public bool enabled { get; protected set; }
 
@@ -218,7 +218,7 @@ namespace Crest
                 // we want to go garbage-free.
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
-            public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+            public int GetId(bool sourceLod) => sourceLod ? _paramId_Source : _paramId;
         }
 
         internal virtual void OnEnable()

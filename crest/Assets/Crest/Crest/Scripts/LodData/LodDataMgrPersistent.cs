@@ -12,7 +12,7 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
+        protected override bool NeedToReadWriteTextureData => true;
 
         RenderTexture _sources;
         PropertyWrapperCompute _renderSimProperties;

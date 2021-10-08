@@ -113,7 +113,7 @@ namespace Crest
 #pragma warning restore 414
 #endif
 
-        public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
+        public static float SmallWavelength(float octaveIndex) => Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex);
 
         public static int GetOctaveIndex(float wavelength)
         {

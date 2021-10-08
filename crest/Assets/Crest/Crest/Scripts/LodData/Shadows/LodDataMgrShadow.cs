@@ -20,9 +20,9 @@ namespace Crest
     /// </summary>
     public class LodDataMgrShadow : LodDataMgr
     {
-        public override string SimName { get { return "Shadow"; } }
+        public override string SimName => "Shadow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
+        protected override bool NeedToReadWriteTextureData => true;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 

@@ -55,8 +55,8 @@ namespace Crest
 
         Matrix4x4[] _worldToCameraMatrix;
         Matrix4x4[] _projectionMatrix;
-        public Matrix4x4 GetWorldToCameraMatrix(int lodIdx) { return _worldToCameraMatrix[lodIdx]; }
-        public Matrix4x4 GetProjectionMatrix(int lodIdx) { return _projectionMatrix[lodIdx]; }
+        public Matrix4x4 GetWorldToCameraMatrix(int lodIdx) => _worldToCameraMatrix[lodIdx];
+        public Matrix4x4 GetProjectionMatrix(int lodIdx) => _projectionMatrix[lodIdx];
 
         public void InitLODData(int lodCount)
         {

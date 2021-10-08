@@ -526,7 +526,7 @@ Shader "Crest/Ocean"
 
 #if _SUBSURFACESCATTERING_ON
 				// Extents need the default SSS to avoid popping and not being noticeably different.
-				if (_LD_SliceIndex == (_SliceCount - 1))
+				if (_LD_SliceIndex == ((uint)_SliceCount - 1))
 				{
 					sss = CREST_SSS_MAXIMUM - CREST_SSS_RANGE;
 				}

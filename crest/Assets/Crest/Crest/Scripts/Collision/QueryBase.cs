@@ -532,7 +532,7 @@ namespace Crest
             if (lastDoneIndex >= 0)
             {
                 // Update "last" results
-                LodDataMgr.Swap(ref _queryResults, ref _queryResultsLast);
+                Helpers.Swap(ref _queryResults, ref _queryResultsLast);
                 _queryResultsTimeLast = _queryResultsTime;
                 _resultSegmentsLast = _resultSegments;
 

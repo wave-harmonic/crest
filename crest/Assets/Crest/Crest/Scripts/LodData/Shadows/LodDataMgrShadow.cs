@@ -185,7 +185,7 @@ namespace Crest
                 return;
             }
 
-            Swap(ref _sources, ref _targets);
+            Helpers.Swap(ref _sources, ref _targets);
 
             BufCopyShadowMap.Clear();
 

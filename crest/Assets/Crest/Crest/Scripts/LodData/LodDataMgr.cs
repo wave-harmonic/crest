@@ -157,13 +157,6 @@ namespace Crest
         {
         }
 
-        public static void Swap<T>(ref T a, ref T b)
-        {
-            var temp = b;
-            b = a;
-            a = temp;
-        }
-
         public interface IDrawFilter
         {
             float Filter(ILodDataInput data, out int isTransition);

@@ -82,8 +82,7 @@ namespace Crest
 
         public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
-            OceanInput registered;
-            if (!s_registrar.TryGetValue(lodDataMgrType, out registered))
+            if (!s_registrar.TryGetValue(lodDataMgrType, out var registered))
             {
                 registered = new OceanInput(s_comparer);
                 s_registrar.Add(lodDataMgrType, registered);
@@ -301,7 +300,7 @@ namespace Crest
 
         void Awake()
         {
-            if (TryGetComponent<Spline.Spline>(out _spline))
+            if (TryGetComponent(out _spline))
             {
                 var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;

@@ -196,8 +196,7 @@ namespace Crest
                     continue;
                 }
 
-                int isTransition;
-                float weight = filter.Filter(draw.Value, out isTransition);
+                float weight = filter.Filter(draw.Value, out var isTransition);
                 if (weight > 0f)
                 {
                     draw.Value.Draw(buf, weight, isTransition, lodIdx);

@@ -215,8 +215,7 @@ namespace Crest
                 }
             }
 
-            int q;
-            GetQueue(out q);
+            GetQueue(out var q);
 
             var registrar = GetRegistrar(typeof(LodDataType));
             registrar.Add(q, this);
@@ -239,8 +238,7 @@ namespace Crest
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying)
             {
-                int q;
-                if (GetQueue(out q))
+                if (GetQueue(out var q))
                 {
                     if (q != _registeredQueueValue)
                     {
@@ -362,7 +360,7 @@ namespace Crest
             {
                 if (_spline == null)
                 {
-                    TryGetComponent<Spline.Spline>(out _spline);
+                    TryGetComponent(out _spline);
                 }
 
                 if (_spline != null)

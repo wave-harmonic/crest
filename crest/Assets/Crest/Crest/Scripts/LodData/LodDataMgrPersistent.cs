@@ -93,9 +93,7 @@ namespace Crest
             _timeToSimulate += ocean.DeltaTime;
 
             // Do a set of substeps to catch up
-            float substepDt;
-            int numSubsteps;
-            GetSimSubstepData(_timeToSimulate, out numSubsteps, out substepDt);
+            GetSimSubstepData(_timeToSimulate, out var numSubsteps, out var substepDt);
 
             // Record how much we caught up
             _timeToSimulate -= substepDt * numSubsteps;

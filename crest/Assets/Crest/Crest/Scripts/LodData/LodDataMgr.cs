@@ -49,12 +49,6 @@ namespace Crest
         // shape texture resolution
         int _shapeRes = -1;
 
-        // ocean scale last frame - used to detect scale changes
-        float _oceanLocalScalePrev = -1f;
-
-        int _scaleDifferencePow2 = 0;
-        protected int ScaleDifferencePow2 => _scaleDifferencePow2;
-
         public bool enabled { get; protected set; }
 
         protected OceanRenderer _ocean;
@@ -142,14 +136,6 @@ namespace Crest
 
                 _shapeRes = width;
             }
-
-            // determine if this LOD has changed scale and by how much (in exponent of 2)
-            float oceanLocalScale = OceanRenderer.Instance.Root.localScale.x;
-            if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
-            float ratio = oceanLocalScale / _oceanLocalScalePrev;
-            _oceanLocalScalePrev = oceanLocalScale;
-            float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
-            _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
 

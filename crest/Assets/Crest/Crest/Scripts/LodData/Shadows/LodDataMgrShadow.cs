@@ -244,7 +244,7 @@ namespace Crest
                     _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
 
                     // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
-                    var srcDataIdx = lodIdx + ScaleDifferencePow2;
+                    var srcDataIdx = lodIdx + OceanRenderer.Instance._lodTransform.ScaleDifferencePow2;
                     srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                     _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                     _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);

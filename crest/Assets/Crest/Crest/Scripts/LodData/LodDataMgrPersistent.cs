@@ -121,7 +121,7 @@ namespace Crest
 
                 // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
                 // this is only valid on the first update step, after that the scale src/target data are in the right places.
-                var srcDataIdxChange = ((stepi == 0) ? ScaleDifferencePow2 : 0);
+                var srcDataIdxChange = ((stepi == 0) ? OceanRenderer.Instance._lodTransform.ScaleDifferencePow2 : 0);
 
                 // only take transform from previous frame on first substep
                 var usePreviousFrameTransform = stepi == 0;

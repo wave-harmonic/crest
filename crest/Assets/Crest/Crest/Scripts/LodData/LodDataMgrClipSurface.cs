@@ -15,10 +15,10 @@ namespace Crest
     /// </summary>
     public class LodDataMgrClipSurface : LodDataMgr
     {
-        public override string SimName { get { return "ClipSurface"; } }
+        public override string SimName => "ClipSurface";
 
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
+        protected override bool NeedToReadWriteTextureData => true;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 

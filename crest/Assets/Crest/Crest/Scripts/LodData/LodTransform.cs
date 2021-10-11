@@ -19,6 +19,11 @@ namespace Crest
 
         protected int[] _transformUpdateFrame;
 
+        // ocean scale last frame - used to detect scale changes
+        float _oceanLocalScalePrev = -1f;
+        int _scaleDifferencePow2 = 0;
+        public int ScaleDifferencePow2 => _scaleDifferencePow2;
+
         [System.Serializable]
         public struct RenderData
         {
@@ -55,8 +60,8 @@ namespace Crest
 
         Matrix4x4[] _worldToCameraMatrix;
         Matrix4x4[] _projectionMatrix;
-        public Matrix4x4 GetWorldToCameraMatrix(int lodIdx) { return _worldToCameraMatrix[lodIdx]; }
-        public Matrix4x4 GetProjectionMatrix(int lodIdx) { return _projectionMatrix[lodIdx]; }
+        public Matrix4x4 GetWorldToCameraMatrix(int lodIdx) => _worldToCameraMatrix[lodIdx];
+        public Matrix4x4 GetProjectionMatrix(int lodIdx) => _projectionMatrix[lodIdx];
 
         public void InitLODData(int lodCount)
         {
@@ -111,6 +116,8 @@ namespace Crest
 
                 _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, k_RenderAboveSeaLevel + k_RenderBelowSeaLevel);
             }
+
+            UpdateScaleDifference();
         }
 
         // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs
@@ -140,6 +147,17 @@ namespace Crest
                 _renderData[lodIdx]._posSnapped -= newOrigin;
                 _renderDataSource[lodIdx]._posSnapped -= newOrigin;
             }
+        }
+
+        void UpdateScaleDifference()
+        {
+            // Determine if LOD transform has changed scale and by how much (in exponent of 2).
+            float oceanLocalScale = OceanRenderer.Instance.Root.localScale.x;
+            if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
+            float ratio = oceanLocalScale / _oceanLocalScalePrev;
+            _oceanLocalScalePrev = oceanLocalScale;
+            float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
+            _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
         public void WriteCascadeParams(OceanRenderer.CascadeParams[] cascadeParamsTgt, OceanRenderer.CascadeParams[] cascadeParamsSrc)

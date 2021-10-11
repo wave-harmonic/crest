@@ -5,6 +5,7 @@
 namespace Crest
 {
     using UnityEditor;
+    using UnityEngine;
 
     /// <summary>
     /// Adds a deprecated message to shaders.
@@ -19,6 +20,10 @@ namespace Crest
     {
         public override void OnGUI(MaterialEditor editor, MaterialProperty[] properties)
         {
+            // Enable rich text in help boxes. Store original so we can revert since this might be a "hack".
+            var styleRichText = GUI.skin.GetStyle("HelpBox").richText;
+            GUI.skin.GetStyle("HelpBox").richText = true;
+
             var message = "This shader is deprecated and will be removed in a future version.";
 
             {
@@ -30,6 +35,10 @@ namespace Crest
             }
 
             EditorGUILayout.HelpBox(message, MessageType.Warning);
+            EditorGUILayout.Space(3f);
+
+            // Revert skin since it persists.
+            GUI.skin.GetStyle("HelpBox").richText = styleRichText;
 
             // Render the default GUI.
             base.OnGUI(editor, properties);

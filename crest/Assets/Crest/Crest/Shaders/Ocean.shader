@@ -306,6 +306,7 @@ Shader "Crest/Ocean"
 				half3 debugtint : TEXCOORD8;
 				#endif
 				half4 grabPos : TEXCOORD9;
+				float2 seaLevelDerivs : TEXCOORD10;
 
 				UNITY_FOG_COORDS(3)
 
@@ -352,7 +353,7 @@ Shader "Crest/Ocean"
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
 				// sample shape textures - always lerp between 2 LOD scales, so sample two textures
-				o.flow_shadow = half4(0., 0., 0., 0.);
+				o.flow_shadow = half4(0.0, 0.0, 0.0, 0.0);
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE;
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
@@ -390,16 +391,16 @@ Shader "Crest/Ocean"
 				}
 
 				// Data that needs to be sampled at the displaced position
+				half seaLevelOffset = 0.0;
+				o.seaLevelDerivs = 0.0;
 				if (wt_smallerLod > 0.0001)
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, cascadeData0, _LD_SliceIndex);
 
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData0, o.seaLevelDerivs);
 
 					#if _SHADOWS_ON
+					// The minimum sampling weight is lower than others to fix shallow water colour popping.
 					if (wt_smallerLod > 0.001)
 					{
 						SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
@@ -410,18 +411,18 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData1, o.seaLevelDerivs);
 
 					#if _SHADOWS_ON
+					// The minimum sampling weight is lower than others to fix shallow water colour popping.
 					if (wt_biggerLod > 0.001)
 					{
 						SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
 					}
 					#endif
 				}
+
+				o.worldPos.y += seaLevelOffset;
 
 				// debug tinting to see which shape textures are used
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
@@ -559,6 +560,14 @@ Shader "Crest/Ocean"
 					#endif
 				}
 
+#if _SUBSURFACESCATTERING_ON
+				// Extents need the default SSS to avoid popping and not being noticeably different.
+				if (_LD_SliceIndex == ((uint)_SliceCount - 1))
+				{
+					sss = CREST_SSS_MAXIMUM - CREST_SSS_RANGE;
+				}
+#endif
+
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(positionXZWSUndisplaced, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
@@ -566,6 +575,8 @@ Shader "Crest/Ocean"
 				n_pixel.xz += SampleNormalMaps(positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
 				#endif
 				#endif
+
+				n_pixel.xz += float2(-input.seaLevelDerivs.x, -input.seaLevelDerivs.y);
 
 				// Finalise normal
 				n_pixel.xz *= _NormalsStrengthOverall;
@@ -580,17 +591,75 @@ Shader "Crest/Ocean"
 
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(foam, positionXZWSUndisplaced, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoam
+				(
+					foam,
+					positionXZWSUndisplaced,
+					input.worldPos.xz,
+					n_pixel,
+					pixelZ,
+					sceneZ,
+					view,
+					lightDir,
+					shadow.y,
+					lodAlpha,
+					bubbleCol,
+					whiteFoamCol,
+					cascadeData0,
+					cascadeData1
+				);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, foam, positionXZWSUndisplaced, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
+				ComputeFoamWithFlow
+				(
+					input.flow_shadow.xy,
+					foam,
+					positionXZWSUndisplaced,
+					input.worldPos.xz,
+					n_pixel,
+					pixelZ,
+					sceneZ,
+					view,
+					lightDir,
+					shadow.y,
+					lodAlpha,
+					bubbleCol,
+					whiteFoamCol,
+					cascadeData0,
+					cascadeData1
+				);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				const float baseCascadeScale = cascadeData0._scale;
-				const float meshScaleLerp = instanceData._meshScaleLerp;
-				half3 scatterCol = ScatterColour(AmbientLight(), input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, lightCol, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, input.positionCS.z, uvDepth, sceneZ, rawDepth, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
+				half3 scatterCol = ScatterColour
+				(
+					input.lodAlpha_worldXZUndisplaced_oceanDepth.w,
+					shadow.x,
+					sss,
+					view,
+					AmbientLight(),
+					lightDir,
+					lightCol,
+					underwater
+				);
+				half3 col = OceanEmission
+				(
+					view,
+					n_pixel,
+					lightDir,
+					input.grabPos,
+					pixelZ,
+					input.positionCS.z,
+					uvDepth,
+					sceneZ,
+					rawDepth,
+					bubbleCol,
+					_Normals,
+					underwater,
+					scatterCol,
+					cascadeData0,
+					cascadeData1
+				);
 
 				// Light that reflects off water surface
 

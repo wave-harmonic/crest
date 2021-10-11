@@ -4,6 +4,179 @@
 
 Shader "Hidden/Crest/Underwater/Underwater Effect"
 {
+	HLSLINCLUDE
+	#pragma vertex Vert
+	#pragma fragment Frag
+
+	// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
+	// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
+	#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
+	#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
+	#pragma multi_compile_local __ _CAUSTICS_ON
+	#pragma multi_compile_local __ _SHADOWS_ON
+	#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
+	#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
+
+	#pragma multi_compile_local __ CREST_MENISCUS
+	// Both "__" and "_FULL_SCREEN_EFFECT" are fullscreen triangles. The latter only denotes an optimisation of
+	// whether to skip the horizon calculation.
+	#pragma multi_compile_local __ _FULL_SCREEN_EFFECT _GEOMETRY_EFFECT_PLANE _GEOMETRY_EFFECT_CONVEX_HULL
+	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
+
+#if defined(_GEOMETRY_EFFECT_PLANE) || defined(_GEOMETRY_EFFECT_CONVEX_HULL)
+	#define _GEOMETRY_EFFECT 1
+#endif
+
+#if _COMPILESHADERWITHDEBUGINFO_ON
+	#pragma enable_d3d11_debug_symbols
+#endif
+
+	#include "UnityCG.cginc"
+	#include "Lighting.cginc"
+
+	#include "../../Helpers/BIRP/Common.hlsl"
+	#include "../../Helpers/BIRP/InputsDriven.hlsl"
+
+	#include "../../OceanGlobals.hlsl"
+	#include "../../OceanInputsDriven.hlsl"
+	#include "../../OceanShaderData.hlsl"
+	#include "../../OceanHelpersNew.hlsl"
+	#include "../../OceanShaderHelpers.hlsl"
+	#include "../../FullScreenTriangle.hlsl"
+	#include "../../OceanEmission.hlsl"
+
+	UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture);
+	UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
+	UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
+
+	#include "../UnderwaterEffectShared.hlsl"
+
+	struct Attributes
+	{
+#if _GEOMETRY_EFFECT
+		float3 positionOS : POSITION;
+#else
+		uint id : SV_VertexID;
+#endif
+		UNITY_VERTEX_INPUT_INSTANCE_ID
+	};
+
+	struct Varyings
+	{
+		float4 positionCS : SV_POSITION;
+#if _GEOMETRY_EFFECT
+		float4 screenPosition : TEXCOORD0;
+#else
+		float2 uv : TEXCOORD0;
+#endif
+		UNITY_VERTEX_OUTPUT_STEREO
+	};
+
+	Varyings Vert (Attributes input)
+	{
+		Varyings output;
+
+		UNITY_SETUP_INSTANCE_ID(input);
+		UNITY_INITIALIZE_OUTPUT(Varyings, output);
+		UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+#if _GEOMETRY_EFFECT
+		// Use actual geometry instead of full screen triangle.
+		output.positionCS = UnityObjectToClipPos(float4(input.positionOS, 1.0));
+		output.screenPosition = ComputeScreenPos(output.positionCS);
+#else
+		output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
+		output.uv = GetFullScreenTriangleTexCoord(input.id);
+#endif
+
+		return output;
+	}
+
+	fixed4 Frag (Varyings input) : SV_Target
+	{
+		// We need this when sampling a screenspace texture.
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+#if _GEOMETRY_EFFECT
+		float2 uv = input.screenPosition.xy / input.screenPosition.w;
+#else
+		float2 uv = input.uv;
+#endif
+
+		const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(uv);
+		half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
+		float rawDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
+		const float mask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace).x;
+		const float rawOceanDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
+
+		bool isOceanSurface; bool isUnderwater; float sceneZ;
+		GetOceanSurfaceAndUnderwaterData(uvScreenSpace, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+
+#if _GEOMETRY_EFFECT_CONVEX_HULL
+		const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, uvScreenSpace).x;
+		bool isBeforeFrontFaceBoundary = false;
+		bool isAfterBackFaceBoundary = false;
+
+		if (isUnderwater)
+		{
+			// scene is after back face boundary
+			if (rawDepth < input.positionCS.z)
+			{
+				isAfterBackFaceBoundary = true;
+			}
+
+			if (frontFaceBoundaryDepth01 != 0)
+			{
+				// scene is before front face boundary
+				if (rawDepth > frontFaceBoundaryDepth01)
+				{
+					return float4(sceneColour, 1.0);
+				}
+				else
+				{
+					isBeforeFrontFaceBoundary = true;
+				}
+			}
+		}
+#endif
+
+		float wt = ComputeMeniscusWeight(uvScreenSpace, mask, _HorizonNormal, sceneZ);
+
+#if _DEBUG_VIEW_OCEAN_MASK
+		return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);
+#endif
+
+		if (isUnderwater)
+		{
+			// Position needs to be reconstructed in the fragment shader to avoid precision issues as per
+			// Unity's lead. Fixes caustics stuttering when far from zero.
+			const float3 positionWS = ComputeWorldSpacePosition(uvScreenSpace, rawDepth, UNITY_MATRIX_I_VP);
+			const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
+			float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
+#if _GEOMETRY_EFFECT_CONVEX_HULL
+			if (isAfterBackFaceBoundary)
+			{
+				// Cancels out caustics. We will want caustics outside of volume at some point though.
+				isOceanSurface = true;
+				sceneZ = input.screenPosition.w;
+			}
+
+			if (isBeforeFrontFaceBoundary)
+			{
+				sceneZ -= CrestLinearEyeDepth(frontFaceBoundaryDepth01);
+			}
+#elif _GEOMETRY_EFFECT_PLANE
+			sceneZ -= CrestLinearEyeDepth(input.positionCS.z);
+#endif // _GEOMETRY_EFFECT
+			const float3 lightDir = _WorldSpaceLightPos0.xyz;
+			const half3 lightCol = _LightColor0;
+			sceneColour = ApplyUnderwaterEffect(scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);
+		}
+
+		return half4(wt * sceneColour, 1.0);
+	}
+	ENDHLSL
+
 	SubShader
 	{
 		// These will be "Off" for fullscreen.
@@ -14,176 +187,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		Pass
 		{
 			HLSLPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
-
-			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
-			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
-			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
-			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma multi_compile_local __ _CAUSTICS_ON
-			#pragma multi_compile_local __ _SHADOWS_ON
-			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
-
-			#pragma multi_compile_local __ CREST_MENISCUS
-			// Both "__" and "_FULL_SCREEN_EFFECT" are fullscreen triangles. The latter only denotes an optimisation of
-			// whether to skip the horizon calculation.
-			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT _GEOMETRY_EFFECT_PLANE _GEOMETRY_EFFECT_CONVEX_HULL
-			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
-
-#if defined(_GEOMETRY_EFFECT_PLANE) || defined(_GEOMETRY_EFFECT_CONVEX_HULL)
-			#define _GEOMETRY_EFFECT 1
-#endif
-
-			#if _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma enable_d3d11_debug_symbols
-			#endif
-
-			#include "UnityCG.cginc"
-			#include "Lighting.cginc"
-
-			#include "../../Helpers/BIRP/Common.hlsl"
-			#include "../../Helpers/BIRP/InputsDriven.hlsl"
-
-			#include "../../OceanGlobals.hlsl"
-			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanShaderData.hlsl"
-			#include "../../OceanHelpersNew.hlsl"
-			#include "../../OceanShaderHelpers.hlsl"
-			#include "../../FullScreenTriangle.hlsl"
-			#include "../../OceanEmission.hlsl"
-
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture);
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
-
-			#include "../UnderwaterEffectShared.hlsl"
-
-			struct Attributes
-			{
-#if _GEOMETRY_EFFECT
-				float3 positionOS : POSITION;
-#else
-				uint id : SV_VertexID;
-#endif
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-
-			struct Varyings
-			{
-				float4 positionCS : SV_POSITION;
-#if _GEOMETRY_EFFECT
-				float4 screenPosition : TEXCOORD0;
-#else
-				float2 uv : TEXCOORD0;
-#endif
-				UNITY_VERTEX_OUTPUT_STEREO
-			};
-
-			Varyings Vert (Attributes input)
-			{
-				Varyings output;
-
-				UNITY_SETUP_INSTANCE_ID(input);
-				UNITY_INITIALIZE_OUTPUT(Varyings, output);
-				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-#if _GEOMETRY_EFFECT
-				// Use actual geometry instead of full screen triangle.
-				output.positionCS = UnityObjectToClipPos(float4(input.positionOS, 1.0));
-				output.screenPosition = ComputeScreenPos(output.positionCS);
-#else
-				output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
-				output.uv = GetFullScreenTriangleTexCoord(input.id);
-#endif
-
-				return output;
-			}
-
-			fixed4 Frag (Varyings input) : SV_Target
-			{
-				// We need this when sampling a screenspace texture.
-				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-#if _GEOMETRY_EFFECT
-				float2 uv = input.screenPosition.xy / input.screenPosition.w;
-#else
-				float2 uv = input.uv;
-#endif
-
-				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(uv);
-				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
-				float rawDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
-				const float mask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace).x;
-				const float rawOceanDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
-
-				bool isOceanSurface; bool isUnderwater; float sceneZ;
-				GetOceanSurfaceAndUnderwaterData(uvScreenSpace, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
-
-#if _GEOMETRY_EFFECT_CONVEX_HULL
-				const float frontFaceBoundaryDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, uvScreenSpace).x;
-				bool isBeforeFrontFaceBoundary = false;
-				bool isAfterBackFaceBoundary = false;
-
-				if (isUnderwater)
-				{
-					// scene is after back face boundary
-					if (rawDepth < input.positionCS.z)
-					{
-						isAfterBackFaceBoundary = true;
-					}
-
-					if (frontFaceBoundaryDepth01 != 0)
-					{
-						// scene is before front face boundary
-						if (rawDepth > frontFaceBoundaryDepth01)
-						{
-							return float4(sceneColour, 1.0);
-						}
-						else
-						{
-							isBeforeFrontFaceBoundary = true;
-						}
-					}
-				}
-#endif
-
-				float wt = ComputeMeniscusWeight(uvScreenSpace, mask, _HorizonNormal, sceneZ);
-
-#if _DEBUG_VIEW_OCEAN_MASK
-				return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);
-#endif // _DEBUG_VIEW_OCEAN_MASK
-
-				if (isUnderwater)
-				{
-					// Position needs to be reconstructed in the fragment shader to avoid precision issues as per
-					// Unity's lead. Fixes caustics stuttering when far from zero.
-					const float3 positionWS = ComputeWorldSpacePosition(uvScreenSpace, rawDepth, UNITY_MATRIX_I_VP);
-					const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
-					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
-#if _GEOMETRY_EFFECT_CONVEX_HULL
-					if (isAfterBackFaceBoundary)
-					{
-						// Cancels out caustics. We will want caustics outside of volume at some point though.
-						isOceanSurface = true;
-						sceneZ = input.screenPosition.w;
-					}
-
-					if (isBeforeFrontFaceBoundary)
-					{
-						sceneZ -= CrestLinearEyeDepth(frontFaceBoundaryDepth01);
-					}
-#elif _GEOMETRY_EFFECT_PLANE
-					sceneZ -= CrestLinearEyeDepth(input.positionCS.z);
-#endif // _GEOMETRY_EFFECT
-					const float3 lightDir = _WorldSpaceLightPos0.xyz;
-					const half3 lightCol = _LightColor0;
-					sceneColour = ApplyUnderwaterEffect(scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);
-				}
-
-				return half4(wt * sceneColour, 1.0);
-			}
 			ENDHLSL
 		}
 	}

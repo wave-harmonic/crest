@@ -2,31 +2,25 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This writes straight into the displacement texture and sets the water height to the y value of the geometry.
+// This sets base water height to Y value of geometry.
 
-Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
+Shader "Crest/Inputs/Sea Floor Depth/Set Base Water Height Using Geometry"
 {
-	Properties
-	{
-		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
-	}
-
 	SubShader
 	{
 		Pass
 		{
 			Blend Off
-			ColorMask [_ColorWriteMask]
+
+			// Second channel is sea level offset
+			ColorMask G
 
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-
-			#include "../OceanGlobals.hlsl"
-			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../../OceanGlobals.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
@@ -59,12 +53,9 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				float3 uv = WorldToUV(input.worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
-				half seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).y;
-
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float height = input.worldPos.y - _OceanCenterPosWorld.y - seaLevelOffset;
-				return half4(0.0, _Weight * height, 0.0, 0.0);
+				const float heightOffset = input.worldPos.y - _OceanCenterPosWorld.y;
+				return half4(0.0, heightOffset, 0.0, _Weight);
 			}
 			ENDCG
 		}

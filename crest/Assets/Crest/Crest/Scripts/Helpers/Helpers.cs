@@ -15,5 +15,12 @@ namespace Crest
         {
             return camera.allowMSAA && QualitySettings.antiAliasing > 0f;
         }
+
+        public static void Swap<T>(ref T a, ref T b)
+        {
+            var temp = b;
+            b = a;
+            a = temp;
+        }
     }
 }

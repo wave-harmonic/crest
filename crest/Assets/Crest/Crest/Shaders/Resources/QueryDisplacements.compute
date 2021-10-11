@@ -28,9 +28,17 @@ float3 ComputeDisplacement(float2 undispPos, float minSlice, const float baseSca
 	const float wt_0 = (1. - lodAlpha) * _CrestCascadeData[slice0]._weight;
 	const float wt_1 = (1. - wt_0) * _CrestCascadeData[slice1]._weight;
 
-	return
+	// Wave displacement
+	float3 disp = 
 		wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz +
 		wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xyz;
+
+	// Sea level offset
+	disp.y +=
+		wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
+		wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
+	
+	return disp;
 }
 
 [numthreads(GROUP_SIZE, 1, 1)]

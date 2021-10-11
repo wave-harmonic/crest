@@ -73,7 +73,8 @@ float CrestMultiSampleOceanDepth(const float i_rawDepth, const float2 i_position
 }
 #endif
 
-void GetOceanSurfaceAndUnderwaterData(
+void GetOceanSurfaceAndUnderwaterData
+(
 	const float2 positionNDC,
 	const float rawOceanDepth,
 	const float mask,
@@ -100,7 +101,8 @@ void GetOceanSurfaceAndUnderwaterData(
 }
 
 #ifdef CREST_OCEAN_EMISSION_INCLUDED
-half3 ApplyUnderwaterEffect(
+half3 ApplyUnderwaterEffect
+(
 	const float3 scenePos,
 	half3 sceneColour,
 	const half3 lightCol,
@@ -114,26 +116,62 @@ half3 ApplyUnderwaterEffect(
 	half3 scatterCol = 0.0;
 	int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
 	{
-		float3 dummy;
-		half sss = 0.0;
 		// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
 		const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[sliceIndex], sliceIndex);
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
-		// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
-		const float depth = 0.0;
-		const half shadow = 1.0;
+		half shadow = 1.0;
+#if _SHADOWS_ON
 		{
-			const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
-			const float baseCascadeScale = _CrestCascadeData[0]._scale;
-			scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, lightCol, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
+			// Camera should be at center of LOD system so no need for blending (alpha, weights, etc). This might not be
+			// the case if there is large horizontal displacement, but the _DataSliceOffset should help by setting a
+			// large enough slice as minimum.
+			shadow = _LD_TexArray_Shadow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).x;
+			shadow = saturate(1.0 - shadow);
+		}
+#endif // _SHADOWS_ON
+
+		half seaFloorDepth = CREST_OCEAN_DEPTH_BASELINE;
+#if _SUBSURFACESHALLOWCOLOUR_ON
+		{
+			// compute scatter colour from cam pos. two scenarios this can be called:
+			// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
+			//    colour at the camera, not at the surface, to make sure its consistent.
+			// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
+			//    so just approximate by sampling at the camera position.
+			// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
+			SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, seaFloorDepth);
+		}
+#endif // _SUBSURFACESHALLOWCOLOUR_ON
+
+		{
+			scatterCol = ScatterColour
+			(
+				seaFloorDepth,
+				shadow,
+				1.0, // SSS is not used for underwater yet. Calculated in SampleDisplacementsNormals which is costly.
+				view,
+				_AmbientLighting,
+				lightDir,
+				lightCol,
+				true
+			);
 		}
 	}
 
 #if _CAUSTICS_ON
 	if (rawDepth != 0.0 && !isOceanSurface)
 	{
-		ApplyCaustics(scenePos, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
+		ApplyCaustics
+		(
+			scenePos,
+			lightDir,
+			sceneZ,
+			_Normals,
+			true,
+			sceneColour,
+			_CrestCascadeData[sliceIndex],
+			_CrestCascadeData[sliceIndex + 1]
+		);
 	}
 #endif // _CAUSTICS_ON
 

@@ -190,7 +190,6 @@ namespace Crest
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
-            sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
             _currentCamera = null;
         }
 

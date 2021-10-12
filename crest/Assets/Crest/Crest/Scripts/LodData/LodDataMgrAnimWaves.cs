@@ -435,8 +435,6 @@ namespace Crest
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
-            sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
-            sp_LODChange = Shader.PropertyToID("_LODChange");
             s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
             _updatables.Clear();
         }

@@ -101,7 +101,6 @@ namespace Crest
             }
 
             // Init here from 2019.3 onwards
-            sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
             if (_blackTextureArray == null)
             {

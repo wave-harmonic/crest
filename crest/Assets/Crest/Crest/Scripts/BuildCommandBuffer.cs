@@ -83,41 +83,6 @@ namespace Crest
 
         public static void FlipDataBuffers(OceanRenderer ocean)
         {
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Ocean depths
-            if (ocean._lodDataSeaDepths != null)
-            {
-                ocean._lodDataSeaDepths.FlipBuffers();
-            }
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Flow data
-            if (ocean._lodDataFlow != null)
-            {
-                ocean._lodDataFlow.FlipBuffers();
-            }
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Dynamic wave simulations
-            if (ocean._lodDataDynWaves != null)
-            {
-                ocean._lodDataDynWaves.FlipBuffers();
-            }
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Animated waves next
-            if (ocean._lodDataAnimWaves != null)
-            {
-                ocean._lodDataAnimWaves.FlipBuffers();
-            }
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Foam simulation
-            if (ocean._lodDataFoam != null)
-            {
-                ocean._lodDataFoam.FlipBuffers();
-            }
-
             foreach (var rd in ocean._lodTransform._renderData)
             {
                 rd.Flip();

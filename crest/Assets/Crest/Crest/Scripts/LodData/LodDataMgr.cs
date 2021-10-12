@@ -24,7 +24,7 @@ namespace Crest
             }
         }
 
-        public T Current => _buffers[_currentFrameIndex];
+        public T Current { get => _buffers[_currentFrameIndex]; set => _buffers[_currentFrameIndex] = value; }
 
         public T Previous(int framesBack)
         {
@@ -197,6 +197,7 @@ namespace Crest
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
+            FlipBuffers();
         }
 
         public interface IDrawFilter

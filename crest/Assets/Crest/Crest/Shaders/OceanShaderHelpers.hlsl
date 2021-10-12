@@ -10,12 +10,16 @@
 // Sample depth macros for all pipelines. Use macros as HDRP depth is a mipchain which can change according to:
 // com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl
 #if defined(SHADERGRAPH_SAMPLE_SCENE_DEPTH)
-#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SHADERGRAPH_SAMPLE_SCENE_DEPTH(coordinates)
-#elif defined(TEXTURE2D_X)
-#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, coordinates).r
-#elif defined(SAMPLE_DEPTH_TEXTURE)
-#define CREST_SAMPLE_SCENE_DEPTH(coordinates) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, coordinates)
+#define CREST_SAMPLE_SCENE_DEPTH(uv) SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv)
+#else
+#define CREST_SAMPLE_SCENE_DEPTH(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
+#define CREST_SAMPLE_SCENE_DEPTH_X(uv) SAMPLE_DEPTH_TEXTURE_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
 #endif
+
+#define CREST_MULTISAMPLE_DEPTH(texture, uv, depth) CrestMultiSampleDepth(texture, sampler##texture, texture##_TexelSize, uv, _CrestDepthTextureOffset, depth)
+#define CREST_MULTISAMPLE_SCENE_DEPTH(uv, depth) CREST_MULTISAMPLE_DEPTH(_CameraDepthTexture, uv, depth)
+#define CREST_MULTILOAD_DEPTH(texture, uv, depth) CrestMultiLoadDepth(texture, uv, _CrestDepthTextureOffset, depth)
+#define CREST_MULTILOAD_SCENE_DEPTH(uv, depth) CREST_MULTILOAD_DEPTH(_CameraDepthTexture, uv, depth)
 
 #if UNITY_REVERSED_Z
 #define CREST_DEPTH_COMPARE(depth1, depth2) min(depth1, depth2)
@@ -57,20 +61,42 @@ float CrestLinearEyeDepth(const float i_rawDepth)
 }
 
 // Works for all pipelines.
-float CrestMultiSampleSceneDepth(const float i_rawDepth, const float2 i_positionNDC)
+float CrestMultiSampleDepth
+(
+	const TEXTURE2D_X(i_texture),
+	const SAMPLER(i_sampler),
+	const float2 i_texelSize,
+	const float2 i_positionNDC,
+	const int i_offset,
+	const float i_rawDepth
+)
 {
 	float rawDepth = i_rawDepth;
 
-	if (_CrestDepthTextureOffset > 0)
+	if (i_offset > 0)
 	{
-		// We could use screen size instead.
-		float2 texelSize = _CameraDepthTexture_TexelSize.xy;
-		int3 offset = int3(-_CrestDepthTextureOffset, 0, _CrestDepthTextureOffset);
+		float2 texelSize = i_texelSize.xy;
+		int3 offset = int3(-i_offset, 0, i_offset);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.xy * i_texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.yx * i_texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.yz * i_texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.zy * i_texelSize));
+	}
 
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.xy * texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.yx * texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.yz * texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, CREST_SAMPLE_SCENE_DEPTH(i_positionNDC + offset.zy * texelSize));
+	return rawDepth;
+}
+
+float CrestMultiLoadDepth(TEXTURE2D_X(i_texture), const uint2 i_positionSS, const int i_offset, const float i_rawDepth)
+{
+	float rawDepth = i_rawDepth;
+
+	if (i_offset > 0)
+	{
+		int3 offset = int3(-i_offset, 0, i_offset);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, LOAD_TEXTURE2D_X(i_texture, i_positionSS + offset.xy).r);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, LOAD_TEXTURE2D_X(i_texture, i_positionSS + offset.yx).r);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, LOAD_TEXTURE2D_X(i_texture, i_positionSS + offset.yz).r);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, LOAD_TEXTURE2D_X(i_texture, i_positionSS + offset.zy).r);
 	}
 
 	return rawDepth;

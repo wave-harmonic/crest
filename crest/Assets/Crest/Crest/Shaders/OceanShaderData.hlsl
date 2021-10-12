@@ -10,7 +10,7 @@
 /////////////////////////////
 // Samplers
 
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
+TEXTURE2D_X(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
 UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
 
 float4 _CameraDepthTexture_TexelSize;

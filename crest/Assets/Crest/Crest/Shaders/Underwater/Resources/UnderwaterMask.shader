@@ -21,8 +21,8 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#include "UnityCG.cginc"
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
-			float4 _CameraDepthTexture_TexelSize;
+			#include "../../Helpers/BIRP/Core.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
 
 			#include "../UnderwaterMaskShared.hlsl"
 			ENDCG
@@ -42,7 +42,7 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#include "UnityCG.cginc"
 
-			#include "../../Helpers/BIRP/Common.hlsl"
+			#include "../../Helpers/BIRP/Core.hlsl"
 			#include "../../Helpers/BIRP/InputsDriven.hlsl"
 			#include "../../FullScreenTriangle.hlsl"
 

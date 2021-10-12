@@ -158,7 +158,7 @@ half3 OceanEmission
 	if (!i_underwater)
 	{
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-		const float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i_uvDepth + refractOffset).x;
+		const float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(i_uvDepth + refractOffset);
 		half2 uvBackgroundRefract;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
@@ -169,12 +169,12 @@ half3 OceanEmission
 #endif
 		{
 			uvBackgroundRefract = uvBackground + refractOffset;
-			depthFogDistance = CrestLinearEyeDepth(CrestMultiSampleSceneDepth(rawDepth, uvBackgroundRefract)) - i_pixelZ;
+			depthFogDistance = CrestLinearEyeDepth(CREST_MULTISAMPLE_SCENE_DEPTH(uvBackgroundRefract, rawDepth)) - i_pixelZ;
 		}
 		else
 		{
 			// It seems that when MSAA is enabled this can sometimes be negative
-			depthFogDistance = max(CrestLinearEyeDepth(CrestMultiSampleSceneDepth(i_rawDepth, uvBackground)) - i_pixelZ, 0.0);
+			depthFogDistance = max(CrestLinearEyeDepth(CREST_MULTISAMPLE_SCENE_DEPTH(uvBackground, i_rawDepth)) - i_pixelZ, 0.0);
 
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;

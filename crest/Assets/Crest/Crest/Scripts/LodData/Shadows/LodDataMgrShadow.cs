@@ -20,9 +20,9 @@ namespace Crest
     /// </summary>
     public class LodDataMgrShadow : LodDataMgr
     {
-        public override string SimName { get { return "Shadow"; } }
+        public override string SimName => "Shadow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
+        protected override bool NeedToReadWriteTextureData => true;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 
@@ -192,7 +192,7 @@ namespace Crest
                 return;
             }
 
-            Swap(ref _sources, ref _targets);
+            Helpers.Swap(ref _sources, ref _targets);
 
             BufCopyShadowMap.Clear();
 
@@ -231,11 +231,13 @@ namespace Crest
                 _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, camera.projectionMatrix * camera.worldToCameraMatrix);
                 _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
-                _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources.Current);
+                _renderProperties.SetTexture(GetParamIdSampler(true), _sources.Current);
 
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets.Current);
 
                 _renderProperties.SetBuffer(OceanRenderer.sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
+
+                LodDataMgrSeaFloorDepth.Bind(_renderProperties);
 
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
@@ -249,7 +251,7 @@ namespace Crest
                     _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
 
                     // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
-                    var srcDataIdx = lodIdx + ScaleDifferencePow2;
+                    var srcDataIdx = lodIdx + OceanRenderer.Instance._lodTransform.ScaleDifferencePow2;
                     srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                     _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                     _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);

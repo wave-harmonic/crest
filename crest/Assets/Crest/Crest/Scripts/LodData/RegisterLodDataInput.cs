@@ -82,8 +82,7 @@ namespace Crest
 
         public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
-            OceanInput registered;
-            if (!s_registrar.TryGetValue(lodDataMgrType, out registered))
+            if (!s_registrar.TryGetValue(lodDataMgrType, out var registered))
             {
                 registered = new OceanInput(s_comparer);
                 s_registrar.Add(lodDataMgrType, registered);
@@ -160,6 +159,20 @@ namespace Crest
             s_registrar.Clear();
             sp_Weight = Shader.PropertyToID("_Weight");
         }
+
+        static Mesh s_Quad;
+        /// <summary>
+        /// Quad geometry
+        /// </summary>
+        public static Mesh QuadMesh
+        {
+            get
+            {
+                if (s_Quad) return s_Quad;
+
+                return s_Quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            }
+        }
     }
 
     /// <summary>
@@ -178,7 +191,7 @@ namespace Crest
 
         int _registeredQueueValue = int.MinValue;
 
-        bool GetQueue(out int queue)
+        protected virtual bool GetQueue(out int queue)
         {
             var rend = GetComponent<Renderer>();
             if (rend && rend.sharedMaterial != null)
@@ -201,8 +214,7 @@ namespace Crest
                 }
             }
 
-            int q;
-            GetQueue(out q);
+            GetQueue(out var q);
 
             var registrar = GetRegistrar(typeof(LodDataType));
             registrar.Add(q, this);
@@ -225,8 +237,7 @@ namespace Crest
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying)
             {
-                int q;
-                if (GetQueue(out q))
+                if (GetQueue(out var q))
                 {
                     if (q != _registeredQueueValue)
                     {
@@ -274,8 +285,6 @@ namespace Crest
         float _radius = 20f;
         [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
         int _subdivisions = 1;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
-        int _smoothingIterations = 0;
 
         protected Material _splineMaterial;
         Spline.Spline _spline;
@@ -286,14 +295,17 @@ namespace Crest
 
         protected override bool RendererRequired => _spline == null;
 
+        protected float _splinePointHeightMin;
+        protected float _splinePointHeightMax;
+
         void Awake()
         {
-            if (TryGetComponent<Spline.Spline>(out _spline))
+            if (TryGetComponent(out _spline))
             {
                 var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
+                    ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
 
                 if (_splineMaterial == null)
                 {
@@ -347,15 +359,15 @@ namespace Crest
             {
                 if (_spline == null)
                 {
-                    TryGetComponent<Spline.Spline>(out _spline);
+                    TryGetComponent(out _spline);
                 }
 
                 if (_spline != null)
                 {
                     var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                     var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                    var smooth = _overrideSplineSettings ? _smoothingIterations : _spline.SmoothingIterations;
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, smooth, DefaultCustomData, ref _splineMesh);
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
+                        ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
 
                     if (_splineMaterial == null)
                     {

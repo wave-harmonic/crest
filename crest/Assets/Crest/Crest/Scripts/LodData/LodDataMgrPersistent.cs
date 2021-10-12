@@ -12,7 +12,7 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
+        protected override bool NeedToReadWriteTextureData => true;
 
         BufferedData<RenderTexture> _sources;
         PropertyWrapperCompute _renderSimProperties;
@@ -96,9 +96,7 @@ namespace Crest
             _timeToSimulate += ocean.DeltaTime;
 
             // Do a set of substeps to catch up
-            float substepDt;
-            int numSubsteps;
-            GetSimSubstepData(_timeToSimulate, out numSubsteps, out substepDt);
+            GetSimSubstepData(_timeToSimulate, out var numSubsteps, out var substepDt);
 
             // Record how much we caught up
             _timeToSimulate -= substepDt * numSubsteps;
@@ -115,7 +113,7 @@ namespace Crest
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
-                Swap(ref _sources, ref _targets);
+                Helpers.Swap(ref _sources, ref _targets);
 
                 _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
 
@@ -124,7 +122,7 @@ namespace Crest
 
                 // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
                 // this is only valid on the first update step, after that the scale src/target data are in the right places.
-                var srcDataIdxChange = ((stepi == 0) ? ScaleDifferencePow2 : 0);
+                var srcDataIdxChange = ((stepi == 0) ? OceanRenderer.Instance._lodTransform.ScaleDifferencePow2 : 0);
 
                 // only take transform from previous frame on first substep
                 var usePreviousFrameTransform = stepi == 0;

@@ -23,6 +23,9 @@
 #define CREST_SHADOW_INDEX_SOFT 0
 #define CREST_SHADOW_INDEX_HARD 1
 
+#define CREST_SSS_MAXIMUM 0.6
+#define CREST_SSS_RANGE 0.12
+
 // Water rendered from above.
 #define UNDERWATER_MASK_ABOVE_SURFACE 0.0
 // Water rendered from below. Used to invert meniscus sampling so keep as 2.0.

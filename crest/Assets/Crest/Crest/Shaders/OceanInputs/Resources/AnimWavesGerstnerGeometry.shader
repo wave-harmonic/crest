@@ -87,7 +87,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 const float3 worldPos = mul( unity_ObjectToWorld, float4(positionOS, 1.0) ).xyz;
 
                 // UV coordinate into the cascade we are rendering into
-                o.uv_slice.xyz = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+                o.uv_slice = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 
                 // World pos prescaled by wave buffer size, suitable for using as UVs in fragment shader
                 const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
@@ -107,7 +107,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 float wt = input.invNormDistToShoreline_weight.y;
 
                 // Attenuate if depth is less than half of the average wavelength
-                const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
+                const half2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice, 0.0).xy;
+                const half depth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
                 const half depth_wt = saturate(2.0 * depth / _AverageWavelength);
                 const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
                 wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);

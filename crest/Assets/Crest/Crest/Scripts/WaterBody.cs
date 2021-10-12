@@ -38,6 +38,11 @@ namespace Crest
 
         public Bounds AABB { get; private set; }
 
+        [Tooltip("Water geometry tiles that overlap this waterbody area will be assigned this material. This " +
+            "is useful for varying water appearance across different water bodies. If no override material is " +
+            "specified, the default material assigned to the OceanRenderer component will be used.")]
+        public Material _overrideMaterial = null;
+
         private void OnEnable()
         {
             CalculateBounds();
@@ -79,10 +84,6 @@ namespace Crest
             var oldColor = Gizmos.color;
             Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
             var center = AABB.center;
-            if (OceanRenderer.Instance != null && OceanRenderer.Instance.Root != null)
-            {
-                center.y = OceanRenderer.Instance.Root.position.y;
-            }
             Gizmos.DrawCube(center, 2f * new Vector3(AABB.extents.x, 1f, AABB.extents.z));
             Gizmos.color = oldColor;
         }

@@ -48,8 +48,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, cascadeData);
 	const float gridSize = cascadeData._texelWidth;
 
-	// average wavelength for this scale
-	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
+	// Min wavelength for this scale
+	const float wavelength = 2.0 * gridSize;
 	// could make velocity depend on waves
 	//float h = max(waterSignedDepth + ft, 0.);
 	float c = ComputeWaveSpeed(wavelength, _Gravity);
@@ -60,6 +60,16 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	c = min( c, _CourantNumber * gridSize / dt );
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
+
+	const float2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xy;
+	const float waterDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
+
+	// Wave reflections off geometry.
+	if (waterDepth <= 0.0)
+	{
+		_LD_TexArray_Target[id] = float2(0.0, 0.0);
+		return;
+	}
 
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
 	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _CrestCascadeDataSource[sliceIndexSource], sliceIndexSource);
@@ -117,8 +127,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
-	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
+	const float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
 	ftp *= depthMul;
 
 	_LD_TexArray_Target[id] = float2(ftp, vtp);

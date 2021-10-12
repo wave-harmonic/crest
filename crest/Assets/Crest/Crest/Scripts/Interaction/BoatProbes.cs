@@ -63,8 +63,8 @@ namespace Crest
 
         Rigidbody _rb;
 
-        public override float ObjectWidth { get { return _minSpatialLength; } }
-        public override bool InWater { get { return true; } }
+        public override float ObjectWidth => _minSpatialLength;
+        public override bool InWater => true;
 
         float _totalWeight;
 

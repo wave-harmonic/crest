@@ -97,12 +97,6 @@ namespace Crest
         // shape texture resolution
         int _shapeRes = -1;
 
-        // ocean scale last frame - used to detect scale changes
-        float _oceanLocalScalePrev = -1f;
-
-        int _scaleDifferencePow2 = 0;
-        protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
-
         public bool enabled { get; protected set; }
 
         protected OceanRenderer _ocean;
@@ -198,26 +192,11 @@ namespace Crest
                     buffer.Create();
                 });
             }
-
-            // determine if this LOD has changed scale and by how much (in exponent of 2)
-            float oceanLocalScale = OceanRenderer.Instance.Root.localScale.x;
-            if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
-            float ratio = oceanLocalScale / _oceanLocalScalePrev;
-            _oceanLocalScalePrev = oceanLocalScale;
-            float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
-            _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
-        }
-
-        public static void Swap<T>(ref T a, ref T b)
-        {
-            var temp = b;
-            b = a;
-            a = temp;
         }
 
         public interface IDrawFilter
@@ -259,8 +238,7 @@ namespace Crest
                     continue;
                 }
 
-                int isTransition;
-                float weight = filter.Filter(draw.Value, out isTransition);
+                float weight = filter.Filter(draw.Value, out var isTransition);
                 if (weight > 0f)
                 {
                     draw.Value.Draw(buf, weight, isTransition, lodIdx);
@@ -281,7 +259,7 @@ namespace Crest
                 // we want to go garbage-free.
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
-            public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+            public int GetId(bool sourceLod) => sourceLod ? _paramId_Source : _paramId;
         }
 
         internal virtual void OnEnable()

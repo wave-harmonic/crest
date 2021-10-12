@@ -1081,9 +1081,6 @@ namespace Crest
             _lodDataFoam?.UpdateLodData();
             _lodDataSeaDepths?.UpdateLodData();
             _lodDataShadow?.UpdateLodData();
-
-            // TODO: We want to avoid binding every frame. Disable if buffer is not used?
-            foreach (var lodData in _lodDatas) lodData.Bind();
         }
 
         void LateUpdateTiles()

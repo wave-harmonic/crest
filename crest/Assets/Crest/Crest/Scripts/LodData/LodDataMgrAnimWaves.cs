@@ -76,13 +76,6 @@ namespace Crest
             Start();
         }
 
-        internal override void Bind()
-        {
-            base.Bind();
-            // Bind sources for motion vectors.
-            Shader.SetGlobalTexture(GetParamIdSampler(true), _targets.Previous(1));
-        }
-
         protected override void InitData()
         {
             base.InitData();
@@ -262,6 +255,10 @@ namespace Crest
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
+
+            // Update current and previous. Latter for MVs and/or VFX.
+            Shader.SetGlobalTexture(GetParamIdSampler(true), _targets.Previous(1));
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
         }
 
         void CombinePassPingPong(CommandBuffer buf)

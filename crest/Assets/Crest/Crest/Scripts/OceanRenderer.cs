@@ -324,7 +324,7 @@ namespace Crest
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
-        public int CurrentLodCount => _lodTransform != null ? _lodTransform.LodCount : 0;
+        public int CurrentLodCount => _lodTransform != null ? _lodTransform.LodCount : _lodCount;
 
         /// <summary>
         /// Vertical offset of camera vs water surface.
@@ -431,6 +431,7 @@ namespace Crest
 
         BufferedData<CascadeParams[]> _cascadeParams;
         BufferedData<PerCascadeInstanceData[]> _perCascadeInstanceData;
+        public int BufferSize { get; private set; }
 
         // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
         // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
@@ -484,22 +485,41 @@ namespace Crest
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
-            // TODO: Make buffer count variable.
-            _perCascadeInstanceData = new BufferedData<PerCascadeInstanceData[]>(2, () => new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT + 1]);
+            // Make sure we have correct defaults in case simulations are not enabled.
+            LodDataMgrClipSurface.BindNullToGraphicsShaders();
+            LodDataMgrDynWaves.BindNullToGraphicsShaders();
+            LodDataMgrFlow.BindNullToGraphicsShaders();
+            LodDataMgrFoam.BindNullToGraphicsShaders();
+            LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
+            LodDataMgrShadow.BindNullToGraphicsShaders();
+
+            CreateDestroySubSystems();
+
+            // TODO: Have a BufferCount which will be the run-time buffer size or prune data.
+            // Gather the buffer size for shared data.
+            BufferSize = 0;
+            foreach (var lodData in _lodDatas)
+            {
+                if (lodData.enabled)
+                {
+                    BufferSize = Mathf.Max(BufferSize, lodData.BufferCount);
+                }
+            }
+
+            _perCascadeInstanceData = new BufferedData<PerCascadeInstanceData[]>(BufferSize, () => new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT + 1]);
             _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Current.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
             Shader.SetGlobalBuffer(sp_perCascadeInstanceData, _bufPerCascadeInstanceData);
             _bufPerCascadeInstanceDataSource = new ComputeBuffer(_perCascadeInstanceData.Previous(1).Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
             Shader.SetGlobalBuffer(sp_CrestPerCascadeInstanceDataSource, _bufPerCascadeInstanceDataSource);
 
-            // TODO: Make buffer count variable.
-            _cascadeParams = new BufferedData<CascadeParams[]>(2, () => new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1]);
+            _cascadeParams = new BufferedData<CascadeParams[]>(BufferSize, () => new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1]);
             _bufCascadeDataTgt = new ComputeBuffer(_cascadeParams.Current.Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
             _bufCascadeDataSrc = new ComputeBuffer(_cascadeParams.Previous(1).Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeDataSrc, _bufCascadeDataSrc);
 
             _lodTransform = new LodTransform();
-            _lodTransform.InitLODData(_lodCount);
+            _lodTransform.InitLODData(_lodCount, BufferSize);
 
             // Resolution is 4 tiles across.
             var baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
@@ -510,16 +530,6 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
-
-            // Make sure we have correct defaults in case simulations are not enabled.
-            LodDataMgrClipSurface.BindNullToGraphicsShaders();
-            LodDataMgrDynWaves.BindNullToGraphicsShaders();
-            LodDataMgrFlow.BindNullToGraphicsShaders();
-            LodDataMgrFoam.BindNullToGraphicsShaders();
-            LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
-            LodDataMgrShadow.BindNullToGraphicsShaders();
-
-            CreateDestroySubSystems();
 
             _commandbufferBuilder = new BuildCommandBuffer();
 

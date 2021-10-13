@@ -62,15 +62,14 @@ namespace Crest
         public Matrix4x4 GetWorldToCameraMatrix(int lodIdx) => _worldToCameraMatrix[lodIdx];
         public Matrix4x4 GetProjectionMatrix(int lodIdx) => _projectionMatrix[lodIdx];
 
-        public void InitLODData(int lodCount)
+        public void InitLODData(int lodCount, int bufferSize)
         {
             LodCount = lodCount;
 
             _renderData = new BufferedData<RenderData>[lodCount];
             for (var i = 0; i < lodCount; i++)
             {
-                // TODO: Make buffer count variable.
-                _renderData[i] = new BufferedData<RenderData>(2, () => new RenderData());
+                _renderData[i] = new BufferedData<RenderData>(bufferSize, () => new RenderData());
             }
 
             _worldToCameraMatrix = new Matrix4x4[lodCount];

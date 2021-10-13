@@ -429,11 +429,8 @@ namespace Crest
         public ComputeBuffer _bufPerCascadeInstanceData;
         public ComputeBuffer _bufPerCascadeInstanceDataSource;
 
-        CascadeParams[] _cascadeParamsSrc = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
-        CascadeParams[] _cascadeParamsTgt = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
-
-        PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
-        PerCascadeInstanceData[] _perCascadeInstanceDataSource = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
+        BufferedData<CascadeParams[]> _cascadeParams;
+        BufferedData<PerCascadeInstanceData[]> _perCascadeInstanceData;
 
         // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
         // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
@@ -487,15 +484,18 @@ namespace Crest
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
-            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
+            // TODO: Make buffer count variable.
+            _perCascadeInstanceData = new BufferedData<PerCascadeInstanceData[]>(2, () => new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT + 1]);
+            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Current.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
             Shader.SetGlobalBuffer(sp_perCascadeInstanceData, _bufPerCascadeInstanceData);
-            _bufPerCascadeInstanceDataSource = new ComputeBuffer(_perCascadeInstanceDataSource.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
+            _bufPerCascadeInstanceDataSource = new ComputeBuffer(_perCascadeInstanceData.Previous(1).Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
             Shader.SetGlobalBuffer(sp_CrestPerCascadeInstanceDataSource, _bufPerCascadeInstanceDataSource);
 
-            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, UnsafeUtility.SizeOf<CascadeParams>());
+            // TODO: Make buffer count variable.
+            _cascadeParams = new BufferedData<CascadeParams[]>(2, () => new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1]);
+            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParams.Current.Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
-
-            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, UnsafeUtility.SizeOf<CascadeParams>());
+            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParams.Previous(1).Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeDataSrc, _bufCascadeDataSrc);
 
             _lodTransform = new LodTransform();
@@ -952,40 +952,40 @@ namespace Crest
                 OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
             }
 
-            _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
-            _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
-            _bufCascadeDataSrc.SetData(_cascadeParamsSrc);
+            _cascadeParams.Flip();
+            _lodTransform.WriteCascadeParams(_cascadeParams);
+            _bufCascadeDataTgt.SetData(_cascadeParams.Current);
+            _bufCascadeDataSrc.SetData(_cascadeParams.Previous(1));
 
+            _perCascadeInstanceData.Flip();
             WritePerCascadeInstanceData(_perCascadeInstanceData);
-            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
-
-            WritePerCascadeInstanceData(_perCascadeInstanceDataSource);
-            _bufPerCascadeInstanceDataSource.SetData(_perCascadeInstanceDataSource);
+            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData.Current);
+            _bufPerCascadeInstanceDataSource.SetData(_perCascadeInstanceData.Previous(1));
         }
 
-        void WritePerCascadeInstanceData(PerCascadeInstanceData[] instanceData)
+        void WritePerCascadeInstanceData(BufferedData<PerCascadeInstanceData[]> instanceData)
         {
             for (int lodIdx = 0; lodIdx < CurrentLodCount; lodIdx++)
             {
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 var needToBlendOutShape = lodIdx == 0 && ScaleCouldIncrease;
-                instanceData[lodIdx]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+                instanceData.Current[lodIdx]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
 
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
                 var needToBlendOutNormals = lodIdx == CurrentLodCount - 1 && ScaleCouldDecrease;
-                instanceData[lodIdx]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
+                instanceData.Current[lodIdx]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
 
                 // geometry data
                 // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
                 // and not inherit any of the lossy-ness from lossyScale.
                 var scale_pow_2 = CalcLodScale(lodIdx);
-                instanceData[lodIdx]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
+                instanceData.Current[lodIdx]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
 
                 var mul = 1.875f; // fudge 1
                 var pow = 1.4f; // fudge 2
-                var texelWidth = instanceData[lodIdx]._geoGridWidth / _geometryDownSampleFactor;
-                instanceData[lodIdx]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
-                instanceData[lodIdx]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
+                var texelWidth = instanceData.Current[lodIdx]._geoGridWidth / _geometryDownSampleFactor;
+                instanceData.Current[lodIdx]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
+                instanceData.Current[lodIdx]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
             }
         }
 

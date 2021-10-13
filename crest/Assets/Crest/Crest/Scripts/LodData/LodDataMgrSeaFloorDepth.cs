@@ -8,16 +8,19 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsSeaFloorDepth;
+
     /// <summary>
-    /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
+    /// Data that gives depth of the ocean (height of sea level above ocean floor). Stores terrain height and water level
+    /// offset in x & y channels.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
-        public override string SimName { get { return "SeaFloorDepth"; } }
-        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16_SFloat;
-        protected override bool NeedToReadWriteTextureData { get { return false; } }
-        // We want the null colour to be the depth where wave attenuation begins (1000 metres)
-        readonly static Color s_nullColor = Color.red * 1000f;
+        public override string SimName => "SeaFloorDepth";
+        protected override GraphicsFormat RequestedTextureFormat => Settings._allowVaryingWaterLevel ? GraphicsFormat.R32G32_SFloat : GraphicsFormat.R16_SFloat;
+        protected override bool NeedToReadWriteTextureData => false;
+        // We want the clear colour to be the min terrain height (-1000m) in X, and sea level offset 0m in Y.
+        readonly static Color s_nullColor = Color.red * -1000f;
         static Texture2DArray s_nullTexture;
         protected override Texture2DArray NullTexture => s_nullTexture;
 
@@ -27,6 +30,9 @@ namespace Crest
         public const string FEATURE_TOGGLE_LABEL = "Create Sea Floor Depth Data";
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
+
+        public override SimSettingsBase SettingsBase => Settings;
+        public SettingsType Settings => _ocean._simSettingsSeaFloorDepth != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {

@@ -14,9 +14,9 @@ namespace Crest
     /// </summary>
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "UpdateFoam"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
-        public override string SimName { get { return "Foam"; } }
+        protected override string ShaderSim => "UpdateFoam";
+        protected override int krnl_ShaderSim => _shader.FindKernel(ShaderSim);
+        public override string SimName => "Foam";
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
@@ -65,6 +65,7 @@ namespace Crest
             simMaterial.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);
             simMaterial.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
+            simMaterial.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
 
             // assign animated waves - to slot 1 current frame data
             LodDataMgrAnimWaves.Bind(simMaterial);

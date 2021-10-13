@@ -2,7 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Draw cached depths into current frame ocean depth data
+// Draw cached terrain heights into current frame data
+
 Shader "Crest/Inputs/Depth/Cached Depths"
 {
 	Properties
@@ -14,10 +15,8 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 	{
 		Pass
 		{
-			// Min blending to take the min of all depths. Similar in spirit to zbuffer'd visibility when viewing from top down.
-			// To confuse matters further, ocean depth is now more like 'sea floor altitude' - a height above a deep water value,
-			// so values are increasing in Y and we need to take the MAX of all depths.
-			BlendOp Min
+			// When blending, take highest terrain height
+			BlendOp Max
 			ColorMask R
 
 			CGPROGRAM
@@ -52,9 +51,9 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 				return output;
 			}
 
-			half4 Frag(Varyings input) : SV_Target
+			float2 Frag(Varyings input) : SV_Target
 			{
-				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
+				return float2(tex2D(_MainTex, input.uv).x, 0.0);
 			}
 			ENDCG
 		}

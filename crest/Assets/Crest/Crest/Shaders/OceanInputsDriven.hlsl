@@ -57,7 +57,6 @@ Texture2DArray _LD_TexArray_Shadow;
 // shadowing for example.
 Texture2DArray _LD_TexArray_AnimatedWaves_Source;
 Texture2DArray _LD_TexArray_WaveBuffer_Source;
-Texture2DArray _LD_TexArray_SeaFloorDepth_Source;
 Texture2DArray _LD_TexArray_ClipSurface_Source;
 Texture2DArray _LD_TexArray_Foam_Source;
 Texture2DArray _LD_TexArray_Flow_Source;

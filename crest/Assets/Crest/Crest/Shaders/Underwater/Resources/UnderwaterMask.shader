@@ -40,9 +40,11 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma multi_compile_instancing
-
 			#include "UnityCG.cginc"
+
+			#include "../../Helpers/BIRP/Common.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
+			#include "../../FullScreenTriangle.hlsl"
 
 			#include "../UnderwaterMaskHorizonShared.hlsl"
 			ENDCG

@@ -14,10 +14,10 @@ namespace Crest
     /// </summary>
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "UpdateDynWaves"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
+        protected override string ShaderSim => "UpdateDynWaves";
+        protected override int krnl_ShaderSim => _shader.FindKernel(ShaderSim);
 
-        public override string SimName { get { return "DynamicWaves"; } }
+        public override string SimName => "DynamicWaves";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
@@ -29,7 +29,7 @@ namespace Crest
         public const string DYNWAVES_KEYWORD = "CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL";
 
         bool[] _active;
-        public bool SimActive(int lodIdx) { return _active[lodIdx]; }
+        public bool SimActive(int lodIdx) => _active[lodIdx];
 
         readonly int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
         readonly int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
@@ -92,6 +92,7 @@ namespace Crest
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
             simMaterial.SetFloat(sp_CourantNumber, Settings._courantNumber);
+            simMaterial.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.

@@ -13,12 +13,12 @@ namespace Crest.Spline
     }
 
     /// <summary>
-    /// Simple spline object. Spline points are child gameobjects.
+    /// Simple spline object. Spline points are child GameObjects.
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines-preview")]
-    public partial class Spline : MonoBehaviour
+    public partial class Spline : MonoBehaviour, ISplinePointCustomDataSetup
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -26,8 +26,17 @@ namespace Crest.Spline
         /// </summary>
         [SerializeField, HideInInspector]
 #pragma warning disable 414
-        int _version = 0;
+        int _version = 1;
 #pragma warning restore 414
+
+        public enum Offset
+        {
+            Left,
+            Center,
+            Right
+        }
+        [Tooltip("Where generated ribbon should lie relative to spline. If set to Center, ribbon is centered around spline.")]
+        public Offset _offset = Offset.Center;
 
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
@@ -36,12 +45,43 @@ namespace Crest.Spline
         float _radius = 20f;
         [SerializeField, Delayed]
         int _subdivisions = 1;
-        [SerializeField, Delayed]
-        int _smoothingIterations = 0;
 
         public float Radius => _radius;
         public int Subdivisions => _subdivisions;
-        public int SmoothingIterations => _smoothingIterations;
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (splinePoint.TryGetComponent<SplinePointData>(out _))
+            {
+                // Already added, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointData>();
+            return true;
+        }
+    }
+
+    // Version handling - perform data migration after data loaded.
+    public partial class Spline : ISerializationCallbackReceiver
+    {
+        public void OnBeforeSerialize()
+        {
+            // Intentionally left empty.
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Version 1 (2021.10.02)
+            // - Alignment added with default value different than old behaviour
+            if (_version == 0)
+            {
+                // Set alignment to Right to maintain old behaviour
+                _offset = Offset.Right;
+
+                _version = 1;
+            }
+        }
     }
 
 #if UNITY_EDITOR
@@ -175,6 +215,15 @@ namespace Crest.Spline
                     targetSpline.transform.GetChild(i).SetSiblingIndex(0);
                 }
             }
+
+            // Helpers to quickly attach ocean inputs
+            EditorGUILayout.Space();
+            GUILayout.Label("Add Feature", EditorStyles.boldLabel);
+            GUILayout.BeginHorizontal();
+            FeatureButton<RegisterHeightInput>("Set Height", targetSpline.gameObject);
+            FeatureButton<RegisterFlowInput>("Add Flow", targetSpline.gameObject);
+            FeatureButton<ShapeFFT>("Add Waves", targetSpline.gameObject);
+            GUILayout.EndHorizontal();
         }
 
         public static void ExtendSpline(Spline spline)
@@ -182,6 +231,23 @@ namespace Crest.Spline
             var newPoint = SplinePointEditor.AddSplinePointAfter(spline.transform);
 
             Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
+        }
+
+        static void FeatureButton<ComponentType>(string label, GameObject go) where ComponentType : Component
+        {
+            if (!go.TryGetComponent<ComponentType>(out _))
+            {
+                if (GUILayout.Button(label))
+                {
+                    Undo.AddComponent<ComponentType>(go);
+                }
+            }
+            else
+            {
+                GUI.enabled = false;
+                GUILayout.Button(label);
+                GUI.enabled = true;
+            }
         }
     }
 #endif

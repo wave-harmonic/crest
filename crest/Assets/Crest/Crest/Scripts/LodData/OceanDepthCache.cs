@@ -300,13 +300,6 @@ namespace Crest
                 _copyDepthMaterial = new Material(Shader.Find("Crest/Copy Depth Buffer Into Cache"));
             }
 
-            // Shader needs sea level to determine water depth. Ocean instance might not be available in prefabs.
-            var centerPoint = Vector3.zero;
-            centerPoint.y = OceanRenderer.Instance != null
-                ? OceanRenderer.Instance.Root.position.y : transform.position.y;
-
-            _copyDepthMaterial.SetVector("_OceanCenterPosWorld", centerPoint);
-
             _copyDepthMaterial.SetTexture("_CamDepthBuffer", _camDepthCache.targetTexture);
 
             // Zbuffer params
@@ -489,23 +482,6 @@ namespace Crest
             }
         }
 
-        void FixHeight(SerializedObject depthCache)
-        {
-            var dc = depthCache.targetObject as OceanDepthCache;
-
-            Undo.RecordObject(dc.transform, "Fix depth cache scale");
-            EditorUtility.SetDirty(dc.transform);
-
-            var pos = dc.transform.position;
-            pos.y = OceanRenderer.Instance.transform.position.y;
-            dc.transform.position = pos;
-
-            if (dc.Type == OceanDepthCacheType.Realtime)
-            {
-                dc.PopulateCache(true);
-            }
-        }
-
         void FixRotation(SerializedObject depthCache)
         {
             var dc = depthCache.targetObject as OceanDepthCache;
@@ -632,30 +608,6 @@ namespace Crest
                     $"Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.",
                     "Set the Y scale to 1.0.",
                     ValidatedHelper.MessageType.Error, this
-                );
-
-                isValid = false;
-            }
-
-            if (ocean == null)
-            {
-                showMessage
-                (
-                    "The <i>Ocean Depth Cache</i> uses the <i>Ocean Renderer</i> height which is not present. " +
-                    "The transform height will be used instead.",
-                    "", // Leave fix message blank as this could be a valid option.
-                    ValidatedHelper.MessageType.Info, this
-                );
-            }
-
-            if (ocean != null && ocean.Root != null && !Mathf.Approximately(transform.position.y, ocean.Root.position.y))
-            {
-                showMessage
-                (
-                    "It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level.",
-                    "Set the Y position to the same height as the ocean object.",
-                    ValidatedHelper.MessageType.Warning, this,
-                    FixHeight
                 );
 
                 isValid = false;

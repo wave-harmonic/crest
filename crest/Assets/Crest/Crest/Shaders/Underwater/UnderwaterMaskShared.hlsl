@@ -91,6 +91,21 @@ Varyings Vert(Attributes v)
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos, sss);
 	}
 
+	// Data that needs to be sampled at the displaced position.
+	half seaLevelOffset = 0.0;
+	if (wt_smallerLod > 0.0001)
+	{
+		const float3 uv_slice_smallerLodDisp = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
+		SampleSeaLevelOffset(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, seaLevelOffset);
+	}
+	if (wt_biggerLod > 0.0001)
+	{
+		const float3 uv_slice_biggerLodDisp = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
+		SampleSeaLevelOffset(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, seaLevelOffset);
+	}
+
+	worldPos.y += seaLevelOffset;
+
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
 	worldPos.xz -= _WorldSpaceCameraPos.xz;
 #endif

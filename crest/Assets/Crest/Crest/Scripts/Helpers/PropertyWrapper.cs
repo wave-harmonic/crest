@@ -30,7 +30,7 @@ namespace Crest
     [System.Serializable]
     public class PropertyWrapperMaterial : IPropertyWrapper
     {
-        public PropertyWrapperMaterial(Material target) { material = target; }
+        public PropertyWrapperMaterial(Material target) => material = target;
         public PropertyWrapperMaterial(Shader shader)
         {
             Debug.Assert(shader != null, "Crest: PropertyWrapperMaterial: Cannot create required material because shader is null");
@@ -49,28 +49,28 @@ namespace Crest
             };
         }
 
-        public void SetFloat(int param, float value) { material.SetFloat(param, value); }
-        public void SetFloatArray(int param, float[] value) { material.SetFloatArray(param, value); }
-        public void SetTexture(int param, Texture value) { material.SetTexture(param, value); }
-        public void SetBuffer(int param, ComputeBuffer value) { material.SetBuffer(param, value); }
-        public void SetVector(int param, Vector4 value) { material.SetVector(param, value); }
-        public void SetVectorArray(int param, Vector4[] value) { material.SetVectorArray(param, value); }
-        public void SetMatrix(int param, Matrix4x4 value) { material.SetMatrix(param, value); }
-        public void SetInt(int param, int value) { material.SetInt(param, value); }
+        public void SetFloat(int param, float value) => material.SetFloat(param, value);
+        public void SetFloatArray(int param, float[] value) => material.SetFloatArray(param, value);
+        public void SetTexture(int param, Texture value) => material.SetTexture(param, value);
+        public void SetBuffer(int param, ComputeBuffer value) => material.SetBuffer(param, value);
+        public void SetVector(int param, Vector4 value) => material.SetVector(param, value);
+        public void SetVectorArray(int param, Vector4[] value) => material.SetVectorArray(param, value);
+        public void SetMatrix(int param, Matrix4x4 value) => material.SetMatrix(param, value);
+        public void SetInt(int param, int value) => material.SetInt(param, value);
 
         public Material material { get; private set; }
     }
 
     public class PropertyWrapperMPB : IPropertyWrapper
     {
-        public PropertyWrapperMPB() { materialPropertyBlock = new MaterialPropertyBlock(); }
-        public void SetFloat(int param, float value) { materialPropertyBlock.SetFloat(param, value); }
-        public void SetFloatArray(int param, float[] value) { materialPropertyBlock.SetFloatArray(param, value); }
-        public void SetTexture(int param, Texture value) { materialPropertyBlock.SetTexture(param, value); }
-        public void SetVector(int param, Vector4 value) { materialPropertyBlock.SetVector(param, value); }
-        public void SetVectorArray(int param, Vector4[] value) { materialPropertyBlock.SetVectorArray(param, value); }
-        public void SetMatrix(int param, Matrix4x4 value) { materialPropertyBlock.SetMatrix(param, value); }
-        public void SetInt(int param, int value) { materialPropertyBlock.SetInt(param, value); }
+        public PropertyWrapperMPB() => materialPropertyBlock = new MaterialPropertyBlock();
+        public void SetFloat(int param, float value) => materialPropertyBlock.SetFloat(param, value);
+        public void SetFloatArray(int param, float[] value) => materialPropertyBlock.SetFloatArray(param, value);
+        public void SetTexture(int param, Texture value) => materialPropertyBlock.SetTexture(param, value);
+        public void SetVector(int param, Vector4 value) => materialPropertyBlock.SetVector(param, value);
+        public void SetVectorArray(int param, Vector4[] value) => materialPropertyBlock.SetVectorArray(param, value);
+        public void SetMatrix(int param, Matrix4x4 value) => materialPropertyBlock.SetMatrix(param, value);
+        public void SetInt(int param, int value) => materialPropertyBlock.SetInt(param, value);
 
         public MaterialPropertyBlock materialPropertyBlock { get; private set; }
     }
@@ -92,14 +92,14 @@ namespace Crest
             _computeKernel = computeKernel;
         }
 
-        public void SetFloat(int param, float value) { _commandBuffer.SetComputeFloatParam(_computeShader, param, value); }
-        public void SetFloatArray(int param, float[] value) { _commandBuffer.SetGlobalFloatArray(param, value); }
-        public void SetInt(int param, int value) { _commandBuffer.SetComputeIntParam(_computeShader, param, value); }
-        public void SetTexture(int param, Texture value) { _commandBuffer.SetComputeTextureParam(_computeShader, _computeKernel, param, value); }
-        public void SetBuffer(int param, ComputeBuffer value) { _commandBuffer.SetComputeBufferParam(_computeShader, _computeKernel, param, value); }
-        public void SetVector(int param, Vector4 value) { _commandBuffer.SetComputeVectorParam(_computeShader, param, value); }
-        public void SetVectorArray(int param, Vector4[] value) { _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value); }
-        public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
+        public void SetFloat(int param, float value) => _commandBuffer.SetComputeFloatParam(_computeShader, param, value);
+        public void SetFloatArray(int param, float[] value) => _commandBuffer.SetGlobalFloatArray(param, value);
+        public void SetInt(int param, int value) => _commandBuffer.SetComputeIntParam(_computeShader, param, value);
+        public void SetTexture(int param, Texture value) => _commandBuffer.SetComputeTextureParam(_computeShader, _computeKernel, param, value);
+        public void SetBuffer(int param, ComputeBuffer value) => _commandBuffer.SetComputeBufferParam(_computeShader, _computeKernel, param, value);
+        public void SetVector(int param, Vector4 value) => _commandBuffer.SetComputeVectorParam(_computeShader, param, value);
+        public void SetVectorArray(int param, Vector4[] value) => _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value);
+        public void SetMatrix(int param, Matrix4x4 value) => _commandBuffer.SetComputeMatrixParam(_computeShader, param, value);
     }
 
     [System.Serializable]
@@ -116,12 +116,12 @@ namespace Crest
             _computeKernel = computeKernel;
         }
 
-        public void SetFloat(int param, float value) { _computeShader.SetFloat(param, value); }
-        public void SetFloatArray(int param, float[] value) { _computeShader.SetFloats(param, value); }
-        public void SetInt(int param, int value) { _computeShader.SetInt(param, value); }
-        public void SetTexture(int param, Texture value) { _computeShader.SetTexture(_computeKernel, param, value); }
-        public void SetVector(int param, Vector4 value) { _computeShader.SetVector(param, value); }
-        public void SetVectorArray(int param, Vector4[] value) { _computeShader.SetVectorArray(param, value); }
-        public void SetMatrix(int param, Matrix4x4 value) { _computeShader.SetMatrix(param, value); }
+        public void SetFloat(int param, float value) => _computeShader.SetFloat(param, value);
+        public void SetFloatArray(int param, float[] value) => _computeShader.SetFloats(param, value);
+        public void SetInt(int param, int value) => _computeShader.SetInt(param, value);
+        public void SetTexture(int param, Texture value) => _computeShader.SetTexture(_computeKernel, param, value);
+        public void SetVector(int param, Vector4 value) => _computeShader.SetVector(param, value);
+        public void SetVectorArray(int param, Vector4[] value) => _computeShader.SetVectorArray(param, value);
+        public void SetMatrix(int param, Matrix4x4 value) => _computeShader.SetMatrix(param, value);
     }
 }

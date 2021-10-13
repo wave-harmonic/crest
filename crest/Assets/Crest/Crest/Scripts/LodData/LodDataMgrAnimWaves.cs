@@ -26,10 +26,10 @@ namespace Crest
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {
-        public override string SimName { get { return "AnimatedWaves"; } }
+        public override string SimName => "AnimatedWaves";
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
+        protected override bool NeedToReadWriteTextureData => true;
         public override int BufferCount => 2;
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
@@ -74,13 +74,6 @@ namespace Crest
         public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
         {
             Start();
-        }
-
-        internal override void Bind()
-        {
-            base.Bind();
-            // Bind sources for motion vectors.
-            Shader.SetGlobalTexture(GetParamIdSampler(true), _targets.Previous(1));
         }
 
         protected override void InitData()
@@ -262,6 +255,10 @@ namespace Crest
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
+
+            // Update current and previous. Latter for MVs and/or VFX.
+            Shader.SetGlobalTexture(GetParamIdSampler(true), _targets.Previous(1));
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
         }
 
         void CombinePassPingPong(CommandBuffer buf)
@@ -385,8 +382,6 @@ namespace Crest
         {
             properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveBuffers);
         }
-
-        // TODO theres probably a pop because this used to have its own BindData() function which probably handled the cross fade add the end of the cascade chain
 
         /// <summary>
         /// Returns index of lod that completely covers the sample area, and contains wavelengths that repeat no more than twice across the smaller

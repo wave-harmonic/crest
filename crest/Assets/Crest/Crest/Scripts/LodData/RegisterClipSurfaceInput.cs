@@ -53,6 +53,14 @@ namespace Crest
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         Primitive _primitive = Primitive.Cube;
 
+        [Tooltip("Order (ascending) that this input will be rendered into the clip surface data.")]
+        [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
+        int _order = 0;
+
+        [Tooltip("Removes clip surface data instead of adding it.")]
+        [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
+        bool _inverted = false;
+
         [Header("3D Clipping Options")]
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
@@ -75,12 +83,12 @@ namespace Crest
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
         static readonly int sp_SignedDistanceShapeMatrix = Shader.PropertyToID("_SignedDistanceShapeMatrix");
+        static readonly int sp_BlendOp = Shader.PropertyToID("_BlendOp");
 
         Material _signedDistancedMaterial;
         Primitive _activePrimitive;
 
         // For rendering signed distance shapes and gizmos.
-        static Mesh s_Quad;
         Matrix4x4 QuadMatrix
         {
             get
@@ -108,6 +116,20 @@ namespace Crest
 #if UNITY_EDITOR
             InitializeSignedDistanceMaterial();
 #endif
+        }
+
+        protected override bool GetQueue(out int queue)
+        {
+            // Support queue for primitives.
+            if (_mode == Mode.Primitive)
+            {
+                queue = _order;
+                return true;
+            }
+            else
+            {
+                return base.GetQueue(out queue);
+            }
         }
 
         void InitializeSignedDistanceMaterial()
@@ -155,18 +177,13 @@ namespace Crest
 
             if (_mode == Mode.Primitive)
             {
-                if (s_Quad == null)
-                {
-                    s_Quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-                }
-
                 // Need this here or will see NullReferenceException on recompile.
                 if (_mpb == null)
                 {
                     _mpb = new PropertyWrapperMPB();
                 }
 
-                buf.DrawMesh(s_Quad, QuadMatrix, _signedDistancedMaterial, submeshIndex: 0, shaderPass: 0, _mpb.materialPropertyBlock);
+                buf.DrawMesh(QuadMesh, QuadMatrix, _signedDistancedMaterial, submeshIndex: 0, shaderPass: 0, _mpb.materialPropertyBlock);
             }
             else
             {
@@ -214,6 +231,19 @@ namespace Crest
                 {
                     _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
                 }
+                else
+                {
+                    if (_inverted)
+                    {
+                        _signedDistancedMaterial.EnableKeyword("_INVERTED");
+                    }
+                    else
+                    {
+                        _signedDistancedMaterial.DisableKeyword("_INVERTED");
+                    }
+
+                    _signedDistancedMaterial.SetInt(sp_BlendOp, (int)(_inverted ? BlendOp.Min : BlendOp.Max));
+                }
 
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
@@ -258,14 +288,9 @@ namespace Crest
                 return;
             }
 
-            if (s_Quad == null)
-            {
-                s_Quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-            }
-
             // Show gizmo for quad which encompasses the shape.
             Gizmos.matrix = QuadMatrix;
-            Gizmos.DrawWireMesh(s_Quad);
+            Gizmos.DrawWireMesh(QuadMesh);
 
             Gizmos.matrix = transform.localToWorldMatrix;
 

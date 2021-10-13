@@ -10,7 +10,7 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Signed Distance"
 	{
 		ZWrite Off
 		ColorMask R
-		BlendOp Max
+		BlendOp [_BlendOp]
 
 		Pass
 		{
@@ -21,6 +21,7 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Signed Distance"
 			#pragma fragment Frag
 
 			#pragma multi_compile_local _SPHERE _CUBE
+			#pragma multi_compile_local _ _INVERTED
 
 			#include "UnityCG.cginc"
 			#include "../../OceanGlobals.hlsl"
@@ -83,13 +84,22 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Signed Distance"
 				// We only need the height as clip surface is sampled at the displaced position in the ocean shader.
 				positionWS.y += surfacePositionWS.y;
 
+				// The sea level is baked into the matrix but not the sea level offset.
+				float3 uv = WorldToUV(input.positionWS.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				half seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).y;
+				positionWS.y += seaLevelOffset;
+
 #if _CUBE
 				float signedDistance = signedDistanceBox(positionWS);
 #else
 				float signedDistance = signedDistanceSphere(positionWS);
 #endif
 
-				return float4(1.0 - signedDistance, 0.0, 0.0, 1.0);
+#if !_INVERTED
+				signedDistance = 1.0 - signedDistance;
+#endif
+
+				return float4(signedDistance, 0.0, 0.0, 1.0);
 			}
 			ENDCG
 		}

@@ -26,7 +26,7 @@ namespace Crest
 
         public T Current { get => _buffers[_currentFrameIndex]; set => _buffers[_currentFrameIndex] = value; }
 
-        public int Length => _buffers.Length;
+        public int Size => _buffers.Length;
 
         public T Previous(int framesBack)
         {

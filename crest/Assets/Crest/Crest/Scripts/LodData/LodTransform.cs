@@ -107,7 +107,7 @@ namespace Crest
                 _renderData[lodIdx].Current._maxWavelength = MaxWavelength(lodIdx);
 
                 // Detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness.
-                if (isFirstUpdate && _renderData[lodIdx].Length > 1)
+                if (isFirstUpdate && _renderData[lodIdx].Size > 1)
                 {
                     // We are writing to "Current" again. But it is okay since only once.
                     _renderData[lodIdx].RunLambda(buffer =>

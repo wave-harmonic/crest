@@ -1019,8 +1019,6 @@ namespace Crest
                 pos.z += 0.002f;
             }
 
-            Shader.SetGlobalVector("_OceanCenterPosWorldDelta", pos - Root.position);
-
             Root.position = pos;
 
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, Root.position);
@@ -1058,7 +1056,6 @@ namespace Crest
                 float ratio = newScale / Scale;
                 float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
                 Shader.SetGlobalFloat("_CrestLodChange", Mathf.RoundToInt(ratio_l2));
-                // Shader.SetGlobalFloat("_CrestScaleChange", newScale / Scale);
             }
 
             Scale = newScale;

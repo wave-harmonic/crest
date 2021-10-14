@@ -6,10 +6,10 @@
 #define CREST_OCEAN_VERT_HELPERS_H
 
 // i_meshScaleAlpha is passed in as it is provided per tile and is set only for LOD0
-float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha, in const CascadeParams i_cascadeData0, float3 i_oceanPositionWS)
+float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha, in const CascadeParams i_cascadeData0)
 {
 	// taxicab distance from ocean center drives LOD transitions
-	float2 offsetFromCenter = abs(float2(i_worldPos.x - i_oceanPositionWS.x, i_worldPos.z - i_oceanPositionWS.z));
+	float2 offsetFromCenter = abs(float2(i_worldPos.x - _OceanCenterPosWorld.x, i_worldPos.z - _OceanCenterPosWorld.z));
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)
@@ -33,11 +33,9 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha, in const Cascad
 
 void SnapAndTransitionVertLayout
 (
-	in const float4x4 i_matrix,
 	in const float i_meshScaleAlpha,
 	in const CascadeParams i_cascadeData0,
 	in const float i_geometryGridSize,
-	in const float3 i_oceanPositionWS,
 	inout float3 io_worldPos,
 	out float o_lodAlpha
 )
@@ -46,10 +44,10 @@ void SnapAndTransitionVertLayout
 
 	// snap the verts to the grid
 	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
-	io_worldPos.xz -= frac(i_matrix._m03_m23 / GRID_SIZE_2) * GRID_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
+	io_worldPos.xz -= frac(UNITY_MATRIX_M._m03_m23 / GRID_SIZE_2) * GRID_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
 
 	// compute lod transition alpha
-	o_lodAlpha = ComputeLodAlpha(io_worldPos, i_meshScaleAlpha, i_cascadeData0, i_oceanPositionWS);
+	o_lodAlpha = ComputeLodAlpha(io_worldPos, i_meshScaleAlpha, i_cascadeData0);
 
 	// now smoothly transition vert layouts between lod levels - move interior verts inwards towards center
 	float2 m = frac(io_worldPos.xz / GRID_SIZE_4); // this always returns positive

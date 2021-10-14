@@ -329,7 +329,7 @@ Shader "Crest/Ocean"
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
-				SnapAndTransitionVertLayout(UNITY_MATRIX_M, meshScaleLerp, cascadeData0, gridSize, _OceanCenterPosWorld, o.worldPos, lodAlpha);
+				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
 
 				{
 					// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
@@ -712,7 +712,7 @@ Shader "Crest/Ocean"
 			float4x4 _NonJitteredVP;
 			float4x4 _PreviousVP;
 #endif
-			float4x4 _PreviousM;
+			float4x4 _PreviousM; // NOTE: Populated but gave bad results. No idea why...
 			bool _HasLastPositionData; // NOTE: This was never used...
 			bool _ForceNoMotion;
 			float _MotionVectorDepthBias;
@@ -738,15 +738,11 @@ Shader "Crest/Ocean"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
-			float3 _OceanCenterPosWorldDelta;
-
 			float4 CalculateAnimation
 			(
 				const float3 i_positionOS,
-				const float4x4 i_matrix,
 				const float3 i_cameraPositionWS,
 				const Texture2DArray i_dispSampler,
-				const float3 i_oceanPositionWS,
 				int slice0,
 				int slice1,
 				CascadeParams cascadeData0,
@@ -755,16 +751,16 @@ Shader "Crest/Ocean"
 			)
 			{
 				// Move to world space
-				float3 worldPos = mul(i_matrix, float4(i_positionOS, 1.0));
+				float3 worldPos = mul(UNITY_MATRIX_M, float4(i_positionOS, 1.0));
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
-				SnapAndTransitionVertLayout(i_matrix, meshScaleLerp, cascadeData0, gridSize, i_oceanPositionWS, worldPos, lodAlpha);
+				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, worldPos, lodAlpha);
 
 				{
-					const float2 tileCenterXZ = i_matrix._m03_m23;
+					const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
 					const float2 cameraPositionXZ = abs(i_cameraPositionWS.xz);
 					worldPos.xz = lerp(tileCenterXZ, worldPos.xz, lerp(1.0, 1.01, max(cameraPositionXZ.x, cameraPositionXZ.y) * 0.00001));
 				}
@@ -807,10 +803,8 @@ Shader "Crest/Ocean"
 					float4 newPositionWS = CalculateAnimation
 					(
 						v.vertex,
-						UNITY_MATRIX_M,
 						_WorldSpaceCameraPos,
 						_LD_TexArray_AnimatedWaves,
-						_OceanCenterPosWorld,
 						slice0,
 						slice1,
 						cascadeData0,
@@ -840,11 +834,8 @@ Shader "Crest/Ocean"
 					float4 oldPositionWS = CalculateAnimation
 					(
 						v.vertex,
-						// TODO: This should be _PreviousM but glitched on movement every so often.
-						UNITY_MATRIX_M,
 						_WorldSpaceCameraPos,
 						_LD_TexArray_AnimatedWaves_Source,
-						_OceanCenterPosWorld,
 						slice0,
 						slice1,
 						cascadeData0,

@@ -24,6 +24,9 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#include "UnityCG.cginc"
 
+			#include "../../Helpers/BIRP/Core.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
+
 #if defined(_UNDERWATER_GEOMETRY_EFFECT_PLANE) || defined(_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL)
 			#define _UNDERWATER_GEOMETRY_EFFECT 1
 #endif
@@ -34,9 +37,6 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture);
 #endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 #endif // _UNDERWATER_GEOMETRY_EFFECT
-
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
-			float4 _CameraDepthTexture_TexelSize;
 
 			#include "../UnderwaterMaskShared.hlsl"
 			ENDCG
@@ -56,6 +56,12 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 
 			#pragma multi_compile_local _UNDERWATER_GEOMETRY_EFFECT_NONE _UNDERWATER_GEOMETRY_EFFECT_PLANE _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 
+			#include "UnityCG.cginc"
+
+			#include "../../Helpers/BIRP/Core.hlsl"
+			#include "../../Helpers/BIRP/InputsDriven.hlsl"
+			#include "../../FullScreenTriangle.hlsl"
+
 #if defined(_UNDERWATER_GEOMETRY_EFFECT_PLANE) || defined(_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL)
 			#define _UNDERWATER_GEOMETRY_EFFECT 1
 #endif
@@ -63,12 +69,6 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 #if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture);
 #endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
-
-			#include "UnityCG.cginc"
-
-			#include "../../Helpers/BIRP/Common.hlsl"
-			#include "../../Helpers/BIRP/InputsDriven.hlsl"
-			#include "../../FullScreenTriangle.hlsl"
 
 			#include "../UnderwaterMaskHorizonShared.hlsl"
 			ENDCG

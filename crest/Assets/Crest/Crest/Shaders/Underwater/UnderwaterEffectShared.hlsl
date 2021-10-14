@@ -9,8 +9,6 @@ half3 _AmbientLighting;
 half _DataSliceOffset;
 float2 _HorizonNormal;
 
-float4 _CrestOceanMaskDepthTexture_TexelSize;
-
 float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, const float mask, const float3 sceneColour)
 {
 	if (isOceanSurface)
@@ -23,59 +21,38 @@ float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, 
 	}
 }
 
-float MeniscusSampleOceanMask(const float mask, const float2 uvScreenSpace, const float2 offset, const half magnitude)
+float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const float2 offset, const half magnitude)
 {
-	float2 uv = uvScreenSpace + offset * magnitude;
-	float newMask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uv).r;
+	float2 uv = positionSS + offset * magnitude;
+	float newMask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, uv).r;
 #if _GEOMETRY_EFFECT
 	return (newMask == UNDERWATER_MASK_NONE ? mask : newMask);
 #endif
 	return newMask;
 }
 
-half ComputeMeniscusWeight(const float2 uvScreenSpace, const float mask, const float2 horizonNormal, const float sceneZ)
+half ComputeMeniscusWeight(const int2 positionSS, const float mask, const float2 horizonNormal, const float sceneZ)
 {
 	float weight = 1.0;
 #if CREST_MENISCUS
 #if !_FULL_SCREEN_EFFECT
 	// Render meniscus by checking the mask along the horizon normal which is flipped using the surface normal from
 	// mask. Adding the mask value will flip the UV when mask is below surface.
-	float2 offset = float2(-1.0 + mask, -1.0 + mask) * horizonNormal / length(_ScreenParams.xy * horizonNormal);
+	float2 offset = float2(-1.0 + mask, -1.0 + mask) * horizonNormal;
 	float multiplier = 0.9;
 
 	// Sample three pixels along the normal. If the sample is different than the current mask, apply meniscus.
-	weight *= (MeniscusSampleOceanMask(mask, uvScreenSpace, offset, 1.0) != mask) ? multiplier : 1.0;
-	weight *= (MeniscusSampleOceanMask(mask, uvScreenSpace, offset, 2.0) != mask) ? multiplier : 1.0;
-	weight *= (MeniscusSampleOceanMask(mask, uvScreenSpace, offset, 3.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 1.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 2.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 3.0) != mask) ? multiplier : 1.0;
 #endif // _FULL_SCREEN_EFFECT
 #endif // CREST_MENISCUS
 	return weight;
 }
 
-#if defined(UNITY_SAMPLE_SCREENSPACE_TEXTURE)
-float CrestMultiSampleOceanDepth(const float i_rawDepth, const float2 i_positionNDC)
-{
-	float rawDepth = i_rawDepth;
-
-	if (_CrestDepthTextureOffset > 0)
-	{
-		// We could use screen size instead.
-		float2 texelSize = _CrestOceanMaskDepthTexture_TexelSize.xy;
-		int3 offset = int3(-_CrestDepthTextureOffset, 0, _CrestDepthTextureOffset);
-
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.xy * texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.yx * texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.yz * texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, i_positionNDC + offset.zy * texelSize));
-	}
-
-	return rawDepth;
-}
-#endif
-
 void GetOceanSurfaceAndUnderwaterData
 (
-	const float2 positionNDC,
+	const int2 positionSS,
 	const float rawOceanDepth,
 	const float mask,
 	inout float rawDepth,
@@ -92,11 +69,11 @@ void GetOceanSurfaceAndUnderwaterData
 	if (isOceanSurface)
 	{
 		rawDepth = rawOceanDepth;
-		sceneZ = CrestLinearEyeDepth(CrestMultiSampleOceanDepth(rawDepth, positionNDC));
+		sceneZ = CrestLinearEyeDepth(CREST_MULTILOAD_DEPTH(_CrestOceanMaskDepthTexture, positionSS, rawDepth));
 	}
 	else
 	{
-		sceneZ = CrestLinearEyeDepth(CrestMultiSampleSceneDepth(rawDepth, positionNDC));
+		sceneZ = CrestLinearEyeDepth(CREST_MULTILOAD_SCENE_DEPTH(positionSS, rawDepth));
 	}
 }
 

@@ -214,13 +214,5 @@ namespace Crest
             // Unbind from all graphics shaders (not compute)
             Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);
         }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
-            sp_LODChange = Shader.PropertyToID("_LODChange");
-        }
     }
 }

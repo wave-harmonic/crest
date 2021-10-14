@@ -10,13 +10,15 @@
 /////////////////////////////
 // Samplers
 
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
+TEXTURE2D_X(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
 UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
 
 float4 _CameraDepthTexture_TexelSize;
 
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture);
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture);
+TEXTURE2D_X(_CrestWaterBoundaryGeometryOuterTexture);
+SAMPLER(sampler_CrestWaterBoundaryGeometryOuterTexture);
+TEXTURE2D_X(_CrestWaterBoundaryGeometryInnerTexture);
+SAMPLER(sampler_CrestWaterBoundaryGeometryInnerTexture);
 
 // NOTE: _Normals is used outside of _APPLYNORMALMAPPING_ON so we cannot surround it here.
 sampler2D _Normals;

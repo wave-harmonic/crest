@@ -157,7 +157,6 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             s_registrar.Clear();
-            sp_Weight = Shader.PropertyToID("_Weight");
         }
 
         static Mesh s_Quad;

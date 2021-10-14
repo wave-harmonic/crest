@@ -274,6 +274,9 @@ Shader "Crest/Ocean"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
+			#include "Helpers/BIRP/Core.hlsl"
+			#include "Helpers/BIRP/InputsDriven.hlsl"
+
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
 			#include "OceanShaderData.hlsl"
@@ -471,7 +474,7 @@ Shader "Crest/Ocean"
 				{
 #if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 					// Discard ocean after boundary or when not on pixel.
-					float rawClipSurfaceBackZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, uvDepth).x;
+					float rawClipSurfaceBackZ = SAMPLE_TEXTURE2D_X(_CrestWaterBoundaryGeometryInnerTexture, sampler_CrestWaterBoundaryGeometryInnerTexture, uvDepth).x;
 					if (rawClipSurfaceBackZ == 0 || rawClipSurfaceBackZ > input.positionCS.z)
 					{
 						discard;
@@ -479,7 +482,7 @@ Shader "Crest/Ocean"
 #endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
 
 					// Discard ocean before boundary.
-					float rawClipSurfaceFrontZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, uvDepth).x;
+					float rawClipSurfaceFrontZ = SAMPLE_TEXTURE2D_X(_CrestWaterBoundaryGeometryOuterTexture, sampler_CrestWaterBoundaryGeometryOuterTexture, uvDepth).x;
 					if (rawClipSurfaceFrontZ > 0 && rawClipSurfaceFrontZ < input.positionCS.z)
 					{
 						discard;
@@ -522,7 +525,7 @@ Shader "Crest/Ocean"
 				// water surface depth, and underlying scene opaque surface depth
 				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
-				float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvDepth);
+				float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepth);
 				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
@@ -666,7 +669,7 @@ Shader "Crest/Ocean"
 				// Soften reflection at intersections with objects/surfaces
 				#if _TRANSPARENCY_ON
 				// Above water depth outline is handled in OceanEmission.
-				sceneZ = (underwater ? CrestLinearEyeDepth(CrestMultiSampleSceneDepth(rawDepth, uvDepth)) : sceneZ);
+				sceneZ = (underwater ? CrestLinearEyeDepth(CREST_MULTISAMPLE_SCENE_DEPTH(uvDepth, rawDepth)) : sceneZ);
 				float reflAlpha = saturate((sceneZ  - pixelZ) / 0.2);
 				#else
 				// This addresses the problem where screenspace depth doesnt work in VR, and so neither will this. In VR people currently

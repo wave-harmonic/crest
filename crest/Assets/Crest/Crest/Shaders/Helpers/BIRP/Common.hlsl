@@ -5,6 +5,23 @@
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
+// Add "real" alias for "fixed". Helps with including files downstream.
+
+#define real fixed
+#define real2 fixed2
+#define real3 fixed3
+#define real4 fixed4
+
+// Commented lines have no "fixed" equivalent.
+
+#define real2x2 fixed2x2
+// #define real2x3 fixed2x3
+// #define real2x4 fixed2x4
+// #define real3x2 fixed3x2
+#define real3x3 fixed3x3
+// #define real3x4 fixed3x4
+// #define real4x3 fixed4x3
+#define real4x4 fixed4x4
 
 //
 // MACROS

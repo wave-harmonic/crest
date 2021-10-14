@@ -30,7 +30,7 @@ namespace Crest
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData => true;
-        public override int BufferCount => 2;
+        public override int BufferCount => Settings._bufferCount;
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
@@ -256,9 +256,12 @@ namespace Crest
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
 
-            // Update current and previous. Latter for MVs and/or VFX.
-            Shader.SetGlobalTexture(GetParamIdSampler(true), _targets.Previous(1));
-            Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
+            if (BufferCount > 1)
+            {
+                // Update current and previous. Latter for MVs and/or VFX.
+                Shader.SetGlobalTexture(GetParamIdSampler(true), _targets.Previous(1));
+                Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
+            }
         }
 
         void CombinePassPingPong(CommandBuffer buf)

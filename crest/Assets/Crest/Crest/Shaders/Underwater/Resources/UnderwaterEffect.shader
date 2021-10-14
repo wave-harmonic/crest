@@ -28,7 +28,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	#include "UnityCG.cginc"
 	#include "Lighting.cginc"
 
-	#include "../../Helpers/BIRP/Common.hlsl"
+	#include "../../Helpers/BIRP/Core.hlsl"
 	#include "../../Helpers/BIRP/InputsDriven.hlsl"
 
 	#include "../../OceanGlobals.hlsl"
@@ -39,9 +39,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	#include "../../FullScreenTriangle.hlsl"
 	#include "../../OceanEmission.hlsl"
 
-	UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture);
-	UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
-	UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
+	TEXTURE2D_X(_CrestCameraColorTexture);
+	TEXTURE2D_X(_CrestOceanMaskTexture);
+	TEXTURE2D_X(_CrestOceanMaskDepthTexture);
 
 	#include "../UnderwaterEffectShared.hlsl"
 
@@ -77,16 +77,16 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		// We need this when sampling a screenspace texture.
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-		const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
-		half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
-		float rawDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
-		const float mask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace).x;
-		const float rawOceanDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
+		const int2 positionSS = input.positionCS.xy;
+		half3 sceneColour = LOAD_TEXTURE2D_X(_CrestCameraColorTexture, positionSS).rgb;
+		float rawDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+		const float mask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, positionSS).r;
+		const float rawOceanDepth = LOAD_TEXTURE2D_X(_CrestOceanMaskDepthTexture, positionSS).r;
 
 		bool isOceanSurface; bool isUnderwater; float sceneZ;
-		GetOceanSurfaceAndUnderwaterData(uvScreenSpace, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
-		float wt = ComputeMeniscusWeight(uvScreenSpace, mask, _HorizonNormal, sceneZ);
+		float wt = ComputeMeniscusWeight(positionSS, mask, _HorizonNormal, sceneZ);
 
 #if _DEBUG_VIEW_OCEAN_MASK
 		return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);
@@ -96,7 +96,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		{
 			// Position needs to be reconstructed in the fragment shader to avoid precision issues as per
 			// Unity's lead. Fixes caustics stuttering when far from zero.
-			const float3 positionWS = ComputeWorldSpacePosition(uvScreenSpace, rawDepth, UNITY_MATRIX_I_VP);
+			const float3 positionWS = ComputeWorldSpacePosition(input.uv, rawDepth, UNITY_MATRIX_I_VP);
 			const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
 			float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
 			const float3 lightDir = _WorldSpaceLightPos0.xyz;

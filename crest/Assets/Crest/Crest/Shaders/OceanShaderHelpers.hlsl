@@ -7,6 +7,10 @@
 #ifndef CREST_OCEAN_SHADER_HELPERS_H
 #define CREST_OCEAN_SHADER_HELPERS_H
 
+// Unity does not define these.
+#define SAMPLE_DEPTH_TEXTURE_X(textureName, samplerName, coord2) SAMPLE_TEXTURE2D_X(textureName, samplerName, coord2).r
+#define SAMPLE_DEPTH_TEXTURE_LOD_X(textureName, samplerName, coord2, lod) SAMPLE_TEXTURE2D_LOD_X(textureName, samplerName, coord2, lod).r
+
 // Sample depth macros for all pipelines. Use macros as HDRP depth is a mipchain which can change according to:
 // com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl
 #if defined(SHADERGRAPH_SAMPLE_SCENE_DEPTH)
@@ -77,10 +81,10 @@ float CrestMultiSampleDepth
 	{
 		float2 texelSize = i_texelSize.xy;
 		int3 offset = int3(-i_offset, 0, i_offset);
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.xy * i_texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.yx * i_texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.yz * i_texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.zy * i_texelSize));
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.xy * i_texelSize).r);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.yx * i_texelSize).r);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.yz * i_texelSize).r);
+		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_TEXTURE2D_X(i_texture, i_sampler, i_positionNDC + offset.zy * i_texelSize).r);
 	}
 
 	return rawDepth;

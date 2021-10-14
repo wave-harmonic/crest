@@ -842,10 +842,9 @@ Shader "Crest/Ocean"
 						v.vertex,
 						// TODO: This should be _PreviousM but glitched on movement every so often.
 						UNITY_MATRIX_M,
-						// TODO: Won't be correct if Viewpoint is not camera. Probably should change _WorldSpaceCameraPos to _OceanCenterPosWorld
-						_WorldSpaceCameraPos - _OceanCenterPosWorldDelta,
+						_WorldSpaceCameraPos,
 						_LD_TexArray_AnimatedWaves_Source,
-						_OceanCenterPosWorld - _OceanCenterPosWorldDelta,
+						_OceanCenterPosWorld,
 						slice0,
 						slice1,
 						cascadeData0,

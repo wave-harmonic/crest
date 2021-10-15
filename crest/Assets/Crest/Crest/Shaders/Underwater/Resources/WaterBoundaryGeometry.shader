@@ -37,7 +37,7 @@ Shader "Crest/Hidden/Water Boundary Geometry"
 
 		Pass
 		{
-			Name "Outer Boundary"
+			Name "Boundary Front Faces"
 			Cull Back
 
 			CGPROGRAM
@@ -46,7 +46,7 @@ Shader "Crest/Hidden/Water Boundary Geometry"
 
 		Pass
 		{
-			Name "Inner Boundary"
+			Name "Boundary Back Faces"
 			Cull Front
 
 			CGPROGRAM

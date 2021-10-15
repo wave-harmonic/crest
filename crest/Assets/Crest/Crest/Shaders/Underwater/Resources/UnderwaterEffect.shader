@@ -109,20 +109,20 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 #if CREST_BOUNDARY_VOLUME
 		rawGeometryDepth = input.positionCS.z;
 #elif CREST_BOUNDARY_3D
-		rawGeometryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryInnerTexture, positionSS).r;
+		rawGeometryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, positionSS).r;
 #endif
 
 		bool isOceanSurface; bool isUnderwater; float sceneZ;
 		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, rawGeometryDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
 #if CREST_BOUNDARY_VOLUME
-		const float frontFaceBoundaryDepth01 = LOAD_TEXTURE2D_X(_CrestWaterBoundaryGeometryOuterTexture, positionSS).r;
+		const float rawFrontFaceBoundaryDepth = LOAD_TEXTURE2D_X(_CrestWaterBoundaryGeometryFrontFaceTexture, positionSS).r;
 		bool isBeforeFrontFaceBoundary = false;
 
-		if (frontFaceBoundaryDepth01 != 0)
+		if (rawFrontFaceBoundaryDepth != 0)
 		{
 			// Scene is before front face boundary.
-			if (rawDepth > frontFaceBoundaryDepth01)
+			if (rawDepth > rawFrontFaceBoundaryDepth)
 			{
 				// Bail early to avoid meniscus.
 				return float4(sceneColour, 1.0);
@@ -151,7 +151,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 #if CREST_BOUNDARY_VOLUME
 			if (isBeforeFrontFaceBoundary)
 			{
-				sceneZ -= CrestLinearEyeDepth(frontFaceBoundaryDepth01);
+				sceneZ -= CrestLinearEyeDepth(rawFrontFaceBoundaryDepth);
 			}
 #elif CREST_BOUNDARY_IS_FRONTFACE
 			sceneZ -= CrestLinearEyeDepth(input.positionCS.z);

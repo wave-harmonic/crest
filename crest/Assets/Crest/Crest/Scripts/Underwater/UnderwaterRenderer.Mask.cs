@@ -13,13 +13,13 @@ namespace Crest
         internal const string SHADER_OCEAN_MASK = "Hidden/Crest/Underwater/Ocean Mask";
         internal const int k_ShaderPassOceanSurfaceMask = 0;
         internal const int k_ShaderPassOceanHorizonMask = 1;
-        internal const int k_ShaderPassWaterBoundaryOuter = 0;
-        internal const int k_ShaderPassWaterBoundaryInner = 1;
+        internal const int k_ShaderPassWaterBoundaryFrontFace = 0;
+        internal const int k_ShaderPassWaterBoundaryBackFace = 1;
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
-        public static readonly int sp_CrestWaterBoundaryGeometryOuterTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryOuterTexture");
-        public static readonly int sp_CrestWaterBoundaryGeometryInnerTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryInnerTexture");
+        public static readonly int sp_CrestWaterBoundaryGeometryFrontFaceTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryFrontFaceTexture");
+        public static readonly int sp_CrestWaterBoundaryGeometryBackFaceTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryBackFaceTexture");
         public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
 
         internal Plane[] _cameraFrustumPlanes;
@@ -30,8 +30,8 @@ namespace Crest
 
         CommandBuffer _boundaryCommandBuffer;
         Material _boundaryMaterial = null;
-        RenderTexture _boundaryInnerTexture;
-        RenderTexture _boundaryOuterTexture;
+        RenderTexture _boundaryBackFaceTexture;
+        RenderTexture _boundaryFrontFaceTexture;
 
         void SetupOceanMask()
         {
@@ -85,10 +85,10 @@ namespace Crest
                 _boundaryCommandBuffer.Clear();
                 _boundaryCommandBuffer.SetViewProjectionMatrices(_camera.worldToCameraMatrix, _camera.projectionMatrix);
 
-                // Outer boundary.
-                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryInnerTexture, "Outer");
-                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryOuterTexture, _boundaryInnerTexture.depthBuffer);
-                _boundaryCommandBuffer.SetRenderTarget(_boundaryInnerTexture.depthBuffer);
+                // Front faces.
+                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryBackFaceTexture, "Front Face");
+                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryFrontFaceTexture, _boundaryBackFaceTexture.depthBuffer);
+                _boundaryCommandBuffer.SetRenderTarget(_boundaryBackFaceTexture.depthBuffer);
                 _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
                 _boundaryCommandBuffer.DrawMesh
                 (
@@ -96,13 +96,13 @@ namespace Crest
                     _waterVolumeBoundaryGeometry.transform.localToWorldMatrix,
                     _boundaryMaterial,
                     submeshIndex: 0,
-                    k_ShaderPassWaterBoundaryOuter
+                    k_ShaderPassWaterBoundaryFrontFace
                 );
 
-                // Inner boundary.
-                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryOuterTexture, "Inner");
-                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryInnerTexture, _boundaryOuterTexture.depthBuffer);
-                _boundaryCommandBuffer.SetRenderTarget(_boundaryOuterTexture.depthBuffer);
+                // Back faces.
+                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryFrontFaceTexture, "Back Face");
+                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryBackFaceTexture, _boundaryFrontFaceTexture.depthBuffer);
+                _boundaryCommandBuffer.SetRenderTarget(_boundaryFrontFaceTexture.depthBuffer);
                 _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.white * 0.5f); // TODO: 0.5 is no mask
                 _boundaryCommandBuffer.DrawMesh
                 (
@@ -110,7 +110,7 @@ namespace Crest
                     _waterVolumeBoundaryGeometry.transform.localToWorldMatrix,
                     _boundaryMaterial,
                     submeshIndex: 0,
-                    k_ShaderPassWaterBoundaryInner
+                    k_ShaderPassWaterBoundaryBackFace
                 );
 
                 switch (_mode)

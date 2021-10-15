@@ -103,7 +103,7 @@ namespace Crest
                 InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryFrontFaceTexture, "Back Face");
                 _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryBackFaceTexture, _boundaryFrontFaceTexture.depthBuffer);
                 _boundaryCommandBuffer.SetRenderTarget(_boundaryFrontFaceTexture.depthBuffer);
-                _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.white * 0.5f); // TODO: 0.5 is no mask
+                _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
                 _boundaryCommandBuffer.DrawMesh
                 (
                     _waterVolumeBoundaryGeometry.mesh,
@@ -133,7 +133,7 @@ namespace Crest
             _oceanMaskCommandBuffer.Clear();
             // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
             _oceanMaskCommandBuffer.SetRenderTarget(_maskTexture.colorBuffer, _depthTexture.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
-            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.black);
+            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.white * 0.5f);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTexture.colorBuffer);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTexture.depthBuffer);
 

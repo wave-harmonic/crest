@@ -67,11 +67,14 @@ void GetOceanSurfaceAndUnderwaterData
 	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
 
 #if CREST_BOUNDARY_HAS_BACKFACE
-	if (rawDepth < rawGeometryDepth)
+	if (rawDepth < rawGeometryDepth && rawOceanDepth < rawGeometryDepth)
 	{
 		// Cancels out caustics.
 		isOceanSurface = true;
 		rawDepth = rawGeometryDepth;
+		// No need to multi-sample.
+		sceneZ = CrestLinearEyeDepth(rawDepth);
+		return;
 	}
 #endif
 

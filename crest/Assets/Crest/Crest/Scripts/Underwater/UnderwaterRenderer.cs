@@ -34,6 +34,18 @@ namespace Crest
         internal const string k_KeywordBoundaryVolume = "CREST_BOUNDARY_VOLUME";
         internal const string k_KeywordBoundaryHasBackFace = "CREST_BOUNDARY_HAS_BACKFACE";
 
+        public enum Mode
+        {
+            FullScreen,
+            Geometry2D,
+            Geometry3D,
+            GeometryVolume,
+        }
+
+        [SerializeField]
+        [Tooltip("Rendering mode of the ocean and underwater effect.")]
+        internal Mode _mode;
+
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
         // data in/out), as more filtering was better in testing.
@@ -46,24 +58,11 @@ namespace Crest
         internal bool _meniscus = true;
         public bool IsMeniscusEnabled => _meniscus;
 
-        public enum Mode
-        {
-            FullScreen,
-            Geometry2D,
-            Geometry3D,
-            GeometryVolume,
-        }
-
-        [SerializeField]
-        internal Mode _mode;
 
         [Header("Geometry")]
 
         [SerializeField, Predicated("_mode", inverted: false, Mode.FullScreen), DecoratedField]
         internal MeshFilter _waterVolumeBoundaryGeometry;
-
-        [SerializeField]
-        internal bool _isConvexHull = false;
 
 
         [Header("Advanced")]

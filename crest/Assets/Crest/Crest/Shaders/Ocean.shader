@@ -470,23 +470,23 @@ Shader "Crest/Ocean"
 				{
 #if CREST_BOUNDARY_HAS_BACKFACE
 					// Discard ocean after boundary or when not on pixel.
-					float rawClipSurfaceBackZ = SAMPLE_TEXTURE2D_X(_CrestWaterBoundaryGeometryBackFaceTexture, sampler_CrestWaterBoundaryGeometryBackFaceTexture, uvDepth).x;
-					if (rawClipSurfaceBackZ == 0 || rawClipSurfaceBackZ > input.positionCS.z)
+					float rawBackFaceBoundaryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, input.positionCS.xy);
+					if (rawBackFaceBoundaryDepth == 0.0 || rawBackFaceBoundaryDepth > input.positionCS.z)
 					{
 						discard;
 					}
 #endif // CREST_BOUNDARY_VOLUME
 
 					// Discard ocean before boundary.
-					float rawClipSurfaceFrontZ = SAMPLE_TEXTURE2D_X(_CrestWaterBoundaryGeometryFrontFaceTexture, sampler_CrestWaterBoundaryGeometryFrontFaceTexture, uvDepth).x;
-					if (rawClipSurfaceFrontZ > 0 && rawClipSurfaceFrontZ < input.positionCS.z)
+					float rawFrontFaceBoundaryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryFrontFaceTexture, input.positionCS.xy);
+					if (rawFrontFaceBoundaryDepth > 0.0 && rawFrontFaceBoundaryDepth < input.positionCS.z)
 					{
 						discard;
 					}
 
 #if CREST_BOUNDARY_2D
 					// Discard ocean when plane is not in view.
-					if (rawClipSurfaceFrontZ == 0.0)
+					if (rawFrontFaceBoundaryDepth == 0.0)
 					{
 						discard;
 					}

@@ -9,10 +9,11 @@
 
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
+#include "../OceanShaderHelpers.hlsl"
 
 #if CREST_BOUNDARY_HAS_BACKFACE
 TEXTURE2D_X(_CrestWaterBoundaryGeometryBackFaceTexture);
-#endif // CREST_BOUNDARY_HAS_BACKFACE
+#endif
 
 // Driven by scripting. It is a non-linear converted from a linear 0-1 value.
 float _FarPlaneOffset;
@@ -48,12 +49,12 @@ half4 Frag(Varyings input) : SV_Target
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if CREST_BOUNDARY_HAS_BACKFACE
-	if (LOAD_TEXTURE2D_X(_CrestWaterBoundaryGeometryBackFaceTexture, input.positionCS.xy).x == 0.0)
+	if (LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, input.positionCS.xy) == 0.0)
 	{
 		// We need mask none for the meniscus. Otherwise, it will appear at geometry edges.
-		return (half4) UNDERWATER_MASK_NONE;
+		discard;
 	}
-#endif
+#endif // CREST_BOUNDARY_HAS_BACKFACE
 
 	float3 positionWS = ComputeWorldSpacePosition(input.uv, _FarPlaneOffset, UNITY_MATRIX_I_VP);
 	return (half4) positionWS.y > _OceanCenterPosWorld.y

@@ -109,17 +109,17 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 #if CREST_BOUNDARY_VOLUME
 		rawGeometryDepth = input.positionCS.z;
 #elif CREST_BOUNDARY_3D
-		rawGeometryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, positionSS).r;
+		rawGeometryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, positionSS);
 #endif
 
 		bool isOceanSurface; bool isUnderwater; float sceneZ;
 		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, rawGeometryDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
 #if CREST_BOUNDARY_VOLUME
-		const float rawFrontFaceBoundaryDepth = LOAD_TEXTURE2D_X(_CrestWaterBoundaryGeometryFrontFaceTexture, positionSS).r;
+		const float rawFrontFaceBoundaryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryFrontFaceTexture, positionSS);
 		bool isBeforeFrontFaceBoundary = false;
 
-		if (rawFrontFaceBoundaryDepth != 0)
+		if (rawFrontFaceBoundaryDepth != 0.0)
 		{
 			// Scene is before front face boundary.
 			if (rawDepth > rawFrontFaceBoundaryDepth)

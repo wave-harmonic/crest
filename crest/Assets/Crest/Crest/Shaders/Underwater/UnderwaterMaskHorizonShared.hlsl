@@ -10,6 +10,10 @@
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 
+#if CREST_BOUNDARY_HAS_BACKFACE
+TEXTURE2D_X(_CrestWaterBoundaryGeometryInnerTexture);
+#endif // CREST_BOUNDARY_HAS_BACKFACE
+
 // Driven by scripting. It is a non-linear converted from a linear 0-1 value.
 float _FarPlaneOffset;
 
@@ -43,8 +47,8 @@ half4 Frag(Varyings input) : SV_Target
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if _UNDERWATER_GEOMETRY_EFFECT_VOLUME
-	if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, input.uv).x == 0.0)
+#if CREST_BOUNDARY_HAS_BACKFACE
+	if (LOAD_TEXTURE2D_X(_CrestWaterBoundaryGeometryInnerTexture, input.positionCS.xy).x == 0.0)
 	{
 		// We need mask none for the meniscus. Otherwise, it will appear at geometry edges.
 		return (half4) UNDERWATER_MASK_NONE;

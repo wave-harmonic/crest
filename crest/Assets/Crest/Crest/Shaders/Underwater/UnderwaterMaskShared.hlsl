@@ -12,6 +12,13 @@
 #include "../OceanVertHelpers.hlsl"
 #include "../OceanShaderHelpers.hlsl"
 
+#if CREST_BOUNDARY
+TEXTURE2D_X(_CrestWaterBoundaryGeometryOuterTexture);
+#if CREST_BOUNDARY_HAS_BACKFACE
+TEXTURE2D_X(_CrestWaterBoundaryGeometryInnerTexture);
+#endif // CREST_BOUNDARY_HAS_BACKFACE
+#endif // CREST_BOUNDARY
+
 struct Attributes
 {
 	// The old unity macros require this name and type.
@@ -22,9 +29,6 @@ struct Attributes
 struct Varyings
 {
 	float4 positionCS : SV_POSITION;
-#if _UNDERWATER_GEOMETRY_EFFECT
-	float3 screenPosition : TEXCOORD0;
-#endif
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -114,34 +118,30 @@ Varyings Vert(Attributes v)
 #endif
 
 	output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
-#if _UNDERWATER_GEOMETRY_EFFECT
-	output.screenPosition = ComputeScreenPos(output.positionCS).xyw;
-#endif
 
 	return output;
 }
 
 half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 {
-#if _UNDERWATER_GEOMETRY_EFFECT
+#if CREST_BOUNDARY
 	{
-		half2 screenUV = input.screenPosition.xy / input.screenPosition.z;
-#if _UNDERWATER_GEOMETRY_EFFECT_VOLUME
+#if CREST_BOUNDARY_HAS_BACKFACE
 		// If no geometry in view, do not render otherwise meniscus will appear at edges.
-		if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, screenUV).x == 0)
+		if (LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryInnerTexture, input.positionCS.xy).x == 0)
 		{
 			discard;
 		}
-#endif // _UNDERWATER_GEOMETRY_EFFECT_VOLUME
+#endif // CREST_BOUNDARY_HAS_BACKFACE
 
 		// Discard any pixels in front of the boundary geometry otherwise the mask will be incorrect at eye level.
-		float rawOuterZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, screenUV).x;
+		float rawOuterZ = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryOuterTexture, input.positionCS.xy).x;
 		if (rawOuterZ > 0 && rawOuterZ < input.positionCS.z)
 		{
 			discard;
 		}
 	}
-#endif // _UNDERWATER_GEOMETRY_EFFECT
+#endif // CREST_BOUNDARY
 
 	// @MSAAOutlineFix:
 	// The edge of the ocean surface at the near plane will be MSAA'd leaving a noticeable edge. By rendering the mask

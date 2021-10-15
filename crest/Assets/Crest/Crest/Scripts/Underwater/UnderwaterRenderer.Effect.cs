@@ -98,10 +98,11 @@ namespace Crest
             // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
             // to disable all keywords from a set first.
             // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
-            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_2D");
-            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_VOLUME");
+            _underwaterEffectMaterial.material.DisableKeyword(k_KeywordBoundary2D);
+            _underwaterEffectMaterial.material.DisableKeyword(k_KeywordBoundary3D);
+            _underwaterEffectMaterial.material.DisableKeyword(k_KeywordBoundaryVolume);
 
-            if (_waterVolumeBoundaryGeometry == null)
+            if (_mode == Mode.FullScreen)
             {
                 _underwaterEffectMaterial.material.SetInt("_CullMode", (int)CullMode.Off);
                 _underwaterEffectMaterial.material.SetInt("_ZTest", (int)CompareFunction.Always);
@@ -111,9 +112,20 @@ namespace Crest
             else
             {
                 _underwaterEffectMaterial.material.DisableKeyword("_FULL_SCREEN_EFFECT");
-                _underwaterEffectMaterial.material.EnableKeyword(_isConvexHull ? "_GEOMETRY_EFFECT_VOLUME" : "_GEOMETRY_EFFECT_2D");
-                _underwaterEffectMaterial.material.SetInt("_CullMode", (int)(_isConvexHull ? CullMode.Front : CullMode.Back));
-                _underwaterEffectMaterial.material.SetInt("_ZTest", (int)(_isConvexHull ?  CompareFunction.Always : CompareFunction.LessEqual));
+                switch (_mode)
+                {
+                    case Mode.Geometry2D:
+                        _underwaterEffectMaterial.material.EnableKeyword(k_KeywordBoundary2D);
+                        break;
+                    case Mode.Geometry3D:
+                        _underwaterEffectMaterial.material.EnableKeyword(k_KeywordBoundary3D);
+                        break;
+                    case Mode.GeometryVolume:
+                        _underwaterEffectMaterial.material.EnableKeyword(k_KeywordBoundaryVolume);
+                        break;
+                }
+                _underwaterEffectMaterial.material.SetInt("_CullMode", (int)(_mode == Mode.GeometryVolume ? CullMode.Front : CullMode.Back));
+                _underwaterEffectMaterial.material.SetInt("_ZTest", (int)(_mode == Mode.GeometryVolume ?  CompareFunction.Always : CompareFunction.LessEqual));
 
                 _underwaterEffectCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterEffectMaterial.material, 0, 0);
             }

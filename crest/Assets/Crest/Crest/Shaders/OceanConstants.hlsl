@@ -39,4 +39,14 @@
 #define CREST_HANDLE_XR 0
 #endif
 
+#if defined(CREST_BOUNDARY_3D) || defined(CREST_BOUNDARY_VOLUME)
+#define CREST_BOUNDARY_HAS_BACKFACE 1
+#endif
+#if defined(CREST_BOUNDARY_2D) || defined(CREST_BOUNDARY_3D)
+#define CREST_BOUNDARY_IS_FRONTFACE 1
+#endif
+#if defined(CREST_BOUNDARY_HAS_BACKFACE) || defined(CREST_BOUNDARY_IS_FRONTFACE)
+#define CREST_BOUNDARY 1
+#endif
+
 #endif // CREST_CONSTANTS_H

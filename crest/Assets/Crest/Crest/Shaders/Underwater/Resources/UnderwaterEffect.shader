@@ -20,12 +20,8 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	#pragma multi_compile_local __ CREST_MENISCUS
 	// Both "__" and "_FULL_SCREEN_EFFECT" are fullscreen triangles. The latter only denotes an optimisation of
 	// whether to skip the horizon calculation.
-	#pragma multi_compile_local __ _FULL_SCREEN_EFFECT _GEOMETRY_EFFECT_2D _GEOMETRY_EFFECT_VOLUME
+	#pragma multi_compile_local __ _FULL_SCREEN_EFFECT CREST_BOUNDARY_2D CREST_BOUNDARY_3D CREST_BOUNDARY_VOLUME
 	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
-
-#if defined(_GEOMETRY_EFFECT_2D) || defined(_GEOMETRY_EFFECT_VOLUME)
-	#define _GEOMETRY_EFFECT 1
-#endif
 
 #if _COMPILESHADERWITHDEBUGINFO_ON
 	#pragma enable_d3d11_debug_symbols
@@ -53,7 +49,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 	struct Attributes
 	{
-#if _GEOMETRY_EFFECT
+#if CREST_BOUNDARY
 		float3 positionOS : POSITION;
 #else
 		uint id : SV_VertexID;
@@ -64,7 +60,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	struct Varyings
 	{
 		float4 positionCS : SV_POSITION;
-#if _GEOMETRY_EFFECT
+#if CREST_BOUNDARY
 		float4 screenPosition : TEXCOORD0;
 #else
 		float2 uv : TEXCOORD0;
@@ -80,7 +76,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		UNITY_INITIALIZE_OUTPUT(Varyings, output);
 		UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if _GEOMETRY_EFFECT
+#if CREST_BOUNDARY
 		// Use actual geometry instead of full screen triangle.
 		output.positionCS = UnityObjectToClipPos(float4(input.positionOS, 1.0));
 		output.screenPosition = ComputeScreenPos(output.positionCS);
@@ -97,7 +93,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		// We need this when sampling a screenspace texture.
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if _GEOMETRY_EFFECT
+#if CREST_BOUNDARY
 		float2 uv = input.screenPosition.xy / input.screenPosition.w;
 #else
 		float2 uv = input.uv;
@@ -109,10 +105,17 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		const float mask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, positionSS).r;
 		const float rawOceanDepth = LOAD_TEXTURE2D_X(_CrestOceanMaskDepthTexture, positionSS).r;
 
-		bool isOceanSurface; bool isUnderwater; float sceneZ;
-		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, input.positionCS.z, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+		float rawGeometryDepth = 0.0;
+#if CREST_BOUNDARY_VOLUME
+		rawGeometryDepth = input.positionCS.z;
+#elif CREST_BOUNDARY_3D
+		rawGeometryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryInnerTexture, positionSS).r;
+#endif
 
-#if _GEOMETRY_EFFECT_VOLUME
+		bool isOceanSurface; bool isUnderwater; float sceneZ;
+		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, rawGeometryDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+
+#if CREST_BOUNDARY_VOLUME
 		const float frontFaceBoundaryDepth01 = LOAD_TEXTURE2D_X(_CrestWaterBoundaryGeometryOuterTexture, positionSS).r;
 		bool isBeforeFrontFaceBoundary = false;
 
@@ -145,14 +148,14 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
 			float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
 
-#if _GEOMETRY_EFFECT_VOLUME
+#if CREST_BOUNDARY_VOLUME
 			if (isBeforeFrontFaceBoundary)
 			{
 				sceneZ -= CrestLinearEyeDepth(frontFaceBoundaryDepth01);
 			}
-#elif _GEOMETRY_EFFECT_2D
+#elif CREST_BOUNDARY_IS_FRONTFACE
 			sceneZ -= CrestLinearEyeDepth(input.positionCS.z);
-#endif // _GEOMETRY_EFFECT
+#endif // CREST_BOUNDARY
 
 			const float3 lightDir = _WorldSpaceLightPos0.xyz;
 			const half3 lightCol = _LightColor0;

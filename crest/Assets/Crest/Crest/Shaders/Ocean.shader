@@ -261,11 +261,7 @@ Shader "Crest/Ocean"
 			#pragma multi_compile_local _ _OLD_UNDERWATER
 
 			// Clipping the ocean surface for underwater volumes.
-			#pragma multi_compile_local _UNDERWATER_GEOMETRY_EFFECT_NONE _UNDERWATER_GEOMETRY_EFFECT_2D _UNDERWATER_GEOMETRY_EFFECT_VOLUME
-
-#if defined(_UNDERWATER_GEOMETRY_EFFECT_2D) || defined(_UNDERWATER_GEOMETRY_EFFECT_VOLUME)
-			#define _UNDERWATER_GEOMETRY_EFFECT 1
-#endif
+			#pragma multi_compile_local _ CREST_BOUNDARY_2D CREST_BOUNDARY_HAS_BACKFACE
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -470,16 +466,16 @@ Shader "Crest/Ocean"
 				half3 screenPos = input.screenPosXYW;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 
-#if _UNDERWATER_GEOMETRY_EFFECT
+#if CREST_BOUNDARY
 				{
-#if _UNDERWATER_GEOMETRY_EFFECT_VOLUME
+#if CREST_BOUNDARY_HAS_BACKFACE
 					// Discard ocean after boundary or when not on pixel.
 					float rawClipSurfaceBackZ = SAMPLE_TEXTURE2D_X(_CrestWaterBoundaryGeometryInnerTexture, sampler_CrestWaterBoundaryGeometryInnerTexture, uvDepth).x;
 					if (rawClipSurfaceBackZ == 0 || rawClipSurfaceBackZ > input.positionCS.z)
 					{
 						discard;
 					}
-#endif // _UNDERWATER_GEOMETRY_EFFECT_VOLUME
+#endif // CREST_BOUNDARY_VOLUME
 
 					// Discard ocean before boundary.
 					float rawClipSurfaceFrontZ = SAMPLE_TEXTURE2D_X(_CrestWaterBoundaryGeometryOuterTexture, sampler_CrestWaterBoundaryGeometryOuterTexture, uvDepth).x;
@@ -488,15 +484,15 @@ Shader "Crest/Ocean"
 						discard;
 					}
 
-#if _UNDERWATER_GEOMETRY_EFFECT_2D
+#if CREST_BOUNDARY_2D
 					// Discard ocean when plane is not in view.
 					if (rawClipSurfaceFrontZ == 0.0)
 					{
 						discard;
 					}
-#endif // _UNDERWATER_GEOMETRY_EFFECT_2D
+#endif // CREST_BOUNDARY_2D
 				}
-#endif // _UNDERWATER_GEOMETRY_EFFECT
+#endif // CREST_BOUNDARY
 
 				#if _CLIPSURFACE_ON
 				// Clip surface

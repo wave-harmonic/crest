@@ -25,7 +25,7 @@ float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const flo
 {
 	float2 uv = positionSS + offset * magnitude;
 	float newMask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, uv).r;
-#if _GEOMETRY_EFFECT
+#if CREST_BOUNDARY
 	return (newMask == UNDERWATER_MASK_NONE ? mask : newMask);
 #endif
 	return newMask;
@@ -66,7 +66,7 @@ void GetOceanSurfaceAndUnderwaterData
 	isOceanSurface = false;
 	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
 
-#if _GEOMETRY_EFFECT_VOLUME
+#if CREST_BOUNDARY_HAS_BACKFACE
 	if (rawDepth < rawGeometryDepth)
 	{
 		// Cancels out caustics.

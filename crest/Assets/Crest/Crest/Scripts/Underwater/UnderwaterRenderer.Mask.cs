@@ -72,10 +72,10 @@ namespace Crest
             // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
             // to disable all keywords from a set first.
             // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
-            _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_PLANE");
-            _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL");
-            OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_PLANE");
-            OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL");
+            _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_2D");
+            _oceanMaskMaterial.material.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_VOLUME");
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_2D");
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword("_UNDERWATER_GEOMETRY_EFFECT_VOLUME");
 
             // Needed for convex hull as we need to clip the mask right up until the volume begins. It is used for non
             // convex hull, but could be skipped if we sample the clip surface in the mask.
@@ -113,8 +113,8 @@ namespace Crest
                     k_ShaderPassWaterBoundaryInner
                 );
 
-                _oceanMaskMaterial.material.EnableKeyword(_isConvexHull ? "_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL" : "_UNDERWATER_GEOMETRY_EFFECT_PLANE");
-                OceanRenderer.Instance.OceanMaterial.EnableKeyword(_isConvexHull ? "_UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL" : "_UNDERWATER_GEOMETRY_EFFECT_PLANE");
+                _oceanMaskMaterial.material.EnableKeyword(_isConvexHull ? "_UNDERWATER_GEOMETRY_EFFECT_VOLUME" : "_UNDERWATER_GEOMETRY_EFFECT_2D");
+                OceanRenderer.Instance.OceanMaterial.EnableKeyword(_isConvexHull ? "_UNDERWATER_GEOMETRY_EFFECT_VOLUME" : "_UNDERWATER_GEOMETRY_EFFECT_2D");
             }
 
             _oceanMaskCommandBuffer.Clear();

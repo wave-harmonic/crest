@@ -66,7 +66,7 @@ void GetOceanSurfaceAndUnderwaterData
 	isOceanSurface = false;
 	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
 
-#if _GEOMETRY_EFFECT_CONVEX_HULL
+#if _GEOMETRY_EFFECT_VOLUME
 	if (rawDepth < rawGeometryDepth)
 	{
 		// Cancels out caustics.

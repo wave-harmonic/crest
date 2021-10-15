@@ -98,8 +98,8 @@ namespace Crest
             // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
             // to disable all keywords from a set first.
             // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
-            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_PLANE");
-            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_CONVEX_HULL");
+            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_2D");
+            _underwaterEffectMaterial.material.DisableKeyword("_GEOMETRY_EFFECT_VOLUME");
 
             if (_waterVolumeBoundaryGeometry == null)
             {
@@ -111,7 +111,7 @@ namespace Crest
             else
             {
                 _underwaterEffectMaterial.material.DisableKeyword("_FULL_SCREEN_EFFECT");
-                _underwaterEffectMaterial.material.EnableKeyword(_isConvexHull ? "_GEOMETRY_EFFECT_CONVEX_HULL" : "_GEOMETRY_EFFECT_PLANE");
+                _underwaterEffectMaterial.material.EnableKeyword(_isConvexHull ? "_GEOMETRY_EFFECT_VOLUME" : "_GEOMETRY_EFFECT_2D");
                 _underwaterEffectMaterial.material.SetInt("_CullMode", (int)(_isConvexHull ? CullMode.Front : CullMode.Back));
                 _underwaterEffectMaterial.material.SetInt("_ZTest", (int)(_isConvexHull ?  CompareFunction.Always : CompareFunction.LessEqual));
 

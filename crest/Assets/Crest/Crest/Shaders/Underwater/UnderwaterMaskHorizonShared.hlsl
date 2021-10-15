@@ -43,7 +43,7 @@ half4 Frag(Varyings input) : SV_Target
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+#if _UNDERWATER_GEOMETRY_EFFECT_VOLUME
 	if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, input.uv).x == 0.0)
 	{
 		// We need mask none for the meniscus. Otherwise, it will appear at geometry edges.

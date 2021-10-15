@@ -126,13 +126,13 @@ half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV
 #if _UNDERWATER_GEOMETRY_EFFECT
 	{
 		half2 screenUV = input.screenPosition.xy / input.screenPosition.z;
-#if _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+#if _UNDERWATER_GEOMETRY_EFFECT_VOLUME
 		// If no geometry in view, do not render otherwise meniscus will appear at edges.
 		if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryInnerTexture, screenUV).x == 0)
 		{
 			discard;
 		}
-#endif // _UNDERWATER_GEOMETRY_EFFECT_CONVEX_HULL
+#endif // _UNDERWATER_GEOMETRY_EFFECT_VOLUME
 
 		// Discard any pixels in front of the boundary geometry otherwise the mask will be incorrect at eye level.
 		float rawOuterZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterBoundaryGeometryOuterTexture, screenUV).x;

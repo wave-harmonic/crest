@@ -115,7 +115,8 @@ namespace Crest
                     return false;
                 }
 
-                if (!_debug._disableHeightAboveWaterOptimization && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+                // TODO: We'll need to watch "mode" for changes and reset the keywords.
+                if (!_debug._disableHeightAboveWaterOptimization && _mode == Mode.FullScreen && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
                 {
                     return false;
                 }
@@ -165,6 +166,8 @@ namespace Crest
             _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _boundaryCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+            OnDisableOceanMask();
+            OnDisableUnderwaterEffect();
         }
 
         void OnPreRender()

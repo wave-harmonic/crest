@@ -62,6 +62,23 @@ namespace Crest
             }
         }
 
+        void OnDisableOceanMask()
+        {
+            DisableOceanMaskKeywords(_oceanMaskMaterial.material);
+        }
+
+        void DisableOceanMaskKeywords(Material material)
+        {
+            // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
+            // to disable all keywords from a set first.
+            // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
+            material.DisableKeyword(k_KeywordBoundary2D);
+            material.DisableKeyword(k_KeywordBoundaryHasBackFace);
+            // Handling ocean keywords here.
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword(k_KeywordBoundary2D);
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword(k_KeywordBoundaryHasBackFace);
+        }
+
         void OnPreRenderOceanMask()
         {
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
@@ -69,13 +86,7 @@ namespace Crest
 
             InitialiseMaskTextures(descriptor, ref _maskTexture, ref _depthTexture);
 
-            // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
-            // to disable all keywords from a set first.
-            // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
-            _oceanMaskMaterial.material.DisableKeyword(k_KeywordBoundary2D);
-            _oceanMaskMaterial.material.DisableKeyword(k_KeywordBoundaryHasBackFace);
-            OceanRenderer.Instance.OceanMaterial.DisableKeyword(k_KeywordBoundary2D);
-            OceanRenderer.Instance.OceanMaterial.DisableKeyword(k_KeywordBoundaryHasBackFace);
+            DisableOceanMaskKeywords(_oceanMaskMaterial.material);
 
             // Needed for convex hull as we need to clip the mask right up until the volume begins. It is used for non
             // convex hull, but could be skipped if we sample the clip surface in the mask.

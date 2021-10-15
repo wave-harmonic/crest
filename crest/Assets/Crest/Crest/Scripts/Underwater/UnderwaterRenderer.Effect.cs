@@ -47,6 +47,21 @@ namespace Crest
             }
         }
 
+        void OnDisableUnderwaterEffect()
+        {
+            DisableUnderwaterEffectKeywords(_underwaterEffectMaterial.material);
+        }
+
+        static void DisableUnderwaterEffectKeywords(Material material)
+        {
+            // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
+            // to disable all keywords from a set first.
+            // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
+            material.DisableKeyword(k_KeywordBoundary2D);
+            material.DisableKeyword(k_KeywordBoundary3D);
+            material.DisableKeyword(k_KeywordBoundaryVolume);
+        }
+
         void OnPreRenderUnderwaterEffect()
         {
             // Ensure legacy underwater fog is disabled.
@@ -95,12 +110,7 @@ namespace Crest
             _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
             _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
 
-            // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
-            // to disable all keywords from a set first.
-            // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
-            _underwaterEffectMaterial.material.DisableKeyword(k_KeywordBoundary2D);
-            _underwaterEffectMaterial.material.DisableKeyword(k_KeywordBoundary3D);
-            _underwaterEffectMaterial.material.DisableKeyword(k_KeywordBoundaryVolume);
+            DisableUnderwaterEffectKeywords(_underwaterEffectMaterial.material);
 
             if (_mode == Mode.FullScreen)
             {

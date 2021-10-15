@@ -110,32 +110,23 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		const float rawOceanDepth = LOAD_TEXTURE2D_X(_CrestOceanMaskDepthTexture, positionSS).r;
 
 		bool isOceanSurface; bool isUnderwater; float sceneZ;
-		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
+		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, input.positionCS.z, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
 #if _GEOMETRY_EFFECT_CONVEX_HULL
 		const float frontFaceBoundaryDepth01 = LOAD_TEXTURE2D_X(_CrestWaterBoundaryGeometryOuterTexture, positionSS).r;
 		bool isBeforeFrontFaceBoundary = false;
-		bool isAfterBackFaceBoundary = false;
 
-		if (isUnderwater)
+		if (frontFaceBoundaryDepth01 != 0)
 		{
-			// scene is after back face boundary
-			if (rawDepth < input.positionCS.z)
+			// Scene is before front face boundary.
+			if (rawDepth > frontFaceBoundaryDepth01)
 			{
-				isAfterBackFaceBoundary = true;
+				// Bail early to avoid meniscus.
+				return float4(sceneColour, 1.0);
 			}
-
-			if (frontFaceBoundaryDepth01 != 0)
+			else
 			{
-				// scene is before front face boundary
-				if (rawDepth > frontFaceBoundaryDepth01)
-				{
-					return float4(sceneColour, 1.0);
-				}
-				else
-				{
-					isBeforeFrontFaceBoundary = true;
-				}
+				isBeforeFrontFaceBoundary = true;
 			}
 		}
 #endif
@@ -153,14 +144,8 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			const float3 positionWS = ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_VP);
 			const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
 			float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
-#if _GEOMETRY_EFFECT_CONVEX_HULL
-			if (isAfterBackFaceBoundary)
-			{
-				// Cancels out caustics. We will want caustics outside of volume at some point though.
-				isOceanSurface = true;
-				sceneZ = input.screenPosition.w;
-			}
 
+#if _GEOMETRY_EFFECT_CONVEX_HULL
 			if (isBeforeFrontFaceBoundary)
 			{
 				sceneZ -= CrestLinearEyeDepth(frontFaceBoundaryDepth01);
@@ -168,6 +153,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 #elif _GEOMETRY_EFFECT_PLANE
 			sceneZ -= CrestLinearEyeDepth(input.positionCS.z);
 #endif // _GEOMETRY_EFFECT
+
 			const float3 lightDir = _WorldSpaceLightPos0.xyz;
 			const half3 lightCol = _LightColor0;
 			sceneColour = ApplyUnderwaterEffect(scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);

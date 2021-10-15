@@ -54,6 +54,7 @@ void GetOceanSurfaceAndUnderwaterData
 (
 	const int2 positionSS,
 	const float rawOceanDepth,
+	const float rawGeometryDepth,
 	const float mask,
 	inout float rawDepth,
 	inout bool isOceanSurface,
@@ -62,12 +63,22 @@ void GetOceanSurfaceAndUnderwaterData
 	const float oceanDepthTolerance
 )
 {
-	isOceanSurface = (rawDepth < rawOceanDepth + oceanDepthTolerance);
+	isOceanSurface = false;
 	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
 
-	// Merge ocean depth with scene depth.
-	if (isOceanSurface)
+#if _GEOMETRY_EFFECT_CONVEX_HULL
+	if (rawDepth < rawGeometryDepth)
 	{
+		// Cancels out caustics.
+		isOceanSurface = true;
+		rawDepth = rawGeometryDepth;
+	}
+#endif
+
+	// Merge ocean depth with scene depth.
+	if (rawDepth < rawOceanDepth + oceanDepthTolerance)
+	{
+		isOceanSurface = true;
 		rawDepth = rawOceanDepth;
 		sceneZ = CrestLinearEyeDepth(CREST_MULTILOAD_DEPTH(_CrestOceanMaskDepthTexture, positionSS, rawDepth));
 	}

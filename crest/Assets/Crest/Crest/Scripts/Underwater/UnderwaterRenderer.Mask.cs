@@ -10,7 +10,7 @@ namespace Crest
 
     public partial class UnderwaterRenderer
     {
-        internal const string SHADER_OCEAN_MASK = "Hidden/Crest/Underwater/Ocean Mask";
+        const string k_ShaderPathOceanMask = "Hidden/Crest/Underwater/Ocean Mask";
         internal const int k_ShaderPassOceanSurfaceMask = 0;
         internal const int k_ShaderPassOceanHorizonMask = 1;
 
@@ -28,7 +28,7 @@ namespace Crest
         {
             if (_oceanMaskMaterial?.material == null)
             {
-                _oceanMaskMaterial = new PropertyWrapperMaterial(SHADER_OCEAN_MASK);
+                _oceanMaskMaterial = new PropertyWrapperMaterial(k_ShaderPathOceanMask);
             }
 
             if (_oceanMaskCommandBuffer == null)

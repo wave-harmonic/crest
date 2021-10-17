@@ -59,6 +59,10 @@ Performance
 
    -  Only calculate inverse view projection matrix when required.
 
+   .. only:: birp or urp
+
+      -  Improve *Underwater Renderer* memory usage. `[BIRP] [URP]`
+
 
 4.13
 ----

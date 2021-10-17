@@ -129,7 +129,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		shadowCoords.MainCameraCoords = mul(_MainCameraProjectionMatrix, wpos);
 	}
 
-	const int sliceIndexSource0 = clamp(_LD_SliceIndex + _CrestLodChange, 0, _SliceCount - 1);
+	const int sliceIndexSource0 = _LD_SliceIndex + _CrestLodChange;
 	const CascadeParams cascadeDataSrc = _CrestCascadeDataSource[sliceIndexSource0];
 	half2 shadow = 0.0;
 	const half r_max = 0.5 - cascadeDataSrc._oneOverTextureRes;

@@ -227,6 +227,8 @@ namespace Crest
 
                 _renderProperties.SetBuffer(OceanRenderer.sp_CrestCascadeDataSource, OceanRenderer.Instance._bufCascadeDataSrc);
 
+                _renderProperties.SetInt(OceanRenderer.sp_CrestLodChange, OceanRenderer.Instance._lodTransform.ScaleDifferencePow2);
+
                 LodDataMgrSeaFloorDepth.Bind(_renderProperties);
 
                 var lt = OceanRenderer.Instance._lodTransform;

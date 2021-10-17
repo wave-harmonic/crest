@@ -824,8 +824,9 @@ Shader "Crest/Ocean"
 
 				// Previous
 				{
-					const int slice0 = clamp(_LD_SliceIndex + _CrestLodChange, 0, _SliceCount - 1);
-					const int slice1 = clamp(slice0 + 1, 0, _SliceCount - 1);
+					// Last LOD is duplicated so we can read from _SliceCount. Fixes popping at extents.
+					const int slice0 = clamp(_LD_SliceIndex + _CrestLodChange, 0, _SliceCount);
+					const int slice1 = clamp(slice0 + 1, 0, _SliceCount);
 
 					const CascadeParams cascadeData0 = _CrestCascadeDataSource[slice0];
 					const CascadeParams cascadeData1 = _CrestCascadeDataSource[slice1];

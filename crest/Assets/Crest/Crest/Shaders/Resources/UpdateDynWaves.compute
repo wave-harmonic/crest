@@ -13,7 +13,6 @@
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
 
-StructuredBuffer<CascadeParams> _CascadeDataSrc;
 RWTexture2DArray<float2> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
@@ -73,7 +72,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	}
 
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
-	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _CascadeDataSrc[sliceIndexSource], sliceIndexSource);
+	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _CrestCascadeDataSource[sliceIndexSource], sliceIndexSource);
 
 	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
 	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);
@@ -83,7 +82,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	weightEdge = lerp(0.95, 1.0, weightEdge);
 
 	// compute axes of laplacian kernel - rotated every frame
-	const float e = _CascadeDataSrc[sliceIndexSource]._oneOverTextureRes; // assumes square RT
+	const float e = _CrestCascadeDataSource[sliceIndexSource]._oneOverTextureRes; // assumes square RT
 	const float3 X = float3(1.0, 0.0, 0.0);
 	const float3 Y = float3(-X.y, X.x, 0.0);
 

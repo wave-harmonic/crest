@@ -13,12 +13,12 @@ namespace Crest
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
         protected override bool NeedToReadWriteTextureData => true;
+        public override int BufferCount => 2;
 
         RenderTexture _sources;
         PropertyWrapperCompute _renderSimProperties;
 
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
-        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         protected ComputeShader _shader;
 
@@ -63,21 +63,18 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
-            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
-
-            TextureArrayHelpers.ClearToBlack(_targets);
+            _sources = CreateLodDataTextures(desc, $"{SimName}_Temporary", NeedToReadWriteTextureData);
             TextureArrayHelpers.ClearToBlack(_sources);
+
+            _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
         }
 
         public void ValidateSourceData(bool usePrevTransform)
         {
-            var renderDataToValidate = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
             int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount : 0;
-            foreach (var renderData in renderDataToValidate)
+            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderData)
             {
-                renderData.Validate(validationFrame, SimName);
+                renderData.Previous(usePrevTransform ? 1 : 0).Validate(validationFrame, SimName);
             }
         }
 
@@ -108,9 +105,20 @@ namespace Crest
                 substepDt = 0f;
             }
 
+            var current = _targets.Current;
+
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
-                Helpers.Swap(ref _sources, ref _targets);
+                var isFirstStep = stepi == 0;
+
+                // Buffers are already flipped, but we need to ping-pong for subsequent substeps.
+                if (!isFirstStep)
+                {
+                    // Use temporary target for ping-pong instead of flipping buffer. We do not want to buffer substeps
+                    // as they will not match buffered cascade data etc. Each buffer entry must be for a single frame
+                    // and substeps are "sub-frame".
+                    Helpers.Swap(ref _sources, ref current);
+                }
 
                 _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
 
@@ -119,27 +127,24 @@ namespace Crest
 
                 // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
                 // this is only valid on the first update step, after that the scale src/target data are in the right places.
-                var srcDataIdxChange = ((stepi == 0) ? OceanRenderer.Instance._lodTransform.ScaleDifferencePow2 : 0);
+                var srcDataIdxChange = isFirstStep ? OceanRenderer.Instance._lodTransform.ScaleDifferencePow2 : 0;
 
                 // only take transform from previous frame on first substep
-                var usePreviousFrameTransform = stepi == 0;
+                var usePreviousFrameTransform = isFirstStep;
 
                 // bind data to slot 0 - previous frame data
                 ValidateSourceData(usePreviousFrameTransform);
-                _renderSimProperties.SetTexture(GetParamIdSampler(true), _sources);
+                _renderSimProperties.SetTexture(GetParamIdSampler(true), isFirstStep ? _targets.Previous(1) : _sources);
 
                 SetAdditionalSimParams(_renderSimProperties);
 
                 buf.SetGlobalFloat(sp_LODChange, srcDataIdxChange);
 
-                _renderSimProperties.SetTexture(
-                    sp_LD_TexArray_Target,
-                    DataTexture
-                );
+                _renderSimProperties.SetTexture(sp_LD_TexArray_Target, current);
 
                 // Bind current data
                 // Global shader vars don't carry over to compute
-                _renderSimProperties.SetBuffer(sp_cascadeDataSrc, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
+                _renderSimProperties.SetBuffer(OceanRenderer.sp_CrestCascadeDataSource, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
                 _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
 
                 buf.DispatchCompute(_shader, krnl_ShaderSim,
@@ -154,13 +159,15 @@ namespace Crest
                     {
                         buf.SetGlobalFloat("_MinWavelength", ocean._lodTransform.MaxWavelength(lodIdx) / 2f);
                         buf.SetGlobalFloat("_LodIdx", lodIdx);
-                        buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                        buf.SetRenderTarget(current, current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                         SubmitDraws(lodIdx, buf);
                     }
                 }
 
                 _substepDtPrevious = substepDt;
             }
+
+            _targets.Current = current;
 
             // any post-sim steps. the dyn waves updates the copy sim material, which the anim wave will later use to copy in
             // the dyn waves results.
@@ -170,7 +177,7 @@ namespace Crest
             }
 
             // Set the target texture as to make sure we catch the 'pong' each frame
-            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
         }
 
         protected virtual bool BuildCommandBufferInternal(int lodIdx)

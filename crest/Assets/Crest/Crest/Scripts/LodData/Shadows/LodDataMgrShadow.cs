@@ -53,7 +53,6 @@ namespace Crest
         readonly int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
         readonly int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-        readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
         public override SimSettingsBase SettingsBase => Settings;
@@ -245,7 +244,6 @@ namespace Crest
                     var srcDataIdx = lodIdx + OceanRenderer.Instance._lodTransform.ScaleDifferencePow2;
                     srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                     _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
-                    _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
 
                     BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
                         OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
@@ -275,10 +273,10 @@ namespace Crest
                     BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
                 }
 #endif
-            }
 
-            // Set the target texture as to make sure we catch the 'pong' each frame
-            Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
+                // Set the target texture as to make sure we catch the 'pong' each frame
+                Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
+            }
         }
 
         public void ValidateSourceData()

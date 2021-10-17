@@ -172,6 +172,7 @@ namespace Crest
             {
                 cascadeParams.Current[lodIdx]._posSnapped[0] = _renderData[lodIdx].Current._posSnapped[0];
                 cascadeParams.Current[lodIdx]._posSnapped[1] = _renderData[lodIdx].Current._posSnapped[2];
+                // NOTE: Current scale was assigned to current and previous frame, but not sure why. 2021.10.17
                 cascadeParams.Current[lodIdx]._scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 cascadeParams.Current[lodIdx]._textureRes = _renderData[lodIdx].Current._textureRes;
                 cascadeParams.Current[lodIdx]._oneOverTextureRes = 1f / cascadeParams.Current[lodIdx]._textureRes;

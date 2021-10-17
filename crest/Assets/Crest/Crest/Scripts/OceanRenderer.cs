@@ -384,8 +384,9 @@ namespace Crest
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-        public static int sp_CrestPerCascadeInstanceDataSource = Shader.PropertyToID("_CrestPerCascadeInstanceDataSource");
-        public static readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CrestCascadeDataSource");
+        public static readonly int sp_CrestPerCascadeInstanceDataSource = Shader.PropertyToID("_CrestPerCascadeInstanceDataSource");
+        public static readonly int sp_CrestCascadeDataSource = Shader.PropertyToID("_CrestCascadeDataSource");
+        public static readonly int sp_CrestLodChange = Shader.PropertyToID("_CrestLodChange");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -516,7 +517,7 @@ namespace Crest
             _bufCascadeDataTgt = new ComputeBuffer(_cascadeParams.Current.Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
             _bufCascadeDataSrc = new ComputeBuffer(_cascadeParams.Previous(1).Length, UnsafeUtility.SizeOf<CascadeParams>());
-            Shader.SetGlobalBuffer(sp_cascadeDataSrc, _bufCascadeDataSrc);
+            Shader.SetGlobalBuffer(sp_CrestCascadeDataSource, _bufCascadeDataSrc);
 
             _lodTransform = new LodTransform();
             _lodTransform.InitLODData(_lodCount, BufferSize);
@@ -1055,7 +1056,7 @@ namespace Crest
             {
                 float ratio = newScale / Scale;
                 float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
-                Shader.SetGlobalFloat("_CrestLodChange", Mathf.RoundToInt(ratio_l2));
+                Shader.SetGlobalFloat(sp_CrestLodChange, Mathf.RoundToInt(ratio_l2));
             }
 
             Scale = newScale;

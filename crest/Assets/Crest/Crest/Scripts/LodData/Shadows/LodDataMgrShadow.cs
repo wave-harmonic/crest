@@ -226,7 +226,7 @@ namespace Crest
 
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets.Current);
 
-                _renderProperties.SetBuffer(OceanRenderer.sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
+                _renderProperties.SetBuffer(OceanRenderer.sp_CrestCascadeDataSource, OceanRenderer.Instance._bufCascadeDataSrc);
 
                 LodDataMgrSeaFloorDepth.Bind(_renderProperties);
 

@@ -144,7 +144,7 @@ namespace Crest
 
                 // Bind current data
                 // Global shader vars don't carry over to compute
-                _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeDataSrc, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
+                _renderSimProperties.SetBuffer(OceanRenderer.sp_CrestCascadeDataSource, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
                 _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
 
                 buf.DispatchCompute(_shader, krnl_ShaderSim,

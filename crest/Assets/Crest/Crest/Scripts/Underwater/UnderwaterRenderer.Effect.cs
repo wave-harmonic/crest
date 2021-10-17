@@ -98,6 +98,8 @@ namespace Crest
             _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
+            // We no longer need the temporary mask textures so release them.
+            CleanUpMaskTextures(_underwaterEffectCommandBuffer);
         }
 
         internal static void UpdatePostProcessMaterial(

@@ -374,19 +374,19 @@ namespace Crest
         bool _canSkipCulling = false;
 
         public static readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
-        public static int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
-        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
-        readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
-        readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
-        readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
-        readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
-        readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
-        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        public static readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        public static readonly int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
         public static readonly int sp_CrestPerCascadeInstanceDataSource = Shader.PropertyToID("_CrestPerCascadeInstanceDataSource");
+        public static readonly int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
         public static readonly int sp_CrestCascadeDataSource = Shader.PropertyToID("_CrestCascadeDataSource");
         public static readonly int sp_CrestLodChange = Shader.PropertyToID("_CrestLodChange");
+        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly static int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
+        readonly static int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
+        readonly static int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
+        readonly static int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
+        readonly static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;

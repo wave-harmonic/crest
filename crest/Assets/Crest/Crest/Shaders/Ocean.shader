@@ -618,6 +618,7 @@ Shader "Crest/Ocean"
 					pixelZ,
 					input.positionCS.z,
 					uvDepth,
+					input.positionCS.xy,
 					sceneZ,
 					rawDepth,
 					bubbleCol,

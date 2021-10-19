@@ -2,12 +2,58 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
+    /// <summary>
+    /// Circular buffer to store a multiple sets of data
+    /// </summary>
+    public class BufferedData<T>
+    {
+        public BufferedData(int bufferSize, Func<T> initFunc)
+        {
+            _buffers = new T[bufferSize];
+
+            for (int i = 0; i < bufferSize; i++)
+            {
+                _buffers[i] = initFunc();
+            }
+        }
+
+        public T Current { get => _buffers[_currentFrameIndex]; set => _buffers[_currentFrameIndex] = value; }
+
+        public int Size => _buffers.Length;
+
+        public T Previous(int framesBack)
+        {
+            Debug.Assert(framesBack >= 0 && framesBack < _buffers.Length);
+
+            int index = (_currentFrameIndex - framesBack + _buffers.Length) % _buffers.Length;
+
+            return _buffers[index];
+        }
+
+        public void Flip()
+        {
+            _currentFrameIndex = (_currentFrameIndex + 1) % _buffers.Length;
+        }
+
+        public void RunLambda(Action<T> lambda)
+        {
+            foreach (var buffer in _buffers)
+            {
+                lambda(buffer);
+            }
+        }
+
+        T[] _buffers = null;
+        int _currentFrameIndex = 0;
+    }
+
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
@@ -37,9 +83,13 @@ namespace Crest
 
         protected abstract bool NeedToReadWriteTextureData { get; }
 
-        protected RenderTexture _targets;
+        protected BufferedData<RenderTexture> _targets;
 
-        public RenderTexture DataTexture => _targets;
+        public RenderTexture DataTexture => _targets.Current;
+        public RenderTexture GetDataTexture(int frameDelta) => _targets.Previous(frameDelta);
+
+        public virtual int BufferCount => 1;
+        public virtual void FlipBuffers() => _targets.Flip();
 
         protected virtual Texture2DArray NullTexture => TextureArrayHelpers.BlackTextureArray;
 
@@ -114,10 +164,10 @@ namespace Crest
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
-            _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
+            _targets = new BufferedData<RenderTexture>(BufferCount, () => CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData));
 
             // Bind globally once here on init, which will bind to all graphics shaders (not compute)
-            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
         }
 
         public virtual void UpdateLodData()
@@ -130,17 +180,21 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                _targets.Release();
-                _targets.width = _targets.height = _shapeRes;
-                _targets.Create();
-
                 _shapeRes = width;
+
+                _targets.RunLambda(buffer =>
+                {
+                    buffer.Release();
+                    buffer.width = buffer.height = _shapeRes;
+                    buffer.Create();
+                });
             }
         }
 
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
+            FlipBuffers();
         }
 
         public interface IDrawFilter
@@ -151,7 +205,7 @@ namespace Crest
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, SimName);
+            lt._renderData[lodIdx].Current.Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -170,7 +224,7 @@ namespace Crest
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, SimName);
+            lt._renderData[lodIdx].Current.Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -197,7 +251,7 @@ namespace Crest
             public TextureArrayParamIds(string textureArrayName)
             {
                 _paramId = Shader.PropertyToID(textureArrayName);
-                // Note: string concatonation does generate a small amount of
+                // Note: string concatenation does generate a small amount of
                 // garbage. However, this is called on initialisation so should
                 // be ok for now? Something worth considering for the future if
                 // we want to go garbage-free.

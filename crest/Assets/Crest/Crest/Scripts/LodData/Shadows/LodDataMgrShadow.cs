@@ -25,6 +25,7 @@ namespace Crest
         protected override bool NeedToReadWriteTextureData => true;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
+        public override int BufferCount => 2;
 
         internal const string MATERIAL_KEYWORD_PROPERTY = "_Shadows";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_SHADOWS_ON";
@@ -40,7 +41,6 @@ namespace Crest
         // SRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
 
-        RenderTexture _sources;
         PropertyWrapperCompute _renderProperties;
         ComputeShader _updateShadowShader;
         private int krnl_UpdateShadow;
@@ -53,9 +53,7 @@ namespace Crest
         readonly int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
         readonly int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-        readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
-        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
@@ -101,13 +99,7 @@ namespace Crest
         protected override void InitData()
         {
             base.InitData();
-
-            int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
-            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
-
-            TextureArrayHelpers.ClearToBlack(_sources);
-            TextureArrayHelpers.ClearToBlack(_targets);
+            _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
         }
 
         bool StartInitLight()
@@ -129,6 +121,11 @@ namespace Crest
             return true;
         }
 
+        public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
+        {
+            // Intentionally blank to not flip buffers.
+        }
+
         public override void UpdateLodData()
         {
             if (!enabled)
@@ -144,8 +141,8 @@ namespace Crest
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
                     BufCopyShadowMap = null;
-                    TextureArrayHelpers.ClearToBlack(_sources);
-                    TextureArrayHelpers.ClearToBlack(_targets);
+
+                    _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
                 }
                 _mainLight = null;
             }
@@ -185,7 +182,7 @@ namespace Crest
                 return;
             }
 
-            Helpers.Swap(ref _sources, ref _targets);
+            FlipBuffers();
 
             BufCopyShadowMap.Clear();
 
@@ -198,7 +195,7 @@ namespace Crest
             if (UnityEditor.EditorApplication.isPlaying)
 #endif
             {
-                TextureArrayHelpers.ClearToBlack(_targets);
+                TextureArrayHelpers.ClearToBlack(_targets.Current);
             }
 
             // Cache the camera for further down.
@@ -224,11 +221,13 @@ namespace Crest
                 _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, camera.projectionMatrix * camera.worldToCameraMatrix);
                 _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
-                _renderProperties.SetTexture(GetParamIdSampler(true), _sources);
+                _renderProperties.SetTexture(GetParamIdSampler(true), _targets.Previous(1));
 
-                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
+                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets.Current);
 
-                _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
+                _renderProperties.SetBuffer(OceanRenderer.sp_CrestCascadeDataSource, OceanRenderer.Instance._bufCascadeDataSrc);
+
+                _renderProperties.SetInt(OceanRenderer.sp_CrestLodChange, OceanRenderer.Instance._lodTransform.ScaleDifferencePow2);
 
                 LodDataMgrSeaFloorDepth.Bind(_renderProperties);
 
@@ -236,10 +235,10 @@ namespace Crest
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
 #if UNITY_EDITOR
-                    lt._renderData[lodIdx].Validate(0, SimName);
+                    lt._renderData[lodIdx].Current.Validate(0, SimName);
 #endif
 
-                    _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
+                    _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx].Current._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                     _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
 
@@ -247,7 +246,6 @@ namespace Crest
                     var srcDataIdx = lodIdx + OceanRenderer.Instance._lodTransform.ScaleDifferencePow2;
                     srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                     _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
-                    _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
 
                     BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
                         OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
@@ -266,7 +264,7 @@ namespace Crest
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    BufCopyShadowMap.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                    BufCopyShadowMap.SetRenderTarget(_targets.Current, _targets.Current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, BufCopyShadowMap);
                 }
 
@@ -277,10 +275,10 @@ namespace Crest
                     BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
                 }
 #endif
-            }
 
-            // Set the target texture as to make sure we catch the 'pong' each frame
-            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
+                // Set the target texture as to make sure we catch the 'pong' each frame
+                Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
+            }
         }
 
         public void ValidateSourceData()
@@ -293,9 +291,9 @@ namespace Crest
             }
 #endif
 
-            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
+            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderData)
             {
-                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
+                renderData.Previous(1).Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
             }
         }
 

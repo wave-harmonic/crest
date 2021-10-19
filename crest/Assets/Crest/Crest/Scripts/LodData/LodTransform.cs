@@ -25,7 +25,7 @@ namespace Crest
         public int ScaleDifferencePow2 => _scaleDifferencePow2;
 
         [System.Serializable]
-        public struct RenderData
+        public class RenderData
         {
             public float _texelWidth;
             public float _textureRes;
@@ -53,8 +53,7 @@ namespace Crest
             }
         }
 
-        public RenderData[] _renderData = null;
-        public RenderData[] _renderDataSource = null;
+        public BufferedData<RenderData>[] _renderData;
 
         public int LodCount { get; private set; }
 
@@ -63,12 +62,16 @@ namespace Crest
         public Matrix4x4 GetWorldToCameraMatrix(int lodIdx) => _worldToCameraMatrix[lodIdx];
         public Matrix4x4 GetProjectionMatrix(int lodIdx) => _projectionMatrix[lodIdx];
 
-        public void InitLODData(int lodCount)
+        public void InitLODData(int lodCount, int bufferSize)
         {
             LodCount = lodCount;
 
-            _renderData = new RenderData[lodCount];
-            _renderDataSource = new RenderData[lodCount];
+            _renderData = new BufferedData<RenderData>[lodCount];
+            for (var i = 0; i < lodCount; i++)
+            {
+                _renderData[i] = new BufferedData<RenderData>(bufferSize, () => new RenderData());
+            }
+
             _worldToCameraMatrix = new Matrix4x4[lodCount];
             _projectionMatrix = new Matrix4x4[lodCount];
 
@@ -85,34 +88,38 @@ namespace Crest
             {
                 if (_transformUpdateFrame[lodIdx] == OceanRenderer.FrameCount) continue;
 
-                _transformUpdateFrame[lodIdx] = OceanRenderer.FrameCount;
+                var isFirstUpdate = _transformUpdateFrame[lodIdx] == -1;
 
-                _renderDataSource[lodIdx] = _renderData[lodIdx];
+                _transformUpdateFrame[lodIdx] = OceanRenderer.FrameCount;
 
                 var lodScale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 var camOrthSize = 2f * lodScale;
 
                 // find snap period
-                _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
-                _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
+                _renderData[lodIdx].Current._textureRes = OceanRenderer.Instance.LodDataResolution;
+                _renderData[lodIdx].Current._texelWidth = 2f * camOrthSize / _renderData[lodIdx].Current._textureRes;
                 // snap so that shape texels are stationary
-                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.Root.position
-                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.Root.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.Root.position.z, _renderData[lodIdx]._texelWidth));
+                _renderData[lodIdx].Current._posSnapped = OceanRenderer.Instance.Root.position
+                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.Root.position.x, _renderData[lodIdx].Current._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.Root.position.z, _renderData[lodIdx].Current._texelWidth));
 
-                _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
+                _renderData[lodIdx].Current._frame = OceanRenderer.FrameCount;
 
-                _renderData[lodIdx]._maxWavelength = MaxWavelength(lodIdx);
+                _renderData[lodIdx].Current._maxWavelength = MaxWavelength(lodIdx);
 
-                // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
-                if (_renderDataSource[lodIdx]._textureRes == 0f)
+                // Detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness.
+                if (isFirstUpdate && _renderData[lodIdx].Size > 1)
                 {
-                    _renderDataSource[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
-                    _renderDataSource[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
-                    _renderDataSource[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
-                    _renderDataSource[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
+                    // We are writing to "Current" again. But it is okay since only once.
+                    _renderData[lodIdx].RunLambda(buffer =>
+                    {
+                        buffer._posSnapped = _renderData[lodIdx].Current._posSnapped;
+                        buffer._texelWidth = _renderData[lodIdx].Current._texelWidth;
+                        buffer._textureRes = _renderData[lodIdx].Current._textureRes;
+                        buffer._maxWavelength = _renderData[lodIdx].Current._maxWavelength;
+                    });
                 }
 
-                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * k_RenderAboveSeaLevel, Quaternion.AngleAxis(90f, Vector3.right));
+                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx].Current._posSnapped + Vector3.up * k_RenderAboveSeaLevel, Quaternion.AngleAxis(90f, Vector3.right));
 
                 _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, k_RenderAboveSeaLevel + k_RenderBelowSeaLevel);
             }
@@ -142,10 +149,9 @@ namespace Crest
 
         public void SetOrigin(Vector3 newOrigin)
         {
-            for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
+            for (var lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
-                _renderData[lodIdx]._posSnapped -= newOrigin;
-                _renderDataSource[lodIdx]._posSnapped -= newOrigin;
+                _renderData[lodIdx].RunLambda(renderData => renderData._posSnapped -= newOrigin);
             }
         }
 
@@ -160,36 +166,24 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void WriteCascadeParams(OceanRenderer.CascadeParams[] cascadeParamsTgt, OceanRenderer.CascadeParams[] cascadeParamsSrc)
+        public void WriteCascadeParams(BufferedData<OceanRenderer.CascadeParams[]> cascadeParams)
         {
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                cascadeParamsTgt[lodIdx]._posSnapped[0] = _renderData[lodIdx]._posSnapped[0];
-                cascadeParamsTgt[lodIdx]._posSnapped[1] = _renderData[lodIdx]._posSnapped[2];
-                cascadeParamsSrc[lodIdx]._posSnapped[0] = _renderDataSource[lodIdx]._posSnapped[0];
-                cascadeParamsSrc[lodIdx]._posSnapped[1] = _renderDataSource[lodIdx]._posSnapped[2];
-
-                cascadeParamsTgt[lodIdx]._scale = cascadeParamsSrc[lodIdx]._scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
-
-                cascadeParamsTgt[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
-                cascadeParamsSrc[lodIdx]._textureRes = _renderDataSource[lodIdx]._textureRes;
-
-                cascadeParamsTgt[lodIdx]._oneOverTextureRes = 1f / cascadeParamsTgt[lodIdx]._textureRes;
-                cascadeParamsSrc[lodIdx]._oneOverTextureRes = 1f / cascadeParamsSrc[lodIdx]._textureRes;
-
-                cascadeParamsTgt[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
-                cascadeParamsSrc[lodIdx]._texelWidth = _renderDataSource[lodIdx]._texelWidth;
-
-                cascadeParamsTgt[lodIdx]._weight = cascadeParamsSrc[lodIdx]._weight = 1f;
-
-                cascadeParamsTgt[lodIdx]._maxWavelength = _renderData[lodIdx]._maxWavelength;
-                cascadeParamsSrc[lodIdx]._maxWavelength = _renderDataSource[lodIdx]._maxWavelength;
+                cascadeParams.Current[lodIdx]._posSnapped[0] = _renderData[lodIdx].Current._posSnapped[0];
+                cascadeParams.Current[lodIdx]._posSnapped[1] = _renderData[lodIdx].Current._posSnapped[2];
+                // NOTE: Current scale was assigned to current and previous frame, but not sure why. 2021.10.17
+                cascadeParams.Current[lodIdx]._scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+                cascadeParams.Current[lodIdx]._textureRes = _renderData[lodIdx].Current._textureRes;
+                cascadeParams.Current[lodIdx]._oneOverTextureRes = 1f / cascadeParams.Current[lodIdx]._textureRes;
+                cascadeParams.Current[lodIdx]._texelWidth = _renderData[lodIdx].Current._texelWidth;
+                cascadeParams.Current[lodIdx]._weight = 1f;
+                cascadeParams.Current[lodIdx]._maxWavelength = _renderData[lodIdx].Current._maxWavelength;
             }
 
             // Duplicate last element so that things can safely read off the end of the cascades
-            cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount - 1];
-            cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount - 1];
-            cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount]._weight = cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount]._weight = 0f;
+            cascadeParams.Current[OceanRenderer.Instance.CurrentLodCount] = cascadeParams.Current[OceanRenderer.Instance.CurrentLodCount - 1];
+            cascadeParams.Current[OceanRenderer.Instance.CurrentLodCount]._weight = 0f;
         }
     }
 }

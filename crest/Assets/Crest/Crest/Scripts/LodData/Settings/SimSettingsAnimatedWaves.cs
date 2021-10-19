@@ -50,10 +50,13 @@ namespace Crest
         [Tooltip("The render texture format to use for the wave simulation. It should only be changed if you need more precision. See the documentation for information.")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
+        internal int _bufferCount = 1;
+
         public override void AddToSettingsHash(ref int settingsHash)
         {
             base.AddToSettingsHash(ref settingsHash);
             Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
+            Hashy.AddInt(_bufferCount, ref settingsHash);
         }
 
         /// <summary>

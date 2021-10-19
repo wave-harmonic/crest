@@ -30,6 +30,7 @@ namespace Crest
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData => true;
+        public override int BufferCount => Settings._bufferCount;
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
@@ -213,7 +214,7 @@ namespace Crest
             // Validation
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
+                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Current.Validate(0, SimName);
             }
 
             foreach (var gerstner in _updatables)
@@ -249,10 +250,17 @@ namespace Crest
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
+            }
+
+            if (BufferCount > 1)
+            {
+                // Update current and previous. Latter for MVs and/or VFX.
+                Shader.SetGlobalTexture(GetParamIdSampler(true), _targets.Previous(1));
+                Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
             }
         }
 
@@ -295,7 +303,7 @@ namespace Crest
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCombineIntoAux, MeshTopology.Triangles, 3);
 
                 // Copy combine buffer back to lod texture array
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
                 _combineMaterial[lodIdx].SetTexture(Shader.PropertyToID("_CombineBuffer"), _combineBuffer);
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCopyResultBack, MeshTopology.Triangles, 3);
             }
@@ -396,10 +404,10 @@ namespace Crest
             {
 
                 // Shape texture needs to completely contain sample area
-                var lodRect = lt._renderData[lod].RectXZ;
+                var lodRect = lt._renderData[lod].Current.RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                lodRect.x += lt._renderData[lod]._texelWidth; lodRect.y += lt._renderData[lod]._texelWidth;
-                lodRect.width -= 2f * lt._renderData[lod]._texelWidth; lodRect.height -= 2f * lt._renderData[lod]._texelWidth;
+                lodRect.x += lt._renderData[lod].Current._texelWidth; lodRect.y += lt._renderData[lod].Current._texelWidth;
+                lodRect.width -= 2f * lt._renderData[lod].Current._texelWidth; lodRect.height -= 2f * lt._renderData[lod].Current._texelWidth;
                 if (!lodRect.Contains(sampleAreaXZ.min) || !lodRect.Contains(sampleAreaXZ.max))
                     continue;
 

@@ -10,9 +10,9 @@ namespace Crest
 
     public partial class UnderwaterRenderer
     {
-        const string SHADER_UNDERWATER_EFFECT = "Hidden/Crest/Underwater/Underwater Effect";
-        internal const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
-        internal const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
+        const string k_ShaderPathUnderwaterEffect = "Hidden/Crest/Underwater/Underwater Effect";
+        internal const string k_KeywordFullScreenEffect = "_FULL_SCREEN_EFFECT";
+        internal const string k_KeywordDebugViewOceanMask = "_DEBUG_VIEW_OCEAN_MASK";
 
         internal static readonly int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
@@ -35,7 +35,7 @@ namespace Crest
         {
             if (_underwaterEffectMaterial?.material == null)
             {
-                _underwaterEffectMaterial = new PropertyWrapperMaterial(SHADER_UNDERWATER_EFFECT);
+                _underwaterEffectMaterial = new PropertyWrapperMaterial(k_ShaderPathUnderwaterEffect);
             }
 
             if (_underwaterEffectCommandBuffer == null)
@@ -141,6 +141,8 @@ namespace Crest
             }
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
+            // We no longer need the temporary mask textures so release them.
+            CleanUpMaskTextures(_underwaterEffectCommandBuffer);
         }
 
         internal static void UpdatePostProcessMaterial(
@@ -173,11 +175,11 @@ namespace Crest
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
             if (debugViewPostProcessMask)
             {
-                underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                underwaterPostProcessMaterial.EnableKeyword(k_KeywordDebugViewOceanMask);
             }
             else
             {
-                underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                underwaterPostProcessMaterial.DisableKeyword(k_KeywordDebugViewOceanMask);
             }
 
             // We sample shadows at the camera position which will be the first slice.
@@ -223,11 +225,11 @@ namespace Crest
 
             if (forceFullShader)
             {
-                underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
+                underwaterPostProcessMaterial.EnableKeyword(k_KeywordFullScreenEffect);
             }
             else
             {
-                underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
+                underwaterPostProcessMaterial.DisableKeyword(k_KeywordFullScreenEffect);
             }
 
             // Project ocean normal onto camera plane.

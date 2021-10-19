@@ -44,6 +44,7 @@ Fixed
    .. only:: hdrp
 
       -  Fix *Default Clipping State > Everything Clipped* not clipping extents. `[HDRP]`
+      -  Fix Ocean shader compilation errors for `HDRP` 10.7. `[HDRP]`
 
 Removed
 ^^^^^^^

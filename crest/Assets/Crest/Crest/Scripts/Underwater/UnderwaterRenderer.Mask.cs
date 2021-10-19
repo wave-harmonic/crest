@@ -18,11 +18,24 @@ namespace Crest
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
         public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
 
+        RenderTargetIdentifier _maskTarget = new RenderTargetIdentifier
+        (
+            sp_CrestOceanMaskTexture,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1 // Bind all XR slices.
+        );
+        RenderTargetIdentifier _depthTarget = new RenderTargetIdentifier
+        (
+            sp_CrestOceanMaskDepthTexture,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1 // Bind all XR slices.
+        );
+
         internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
-        RenderTexture _maskTexture;
-        RenderTexture _depthTexture;
 
         void SetupOceanMask()
         {
@@ -40,19 +53,55 @@ namespace Crest
             }
         }
 
+        void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
+        {
+            // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
+            // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
+            descriptor.msaaSamples = 1;
+            // Without this sampling coordinates will be incorrect if used by camera. No harm always being "true".
+            descriptor.useDynamicScale = true;
+
+            // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
+            // @Memory: We could potentially try a half resolution mask as the mensicus could mask resolution issues.
+            descriptor.colorFormat = RenderTextureFormat.RHalf;
+            descriptor.depthBufferBits = 0;
+            buffer.GetTemporaryRT(sp_CrestOceanMaskTexture, descriptor);
+
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = 24;
+            buffer.GetTemporaryRT(sp_CrestOceanMaskDepthTexture, descriptor);
+        }
+
+        /// <summary>
+        /// Releases temporary mask textures. Pass any available command buffer through.
+        /// </summary>
+        static void CleanUpMaskTextures(CommandBuffer buffer)
+        {
+            // According to the following source code, we can release a temporary RT using a different CB than the one
+            // which allocated it. Unity uses CommandBufferPool.Get in OnCameraSetup (RTs allocated) and OnCameraCleanup
+            // (RTs released) which means they could be different CBs. So pass any available CB through.
+            // com.unity.render-pipelines.universal/Runtime/ScriptableRenderer.cs
+            //
+            // Manually releasing the textures right after they are no longer used is best (after underwater effect).
+            // But they will be released for us if we fail to do so:
+            // > Any temporary textures that were not explicitly released will be removed after camera is done
+            // > rendering, or after Graphics.ExecuteCommandBuffer is done.
+            // https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ReleaseTemporaryRT.html
+            buffer.ReleaseTemporaryRT(sp_CrestOceanMaskTexture);
+            buffer.ReleaseTemporaryRT(sp_CrestOceanMaskDepthTexture);
+        }
+
         void OnPreRenderOceanMask()
         {
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
-            descriptor.useDynamicScale = _camera.allowDynamicResolution;
-
-            InitialiseMaskTextures(descriptor, ref _maskTexture, ref _depthTexture);
 
             _oceanMaskCommandBuffer.Clear();
-            // Passing -1 to depth slice binds all slices. Important for XR SPI to work in both eyes.
-            _oceanMaskCommandBuffer.SetRenderTarget(_maskTexture.colorBuffer, _depthTexture.depthBuffer, mipLevel: 0, CubemapFace.Unknown, depthSlice: -1);
+            // Must call after clear or temporaries will be cleared.
+            SetUpMaskTextures(_oceanMaskCommandBuffer, descriptor);
+            _oceanMaskCommandBuffer.SetRenderTarget(_maskTarget, _depthTarget);
             _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.black);
-            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTexture.colorBuffer);
-            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTexture.depthBuffer);
+            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTarget);
+            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTarget);
 
             SetInverseViewProjectionMatrix(_oceanMaskMaterial.material);
 
@@ -65,36 +114,6 @@ namespace Crest
                 _farPlaneMultiplier,
                 _debug._disableOceanMask
             );
-        }
-
-        internal static void InitialiseMaskTextures(RenderTextureDescriptor desc, ref RenderTexture textureMask, ref RenderTexture depthBuffer)
-        {
-            // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
-            if (textureMask == null || textureMask.width != desc.width || textureMask.height != desc.height)
-            {
-                // @Performance: We should consider either a temporary RT or use an RTHandle if appropriate
-                // RenderTexture is a "native engine object". We have to release it to avoid memory leaks.
-                if (textureMask != null)
-                {
-                    textureMask.Release();
-                    depthBuffer.Release();
-                }
-
-                textureMask = new RenderTexture(desc);
-                textureMask.depth = 0;
-                textureMask.name = "Ocean Mask";
-                // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
-                // We could also potentially try a half res mask as the mensicus could mask res issues.
-                textureMask.format = RenderTextureFormat.RHalf;
-                textureMask.Create();
-
-                depthBuffer = new RenderTexture(desc);
-                depthBuffer.depth = 24;
-                depthBuffer.enableRandomWrite = false;
-                depthBuffer.name = "Ocean Mask Depth";
-                depthBuffer.format = RenderTextureFormat.Depth;
-                depthBuffer.Create();
-            }
         }
 
         // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may

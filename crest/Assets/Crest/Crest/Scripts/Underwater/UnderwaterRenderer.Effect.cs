@@ -143,6 +143,7 @@ namespace Crest
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
             // We no longer need the temporary mask textures so release them.
             CleanUpMaskTextures(_underwaterEffectCommandBuffer);
+            CleanUpBoundaryTextures(_mode, _underwaterEffectCommandBuffer);
         }
 
         internal static void UpdatePostProcessMaterial(

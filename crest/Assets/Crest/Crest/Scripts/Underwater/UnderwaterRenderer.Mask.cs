@@ -43,8 +43,20 @@ namespace Crest
 
         CommandBuffer _boundaryCommandBuffer;
         Material _boundaryMaterial = null;
-        RenderTexture _boundaryBackFaceTexture;
-        RenderTexture _boundaryFrontFaceTexture;
+        RenderTargetIdentifier _boundaryBackFaceTarget = new RenderTargetIdentifier
+        (
+            sp_CrestWaterBoundaryGeometryBackFaceTexture,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1 // Bind all XR slices.
+        );
+        RenderTargetIdentifier _boundaryFrontFaceTarget = new RenderTargetIdentifier
+        (
+            sp_CrestWaterBoundaryGeometryFrontFaceTexture,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1 // Bind all XR slices.
+        );
 
         void SetupOceanMask()
         {
@@ -130,6 +142,31 @@ namespace Crest
             buffer.ReleaseTemporaryRT(sp_CrestOceanMaskDepthTexture);
         }
 
+        void SetUpBoundaryTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
+        {
+            descriptor.msaaSamples = 1;
+            descriptor.useDynamicScale = true;
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = 24;
+
+            buffer.GetTemporaryRT(sp_CrestWaterBoundaryGeometryFrontFaceTexture, descriptor);
+
+            if (_mode == Mode.Geometry3D || _mode == Mode.GeometryVolume)
+            {
+                buffer.GetTemporaryRT(sp_CrestWaterBoundaryGeometryBackFaceTexture, descriptor);
+            }
+        }
+
+        void CleanUpBoundaryTextures(Mode mode, CommandBuffer buffer)
+        {
+            buffer.ReleaseTemporaryRT(sp_CrestWaterBoundaryGeometryFrontFaceTexture);
+
+            if (mode == Mode.Geometry3D || mode == Mode.GeometryVolume)
+            {
+                buffer.ReleaseTemporaryRT(sp_CrestWaterBoundaryGeometryBackFaceTexture);
+            }
+        }
+
         void OnPreRenderOceanMask()
         {
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
@@ -142,13 +179,13 @@ namespace Crest
             {
                 // Keep separate from mask.
                 _boundaryCommandBuffer.Clear();
+                SetUpBoundaryTextures(_boundaryCommandBuffer, descriptor);
                 _boundaryCommandBuffer.SetViewProjectionMatrices(_camera.worldToCameraMatrix, _camera.projectionMatrix);
 
                 // Front faces.
-                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryBackFaceTexture, "Front Face");
-                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryFrontFaceTexture, _boundaryBackFaceTexture.depthBuffer);
-                _boundaryCommandBuffer.SetRenderTarget(_boundaryBackFaceTexture.depthBuffer);
+                _boundaryCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.None, _boundaryFrontFaceTarget);
                 _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
+                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryFrontFaceTexture, _boundaryFrontFaceTarget);
                 _boundaryCommandBuffer.DrawMesh
                 (
                     _waterVolumeBoundaryGeometry.mesh,
@@ -158,19 +195,21 @@ namespace Crest
                     k_ShaderPassWaterBoundaryFrontFace
                 );
 
-                // Back faces.
-                InitialiseClipSurfaceMaskTextures(descriptor, ref _boundaryFrontFaceTexture, "Back Face");
-                _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryBackFaceTexture, _boundaryFrontFaceTexture.depthBuffer);
-                _boundaryCommandBuffer.SetRenderTarget(_boundaryFrontFaceTexture.depthBuffer);
-                _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
-                _boundaryCommandBuffer.DrawMesh
-                (
-                    _waterVolumeBoundaryGeometry.mesh,
-                    _waterVolumeBoundaryGeometry.transform.localToWorldMatrix,
-                    _boundaryMaterial,
-                    submeshIndex: 0,
-                    k_ShaderPassWaterBoundaryBackFace
-                );
+                if (_mode == Mode.Geometry3D || _mode == Mode.GeometryVolume)
+                {
+                    // Back faces.
+                    _boundaryCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.None, _boundaryBackFaceTarget);
+                    _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
+                    _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryBackFaceTexture, _boundaryBackFaceTarget);
+                    _boundaryCommandBuffer.DrawMesh
+                    (
+                        _waterVolumeBoundaryGeometry.mesh,
+                        _waterVolumeBoundaryGeometry.transform.localToWorldMatrix,
+                        _boundaryMaterial,
+                        submeshIndex: 0,
+                        k_ShaderPassWaterBoundaryBackFace
+                    );
+                }
 
                 switch (_mode)
                 {

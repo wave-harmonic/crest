@@ -180,12 +180,12 @@ namespace Crest
                 // Keep separate from mask.
                 _boundaryCommandBuffer.Clear();
                 SetUpBoundaryTextures(_boundaryCommandBuffer, descriptor);
-                _boundaryCommandBuffer.SetViewProjectionMatrices(_camera.worldToCameraMatrix, _camera.projectionMatrix);
 
                 // Front faces.
                 _boundaryCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.None, _boundaryFrontFaceTarget);
                 _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
                 _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryFrontFaceTexture, _boundaryFrontFaceTarget);
+                _boundaryCommandBuffer.SetInvertCulling(true);
                 _boundaryCommandBuffer.DrawMesh
                 (
                     _waterVolumeBoundaryGeometry.mesh,
@@ -210,6 +210,8 @@ namespace Crest
                         k_ShaderPassWaterBoundaryBackFace
                     );
                 }
+
+                _boundaryCommandBuffer.SetInvertCulling(false);
 
                 switch (_mode)
                 {

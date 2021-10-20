@@ -26,6 +26,9 @@ Shader "Crest/Hidden/Water Boundary Geometry"
 		{
 			Varyings o;
 			o.positionCS = UnityObjectToClipPos(input.positionOS);
+#if UNITY_UV_STARTS_AT_TOP
+			o.positionCS.y *= -1.0;
+#endif
 			return o;
 		}
 

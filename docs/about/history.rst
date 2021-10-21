@@ -55,6 +55,7 @@ Removed
    -  Removed *Create Water Body* wizard window.
       The water body setup has been simplified and works without this additional tooling.
    -  *Smoothing* feature removed from *Spline*, underlying code made more robust.
+   -  Remove *Assign Layer* component.
 
 Performance
 ^^^^^^^^^^^

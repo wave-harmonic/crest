@@ -51,7 +51,7 @@ half4 Frag(Varyings input) : SV_Target
 #if CREST_BOUNDARY_HAS_BACKFACE
 	if (LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, input.positionCS.xy) == 0.0)
 	{
-		// We need mask none for the meniscus. Otherwise, it will appear at geometry edges.
+		// We need zero mask for the meniscus. Otherwise, it will appear at geometry edges.
 		discard;
 	}
 #endif // CREST_BOUNDARY_HAS_BACKFACE

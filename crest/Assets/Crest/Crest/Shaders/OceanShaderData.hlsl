@@ -16,9 +16,7 @@ UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
 float4 _CameraDepthTexture_TexelSize;
 
 TEXTURE2D_X(_CrestWaterBoundaryGeometryFrontFaceTexture);
-SAMPLER(sampler_CrestWaterBoundaryGeometryFrontFaceTexture);
 TEXTURE2D_X(_CrestWaterBoundaryGeometryBackFaceTexture);
-SAMPLER(sampler_CrestWaterBoundaryGeometryBackFaceTexture);
 
 // NOTE: _Normals is used outside of _APPLYNORMALMAPPING_ON so we cannot surround it here.
 sampler2D _Normals;

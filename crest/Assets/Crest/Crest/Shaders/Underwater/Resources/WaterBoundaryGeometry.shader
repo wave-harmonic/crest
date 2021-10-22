@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Hidden/Water Boundary Geometry"
+Shader "Hidden/Crest/Hidden/Water Boundary Geometry"
 {
 	SubShader
 	{
@@ -27,6 +27,7 @@ Shader "Crest/Hidden/Water Boundary Geometry"
 			Varyings o;
 			o.positionCS = UnityObjectToClipPos(input.positionOS);
 #if UNITY_UV_STARTS_AT_TOP
+			// Flip the geometry otherwise it will be flipped when sampling. Only had to since using temporary RTs :\
 			o.positionCS.y *= -1.0;
 #endif
 			return o;

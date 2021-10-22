@@ -11,6 +11,7 @@ namespace Crest
     public partial class UnderwaterRenderer
     {
         const string k_ShaderPathOceanMask = "Hidden/Crest/Underwater/Ocean Mask";
+        const string k_ShaderPathWaterBoundary = "Hidden/Crest/Hidden/Water Boundary Geometry";
         internal const int k_ShaderPassOceanSurfaceMask = 0;
         internal const int k_ShaderPassOceanHorizonMask = 1;
         internal const int k_ShaderPassWaterBoundaryFrontFace = 0;
@@ -75,7 +76,7 @@ namespace Crest
 
             if (_boundaryMaterial == null)
             {
-                _boundaryMaterial = new Material(Shader.Find("Crest/Hidden/Water Boundary Geometry"));
+                _boundaryMaterial = new Material(Shader.Find(k_ShaderPathWaterBoundary));
             }
 
             if (_boundaryCommandBuffer == null)
@@ -181,11 +182,13 @@ namespace Crest
                 _boundaryCommandBuffer.Clear();
                 SetUpBoundaryTextures(_boundaryCommandBuffer, descriptor);
 
+                // Since using temporary RTs this is all inverted now...
+                _boundaryCommandBuffer.SetInvertCulling(true);
+
                 // Front faces.
                 _boundaryCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.None, _boundaryFrontFaceTarget);
                 _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
                 _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryFrontFaceTexture, _boundaryFrontFaceTarget);
-                _boundaryCommandBuffer.SetInvertCulling(true);
                 _boundaryCommandBuffer.DrawMesh
                 (
                     _waterVolumeBoundaryGeometry.mesh,
@@ -211,6 +214,7 @@ namespace Crest
                     );
                 }
 
+                // Since using temporary RTs this is all inverted now...
                 _boundaryCommandBuffer.SetInvertCulling(false);
 
                 switch (_mode)
@@ -249,30 +253,6 @@ namespace Crest
                 _farPlaneMultiplier,
                 _debug._disableOceanMask
             );
-        }
-
-        internal static void InitialiseClipSurfaceMaskTextures(RenderTextureDescriptor desc, ref RenderTexture depthBuffer, string name)
-        {
-            // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
-            if (depthBuffer == null || depthBuffer.width != desc.width || depthBuffer.height != desc.height)
-            {
-                // @Performance: We should consider either a temporary RT or use an RTHandle if appropriate
-                // RenderTexture is a "native engine object". We have to release it to avoid memory leaks.
-                if (depthBuffer != null)
-                {
-                    depthBuffer.Release();
-                }
-
-                depthBuffer = new RenderTexture(desc)
-                {
-                    depth = 24,
-                    enableRandomWrite = false,
-                    name = $"Clip Surface Mask {name}",
-                    format = RenderTextureFormat.Depth,
-                };
-
-                depthBuffer.Create();
-            }
         }
 
         // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may

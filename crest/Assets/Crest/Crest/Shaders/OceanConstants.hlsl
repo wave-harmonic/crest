@@ -26,10 +26,10 @@
 #define CREST_SSS_MAXIMUM 0.6
 #define CREST_SSS_RANGE 0.12
 
+// Water rendered from below.
+#define UNDERWATER_MASK_BELOW_SURFACE -1.0
 // Water rendered from above.
-#define UNDERWATER_MASK_ABOVE_SURFACE 0.0
-// Water rendered from below. Used to invert meniscus sampling so keep as 2.0.
-#define UNDERWATER_MASK_BELOW_SURFACE 2.0
+#define UNDERWATER_MASK_ABOVE_SURFACE  1.0
 
 #if defined(STEREO_INSTANCING_ON) || defined(STEREO_MULTIVIEW_ON)
 #define CREST_HANDLE_XR 1

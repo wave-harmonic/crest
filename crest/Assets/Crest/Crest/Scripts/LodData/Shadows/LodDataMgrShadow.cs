@@ -80,6 +80,20 @@ namespace Crest
                 Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
+
+            // Define here so we can override check per pipeline downstream.
+            var isShadowsDisabled = false;
+
+            if (QualitySettings.shadows == ShadowQuality.Disable)
+            {
+                isShadowsDisabled = true;
+            }
+
+            if (isShadowsDisabled)
+            {
+                Debug.LogError("Crest: Shadows must be enabled in the quality settings to enable ocean shadowing.", OceanRenderer.Instance);
+                return;
+            }
         }
 
         protected override void InitData()
@@ -114,12 +128,6 @@ namespace Crest
                     Debug.LogError("Crest: Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
                     return false;
                 }
-            }
-
-            if (QualitySettings.shadows == ShadowQuality.Disable)
-            {
-                Debug.LogError("Crest: Shadows must be enabled in the quality settings to enable ocean shadowing.", OceanRenderer.Instance);
-                return false;
             }
 
             return true;

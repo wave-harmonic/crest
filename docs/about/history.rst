@@ -42,6 +42,11 @@ Fixed
    -  Fix *ShapeFFT* component producing inverted looking waves when enabled in editor play mode.
    -  Fix SSS colour missing or popping in the distance.
 
+   .. only:: birp
+
+      -  Fix shadows for MacOS. `[BIRP]`
+      -  Fix shadows for *Shadow Projection > Close Fit*. `[BIRP]`
+
    .. only:: hdrp
 
       -  Fix *Default Clipping State > Everything Clipped* not clipping extents. `[HDRP]`
@@ -62,6 +67,10 @@ Performance
 .. bullet_list::
 
    -  Only calculate inverse view projection matrix when required.
+
+   .. only:: birp
+
+      -  Reduce shadow simulation GPU performance cost by almost 50%. `[BIRP]`
 
    .. only:: birp or urp
 

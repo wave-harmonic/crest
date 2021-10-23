@@ -47,6 +47,7 @@ Fixed
 
       -  Fix shadows for MacOS. `[BIRP]`
       -  Fix shadows for *Shadow Projection > Close Fit*. `[BIRP]`
+      -  Fix shadows for deferred rendering path. `[BIRP]`
 
    .. only:: hdrp
 

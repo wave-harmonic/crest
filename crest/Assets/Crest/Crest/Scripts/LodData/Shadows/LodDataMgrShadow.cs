@@ -40,6 +40,7 @@ namespace Crest
         // SRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
         CommandBuffer _screenSpaceShadowMapCommandBuffer;
+        CommandBuffer _deferredShadowMapCommandBuffer;
 
         PropertyWrapperMaterial[] _renderMaterial;
 
@@ -133,14 +134,32 @@ namespace Crest
             {
                 if (_mainLight)
                 {
-                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-                    BufCopyShadowMap = null;
+                    CleanUpShadowCommandBuffers();
                     _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
-
-                    CleanUpScreenSpaceShadows();
                 }
                 _mainLight = null;
             }
+        }
+
+        void SetUpShadowCommandBuffers()
+        {
+            BufCopyShadowMap = new CommandBuffer();
+            BufCopyShadowMap.name = "Shadow data";
+            _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+
+            // Call this regardless of rendering path as it has no negative consequences for forward.
+            SetUpDeferredShadows();
+            SetUpScreenSpaceShadows();
+        }
+
+        void CleanUpShadowCommandBuffers()
+        {
+            _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+            BufCopyShadowMap.Release();
+            BufCopyShadowMap = null;
+
+            CleanUpDeferredShadows();
+            CleanUpScreenSpaceShadows();
         }
 
         void SetUpScreenSpaceShadows()
@@ -159,6 +178,24 @@ namespace Crest
             _mainLight.RemoveCommandBuffer(LightEvent.AfterScreenspaceMask, _screenSpaceShadowMapCommandBuffer);
             _screenSpaceShadowMapCommandBuffer.Release();
             _screenSpaceShadowMapCommandBuffer = null;
+        }
+
+        void SetUpDeferredShadows()
+        {
+            // Make the screen-space shadow texture available for the ocean shader for caustic occlusion.
+            _deferredShadowMapCommandBuffer = new CommandBuffer()
+            {
+                name = "Deferred Shadow Data"
+            };
+            _deferredShadowMapCommandBuffer.SetGlobalTexture("_ShadowMapTexture", BuiltinRenderTextureType.CurrentActive);
+            _mainLight.AddCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
+        }
+
+        void CleanUpDeferredShadows()
+        {
+            _mainLight.RemoveCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
+            _deferredShadowMapCommandBuffer.Release();
+            _deferredShadowMapCommandBuffer = null;
         }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
@@ -186,11 +223,7 @@ namespace Crest
             {
                 if (BufCopyShadowMap != null)
                 {
-                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-                    BufCopyShadowMap.Release();
-                    BufCopyShadowMap = null;
-
-                    CleanUpScreenSpaceShadows();
+                    CleanUpShadowCommandBuffers();
                 }
 
                 return;
@@ -198,11 +231,7 @@ namespace Crest
 
             if (BufCopyShadowMap == null)
             {
-                BufCopyShadowMap = new CommandBuffer();
-                BufCopyShadowMap.name = "Shadow data";
-                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-
-                SetUpScreenSpaceShadows();
+                SetUpShadowCommandBuffers();
             }
 
             FlipBuffers();

@@ -136,6 +136,8 @@ namespace Crest
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
                     BufCopyShadowMap = null;
                     _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
+
+                    CleanUpScreenSpaceShadows();
                 }
                 _mainLight = null;
             }

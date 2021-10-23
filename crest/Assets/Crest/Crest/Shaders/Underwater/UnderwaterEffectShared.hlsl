@@ -71,6 +71,7 @@ void GetOceanSurfaceAndUnderwaterData
 #ifdef CREST_OCEAN_EMISSION_INCLUDED
 half3 ApplyUnderwaterEffect
 (
+	const int2 i_positionSS,
 	const float3 scenePos,
 	half3 sceneColour,
 	const half3 lightCol,
@@ -131,6 +132,7 @@ half3 ApplyUnderwaterEffect
 	{
 		ApplyCaustics
 		(
+			i_positionSS,
 			scenePos,
 			lightDir,
 			sceneZ,

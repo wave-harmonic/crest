@@ -28,6 +28,7 @@ Changed
    -  All water features updated to support varying water level.
    -  Add buttons to *Spline* inspector to quickly enable water features.
    -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
+   -  Caustics no longer render in shadows casted from objects underwater.
 
 Fixed
 ^^^^^

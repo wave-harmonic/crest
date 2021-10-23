@@ -86,6 +86,10 @@ half2 Frag(Varyings input) : SV_Target
 		}
 	}
 
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+	positionWS -= _WorldSpaceCameraPos.xyz;
+#endif
+
 	// This was calculated in vertex but we have to sample sea level offset in fragment.
 	float4 mainCameraCoordinates = mul(_MainCameraProjectionMatrix, positionWS);
 

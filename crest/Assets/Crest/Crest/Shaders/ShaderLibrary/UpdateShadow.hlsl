@@ -87,7 +87,7 @@ half2 Frag(Varyings input) : SV_Target
 	}
 
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-	positionWS -= _WorldSpaceCameraPos.xyz;
+	positionWS.xyz -= _WorldSpaceCameraPos.xyz;
 #endif
 
 	// This was calculated in vertex but we have to sample sea level offset in fragment.
@@ -98,7 +98,7 @@ half2 Frag(Varyings input) : SV_Target
 	float3 projected = mainCameraCoordinates.xyz / mainCameraCoordinates.w;
 	if (projected.z < 1.0 && projected.z > 0.0 && abs(projected.x) < 1.0 && abs(projected.y) < 1.0)
 	{
-		half2 shadowThisFrame;
+		half2 shadowThisFrame = 1.0;
 
 		// Add soft shadowing data.
 		shadowThisFrame[CREST_SHADOW_INDEX_SOFT] = ComputeShadow

@@ -112,7 +112,7 @@ namespace Crest
             public FFTBatch(ShapeFFT shapeFFT, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeFFT = shapeFFT;
-                Wavelength = wavelength;
+                Wavelength = wavelength*2;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;

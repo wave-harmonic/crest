@@ -112,7 +112,7 @@ namespace Crest
             public FFTBatch(ShapeFFT shapeFFT, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeFFT = shapeFFT;
-                Wavelength = wavelength*2;
+                Wavelength = wavelength;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
@@ -172,8 +172,9 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            // Nyquist rate
-            return texelSize * 2f;
+            // Matches constant with same name in FFTSpectrum.compute
+            float SAMPLES_PER_WAVE = 4f;
+            return texelSize * SAMPLES_PER_WAVE;
         }
 
         public void CrestUpdate(CommandBuffer buf)

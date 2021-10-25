@@ -19,6 +19,7 @@
 #define SPECTRUM_OCTAVE_COUNT		14.0
 #define SPECTRUM_SMALLEST_WL_POW_2	-4.0
 
+// Matches variable with same name in ShapeFFT.cs
 #define SAMPLES_PER_WAVE 4
 
 uint _Size;

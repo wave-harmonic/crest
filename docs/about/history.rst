@@ -54,6 +54,10 @@ Fixed
       -  Fix shadows for *Shadow Projection > Close Fit*. `[BIRP]`
       -  Fix shadows for deferred rendering path. `[BIRP]`
 
+   .. only:: urp
+
+      -  Fix *Crest/Framework* shader compiler errors for 2021.2. `[URP]`
+
    .. only:: hdrp
 
       -  Fix *Default Clipping State > Everything Clipped* not clipping extents. `[HDRP]`

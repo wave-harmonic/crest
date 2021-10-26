@@ -47,6 +47,7 @@ Fixed
    -  Fix FFT spectrum not being editable when time is paused.
    -  Fix *ShapeFFT* component producing inverted looking waves when enabled in editor play mode.
    -  Fix SSS colour missing or popping in the distance.
+   -  Fix boat components not responding to user input for 2021.
 
    .. only:: birp
 

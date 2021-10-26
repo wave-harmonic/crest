@@ -76,6 +76,9 @@ public class BoatAlignNormal : FloatingObjectBase
     SampleHeightHelper _sampleHeightHelperLengthwise = new SampleHeightHelper();
     SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
+    float _inputForward;
+    float _inputSideward;
+
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
@@ -85,6 +88,37 @@ public class BoatAlignNormal : FloatingObjectBase
             enabled = false;
             return;
         }
+    }
+
+#if ENABLE_INPUT_SYSTEM
+    void Update()
+    {
+        if (InputSystem.settings.updateMode == InputSettings.UpdateMode.ProcessEventsInDynamicUpdate)
+        {
+            UpdateInput();
+        }
+    }
+#endif
+
+    void UpdateInput()
+    {
+#if ENABLE_INPUT_SYSTEM
+        _inputForward = !Application.isFocused ? 0 :
+            ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
+#else
+        _inputForward = Input.GetAxis("Vertical");
+#endif
+        var reverseMultiplier = _inputForward < 0f ? -1f : 1f;
+
+#if ENABLE_INPUT_SYSTEM
+        _inputSideward = !Application.isFocused ? 0 :
+            ((Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
+            (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f));
+#else
+        _inputSideward =
+            (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
+            (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
+#endif
     }
 
     void FixedUpdate()
@@ -146,26 +180,21 @@ public class BoatAlignNormal : FloatingObjectBase
         _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
         _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
-        float forward = _throttleBias;
 #if ENABLE_INPUT_SYSTEM
-        float rawForward = !Application.isFocused ? 0 : ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
+        if (InputSystem.settings.updateMode == InputSettings.UpdateMode.ProcessEventsInFixedUpdate)
+        {
+            UpdateInput();
+        }
 #else
-        float rawForward = Input.GetAxis("Vertical");
+        UpdateInput();
 #endif
-        if (_playerControlled) forward += rawForward;
+
+        float forward = _throttleBias;
+        if (_playerControlled) forward += _inputForward;
         _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
-        float reverseMultiplier = (rawForward < 0f ? -1f : 1f);
         float sideways = _steerBias;
-        if (_playerControlled) sideways +=
-#if ENABLE_INPUT_SYSTEM
-                !Application.isFocused ? 0 :
-                ((Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
-                (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f));
-#else
-                (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
-                (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
-#endif
+        if (_playerControlled) sideways += _inputSideward;
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
         FixedUpdateOrientation(normal);

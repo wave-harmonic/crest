@@ -74,6 +74,9 @@ namespace Crest
 
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
+        float _inputForward;
+        float _inputSideward;
+
         private void Start()
         {
             _rb = GetComponent<Rigidbody>();
@@ -90,6 +93,36 @@ namespace Crest
             _queryPoints = new Vector3[_forcePoints.Length + 1];
             _queryResultDisps = new Vector3[_forcePoints.Length + 1];
             _queryResultVels = new Vector3[_forcePoints.Length + 1];
+        }
+
+#if ENABLE_INPUT_SYSTEM
+        void Update()
+        {
+            if (InputSystem.settings.updateMode == InputSettings.UpdateMode.ProcessEventsInDynamicUpdate)
+            {
+                UpdateInput();
+            }
+        }
+#endif
+
+        void UpdateInput()
+        {
+#if ENABLE_INPUT_SYSTEM
+            _inputForward = !Application.isFocused ? 0 :
+                ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
+#else
+            _inputForward = Input.GetAxis("Vertical");
+#endif
+
+#if ENABLE_INPUT_SYSTEM
+            _inputSideward = !Application.isFocused ? 0 :
+                ((Keyboard.current.aKey.isPressed ? -1f : 0f) +
+                (Keyboard.current.dKey.isPressed ? 1f : 0f));
+#else
+            _inputSideward =
+                (Input.GetKey(KeyCode.A) ? -1f : 0f) +
+                (Input.GetKey(KeyCode.D) ? 1f : 0f);
+#endif
         }
 
         void CalcTotalWeight()
@@ -152,25 +185,11 @@ namespace Crest
             var forcePosition = _rb.position;
 
             var forward = _engineBias;
-            if (_playerControlled) forward +=
-#if ENABLE_INPUT_SYSTEM
-                !Application.isFocused ? 0 :
-                ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
-#else
-                Input.GetAxis("Vertical");
-#endif
+            if (_playerControlled) forward += _inputForward;
             _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
             var sideways = _turnBias;
-            if (_playerControlled) sideways +=
-#if ENABLE_INPUT_SYSTEM
-                !Application.isFocused ? 0 :
-                ((Keyboard.current.aKey.isPressed ? -1f : 0f) +
-                (Keyboard.current.dKey.isPressed ? 1f : 0f));
-#else
-                (Input.GetKey(KeyCode.A) ? -1f : 0f) +
-                (Input.GetKey(KeyCode.D) ? 1f : 0f);
-#endif
+            if (_playerControlled) sideways += _inputSideward;
             var rotVec = transform.up + _turningHeel * transform.forward;
             _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
         }

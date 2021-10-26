@@ -30,6 +30,10 @@ Changed
    -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
    -  Caustics no longer render in shadows casted from objects underwater.
 
+   .. only:: urp
+
+      -  Added shadow distance fade to shadow data. `[URP]`
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -70,13 +74,17 @@ Performance
 
    -  Only calculate inverse view projection matrix when required.
 
-   .. only:: birp
+   .. only:: birp or hdrp
 
-      -  Reduce shadow simulation GPU performance cost by almost 50%. `[BIRP]`
+      -  Reduce shadow simulation GPU performance cost by almost 50%. `[BIRP] [HDRP]`
 
    .. only:: birp or urp
 
       -  Improve *Underwater Renderer* memory usage. `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  Reduce ocean shader GPU performance cost for shadows. `[HDRP]`
 
 
 4.13

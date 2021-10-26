@@ -33,6 +33,7 @@ Changed
    .. only:: urp
 
       -  Added shadow distance fade to shadow data. `[URP]`
+      -  Improve `URP` shadow settings validation. `[URP]`
 
 Fixed
 ^^^^^

@@ -21,6 +21,7 @@ namespace Crest
         };
         List<SceneItem> _testScenes = new List<SceneItem> {
             new SceneItem("Test", "Assets/Development/Scenes/Test.unity"),
+            new SceneItem("Spline Test", "Assets/Development/Scenes/SplineTest.unity"),
         };
 
         private void OnGUI()

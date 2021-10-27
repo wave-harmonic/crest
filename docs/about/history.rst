@@ -23,8 +23,17 @@ Changed
    -  *Sphere Water Interaction* component simplified - no mesh renderer/shader setup required, and no 'register' component required.
    -  *Sphere Water Interaction* produces more consistent results at different radii/scales.
    -  Improve `FFT` wave quality by doubling the sampling from two to four.
-   -  *RegisterHeightInput* can be used in conjunction with our *Spline* component to offset the water level. This can be used to create water bodies at different altitudes, and to create rivers that flow between them.
+   -  *RegisterHeightInput* can be used in conjunction with our *Spline* component to offset the water level.
+      This can be used to create water bodies at different altitudes, and to create rivers that flow between them.
    -  All water features updated to support varying water level.
+   -  Add buttons to *Spline* inspector to quickly enable water features.
+   -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
+   -  Caustics no longer render in shadows casted from objects underwater.
+
+   .. only:: urp
+
+      -  Added shadow distance fade to shadow data. `[URP]`
+      -  Improve `URP` shadow settings validation. `[URP]`
 
 Fixed
 ^^^^^
@@ -37,23 +46,50 @@ Fixed
    -  Fix high CPU memory usage from underwater effect shader in builds.
    -  Fix FFT spectrum not being editable when time is paused.
    -  Fix *ShapeFFT* component producing inverted looking waves when enabled in editor play mode.
+   -  Fix SSS colour missing or popping in the distance.
+
+   .. only:: birp
+
+      -  Fix shadows for MacOS. `[BIRP]`
+      -  Fix shadows for *Shadow Projection > Close Fit*. `[BIRP]`
+      -  Fix shadows for deferred rendering path. `[BIRP]`
+
+   .. only:: urp
+
+      -  Fix *Crest/Framework* shader compiler errors for 2021.2. `[URP]`
 
    .. only:: hdrp
 
       -  Fix *Default Clipping State > Everything Clipped* not clipping extents. `[HDRP]`
+      -  Fix Ocean shader compilation errors for `HDRP` 10.7. `[HDRP]`
 
 Removed
 ^^^^^^^
 .. bullet_list::
 
    -  Remove *Texels Per Wave* parameter from Ocean Renderer and hard-code to Nyquist limit as it is required for `FFT`\ s to work well.
-   -  Removed *Create Water Body* wizard window. The water body setup has been simplified and works without this additional tooling.
+   -  Removed *Create Water Body* wizard window.
+      The water body setup has been simplified and works without this additional tooling.
+   -  *Smoothing* feature removed from *Spline*, underlying code made more robust.
+   -  Remove *Assign Layer* component.
 
 Performance
 ^^^^^^^^^^^
 .. bullet_list::
 
    -  Only calculate inverse view projection matrix when required.
+
+   .. only:: birp or hdrp
+
+      -  Reduce shadow simulation GPU performance cost by almost 50%. `[BIRP] [HDRP]`
+
+   .. only:: birp or urp
+
+      -  Improve *Underwater Renderer* memory usage. `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  Reduce ocean shader GPU performance cost for shadows. `[HDRP]`
 
 Deprecated
 ^^^^^^^^^^

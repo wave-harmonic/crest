@@ -83,8 +83,6 @@ namespace Crest
         float _radius = 50f;
         [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
-        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
-        int _smoothingIterations = 60;
 
         [SerializeField]
         float _featherWaveStart = 0.1f;
@@ -174,8 +172,9 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            // Nyquist rate
-            return texelSize * 2f;
+            // Matches constant with same name in FFTSpectrum.compute
+            float SAMPLES_PER_WAVE = 4f;
+            return texelSize * SAMPLES_PER_WAVE;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -268,8 +267,7 @@ namespace Crest
             {
                 var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
-                var smooth = _overrideSplineSettings ? _smoothingIterations : splineForWaves.SmoothingIterations;
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, subdivs, radius, smooth, Vector2.one,
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, subdivs, radius, Vector2.one,
                     ref _meshForDrawingWaves, out _, out _))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";

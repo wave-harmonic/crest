@@ -32,7 +32,7 @@ namespace Crest
 
             // Even if only a single ray trace is desired, this still must be called every frame until Trace() returns true
             _rayTrace.Init(transform.position, transform.forward);
-            if (_rayTrace.Trace(out float dist))
+            if (_rayTrace.Trace(out var dist))
             {
                 var endPos = transform.position + transform.forward * dist;
                 Debug.DrawLine(transform.position, endPos, Color.green);

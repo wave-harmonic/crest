@@ -81,24 +81,10 @@ https://github.com/sponsors/wave-harmonic
 
 ## Sponsors
 
-### Diamond
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://www.okomotive.ch/" target="_blank">
-          <img width="222px" src="https://cdn.discordapp.com/attachments/849200677301125123/849271975746601030/okomotive_logo_rgb_color_transparent_512px.png">
-        </a>
-      </td>
-    </tr><tr></tr>
-  </tbody>
-</table>
-
 ### Gold 🥇
 
 [@ipthgil](https://github.com/ipthgil)
 
 ### Board Members 🚀
 
-[@pachermann](https://github.com/pachermann) [@celeronpm](https://github.com/celeronpm) [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)
+[@pachermann](https://github.com/pachermann) [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)

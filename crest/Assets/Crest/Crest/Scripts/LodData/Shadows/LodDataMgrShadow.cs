@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -20,11 +19,12 @@ namespace Crest
     /// </summary>
     public class LodDataMgrShadow : LodDataMgr
     {
-        public override string SimName { get { return "Shadow"; } }
+        public override string SimName => "Shadow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
+        protected override bool NeedToReadWriteTextureData => true;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
+        public override int BufferCount => 2;
 
         internal const string MATERIAL_KEYWORD_PROPERTY = "_Shadows";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_SHADOWS_ON";
@@ -39,23 +39,17 @@ namespace Crest
 
         // SRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
+        CommandBuffer _screenSpaceShadowMapCommandBuffer;
+        CommandBuffer _deferredShadowMapCommandBuffer;
 
-        RenderTexture _sources;
-        PropertyWrapperCompute _renderProperties;
-        ComputeShader _updateShadowShader;
-        private int krnl_UpdateShadow;
-        public const string UpdateShadow = "UpdateShadow";
+        PropertyWrapperMaterial[] _renderMaterial;
 
         readonly int sp_CenterPos = Shader.PropertyToID("_CenterPos");
         readonly int sp_Scale = Shader.PropertyToID("_Scale");
-        readonly int sp_CamPos = Shader.PropertyToID("_CamPos");
-        readonly int sp_CamForward = Shader.PropertyToID("_CamForward");
         readonly int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
         readonly int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-        readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
-        readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
-        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
+        static readonly int sp_CrestScreenSpaceShadowTexture = Shader.PropertyToID("_CrestScreenSpaceShadowTexture");
 
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
@@ -69,23 +63,13 @@ namespace Crest
         {
             base.Start();
 
-            _renderProperties = new PropertyWrapperCompute();
-            _updateShadowShader = ComputeShaderHelpers.LoadShader(UpdateShadow);
-            if (_updateShadowShader == null)
             {
-                enabled = false;
-                return;
-            }
-
-            try
-            {
-                krnl_UpdateShadow = _updateShadowShader.FindKernel(UpdateShadow);
-            }
-            catch (Exception)
-            {
-                Debug.LogError("Crest: Could not load shadow update kernel. Disabling shadows.", _ocean);
-                enabled = false;
-                return;
+                _renderMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+                var shader = Shader.Find("Hidden/Crest/Simulation/Update Shadow");
+                for (int i = 0; i < _renderMaterial.Length; i++)
+                {
+                    _renderMaterial[i] = new PropertyWrapperMaterial(shader);
+                }
             }
 
 #if UNITY_EDITOR
@@ -96,37 +80,135 @@ namespace Crest
                 Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
+
+            // Define here so we can override check per pipeline downstream.
+            var isShadowsDisabled = false;
+
+            if (QualitySettings.shadows == ShadowQuality.Disable)
+            {
+                isShadowsDisabled = true;
+            }
+
+            if (isShadowsDisabled)
+            {
+                Debug.LogError("Crest: Shadows must be enabled in the quality settings to enable ocean shadowing.", OceanRenderer.Instance);
+                return;
+            }
         }
 
         protected override void InitData()
         {
             base.InitData();
-
-            int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
-            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
-
-            TextureArrayHelpers.ClearToBlack(_sources);
-            TextureArrayHelpers.ClearToBlack(_targets);
+            _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
         }
 
         bool StartInitLight()
         {
-            _mainLight = OceanRenderer.Instance._primaryLight;
-
-            if (_mainLight.type != LightType.Directional)
+            if (_mainLight == null)
             {
-                Debug.LogError("Crest: Primary light must be of type Directional.", OceanRenderer.Instance);
-                return false;
-            }
+                _mainLight = OceanRenderer.Instance._primaryLight;
 
-            if (_mainLight.shadows == LightShadows.None)
-            {
-                Debug.LogError("Crest: Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
-                return false;
+                if (_mainLight == null)
+                {
+                    if (!Settings._allowNullLight)
+                    {
+                        Debug.LogWarning("Crest: Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
+                    }
+                    return false;
+                }
+
+                if (_mainLight.type != LightType.Directional)
+                {
+                    Debug.LogError("Crest: Primary light must be of type Directional.", OceanRenderer.Instance);
+                    return false;
+                }
+
+                if (_mainLight.shadows == LightShadows.None)
+                {
+                    Debug.LogError("Crest: Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
+                    return false;
+                }
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// May happen if scenes change etc
+        /// </summary>
+        void ClearBufferIfLightChanged()
+        {
+            if (_mainLight != OceanRenderer.Instance._primaryLight)
+            {
+                if (_mainLight)
+                {
+                    CleanUpShadowCommandBuffers();
+                    _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
+                }
+                _mainLight = null;
+            }
+        }
+
+        void SetUpShadowCommandBuffers()
+        {
+            BufCopyShadowMap = new CommandBuffer();
+            BufCopyShadowMap.name = "Shadow data";
+            _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+
+            // Call this regardless of rendering path as it has no negative consequences for forward.
+            SetUpDeferredShadows();
+            SetUpScreenSpaceShadows();
+        }
+
+        void CleanUpShadowCommandBuffers()
+        {
+            _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+            BufCopyShadowMap.Release();
+            BufCopyShadowMap = null;
+
+            CleanUpDeferredShadows();
+            CleanUpScreenSpaceShadows();
+        }
+
+        void SetUpScreenSpaceShadows()
+        {
+            // Make the screen-space shadow texture available for the ocean shader for caustic occlusion.
+            _screenSpaceShadowMapCommandBuffer = new CommandBuffer()
+            {
+                name = "Screen-Space Shadow Data"
+            };
+            _screenSpaceShadowMapCommandBuffer.SetGlobalTexture(sp_CrestScreenSpaceShadowTexture, BuiltinRenderTextureType.CurrentActive);
+            _mainLight.AddCommandBuffer(LightEvent.AfterScreenspaceMask, _screenSpaceShadowMapCommandBuffer);
+        }
+
+        void CleanUpScreenSpaceShadows()
+        {
+            _mainLight.RemoveCommandBuffer(LightEvent.AfterScreenspaceMask, _screenSpaceShadowMapCommandBuffer);
+            _screenSpaceShadowMapCommandBuffer.Release();
+            _screenSpaceShadowMapCommandBuffer = null;
+        }
+
+        void SetUpDeferredShadows()
+        {
+            // Make the screen-space shadow texture available for the ocean shader for caustic occlusion.
+            _deferredShadowMapCommandBuffer = new CommandBuffer()
+            {
+                name = "Deferred Shadow Data"
+            };
+            _deferredShadowMapCommandBuffer.SetGlobalTexture("_ShadowMapTexture", BuiltinRenderTextureType.CurrentActive);
+            _mainLight.AddCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
+        }
+
+        void CleanUpDeferredShadows()
+        {
+            _mainLight.RemoveCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
+            _deferredShadowMapCommandBuffer.Release();
+            _deferredShadowMapCommandBuffer = null;
+        }
+
+        public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
+        {
+            // Intentionally blank to not flip buffers.
         }
 
         public override void UpdateLodData()
@@ -138,54 +220,29 @@ namespace Crest
 
             base.UpdateLodData();
 
-            if (_mainLight != OceanRenderer.Instance._primaryLight)
+            ClearBufferIfLightChanged();
+
+            if (!StartInitLight())
             {
-                if (_mainLight)
-                {
-                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-                    BufCopyShadowMap = null;
-                    TextureArrayHelpers.ClearToBlack(_sources);
-                    TextureArrayHelpers.ClearToBlack(_targets);
-                }
-                _mainLight = null;
+                enabled = false;
             }
 
-            if (!OceanRenderer.Instance._primaryLight)
+            if (!s_processData || !enabled)
             {
-                if (!Settings._allowNullLight)
+                if (BufCopyShadowMap != null)
                 {
-                    Debug.LogWarning("Crest: Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
+                    CleanUpShadowCommandBuffers();
                 }
+
                 return;
             }
 
-            if (!_mainLight)
+            if (BufCopyShadowMap == null)
             {
-                if (!StartInitLight())
-                {
-                    enabled = false;
-                    return;
-                }
+                SetUpShadowCommandBuffers();
             }
 
-            if (BufCopyShadowMap == null && s_processData)
-            {
-                BufCopyShadowMap = new CommandBuffer();
-                BufCopyShadowMap.name = "Shadow data";
-                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-            }
-            else if (!s_processData && BufCopyShadowMap != null)
-            {
-                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-                BufCopyShadowMap = null;
-            }
-
-            if (!s_processData)
-            {
-                return;
-            }
-
-            Swap(ref _sources, ref _targets);
+            FlipBuffers();
 
             BufCopyShadowMap.Clear();
 
@@ -198,7 +255,7 @@ namespace Crest
             if (UnityEditor.EditorApplication.isPlaying)
 #endif
             {
-                TextureArrayHelpers.ClearToBlack(_targets);
+                TextureArrayHelpers.ClearToBlack(_targets.Current);
             }
 
             // Cache the camera for further down.
@@ -209,50 +266,32 @@ namespace Crest
                 return;
             }
 
+#if CREST_SRP
+#pragma warning disable 618
+            using (new ProfilingSample(BufCopyShadowMap, "CrestSampleShadows"))
+#pragma warning restore 618
+#endif
             {
-                // Run shadow update
-
-                // It feels like quite a lot could be optimized out of the below. I think the same params are written repeatedly, and probably
-                // a bunch of them are already available in existing ocean globals.
-
-                _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
-
-                _renderProperties.SetVector(sp_CamPos, camera.transform.position);
-                _renderProperties.SetVector(sp_CamForward, camera.transform.forward);
-
-                _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, camera.projectionMatrix * camera.worldToCameraMatrix);
-                _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
-
-                _renderProperties.SetTexture(GetParamIdSampler(true), _sources);
-
-                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
-
-                _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
-
-                LodDataMgrSeaFloorDepth.Bind(_renderProperties);
-
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
 #if UNITY_EDITOR
-                    lt._renderData[lodIdx].Validate(0, SimName);
+                    lt._renderData[lodIdx].Current.Validate(0, SimName);
 #endif
 
-                    _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
+                    _renderMaterial[lodIdx].SetVector(sp_CenterPos, lt._renderData[lodIdx].Current._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
-                    _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
+                    _renderMaterial[lodIdx].SetVector(sp_Scale, new Vector3(scale, 1f, scale));
+                    _renderMaterial[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
+                    _renderMaterial[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, renderIntoTexture: true) * camera.worldToCameraMatrix);
+                    _renderMaterial[lodIdx].SetFloat(sp_SimDeltaTime, Time.deltaTime);
 
-                    // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
-                    var srcDataIdx = lodIdx + ScaleDifferencePow2;
-                    srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
-                    _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
-                    _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
+                    _renderMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
+                    _renderMaterial[lodIdx].SetTexture(GetParamIdSampler(true), _targets.Previous(1));
 
-                    BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
-                        OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
-                        OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
-                        1);
+                    LodDataMgrSeaFloorDepth.Bind(_renderMaterial[lodIdx]);
+
+                    BufCopyShadowMap.Blit(Texture2D.blackTexture, _targets.Current, _renderMaterial[lodIdx].material, -1, lodIdx);
                 }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
@@ -266,7 +305,7 @@ namespace Crest
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    BufCopyShadowMap.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                    BufCopyShadowMap.SetRenderTarget(_targets.Current, _targets.Current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, BufCopyShadowMap);
                 }
 
@@ -277,10 +316,10 @@ namespace Crest
                     BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
                 }
 #endif
-            }
 
-            // Set the target texture as to make sure we catch the 'pong' each frame
-            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
+                // Set the target texture as to make sure we catch the 'pong' each frame
+                Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);
+            }
         }
 
         public void ValidateSourceData()
@@ -293,9 +332,9 @@ namespace Crest
             }
 #endif
 
-            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
+            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderData)
             {
-                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
+                renderData.Previous(1).Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
             }
         }
 

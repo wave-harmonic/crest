@@ -46,9 +46,22 @@ namespace Crest
 
         static Dictionary<RenderTexture, Material> s_textureArrayMaterials = new Dictionary<RenderTexture, Material>();
 
+        static OceanDebugGUI s_Instance;
+
         public static bool OverGUI(Vector2 screenPosition)
         {
-            return screenPosition.x < _leftPanelWidth;
+            return s_Instance != null && (s_Instance._guiVisible && screenPosition.x < _leftPanelWidth ||
+                s_Instance._showOceanData && screenPosition.y < _bottomPanelHeight);
+        }
+
+        void OnEnable()
+        {
+            s_Instance = this;
+        }
+
+        void OnDisable()
+        {
+            s_Instance = null;
         }
 
         private void Update()

@@ -95,6 +95,7 @@ Deprecated
 ^^^^^^^^^^
 .. bullet_list::
 
+   -  Made *ObjectWaterInteraction* component obsolete, this is replaced by the more simple and robust *SphereWaterInteraction*. Removed usages of this component from the example scenes.
    -  Made *ShapeGerstner* and *ShapeGerstnerBatched* components obsolete, *ShapeFFT* should is preferred. Example scenes moved over to *ShapeFFT*.
 
 

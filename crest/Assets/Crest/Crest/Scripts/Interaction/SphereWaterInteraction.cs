@@ -117,6 +117,7 @@ namespace Crest
             _mpb.SetVector(sp_velocity, relativeVelocity);
             _mpb.SetFloat(sp_simDeltaTime, dt);
             _mpb.SetFloat(sp_radius, _radius);
+            _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, disp);
 
             // Weighting with this value helps keep ripples consistent for different gravity values
             var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier) / 5f;
@@ -221,7 +222,7 @@ namespace Crest
         public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             _mpb.SetFloat(sp_weight, weight * _weightThisFrame);
-            buf.DrawMesh(RegisterClipSurfaceInput.QuadMesh, _renderMatrix, _mat, 0, 0, _mpb);
+            buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, _renderMatrix, _mat, 0, 0, _mpb);
         }
     }
 

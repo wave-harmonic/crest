@@ -91,6 +91,12 @@ Performance
 
       -  Reduce ocean shader GPU performance cost for shadows. `[HDRP]`
 
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
+
+   - Made *ObjectWaterInteraction* component obsolete, this is replaced by the more simple and robust *SphereWaterInteraction*. Removed usages of this component from the example scenes.
+
 
 4.13
 ----

@@ -37,7 +37,7 @@ namespace Crest
         [Header("Wave Response")]
         [Tooltip("Diameter of object, for physics purposes. The larger this value, the more filtered/smooth the wave response will be.")]
         public float _objectWidth = 3f;
-        public override float ObjectWidth { get { return _objectWidth; } }
+        public override float ObjectWidth => _objectWidth;
 
         [Header("Drag")]
         [Tooltip("Vertical offset for where drag force should be applied.")]
@@ -51,7 +51,7 @@ namespace Crest
         [SerializeField] bool _debugDraw = false;
 
         bool _inWater;
-        public override bool InWater { get { return _inWater; } }
+        public override bool InWater => _inWater;
 
         public override Vector3 Velocity => _rb.velocity;
 

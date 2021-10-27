@@ -81,6 +81,14 @@ namespace Crest
             }
         }
 
+        public static void FlipDataBuffers(OceanRenderer ocean)
+        {
+            foreach (var rd in ocean._lodTransform._renderData)
+            {
+                rd.Flip();
+            }
+        }
+
         /// <summary>
         /// Construct the command buffer and attach it to the camera so that it will be executed in the render.
         /// </summary>

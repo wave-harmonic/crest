@@ -219,16 +219,6 @@ namespace Crest
             Gizmos.DrawWireSphere(transform.position, _radius);
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            sp_velocity = Shader.PropertyToID("_Velocity");
-            sp_weight = Shader.PropertyToID("_Weight");
-            sp_simDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-            sp_radius = Shader.PropertyToID("_Radius");
-        }
-
         public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             _mpb.SetFloat(sp_weight, weight * _weightThisFrame);

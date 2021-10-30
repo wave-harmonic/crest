@@ -105,7 +105,7 @@ Non-spherical objects can be approximated with multiple spheres, for an example 
 The intensity of the interaction can be scaled using the *Weight* setting.
 For an example of usages in boats, search for GameObjects with "InteractionSphere" in their name in the *boat.unity* scene.
 
-The dynamic wave simulation is added on top of the animated Gerstner waves to give the final shape.
+The dynamic wave simulation is added on top of the animated FFT waves to give the final shape.
 
 
 .. _dynamic_waves_settings:

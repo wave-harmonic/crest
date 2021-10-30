@@ -7,7 +7,7 @@ Some quick start pointers for changing the ocean look and behaviour:
    The material parameters are described in section :ref:`material_parameters`.
    Turn off unnecessary features to maximize performance.
 
--  Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset.
+-  Animated waves / ocean shape: Configured on the *ShapeFFT* script by providing an *Ocean Wave Spectrum* asset.
    This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison. See section :ref:`wave-conditions-section`.
 
 -  Shallow water: Any ocean seabed geometry needs set up to register it with *Crest*.

@@ -164,7 +164,7 @@ The steps to add an ocean to an existing scene are as follows:
 
    .. tip:: You can check *Auto Generate* to ensure lighting is always generated.
 
-*  To add waves, create a new GameObject and add the *Shape Gerstner Batched* component.
+*  To add waves, create a new GameObject and add the *Shape FFT* component.
    See :ref:`wave-conditions-section` section for customisation.
 *  Any ocean seabed geometry needs set up to register it with `Crest`. See section :ref:`shallows`.
 *  If the camera needs to go underwater, the underwater effect must be configured.
@@ -177,9 +177,9 @@ The steps to add an ocean to an existing scene are as follows:
 
 .. To add waves:
 
-.. * Create a new GameObject and add the *Shape Gerstner Batched* component.
+.. * Create a new GameObject and add the *Shape FFT* component.
 .. * On startup this script creates a default ocean shape. To edit the shape, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum* and provide it to this script.
-.. * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
+.. * Smooth blending of ocean shapes can be achieved by adding multiple *Shape FFT* scripts and crossfading them using the *Weight* parameter.
 
 .. See :ref:`_wave-authoring-section` for in depth documentation.
 

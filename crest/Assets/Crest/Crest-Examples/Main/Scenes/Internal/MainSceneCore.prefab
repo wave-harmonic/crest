@@ -200,7 +200,6 @@ MonoBehaviour:
   _layerName: 
   _layer: 4
   _gravityMultiplier: 1
-  _minTexelsPerWave: 3
   _minScale: 4
   _maxScale: 256
   _dropDetailHeightBasedOnWaves: 0.2
@@ -211,6 +210,7 @@ MonoBehaviour:
   _simSettingsAnimatedWaves: {fileID: 11400000, guid: 62a7ebcba67387043b90226c6ee957b7,
     type: 2}
   _createSeaFloorDepthData: 1
+  _simSettingsSeaFloorDepth: {fileID: 0}
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 11400000, guid: b699a3b46fff8d340aeb6110c75cf178, type: 2}
   _createDynamicWaveSim: 0
@@ -220,6 +220,7 @@ MonoBehaviour:
   _createShadowData: 1
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
+  _simSettingsClipSurface: {fileID: 0}
   _defaultClippingState: 0
   _showOceanProxyPlane: 0
   _editModeFPS: 30
@@ -370,9 +371,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3722420625682887659}
-  - component: {fileID: 7621163759507505343}
+  - component: {fileID: 5238852195871272796}
   m_Layer: 0
-  m_Name: OceanWavesBatched
+  m_Name: Waves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -392,7 +393,7 @@ Transform:
   m_Father: {fileID: 5607403321199507271}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7621163759507505343
+--- !u!114 &5238852195871272796
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -401,24 +402,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 4381411965147487613}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
+  m_Script: {fileID: 11500000, guid: 7a57126133720c243a7af00a156c9ee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _mode: 0
+  _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
-  _windDirectionAngle: 0
-  _componentsPerOctave: 8
+  _spectrumFixedAtRuntime: 1
+  _waveDirectionHeadingAngle: 180
+  _overrideGlobalWindSpeed: 0
+  _windSpeed: 20
   _weight: 1
+  _respectShallowWaterAttenuation: 1
+  _componentsPerOctave: 8
   _randomSeed: 0
-  _evaluateSpectrumAtRuntime: 1
-  _wavelengths: []
-  _amplitudes: []
-  _angleDegs: []
-  _phases: []
-  _directTowardsPoint: 0
-  _pointPositionXZ: {x: 0, y: 0}
-  _pointRadii: {x: 100, y: 200}
+  _resolution: 32
+  _debugDrawSlicesInEditor: 0
+  _overrideSplineSettings: 0
+  _radius: 50
+  _subdivisions: 1
+  _smoothingIterations: 60
+  _featherWaveStart: 0.1
+  _maxVerticalDisplacement: 10
+  _maxHorizontalDisplacement: 15
 --- !u!1 &4592855603536158879
 GameObject:
   m_ObjectHideFlags: 0
@@ -1692,15 +1698,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cada5253abff1481b98c0880eb065d8e, type: 3}
---- !u!1 &6008382642350785677 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
-    type: 3}
-  m_PrefabInstance: {fileID: 8172902231589795142}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6008382642350785674 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2452750316707852748, guid: cada5253abff1481b98c0880eb065d8e,
+    type: 3}
+  m_PrefabInstance: {fileID: 8172902231589795142}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6008382642350785677 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
     type: 3}
   m_PrefabInstance: {fileID: 8172902231589795142}
   m_PrefabAsset: {fileID: 0}

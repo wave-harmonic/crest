@@ -15,7 +15,7 @@ The following sections describe how to define the wave conditions.
 Wave Systems
 ------------
 
-The *ShapeFFT* component is uesd to generate waves in Crest.
+The *ShapeFFT* component is used to generate waves in Crest.
 
 .. _wave-authoring-section:
 

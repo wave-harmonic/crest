@@ -54,7 +54,7 @@ The helper classes always submit a fixed number of points this frame, so satisfy
 Gerstner Waves CPU
 ------------------
 
-.. important::
+.. admonition:: Deprecated
 
    The Gerstner wave system in Crest is now deprecated. A CPU query path for the FFT waves is being worked on.
 

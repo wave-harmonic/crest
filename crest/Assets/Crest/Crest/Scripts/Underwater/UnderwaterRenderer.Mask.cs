@@ -13,6 +13,8 @@ namespace Crest
         const string k_ShaderPathOceanMask = "Hidden/Crest/Underwater/Ocean Mask";
         internal const int k_ShaderPassOceanSurfaceMask = 0;
         internal const int k_ShaderPassOceanHorizonMask = 1;
+        internal const string k_ComputeShaderFillMaskArtefacts = "CrestFillMaskArtefacts";
+        internal const string k_ComputeShaderKernelFillMaskArtefacts = "FillMaskArtefacts";
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
@@ -37,6 +39,12 @@ namespace Crest
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
 
+        ComputeShader _fixMaskComputeShader;
+        int _fixMaskKernel;
+        uint _fixMaskThreadGroupSizeX;
+        uint _fixMaskThreadGroupSizeY;
+        uint _fixMaskThreadGroupSizeZ;
+
         void SetupOceanMask()
         {
             if (_oceanMaskMaterial?.material == null)
@@ -51,6 +59,16 @@ namespace Crest
                     name = "Ocean Mask",
                 };
             }
+
+            _fixMaskComputeShader = ComputeShaderHelpers.LoadShader(k_ComputeShaderFillMaskArtefacts);
+            _fixMaskKernel = _fixMaskComputeShader.FindKernel(k_ComputeShaderKernelFillMaskArtefacts);
+            _fixMaskComputeShader.GetKernelThreadGroupSizes
+            (
+                _fixMaskKernel,
+                out _fixMaskThreadGroupSizeX,
+                out _fixMaskThreadGroupSizeY,
+                out _fixMaskThreadGroupSizeZ
+            );
         }
 
         void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
@@ -65,10 +83,12 @@ namespace Crest
             // @Memory: We could potentially try a half resolution mask as the mensicus could mask resolution issues.
             descriptor.colorFormat = RenderTextureFormat.RHalf;
             descriptor.depthBufferBits = 0;
+            descriptor.enableRandomWrite = true;
             buffer.GetTemporaryRT(sp_CrestOceanMaskTexture, descriptor);
 
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 24;
+            descriptor.enableRandomWrite = false;
             buffer.GetTemporaryRT(sp_CrestOceanMaskDepthTexture, descriptor);
         }
 
@@ -114,6 +134,19 @@ namespace Crest
                 _farPlaneMultiplier,
                 _debug._disableOceanMask
             );
+
+            if (!_debug._disableArtifactCorrection)
+            {
+                _oceanMaskCommandBuffer.SetComputeTextureParam(_fixMaskComputeShader, _fixMaskKernel, sp_CrestOceanMaskTexture, _maskTarget);
+                _oceanMaskCommandBuffer.DispatchCompute
+                (
+                    _fixMaskComputeShader,
+                    _fixMaskKernel,
+                    descriptor.width / (int)_fixMaskThreadGroupSizeX,
+                    descriptor.height / (int)_fixMaskThreadGroupSizeY,
+                    (int)_fixMaskThreadGroupSizeZ
+                );
+            }
         }
 
         // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may

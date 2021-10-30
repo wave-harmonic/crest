@@ -34,9 +34,9 @@ namespace Crest
         bool _runValidationOnStart = true;
 #pragma warning restore 414
 
-		[Tooltip("If clipping is enabled and set to clip everywhere by default, this option will register this water body to ensure its area does not get clipped."), SerializeField]
-		bool _registerWithClipSurfaceData = true;
-		
+        [Tooltip("If clipping is enabled and set to clip everywhere by default, this option will register this water body to ensure its area does not get clipped."), SerializeField]
+        bool _registerWithClipSurfaceData = true;
+        
         public static List<WaterBody> WaterBodies => _waterBodies;
         static List<WaterBody> _waterBodies = new List<WaterBody>();
 

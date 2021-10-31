@@ -9,6 +9,7 @@
 
 CBUFFER_START(CrestOceanSurfaceDrivenValues)
 uint _LD_SliceIndex;
+int _CrestLodChange;
 CBUFFER_END
 
 // This must exactly match struct with same name in C#
@@ -25,6 +26,7 @@ struct CascadeParams
 };
 
 StructuredBuffer<CascadeParams> _CrestCascadeData;
+StructuredBuffer<CascadeParams> _CrestCascadeDataSource;
 
 // This must exactly match struct with same name in C#
 // :PerCascadeInstanceData
@@ -39,6 +41,7 @@ struct PerCascadeInstanceData
 };
 
 StructuredBuffer<PerCascadeInstanceData> _CrestPerCascadeInstanceData;
+StructuredBuffer<PerCascadeInstanceData> _CrestPerCascadeInstanceDataSource;
 
 Texture2DArray _LD_TexArray_AnimatedWaves;
 Texture2DArray _LD_TexArray_WaveBuffer;

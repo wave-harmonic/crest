@@ -158,12 +158,12 @@ namespace Crest
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         internal Material _material = null;
-        public Material OceanMaterial { get { return _material; } set { _material = value; } }
+        public Material OceanMaterial { get => _material; set => _material = value; }
 
         [System.Obsolete("Use the _layer field instead."), HideInInspector, SerializeField]
         string _layerName = "";
         [System.Obsolete("Use the Layer property instead.")]
-        public string LayerName { get { return _layerName; } }
+        public string LayerName => _layerName;
 
         [HelpBox("The <i>Layer</i> property needs to migrate the deprecated <i>Layer Name</i> property before it can be used. Please see the bottom of this component for a fix button.", HelpBoxAttribute.MessageType.Warning, HelpBoxAttribute.Visibility.PropertyDisabled, order = 1)]
         [Tooltip("The ocean tile renderers will have this layer.")]
@@ -173,7 +173,7 @@ namespace Crest
 
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
-        public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
+        public float Gravity => _gravityMultiplier * Physics.gravity.magnitude;
 
 
         [Header("Detail Params")]
@@ -189,7 +189,7 @@ namespace Crest
 
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
-        public int LodDataResolution { get { return _lodDataResolution; } }
+        public int LodDataResolution => _lodDataResolution;
 
         [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
         int _geometryDownSampleFactor = 2;
@@ -211,35 +211,37 @@ namespace Crest
 
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
         bool _createSeaFloorDepthData = true;
-        public bool CreateSeaFloorDepthData { get { return _createSeaFloorDepthData; } }
+        public bool CreateSeaFloorDepthData => _createSeaFloorDepthData;
+        [Predicated("_createSeaFloorDepthData"), Embedded]
+        public SimSettingsSeaFloorDepth _simSettingsSeaFloorDepth;
 
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
-        public bool CreateFoamSim { get { return _createFoamSim; } }
+        public bool CreateFoamSim => _createFoamSim;
         [Predicated("_createFoamSim"), Embedded]
         public SimSettingsFoam _simSettingsFoam;
 
         [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
         bool _createDynamicWaveSim = false;
-        public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
+        public bool CreateDynamicWaveSim => _createDynamicWaveSim;
         [Predicated("_createDynamicWaveSim"), Embedded]
         public SimSettingsWave _simSettingsDynamicWaves;
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
-        public bool CreateFlowSim { get { return _createFlowSim; } }
+        public bool CreateFlowSim => _createFlowSim;
         [Predicated("_createFlowSim"), Embedded]
         public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
-        public bool CreateShadowData { get { return _createShadowData; } }
+        public bool CreateShadowData => _createShadowData;
         [Predicated("_createShadowData"), Embedded]
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
-        public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
+        public bool CreateClipSurfaceData => _createClipSurfaceData;
 
         [Predicated("_createClipSurfaceData"), Embedded]
         public SimSettingsClipSurface _simSettingsClipSurface;
@@ -297,8 +299,8 @@ namespace Crest
         /// Current ocean scale (changes with viewer altitude).
         /// </summary>
         public float Scale { get; private set; }
-        public float CalcLodScale(float lodIndex) { return Scale * Mathf.Pow(2f, lodIndex); }
-        public float CalcGridSize(int lodIndex) { return CalcLodScale(lodIndex) / LodDataResolution; }
+        public float CalcLodScale(float lodIndex) => Scale * Mathf.Pow(2f, lodIndex);
+        public float CalcGridSize(int lodIndex) => CalcLodScale(lodIndex) / LodDataResolution;
 
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
@@ -308,7 +310,7 @@ namespace Crest
         /// <summary>
         /// Sea level is given by y coordinate of GameObject with OceanRenderer script.
         /// </summary>
-        public float SeaLevel { get { return Root.position.y; } }
+        public float SeaLevel => Root.position.y;
 
         [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
@@ -322,7 +324,7 @@ namespace Crest
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
-        public int CurrentLodCount { get { return _lodTransform != null ? _lodTransform.LodCount : 0; } }
+        public int CurrentLodCount => _lodTransform != null ? _lodTransform.LodCount : _lodCount;
 
         /// <summary>
         /// Vertical offset of camera vs water surface.
@@ -333,6 +335,12 @@ namespace Crest
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
         public List<OceanChunkRenderer> Tiles => _oceanChunkRenderers;
+
+        /// <summary>
+        /// Smoothly varying version of viewer height to combat sudden changes in water level that are possible
+        /// when there are local bodies of water
+        /// </summary>
+        float _viewerHeightAboveWaterSmooth = 0f;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
@@ -366,16 +374,19 @@ namespace Crest
         bool _canSkipCulling = false;
 
         public static readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
-        public static int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
-        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
-        readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
-        readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
-        readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
-        readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
-        readonly int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
-        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        public static readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        public static readonly int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
+        public static readonly int sp_CrestPerCascadeInstanceDataSource = Shader.PropertyToID("_CrestPerCascadeInstanceDataSource");
+        public static readonly int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
+        public static readonly int sp_CrestCascadeDataSource = Shader.PropertyToID("_CrestCascadeDataSource");
+        public static readonly int sp_CrestLodChange = Shader.PropertyToID("_CrestLodChange");
+        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly static int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
+        readonly static int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
+        readonly static int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
+        readonly static int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
+        readonly static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -417,11 +428,11 @@ namespace Crest
             public Vector3 __padding;
         }
         public ComputeBuffer _bufPerCascadeInstanceData;
+        public ComputeBuffer _bufPerCascadeInstanceDataSource;
 
-        CascadeParams[] _cascadeParamsSrc = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
-        CascadeParams[] _cascadeParamsTgt = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
-
-        PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
+        BufferedData<CascadeParams[]> _cascadeParams;
+        BufferedData<PerCascadeInstanceData[]> _perCascadeInstanceData;
+        public int BufferSize { get; private set; }
 
         // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
         // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
@@ -475,17 +486,41 @@ namespace Crest
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
-            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
-            Shader.SetGlobalBuffer("_CrestPerCascadeInstanceData", _bufPerCascadeInstanceData);
+            // Make sure we have correct defaults in case simulations are not enabled.
+            LodDataMgrClipSurface.BindNullToGraphicsShaders();
+            LodDataMgrDynWaves.BindNullToGraphicsShaders();
+            LodDataMgrFlow.BindNullToGraphicsShaders();
+            LodDataMgrFoam.BindNullToGraphicsShaders();
+            LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
+            LodDataMgrShadow.BindNullToGraphicsShaders();
 
-            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, UnsafeUtility.SizeOf<CascadeParams>());
+            CreateDestroySubSystems();
+
+            // TODO: Have a BufferCount which will be the run-time buffer size or prune data.
+            // Gather the buffer size for shared data.
+            BufferSize = 0;
+            foreach (var lodData in _lodDatas)
+            {
+                if (lodData.enabled)
+                {
+                    BufferSize = Mathf.Max(BufferSize, lodData.BufferCount);
+                }
+            }
+
+            _perCascadeInstanceData = new BufferedData<PerCascadeInstanceData[]>(BufferSize, () => new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT + 1]);
+            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Current.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
+            Shader.SetGlobalBuffer(sp_perCascadeInstanceData, _bufPerCascadeInstanceData);
+            _bufPerCascadeInstanceDataSource = new ComputeBuffer(_perCascadeInstanceData.Previous(1).Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
+            Shader.SetGlobalBuffer(sp_CrestPerCascadeInstanceDataSource, _bufPerCascadeInstanceDataSource);
+
+            _cascadeParams = new BufferedData<CascadeParams[]>(BufferSize, () => new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1]);
+            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParams.Current.Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
-
-            // Not used by graphics shaders, so not set globally (global does not work for compute)
-            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, UnsafeUtility.SizeOf<CascadeParams>());
+            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParams.Previous(1).Length, UnsafeUtility.SizeOf<CascadeParams>());
+            Shader.SetGlobalBuffer(sp_CrestCascadeDataSource, _bufCascadeDataSrc);
 
             _lodTransform = new LodTransform();
-            _lodTransform.InitLODData(_lodCount);
+            _lodTransform.InitLODData(_lodCount, BufferSize);
 
             // Resolution is 4 tiles across.
             var baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
@@ -496,16 +531,6 @@ namespace Crest
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
-
-            // Make sure we have correct defaults in case simulations are not enabled.
-            LodDataMgrClipSurface.BindNullToGraphicsShaders();
-            LodDataMgrDynWaves.BindNullToGraphicsShaders();
-            LodDataMgrFlow.BindNullToGraphicsShaders();
-            LodDataMgrFoam.BindNullToGraphicsShaders();
-            LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
-            LodDataMgrShadow.BindNullToGraphicsShaders();
-
-            CreateDestroySubSystems();
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
@@ -798,11 +823,6 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             Instance = null;
-
-            sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-            sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
-            sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
-            sp_crestTime = Shader.PropertyToID("_CrestTime");
         }
 
         void LateUpdate()
@@ -859,6 +879,19 @@ namespace Crest
             }
 #endif
 
+            BuildCommandBuffer.FlipDataBuffers(this);
+
+            // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
+#if UNITY_EDITOR
+            // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
+            // so knock this out.
+            if (EditorApplication.isPlaying)
+#endif
+            {
+                CollisionProvider?.UpdateQueries();
+                FlowProvider?.UpdateQueries();
+            }
+
             // Set global shader params
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
@@ -878,8 +911,8 @@ namespace Crest
             if (_followViewpoint && Viewpoint != null)
             {
                 LateUpdatePosition();
-                LateUpdateScale();
                 LateUpdateViewerHeight();
+                LateUpdateScale();
             }
 
             CreateDestroySubSystems();
@@ -907,11 +940,8 @@ namespace Crest
                 // If we're not running, reset the frame data to avoid validation warnings
                 for (int i = 0; i < _lodTransform._renderData.Length; i++)
                 {
-                    _lodTransform._renderData[i]._frame = -1;
-                }
-                for (int i = 0; i < _lodTransform._renderDataSource.Length; i++)
-                {
-                    _lodTransform._renderDataSource[i]._frame = -1;
+                    _lodTransform._renderData[i].Current._frame = -1;
+                    _lodTransform._renderData[i].Previous(1)._frame = -1;
                 }
             }
 #endif
@@ -942,37 +972,40 @@ namespace Crest
                 OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
             }
 
-            _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
-            _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
-            _bufCascadeDataSrc.SetData(_cascadeParamsSrc);
+            _cascadeParams.Flip();
+            _lodTransform.WriteCascadeParams(_cascadeParams);
+            _bufCascadeDataTgt.SetData(_cascadeParams.Current);
+            _bufCascadeDataSrc.SetData(_cascadeParams.Previous(1));
 
+            _perCascadeInstanceData.Flip();
             WritePerCascadeInstanceData(_perCascadeInstanceData);
-            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
+            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData.Current);
+            _bufPerCascadeInstanceDataSource.SetData(_perCascadeInstanceData.Previous(1));
         }
 
-        void WritePerCascadeInstanceData(PerCascadeInstanceData[] instanceData)
+        void WritePerCascadeInstanceData(BufferedData<PerCascadeInstanceData[]> instanceData)
         {
             for (int lodIdx = 0; lodIdx < CurrentLodCount; lodIdx++)
             {
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 var needToBlendOutShape = lodIdx == 0 && ScaleCouldIncrease;
-                instanceData[lodIdx]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+                instanceData.Current[lodIdx]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
 
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
                 var needToBlendOutNormals = lodIdx == CurrentLodCount - 1 && ScaleCouldDecrease;
-                instanceData[lodIdx]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
+                instanceData.Current[lodIdx]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
 
                 // geometry data
                 // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
                 // and not inherit any of the lossy-ness from lossyScale.
                 var scale_pow_2 = CalcLodScale(lodIdx);
-                instanceData[lodIdx]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
+                instanceData.Current[lodIdx]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
 
                 var mul = 1.875f; // fudge 1
                 var pow = 1.4f; // fudge 2
-                var texelWidth = instanceData[lodIdx]._geoGridWidth / _geometryDownSampleFactor;
-                instanceData[lodIdx]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
-                instanceData[lodIdx]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
+                var texelWidth = instanceData.Current[lodIdx]._geoGridWidth / _geometryDownSampleFactor;
+                instanceData.Current[lodIdx]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
+                instanceData.Current[lodIdx]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
             }
         }
 
@@ -1003,11 +1036,14 @@ namespace Crest
 
         void LateUpdateScale()
         {
-            // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
+            var viewerHeight = _viewerHeightAboveWaterSmooth;
+
+            // Reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
-            float camDistance = Mathf.Abs(Viewpoint.position.y - maxDetailY);
+            viewerHeight += _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
+
+            var camDistance = Mathf.Abs(viewerHeight);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);
@@ -1023,7 +1059,17 @@ namespace Crest
 
             ViewerAltitudeLevelAlpha = l2 - l2f;
 
-            Scale = Mathf.Pow(2f, l2f);
+            var newScale = Mathf.Pow(2f, l2f);
+
+            if (Scale > 0f)
+            {
+                float ratio = newScale / Scale;
+                float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
+                Shader.SetGlobalFloat(sp_CrestLodChange, Mathf.RoundToInt(ratio_l2));
+            }
+
+            Scale = newScale;
+
             Root.localScale = new Vector3(Scale, 1f, Scale);
         }
 
@@ -1036,6 +1082,10 @@ namespace Crest
             _sampleHeightHelper.Sample(out var waterHeight);
 
             ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
+
+            // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
+            // when there are local bodies of water
+            _viewerHeightAboveWaterSmooth = Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
         }
 
         void LateUpdateLods()
@@ -1141,11 +1191,11 @@ namespace Crest
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
-        public bool ScaleCouldIncrease { get { return _maxScale == -1f || Root.localScale.x < _maxScale * 0.99f; } }
+        public bool ScaleCouldIncrease => _maxScale == -1f || Root.localScale.x < _maxScale * 0.99f;
         /// <summary>
         /// Could the ocean horizontal scale decrease (for e.g. if the viewpoint drops in altitude). Will be false if ocean already at minimum scale.
         /// </summary>
-        public bool ScaleCouldDecrease { get { return _minScale == -1f || Root.localScale.x > _minScale * 1.01f; } }
+        public bool ScaleCouldDecrease => _minScale == -1f || Root.localScale.x > _minScale * 1.01f;
 
         /// <summary>
         /// User shape inputs can report in how far they might displace the shape horizontally and vertically. The max value is
@@ -1164,11 +1214,11 @@ namespace Crest
         /// <summary>
         /// The maximum horizontal distance that the shape scripts are displacing the shape.
         /// </summary>
-        public float MaxHorizDisplacement { get { return _maxHorizDispFromShape; } }
+        public float MaxHorizDisplacement => _maxHorizDispFromShape;
         /// <summary>
         /// The maximum height that the shape scripts are displacing the shape.
         /// </summary>
-        public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
+        public float MaxVertDisplacement => _maxVertDispFromShape;
 
         /// <summary>
         /// Provides ocean shape to CPU.
@@ -1224,6 +1274,7 @@ namespace Crest
             _bufPerCascadeInstanceData?.Dispose();
             _bufCascadeDataTgt?.Dispose();
             _bufCascadeDataSrc?.Dispose();
+            _bufPerCascadeInstanceDataSource?.Dispose();
         }
 
 #if UNITY_EDITOR

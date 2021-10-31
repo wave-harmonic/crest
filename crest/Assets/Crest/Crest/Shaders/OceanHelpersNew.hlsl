@@ -82,9 +82,7 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 		const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
 		// Determinant is < 1 for pinched, < 0 for overlap/inversion
 		const float det = determinant( jacobian );
-		const float sssMax = 0.6;
-		const float sssRange = 0.12;
-		io_sss += i_wt * saturate( sssMax - sssRange * det );
+		io_sss += i_wt * saturate( CREST_SSS_MAXIMUM - CREST_SSS_RANGE * det );
 	}
 #endif // _SUBSURFACESCATTERING_ON
 
@@ -108,8 +106,41 @@ void SampleFlow(in Texture2DArray i_oceanFlowSampler, in float3 i_uv_slice, in f
 
 void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth)
 {
-	const float waterDepth = _OceanCenterPosWorld.y - i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).x;
+	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice.xyz, 0.0).xy;
+	const half waterDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
 	io_oceanDepth += i_wt * (waterDepth - CREST_OCEAN_DEPTH_BASELINE);
+}
+
+void SampleSingleSeaDepth(Texture2DArray i_oceanDepthSampler, float3 i_uv_slice, inout half io_oceanDepth, inout half io_seaLevelOffset)
+{
+	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
+	const half waterDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
+	io_oceanDepth = waterDepth - CREST_OCEAN_DEPTH_BASELINE;
+	io_seaLevelOffset = terrainHeight_seaLevelOffset.y;
+}
+
+void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth, inout half io_seaLevelOffset, const CascadeParams i_cascadeParams, inout float2 io_seaLevelDerivs)
+{
+	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 ).xy;
+	io_oceanDepth += i_wt * (_OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y - CREST_OCEAN_DEPTH_BASELINE);
+	io_seaLevelOffset += i_wt * terrainHeight_seaLevelOffset.y;
+
+	{
+		// Compute derivative of sea level - needed to get base normal of water. Gerstner normal / normal map
+		// normal is then added to base normal.
+		const float seaLevelOffset_x = i_oceanDepthSampler.SampleLevel(
+			LODData_linear_clamp_sampler, i_uv_slice + float3(i_cascadeParams._oneOverTextureRes, 0.0, 0.0), 0.0 ).y;
+		const float seaLevelOffset_z = i_oceanDepthSampler.SampleLevel(
+				LODData_linear_clamp_sampler, i_uv_slice + float3(0.0, i_cascadeParams._oneOverTextureRes, 0.0), 0.0 ).y;
+
+		io_seaLevelDerivs.x += i_wt * (seaLevelOffset_x - terrainHeight_seaLevelOffset.y) / i_cascadeParams._texelWidth;
+		io_seaLevelDerivs.y += i_wt * (seaLevelOffset_z - terrainHeight_seaLevelOffset.y) / i_cascadeParams._texelWidth;
+	}
+}
+
+void SampleSeaLevelOffset(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_seaLevelOffset)
+{
+	io_seaLevelOffset += i_wt * i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 ).y;
 }
 
 void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_shadow)

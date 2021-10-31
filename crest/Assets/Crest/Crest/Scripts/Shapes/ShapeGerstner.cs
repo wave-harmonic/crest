@@ -79,8 +79,6 @@ namespace Crest
         float _radius = 20f;
         [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
-        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
-        int _smoothingIterations = 0;
 
         [SerializeField]
         float _featherWaveStart = 0.1f;
@@ -626,9 +624,9 @@ namespace Crest
             {
                 var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
-                var smooth = _overrideSplineSettings ? _smoothingIterations : splineForWaves.SmoothingIterations;
 
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, smooth, Vector2.one, ref _meshForDrawingWaves))
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, Vector2.one,
+                    ref _meshForDrawingWaves, out _, out _))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
@@ -782,6 +780,16 @@ namespace Crest
                     "A <i>Spline</i> component is attached but it has validation errors.",
                     "Check this component in the Inspector for issues.",
                     ValidatedHelper.MessageType.Error, this
+                );
+            }
+
+            if (showMessage == ValidatedHelper.HelpBox)
+            {
+                showMessage
+                (
+                    "The <i>ShapeGerstner</i> component is now obsolete.",
+                    "Prefer using <i>ShapeFFT</i> instead.",
+                    ValidatedHelper.MessageType.Warning, this
                 );
             }
 

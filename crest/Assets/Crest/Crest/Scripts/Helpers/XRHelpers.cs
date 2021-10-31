@@ -126,10 +126,10 @@ namespace Crest
 
 #if _XR_ENABLED
             // XR SPI only has one pass by definition.
-            Display.GetRenderPass(renderPassIndex: 0, out XRDisplaySubsystem.XRRenderPass xrPass);
+            Display.GetRenderPass(renderPassIndex: 0, out var xrPass);
             // Grab left and right eye.
-            xrPass.GetRenderParameter(camera, renderParameterIndex: 0, out XRDisplaySubsystem.XRRenderParameter xrLeftEye);
-            xrPass.GetRenderParameter(camera, renderParameterIndex: 1, out XRDisplaySubsystem.XRRenderParameter xrRightEye);
+            xrPass.GetRenderParameter(camera, renderParameterIndex: 0, out var xrLeftEye);
+            xrPass.GetRenderParameter(camera, renderParameterIndex: 1, out var xrRightEye);
             // Store all the matrices.
             LeftEyeViewMatrix = xrLeftEye.view;
             RightEyeViewMatrix = xrRightEye.view;

@@ -928,6 +928,16 @@ namespace Crest
                 isValid = false;
             }
 
+            if (showMessage == ValidatedHelper.HelpBox)
+            {
+                showMessage
+                (
+                    "The <i>ShapeGerstnerBatched</i> component is now obsolete.",
+                    "Prefer using <i>ShapeFFT</i> instead.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+            }
+
             return isValid;
         }
     }

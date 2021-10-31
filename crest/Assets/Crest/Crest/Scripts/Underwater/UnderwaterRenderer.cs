@@ -62,6 +62,7 @@ namespace Crest
             public bool _viewOceanMask = false;
             public bool _disableOceanMask = false;
             public bool _disableHeightAboveWaterOptimization = false;
+            public bool _disableArtifactCorrection = false;
         }
 
         Camera _camera;
@@ -118,8 +119,9 @@ namespace Crest
                 _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
             }
 
-            Enable();
             Instance = this;
+
+            Enable();
         }
 
         void OnDisable()

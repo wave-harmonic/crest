@@ -55,6 +55,8 @@ Shader "Crest/Underwater Curtain"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
+			#include "../Helpers/BIRP/Core.hlsl"
+
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanShaderData.hlsl"
@@ -187,7 +189,7 @@ Shader "Crest/Underwater Curtain"
 				const float pixelZ = LinearEyeDepth(input.positionCS.z);
 				const half3 screenPos = input.foam_screenPos.yzw;
 				const half2 uvDepth = screenPos.xy / screenPos.z;
-				const float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
+				const float sceneZ01 = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
@@ -223,7 +225,7 @@ Shader "Crest/Underwater Curtain"
 				if (sceneZ01 != 0.0)
 				{
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
-					ApplyCaustics(scenePos, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
+					ApplyCaustics(positionCS.xy, scenePos, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
 				}
 #endif // _CAUSTICS_ON
 

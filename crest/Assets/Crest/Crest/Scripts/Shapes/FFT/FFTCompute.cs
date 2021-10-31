@@ -188,8 +188,7 @@ namespace Crest
         {
             // All static data arguments should be hashed here and passed to the generator constructor
             var conditionsHash = CalculateWaveConditionsHash(resolution, loopPeriod, windTurbulence, windDirRad, windSpeed, spectrum);
-            FFTCompute generator;
-            if (!_generators.TryGetValue(conditionsHash, out generator))
+            if (!_generators.TryGetValue(conditionsHash, out var generator))
             {
                 // No generator for these params - create one
                 generator = new FFTCompute(resolution, loopPeriod, windSpeed, windTurbulence, windDirRad, spectrum);
@@ -252,8 +251,7 @@ namespace Crest
             {
                 // Try to adapt an existing generator rather than default to creating a new one
                 var oldHash = CalculateWaveConditionsHash(resolution, loopPeriod, windTurbulenceOld, windDirRadOld, windSpeedOld, spectrumOld);
-                FFTCompute generator;
-                if (_generators.TryGetValue(oldHash, out generator))
+                if (_generators.TryGetValue(oldHash, out var generator))
                 {
                     // Hash will change for this generator, so remove the current one
                     _generators.Remove(oldHash);

@@ -14,10 +14,10 @@ namespace Crest
     /// </summary>
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "UpdateDynWaves"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
+        protected override string ShaderSim => "UpdateDynWaves";
+        protected override int krnl_ShaderSim => _shader.FindKernel(ShaderSim);
 
-        public override string SimName { get { return "DynamicWaves"; } }
+        public override string SimName => "DynamicWaves";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
@@ -29,7 +29,7 @@ namespace Crest
         public const string DYNWAVES_KEYWORD = "CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL";
 
         bool[] _active;
-        public bool SimActive(int lodIdx) { return _active[lodIdx]; }
+        public bool SimActive(int lodIdx) => _active[lodIdx];
 
         readonly int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
         readonly int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
@@ -73,7 +73,7 @@ namespace Crest
                 return false;
 
             // check if the sim should be running
-            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName)._texelWidth;
+            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Current.Validate(0, SimName)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
             return true;

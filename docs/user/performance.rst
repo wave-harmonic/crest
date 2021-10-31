@@ -18,8 +18,5 @@ These are available for tweaking out of the box and should be explored on every 
    Where possible these are on toggles and can be disabled, which will help the rendering cost (see :ref:`material_parameters`).
    A potential idea would be to change materials on the fly from script, for example to switch to a deep water material when out at sea to avoid shallow water calculations
 
--  The number of wave components will affect the update cost.
-   This can be reduced by turning down sliders in the wave spectrum, and by reducing the *Components per Octave* setting on the *OceanGerstnerBatched* script.
-
--  Our Gerstner system uses an inefficient approach to generate the waves to avoid an incompatibility in older hardware.
+-  Our wave system uses an inefficient approach to generate the waves to avoid an incompatibility in older hardware.
    If you are shipping on a limited set of hardware which you can test the waves on, you may try disabling the *Ping pong combine* option in the *Animated Wave Settings* asset.

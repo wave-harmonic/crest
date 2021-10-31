@@ -25,7 +25,7 @@ namespace Crest
 
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
         float _attenuationInShallows = 0.95f;
-        public float AttenuationInShallows { get { return _attenuationInShallows; } }
+        public float AttenuationInShallows => _attenuationInShallows;
 
         public enum CollisionSources
         {
@@ -37,12 +37,12 @@ namespace Crest
 
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
-        public CollisionSources CollisionSource { get { return _collisionSource; } set { _collisionSource = value; } }
+        public CollisionSources CollisionSource { get => _collisionSource; set => _collisionSource = value; }
 
         [Tooltip("Maximum number of wave queries that can be performed when using ComputeShaderQueries.")]
         [Predicated("_collisionSource", true, (int)CollisionSources.ComputeShaderQueries), SerializeField, DecoratedField]
         int _maxQueryCount = QueryBase.MAX_QUERY_COUNT_DEFAULT;
-        public int MaxQueryCount { get { return _maxQueryCount; } }
+        public int MaxQueryCount => _maxQueryCount;
 
         [Tooltip("Whether to use a graphics shader for combining the wave cascades together. Disabling this uses a compute shader instead which doesn't need to copy back and forth between targets, but it may not work on some GPUs, in particular pre-DX11.3 hardware, which do not support typed UAV loads. The fail behaviour is a flat ocean."), SerializeField]
         bool _pingPongCombinePass = true;
@@ -56,10 +56,13 @@ namespace Crest
         public FFTBakedData _bakedFFTData;
 #endif // CREST_UNITY_MATHEMATICS
 
+        internal int _bufferCount = 1;
+
         public override void AddToSettingsHash(ref int settingsHash)
         {
             base.AddToSettingsHash(ref settingsHash);
             Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
+            Hashy.AddInt(_bufferCount, ref settingsHash);
             Hashy.AddInt((int)_collisionSource, ref settingsHash);
         }
 

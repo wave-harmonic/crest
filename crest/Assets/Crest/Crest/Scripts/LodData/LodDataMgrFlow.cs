@@ -15,9 +15,9 @@ namespace Crest
     /// </summary>
     public class LodDataMgrFlow : LodDataMgr
     {
-        public override string SimName { get { return "Flow"; } }
+        public override string SimName => "Flow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
-        protected override bool NeedToReadWriteTextureData { get { return false; } }
+        protected override bool NeedToReadWriteTextureData => false;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 
@@ -80,7 +80,7 @@ namespace Crest
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);

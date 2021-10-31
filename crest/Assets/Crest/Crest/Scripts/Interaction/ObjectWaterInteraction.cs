@@ -101,8 +101,7 @@ namespace Crest
 
             // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
             // low res, by providing a max grid size param
-            int simsPresent, simsActive;
-            LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+            LodDataMgrDynWaves.CountWaveSims(minLod, out var simsPresent, out var simsActive);
 
             // counting non-existent sims is expensive - stop updating if none found
             if (simsPresent == 0)
@@ -179,6 +178,13 @@ namespace Crest
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+            showMessage
+            (
+                "The <i>ObjectWaterInteraction</i> component is obsolete and is replaced by the simpler and more robust <i>SphereWaterInteraction</i> component.",
+                "Add one or more <i>SphereWaterInteraction</i>'s to match the shape of this object.",
+                ValidatedHelper.MessageType.Warning, this
+            );
 
             if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
             {

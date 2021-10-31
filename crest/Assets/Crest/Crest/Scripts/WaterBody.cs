@@ -86,7 +86,12 @@ namespace Crest
         {
             _waterBodies.Remove(this);
 
-            HandleClipInputRegistration();
+            if (_clipInput != null)
+            {
+                RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface)).Remove(_clipInput);
+
+                _clipInput = null;
+            }
         }
 
         private void CalculateBounds()

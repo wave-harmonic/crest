@@ -168,6 +168,8 @@ namespace Crest
             return true;
         }
 
+        // Loops over each octave in the spectrum and finds the range of octave indices which
+        // have non-zero power and have wavelengths that are larger than the specified min
         internal static void ComputeRequiredOctaves(OceanWaveSpectrum spectrum, float minIncludedWavelength, out int smallest, out int largest)
         {
             smallest = largest = -1;
@@ -177,8 +179,11 @@ namespace Crest
                 var pow = spectrum._powerDisabled[i] ? 0f : Mathf.Pow(10f, spectrum._powerLog[i]);
                 if (pow > Mathf.Pow(10f, OceanWaveSpectrum.MIN_POWER_LOG))
                 {
-                    var minWL = Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + i);
-                    if (2f * minWL > minIncludedWavelength && smallest == -1 && minWL >= smallest)
+                    var smallestOctaveNotFoundYet = smallest == -1;
+                    var maxWavelengthInOctave = 2f * Mathf.Pow(2f, OceanWaveSpectrum.SMALLEST_WL_POW_2 + i);
+
+                    // Octave includes wavelengths up to but not including maxWavelengthInOctave, therefore strictly >
+                    if (maxWavelengthInOctave > minIncludedWavelength && smallestOctaveNotFoundYet)
                     {
                         smallest = i;
                     }

@@ -36,7 +36,7 @@ namespace Crest
 
         [Tooltip("If clipping is enabled and set to clip everywhere by default, this option will register this water body to ensure its area does not get clipped."), SerializeField]
         bool _registerWithClipSurfaceData = true;
-        
+
         public static List<WaterBody> WaterBodies => _waterBodies;
         static List<WaterBody> _waterBodies = new List<WaterBody>();
 
@@ -79,28 +79,14 @@ namespace Crest
 
             _waterBodies.Add(this);
 
-            if (_registerWithClipSurfaceData && OceanRenderer.Instance && OceanRenderer.Instance.CreateClipSurfaceData
-                && OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped)
-            {
-                if (_clipInput == null)
-                {
-                    _clipInput = new ClipInput(this);
-                }
-
-                var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface));
-                registrar.Remove(_clipInput);
-                registrar.Add(0, _clipInput);
-            }
+            HandleClipInputRegistration();
         }
 
         private void OnDisable()
         {
             _waterBodies.Remove(this);
 
-            if (_clipInput != null)
-            {
-                RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface)).Remove(_clipInput);
-            }
+            HandleClipInputRegistration();
         }
 
         private void CalculateBounds()
@@ -115,6 +101,30 @@ namespace Crest
             AABB = bounds;
         }
 
+        void HandleClipInputRegistration()
+        {
+            var registered = _clipInput != null;
+            var shouldBeRegistered = _registerWithClipSurfaceData && OceanRenderer.Instance && OceanRenderer.Instance.CreateClipSurfaceData
+                && OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
+
+            if (registered != shouldBeRegistered)
+            {
+                if (shouldBeRegistered)
+                {
+                    _clipInput = new ClipInput(this);
+
+                    var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface));
+                    registrar.Add(0, _clipInput);
+                }
+                else
+                {
+                    RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface)).Remove(_clipInput);
+
+                    _clipInput = null;
+                }
+            }
+        }
+
 #if UNITY_EDITOR
         private void Start()
         {
@@ -126,6 +136,8 @@ namespace Crest
 
         private void Update()
         {
+            HandleClipInputRegistration();
+
             if (_clipInput != null)
             {
                 var rotateQuadFaceUp = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.right));

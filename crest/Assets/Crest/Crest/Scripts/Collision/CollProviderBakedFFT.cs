@@ -52,9 +52,10 @@ namespace Crest
         /// </summary>
         class QueryData
         {
-            public Dictionary<int, int2> _segmentRegistryNewQueries = new Dictionary<int, int2>();
-            public Dictionary<int, int2> _segmentRegistryQueriesInProgress = new Dictionary<int, int2>();
-            public Dictionary<int, int2> _segmentRegistryQueriesResults = new Dictionary<int, int2>();
+            // Segment int3 is (index of first query, index of last query, last queried frame count)
+            public Dictionary<int, int3> _segmentRegistryNewQueries = new Dictionary<int, int3>();
+            public Dictionary<int, int3> _segmentRegistryQueriesInProgress = new Dictionary<int, int3>();
+            public Dictionary<int, int3> _segmentRegistryQueriesResults = new Dictionary<int, int3>();
 
             // Double buffered query input and output data. Query data can vary in count
             // for different query types. Each is double buffered so that jobs can run
@@ -77,15 +78,19 @@ namespace Crest
 
                 // Get segment to find place to write to for next jobs
                 var segmentRetrieved = false;
-                int2 querySegment;
-                if (_segmentRegistryNewQueries.TryGetValue(ownerHash, out querySegment))
+                int3 querySegment_frameAdded;
+                if (_segmentRegistryNewQueries.TryGetValue(ownerHash, out querySegment_frameAdded))
                 {
                     // make sure segment size matches our query count
-                    var segmentSize = querySegment[1] - querySegment[0];
+                    var segmentSize = querySegment_frameAdded[1] - querySegment_frameAdded[0];
                     if (segmentSize == numQuads)
                     {
                         // All good
                         segmentRetrieved = true;
+
+                        // Update timestamp to keep the query fresh
+                        querySegment_frameAdded.z = Time.frameCount;
+                        _segmentRegistryNewQueries[ownerHash] = querySegment_frameAdded;
                     }
                     else
                     {
@@ -104,8 +109,8 @@ namespace Crest
                         return (int)QueryStatus.TooManyQueries;
                     }
 
-                    querySegment = new int2(_lastQueryQuadIndex, _lastQueryQuadIndex + numQuads);
-                    _segmentRegistryNewQueries.Add(ownerHash, querySegment);
+                    querySegment_frameAdded = new int3(_lastQueryQuadIndex, _lastQueryQuadIndex + numQuads, Time.frameCount);
+                    _segmentRegistryNewQueries.Add(ownerHash, querySegment_frameAdded);
                     _lastQueryQuadIndex += numQuads;
                 }
 
@@ -113,7 +118,7 @@ namespace Crest
                 for (var i = 0; i < queryPoints.Length; i++)
                 {
                     var quadIdx = i / 4;
-                    var outIdx = quadIdx + querySegment.x;
+                    var outIdx = quadIdx + querySegment_frameAdded.x;
 
                     var xQuad = _queryPositionQuadsX[dataToWriteThisFrame][outIdx];
                     var zQuad = _queryPositionQuadsZ[dataToWriteThisFrame][outIdx];
@@ -134,6 +139,8 @@ namespace Crest
             public void Flip()
             {
                 // Cycle the segment registries
+
+                // Results become the next query input (last stage cycles back to first)
                 var nextQueries = _segmentRegistryQueriesResults;
                 // In progress queries become results
                 _segmentRegistryQueriesResults = _segmentRegistryQueriesInProgress;
@@ -147,6 +154,28 @@ namespace Crest
 
                 // Reset counter ready to receive queries
                 _lastQueryQuadIndex = 0;
+
+                // Copy the registrations across from the previous frame. This makes queries persistent. This is needed because
+                // queries are often made from FixedUpdate(), and at high framerates this may not be called, which would mean
+                // the query would get lost and this leads to stuttering and other artifacts.
+                foreach (var registration in _segmentRegistryQueriesInProgress)
+                {
+                    var age = Time.frameCount - registration.Value.z;
+
+                    // If query has not been used in a while, throw it away
+                    if (age < 10)
+                    {
+                        // Bring query segment across. Update indices which will compact the array.
+                        int3 newSegment;
+                        newSegment.x = _lastQueryQuadIndex;
+                        newSegment.y = newSegment.x + (registration.Value.y - registration.Value.x);
+                        newSegment.z = registration.Value.z;
+
+                        _lastQueryQuadIndex = newSegment.y + 1;
+
+                        _segmentRegistryNewQueries.Add(registration.Key, newSegment);
+                    }
+                }
             }
         }
 

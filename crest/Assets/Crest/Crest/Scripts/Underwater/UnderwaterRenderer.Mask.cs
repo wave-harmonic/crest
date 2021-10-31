@@ -20,14 +20,14 @@ namespace Crest
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
         public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
 
-        RenderTargetIdentifier _maskTarget = new RenderTargetIdentifier
+        internal RenderTargetIdentifier _maskTarget = new RenderTargetIdentifier
         (
             sp_CrestOceanMaskTexture,
             mipLevel: 0,
             CubemapFace.Unknown,
             depthSlice: -1 // Bind all XR slices.
         );
-        RenderTargetIdentifier _depthTarget = new RenderTargetIdentifier
+        internal RenderTargetIdentifier _depthTarget = new RenderTargetIdentifier
         (
             sp_CrestOceanMaskDepthTexture,
             mipLevel: 0,
@@ -60,6 +60,11 @@ namespace Crest
                 };
             }
 
+            SetUpFixMaskArtefactsShader();
+        }
+
+        internal void SetUpFixMaskArtefactsShader()
+        {
             _fixMaskComputeShader = ComputeShaderHelpers.LoadShader(k_ComputeShaderFillMaskArtefacts);
             _fixMaskKernel = _fixMaskComputeShader.FindKernel(k_ComputeShaderKernelFillMaskArtefacts);
             _fixMaskComputeShader.GetKernelThreadGroupSizes
@@ -71,7 +76,7 @@ namespace Crest
             );
         }
 
-        void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
+        internal static void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
         {
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
             // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
@@ -95,7 +100,7 @@ namespace Crest
         /// <summary>
         /// Releases temporary mask textures. Pass any available command buffer through.
         /// </summary>
-        static void CleanUpMaskTextures(CommandBuffer buffer)
+        internal static void CleanUpMaskTextures(CommandBuffer buffer)
         {
             // According to the following source code, we can release a temporary RT using a different CB than the one
             // which allocated it. Unity uses CommandBufferPool.Get in OnCameraSetup (RTs allocated) and OnCameraCleanup
@@ -135,18 +140,25 @@ namespace Crest
                 _debug._disableOceanMask
             );
 
-            if (!_debug._disableArtifactCorrection)
+            FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor);
+        }
+
+        internal void FixMaskArtefacts(CommandBuffer buffer, RenderTextureDescriptor descriptor)
+        {
+            if (_debug._disableArtifactCorrection)
             {
-                _oceanMaskCommandBuffer.SetComputeTextureParam(_fixMaskComputeShader, _fixMaskKernel, sp_CrestOceanMaskTexture, _maskTarget);
-                _oceanMaskCommandBuffer.DispatchCompute
-                (
-                    _fixMaskComputeShader,
-                    _fixMaskKernel,
-                    descriptor.width / (int)_fixMaskThreadGroupSizeX,
-                    descriptor.height / (int)_fixMaskThreadGroupSizeY,
-                    (int)_fixMaskThreadGroupSizeZ
-                );
+                return;
             }
+
+            buffer.SetComputeTextureParam(_fixMaskComputeShader, _fixMaskKernel, sp_CrestOceanMaskTexture, _maskTarget);
+            buffer.DispatchCompute
+            (
+                _fixMaskComputeShader,
+                _fixMaskKernel,
+                descriptor.width / (int)_fixMaskThreadGroupSizeX,
+                descriptor.height / (int)_fixMaskThreadGroupSizeY,
+                (int)_fixMaskThreadGroupSizeZ
+            );
         }
 
         // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may

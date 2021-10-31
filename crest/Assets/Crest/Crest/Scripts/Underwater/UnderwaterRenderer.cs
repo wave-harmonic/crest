@@ -119,8 +119,9 @@ namespace Crest
                 _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
             }
 
-            Enable();
             Instance = this;
+
+            Enable();
         }
 
         void OnDisable()

@@ -65,6 +65,11 @@ namespace Crest
 
         internal void SetUpFixMaskArtefactsShader()
         {
+            if (_fixMaskComputeShader != null)
+            {
+                return;
+            }
+
             _fixMaskComputeShader = ComputeShaderHelpers.LoadShader(k_ComputeShaderFillMaskArtefacts);
             _fixMaskKernel = _fixMaskComputeShader.FindKernel(k_ComputeShaderKernelFillMaskArtefacts);
             _fixMaskComputeShader.GetKernelThreadGroupSizes

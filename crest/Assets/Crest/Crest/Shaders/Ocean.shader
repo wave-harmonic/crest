@@ -189,9 +189,6 @@ Shader "Crest/Ocean"
 		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
 
 		[Header(Debug Options)]
-		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
-		// PIX for Windows (requires DX12 API to be selected).
-		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugVisualiseFlow("Debug Visualise Flow", Float) = 0
@@ -231,6 +228,8 @@ Shader "Crest/Ocean"
 			#pragma multi_compile_fog
 			#pragma multi_compile_instancing
 
+			// #pragma enable_d3d11_debug_symbols
+
 			#pragma shader_feature_local _APPLYNORMALMAPPING_ON
 			#pragma shader_feature_local _COMPUTEDIRECTIONALLIGHT_ON
 			#pragma shader_feature_local _DIRECTIONALLIGHTVARYROUGHNESS_ON
@@ -256,13 +255,8 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
 			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
 			#pragma shader_feature_local _DEBUGDISABLESMOOTHLOD_ON
-			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
 			#pragma multi_compile_local _ _OLD_UNDERWATER
-
-			#if _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma enable_d3d11_debug_symbols
-			#endif
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"

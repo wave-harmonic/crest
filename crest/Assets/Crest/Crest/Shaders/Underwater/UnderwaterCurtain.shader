@@ -15,7 +15,6 @@ Shader "Crest/Underwater Curtain"
 		[Toggle] _SubSurfaceShallowColour("Sub-Surface Shallow Colour", Float) = 1
 		[Toggle] _Transparency("Transparency", Float) = 1
 		[Toggle] _Caustics("Caustics", Float) = 1
-		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
 
 	SubShader
@@ -37,6 +36,8 @@ Shader "Crest/Underwater Curtain"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			// #pragma enable_d3d11_debug_symbols
+
 			#pragma multi_compile_instancing
 
 			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
@@ -46,11 +47,6 @@ Shader "Crest/Underwater Curtain"
 			#pragma multi_compile_local __ _TRANSPARENCY_ON
 			#pragma multi_compile_local __ _CAUSTICS_ON
 			#pragma multi_compile_local __ _SHADOWS_ON
-			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
-
-			#if _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma enable_d3d11_debug_symbols
-			#endif
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"

@@ -17,6 +17,12 @@ namespace Crest
             return camera.allowMSAA && QualitySettings.antiAliasing > 0f;
         }
 
+        public static bool IsMotionVectorsEnabled()
+        {
+            // Default to false until we support MVs.
+            return false;
+        }
+
         public static void Swap<T>(ref T a, ref T b)
         {
             var temp = b;

@@ -102,7 +102,7 @@ namespace Crest
         public int _timeResolution = 4;
         [Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
         public float _smallestWavelengthRequired = 2f;
-        [Tooltip("FFT waves will loop with a periodic of this many seconds."), DecoratedField, Predicated("_enableBakedCollision"), Range(4f, 128f)]
+        [Tooltip("FFT waves will loop with a periodic of this many seconds."), Predicated("_enableBakedCollision"), Range(4f, 128f)]
         public float _timeLoopLength = 32f;
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;

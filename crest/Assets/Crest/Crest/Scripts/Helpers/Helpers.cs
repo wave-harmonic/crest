@@ -5,6 +5,7 @@
 namespace Crest
 {
     using UnityEngine;
+    using UnityEngine.Rendering;
 
     /// <summary>
     /// General purpose helpers which, at the moment, do not warrant a seperate file.
@@ -21,6 +22,45 @@ namespace Crest
             var temp = b;
             b = a;
             a = temp;
+        }
+    }
+
+    static class Extensions
+    {
+        public static void SetKeyword(this Material material, string keyword, bool enabled)
+        {
+            if (enabled)
+            {
+                material.EnableKeyword(keyword);
+            }
+            else
+            {
+                material.DisableKeyword(keyword);
+            }
+        }
+
+        public static void SetKeyword(this ComputeShader shader, string keyword, bool enabled)
+        {
+            if (enabled)
+            {
+                shader.EnableKeyword(keyword);
+            }
+            else
+            {
+                shader.DisableKeyword(keyword);
+            }
+        }
+
+        public static void SetShaderKeyword(this CommandBuffer buffer, string keyword, bool enabled)
+        {
+            if (enabled)
+            {
+                buffer.EnableShaderKeyword(keyword);
+            }
+            else
+            {
+                buffer.DisableShaderKeyword(keyword);
+            }
         }
     }
 }

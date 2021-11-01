@@ -497,14 +497,19 @@ namespace Crest
         {
             if (OceanRenderer.Instance == null) return;
 
+            var bakeLabel = "Bake to asset";
             var bakeAndAssignLabel = "Bake to asset and assign to current settings";
             var selectCurrentSettingsLabel = "Select current settings";
             if (OceanRenderer.Instance._simSettingsAnimatedWaves != null)
             {
+                if (GUILayout.Button(bakeLabel))
+                {
+                    FFTBaker.BakeShapeFFT(target as ShapeFFT);
+                }
+
                 if (GUILayout.Button(bakeAndAssignLabel))
                 {
-                    var targetFFT = target as ShapeFFT;
-                    var result = FFTBaker.BakeShapeFFT(targetFFT);
+                    var result = FFTBaker.BakeShapeFFT(target as ShapeFFT);
                     if (result != null)
                     {
                         OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource = SimSettingsAnimatedWaves.CollisionSources.BakedFFT;
@@ -512,12 +517,8 @@ namespace Crest
                         Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
 
                         // Rebuild ocean
-                        var ocean = OceanRenderer.Instance;
-                        if (ocean != null)
-                        {
-                            ocean.enabled = false;
-                            ocean.enabled = true;
-                        }
+                        OceanRenderer.Instance.enabled = false;
+                        OceanRenderer.Instance.enabled = true;
                     }
                 }
 

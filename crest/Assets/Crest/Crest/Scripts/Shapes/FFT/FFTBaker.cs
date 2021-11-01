@@ -150,20 +150,19 @@ namespace Crest
                 s_bakeFolder = "Assets";
             }
 
-            // Select bake folder
+            var filename = $"{sceneName}-{shapeFFTName}-BakedData.asset";
+
+            // Select file name
+            var path = EditorUtility.SaveFilePanelInProject("Save baked data to asset", filename, "asset", "");
+
+            if (string.IsNullOrEmpty(path))
             {
-                var folderPath = EditorUtility.SaveFolderPanel("Folder for baked data", s_bakeFolder, "");
-                if (string.IsNullOrEmpty(folderPath))
-                {
-                    return false;
-                }
-                s_bakeFolder = FileUtil.GetProjectRelativePath(folderPath);
+                return false;
             }
 
-            var assetPath = AssetDatabase.GenerateUniqueAssetPath($"{s_bakeFolder}/{sceneName}-{shapeFFTName}-BakedData.asset");
-            AssetDatabase.CreateAsset(bakedDataSO, assetPath);
+            AssetDatabase.CreateAsset(bakedDataSO, path);
 
-            Debug.Log($"Crest: Baked wave data to {assetPath}.", bakedDataSO);
+            Debug.Log($"Crest: Baked wave data to {path}.", bakedDataSO);
 
             return true;
         }

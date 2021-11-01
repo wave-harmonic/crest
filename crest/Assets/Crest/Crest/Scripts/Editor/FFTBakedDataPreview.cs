@@ -11,21 +11,18 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// If the collision source in the animated wave settings is set to baked FFT, shows a preview of the data.
+    /// Shows a preview of baked FFT data
     /// </summary>
-    [CustomPreview(typeof(SimSettingsAnimatedWaves))]
-    public class SimSettingsAnimatedWavesPreview : ObjectPreview
+    [CustomPreview(typeof(FFTBakedData))]
+    public class FFTBakedDataPreview : ObjectPreview
     {
         private Texture2D _previewTexture;
         private int _frameToPreview = 0;
         private Object _previousTarget;
-        private SimSettingsAnimatedWaves _targetAnimatedWaves => target as SimSettingsAnimatedWaves;
-        private FFTBakedData _targetBakedData => _targetAnimatedWaves != null ? _targetAnimatedWaves._bakedFFTData : null;
 
-        public override bool HasPreviewGUI()
-        {
-            return _targetAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.BakedFFT && _targetBakedData != null;
-        }
+        private FFTBakedData TargetBakedData => target as FFTBakedData;
+
+        public override bool HasPreviewGUI() => true;
 
         /// <summary>
         /// Tries to draw a GUI in the preview header bar (frame selector). Behaviour is a bit funky but
@@ -36,7 +33,7 @@ namespace Crest
             EditorGUILayout.BeginHorizontal(GUILayout.Width(30f));
             GUILayout.Label("Frame");
 
-            var lastFrame = _targetBakedData != null ? _targetBakedData._parameters._frameCount - 1 : 0;
+            var lastFrame = TargetBakedData != null ? TargetBakedData._parameters._frameCount - 1 : 0;
             _frameToPreview = EditorGUILayout.IntSlider(_frameToPreview, 0, lastFrame);
             EditorGUILayout.EndHorizontal();
         }
@@ -46,7 +43,7 @@ namespace Crest
         /// </summary>
         public override string GetInfoString()
         {
-            var data = _targetBakedData;
+            var data = TargetBakedData;
             if (data == null) return "";
             return $"{data.name}, {data._parameters._textureResolution}x({data._parameters._textureResolution}x{data._parameters._lodCount}), {_frameToPreview + 1}/{data._parameters._frameCount}";
         }
@@ -58,14 +55,14 @@ namespace Crest
         {
             base.OnPreviewGUI(r, background);
 
-            if (_targetBakedData == null) return;
+            if (TargetBakedData == null) return;
 
             if (Mathf.Approximately(r.width, 1f)) return;
 
             if (target != _previousTarget)
             {
-                var allFramesAllPixels = _targetBakedData._framesFlattenedNative;
-                var singleFrameSize = allFramesAllPixels.Length / _targetBakedData._parameters._frameCount;
+                var allFramesAllPixels = TargetBakedData._framesFlattenedNative;
+                var singleFrameSize = allFramesAllPixels.Length / TargetBakedData._parameters._frameCount;
 
                 var rawDataNative = new NativeArray<float>(singleFrameSize * 4, Allocator.Temp);
 
@@ -75,9 +72,9 @@ namespace Crest
                     var indexX = _frameToPreview * singleFrameSize + i * FFTBakedData.kFloatsPerPoint + 0;
                     var indexY = _frameToPreview * singleFrameSize + i * FFTBakedData.kFloatsPerPoint + 1;
                     var indexZ = _frameToPreview * singleFrameSize + i * FFTBakedData.kFloatsPerPoint + 2;
-                    var alphaX = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, allFramesAllPixels[indexX]);
-                    var alphaY = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, allFramesAllPixels[indexY]);
-                    var alphaZ = Mathf.InverseLerp(_targetBakedData._smallestValue, _targetBakedData._largestValue, allFramesAllPixels[indexZ]);
+                    var alphaX = Mathf.InverseLerp(TargetBakedData._smallestValue, TargetBakedData._largestValue, allFramesAllPixels[indexX]);
+                    var alphaY = Mathf.InverseLerp(TargetBakedData._smallestValue, TargetBakedData._largestValue, allFramesAllPixels[indexY]);
+                    var alphaZ = Mathf.InverseLerp(TargetBakedData._smallestValue, TargetBakedData._largestValue, allFramesAllPixels[indexZ]);
                     var mappedValueX = Mathf.Lerp(-6f, 6f, alphaX);
                     var mappedValueY = Mathf.Lerp(-6f, 6f, alphaY);
                     var mappedValueZ = Mathf.Lerp(-6f, 6f, alphaZ);
@@ -95,8 +92,8 @@ namespace Crest
                 if (_previewTexture == null)
                 {
                     _previewTexture = new Texture2D(
-                        _targetBakedData._parameters._textureResolution,
-                        _targetBakedData._parameters._textureResolution * _targetBakedData._parameters._lodCount,
+                        TargetBakedData._parameters._textureResolution,
+                        TargetBakedData._parameters._textureResolution * TargetBakedData._parameters._lodCount,
                         TextureFormat.RGBAFloat, false, true);
                 }
 

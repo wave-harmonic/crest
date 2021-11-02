@@ -226,7 +226,6 @@ Shader "Crest/Ocean"
 			// for VFACE
 			#pragma target 3.0
 			#pragma multi_compile_fog
-			#pragma multi_compile_instancing
 
 			// #pragma enable_d3d11_debug_symbols
 

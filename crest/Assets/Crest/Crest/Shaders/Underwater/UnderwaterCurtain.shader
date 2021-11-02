@@ -38,8 +38,6 @@ Shader "Crest/Underwater Curtain"
 
 			// #pragma enable_d3d11_debug_symbols
 
-			#pragma multi_compile_instancing
-
 			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
 			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
 			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON

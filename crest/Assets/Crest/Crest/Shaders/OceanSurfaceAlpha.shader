@@ -32,7 +32,6 @@ Shader "Crest/Ocean Surface Alpha"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_fog
-			#pragma multi_compile_instancing
 
 			#include "UnityCG.cginc"
 

@@ -24,8 +24,6 @@ Shader "Crest/Underwater Meniscus"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma multi_compile_instancing
-
 			#include "UnityCG.cginc"
 
 			#include "../OceanGlobals.hlsl"
@@ -109,7 +107,7 @@ Shader "Crest/Underwater Meniscus"
 
 				return o;
 			}
-			
+
 			half4 Frag(Varyings input) : SV_Target
 			{
 				const half3 col = 1.3*half3(0.37, 0.4, 0.5);

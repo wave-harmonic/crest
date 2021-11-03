@@ -62,6 +62,7 @@ Fixed
    .. only:: urp
 
       -  Fix *Crest/Framework* shader compiler errors for 2021.2. `[URP]`
+      -  Fix "xrRendering" build error. `[URP]`
 
    .. only:: hdrp
 

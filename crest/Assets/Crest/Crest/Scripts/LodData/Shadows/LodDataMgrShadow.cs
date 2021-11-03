@@ -96,6 +96,20 @@ namespace Crest
             }
         }
 
+        internal override void OnEnable()
+        {
+            base.OnEnable();
+
+            CleanUpShadowCommandBuffers();
+        }
+
+        internal override void OnDisable()
+        {
+            base.OnDisable();
+
+            CleanUpShadowCommandBuffers();
+        }
+
         protected override void InitData()
         {
             base.InitData();
@@ -162,9 +176,12 @@ namespace Crest
 
         void CleanUpShadowCommandBuffers()
         {
-            _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-            BufCopyShadowMap.Release();
-            BufCopyShadowMap = null;
+            if (BufCopyShadowMap != null)
+            {
+                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+                BufCopyShadowMap.Release();
+                BufCopyShadowMap = null;
+            }
 
             CleanUpDeferredShadows();
             CleanUpScreenSpaceShadows();
@@ -183,6 +200,7 @@ namespace Crest
 
         void CleanUpScreenSpaceShadows()
         {
+            if (_screenSpaceShadowMapCommandBuffer == null) return;
             _mainLight.RemoveCommandBuffer(LightEvent.AfterScreenspaceMask, _screenSpaceShadowMapCommandBuffer);
             _screenSpaceShadowMapCommandBuffer.Release();
             _screenSpaceShadowMapCommandBuffer = null;
@@ -201,6 +219,7 @@ namespace Crest
 
         void CleanUpDeferredShadows()
         {
+            if (_deferredShadowMapCommandBuffer == null) return;
             _mainLight.RemoveCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
             _deferredShadowMapCommandBuffer.Release();
             _deferredShadowMapCommandBuffer = null;
@@ -335,32 +354,6 @@ namespace Crest
             foreach (var renderData in OceanRenderer.Instance._lodTransform._renderData)
             {
                 renderData.Previous(1).Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
-            }
-        }
-
-        internal override void OnEnable()
-        {
-            base.OnEnable();
-
-            RemoveCommandBuffers();
-        }
-
-        internal override void OnDisable()
-        {
-            base.OnDisable();
-
-            RemoveCommandBuffers();
-        }
-
-        void RemoveCommandBuffers()
-        {
-            if (BufCopyShadowMap != null)
-            {
-                if (_mainLight)
-                {
-                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-                }
-                BufCopyShadowMap = null;
             }
         }
 

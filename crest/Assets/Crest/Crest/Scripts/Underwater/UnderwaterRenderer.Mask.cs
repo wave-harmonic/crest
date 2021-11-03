@@ -43,7 +43,6 @@ namespace Crest
         int _fixMaskKernel;
         uint _fixMaskThreadGroupSizeX;
         uint _fixMaskThreadGroupSizeY;
-        uint _fixMaskThreadGroupSizeZ;
 
         void SetupOceanMask()
         {
@@ -77,7 +76,7 @@ namespace Crest
                 _fixMaskKernel,
                 out _fixMaskThreadGroupSizeX,
                 out _fixMaskThreadGroupSizeY,
-                out _fixMaskThreadGroupSizeZ
+                out _
             );
         }
 
@@ -145,24 +144,26 @@ namespace Crest
                 _debug._disableOceanMask
             );
 
-            FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor);
+            FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor, _maskTarget);
         }
 
-        internal void FixMaskArtefacts(CommandBuffer buffer, RenderTextureDescriptor descriptor)
+        internal void FixMaskArtefacts(CommandBuffer buffer, RenderTextureDescriptor descriptor, RenderTargetIdentifier target)
         {
             if (_debug._disableArtifactCorrection)
             {
                 return;
             }
 
-            buffer.SetComputeTextureParam(_fixMaskComputeShader, _fixMaskKernel, sp_CrestOceanMaskTexture, _maskTarget);
+            buffer.SetComputeTextureParam(_fixMaskComputeShader, _fixMaskKernel, sp_CrestOceanMaskTexture, target);
+            _fixMaskComputeShader.SetKeyword("STEREO_INSTANCING_ON", XRHelpers.IsSinglePass);
+
             buffer.DispatchCompute
             (
                 _fixMaskComputeShader,
                 _fixMaskKernel,
                 descriptor.width / (int)_fixMaskThreadGroupSizeX,
                 descriptor.height / (int)_fixMaskThreadGroupSizeY,
-                (int)_fixMaskThreadGroupSizeZ
+                XRHelpers.IsSinglePass ? 2 : 1
             );
         }
 

@@ -56,14 +56,12 @@ namespace Crest
         public FFTBakedData _bakedFFTData;
 #endif // CREST_UNITY_MATHEMATICS
 
-        internal int _bufferCount = 1;
-
         public override void AddToSettingsHash(ref int settingsHash)
         {
             base.AddToSettingsHash(ref settingsHash);
             Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
-            Hashy.AddInt(_bufferCount, ref settingsHash);
             Hashy.AddInt((int)_collisionSource, ref settingsHash);
+            Hashy.AddBool(Helpers.IsMotionVectorsEnabled(), ref settingsHash);
         }
 
         /// <summary>

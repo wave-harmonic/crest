@@ -15,7 +15,6 @@ Shader "Crest/Underwater Curtain"
 		[Toggle] _SubSurfaceShallowColour("Sub-Surface Shallow Colour", Float) = 1
 		[Toggle] _Transparency("Transparency", Float) = 1
 		[Toggle] _Caustics("Caustics", Float) = 1
-		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
 
 	SubShader
@@ -37,7 +36,7 @@ Shader "Crest/Underwater Curtain"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma multi_compile_instancing
+			// #pragma enable_d3d11_debug_symbols
 
 			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
 			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
@@ -46,11 +45,6 @@ Shader "Crest/Underwater Curtain"
 			#pragma multi_compile_local __ _TRANSPARENCY_ON
 			#pragma multi_compile_local __ _CAUSTICS_ON
 			#pragma multi_compile_local __ _SHADOWS_ON
-			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
-
-			#if _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma enable_d3d11_debug_symbols
-			#endif
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
@@ -225,7 +219,7 @@ Shader "Crest/Underwater Curtain"
 				if (sceneZ01 != 0.0)
 				{
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
-					ApplyCaustics(positionCS.xy, scenePos, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
+					ApplyCaustics(input.positionCS.xy, scenePos, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
 				}
 #endif // _CAUSTICS_ON
 

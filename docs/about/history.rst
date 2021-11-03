@@ -30,6 +30,10 @@ Changed
    -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
    -  Caustics no longer render in shadows casted from objects underwater.
 
+   .. only:: hdrp
+
+      -  Added motion vectors (for TAA, DLSS and many screen-space effects). `[HDRP]`
+
    .. only:: urp
 
       -  Added shadow distance fade to shadow data. `[URP]`
@@ -58,6 +62,7 @@ Fixed
    .. only:: urp
 
       -  Fix *Crest/Framework* shader compiler errors for 2021.2. `[URP]`
+      -  Fix "xrRendering" build error. `[URP]`
 
    .. only:: hdrp
 
@@ -79,6 +84,7 @@ Performance
 .. bullet_list::
 
    -  Only calculate inverse view projection matrix when required.
+   -  Reduce shader variants by removing GPU instancing (not supported currently).
 
    .. only:: birp or hdrp
 
@@ -86,7 +92,7 @@ Performance
 
    .. only:: birp or urp
 
-      -  Improve *Underwater Renderer* memory usage. `[BIRP] [URP]`
+      -  Improve *Underwater Renderer* GPU memory usage. `[BIRP] [URP]`
 
    .. only:: hdrp
 

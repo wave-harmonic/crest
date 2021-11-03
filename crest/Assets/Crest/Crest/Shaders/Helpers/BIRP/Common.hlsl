@@ -80,8 +80,8 @@
 // #define TEXTURECUBE_SHADOW(textureName)       TEXTURECUBE(textureName)
 // #define TEXTURECUBE_ARRAY_SHADOW(textureName) TEXTURECUBE_ARRAY(textureName)
 
-// #define RW_TEXTURE2D(type, textureName)       RWTexture2D<type> textureName
-// #define RW_TEXTURE2D_ARRAY(type, textureName) RWTexture2DArray<type> textureName
+#define RW_TEXTURE2D(type, textureName)       RWTexture2D<type> textureName
+#define RW_TEXTURE2D_ARRAY(type, textureName) RWTexture2DArray<type> textureName
 // #define RW_TEXTURE3D(type, textureName)       RWTexture3D<type> textureName
 
 #define SAMPLER(samplerName)                  SamplerState samplerName

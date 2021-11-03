@@ -30,7 +30,7 @@ namespace Crest
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData => true;
-        public override int BufferCount => Settings._bufferCount;
+        public override int BufferCount => _bufferCount;
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
@@ -71,8 +71,12 @@ namespace Crest
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsAnimatedWaves : GetDefaultSettings<SettingsType>();
 
+        readonly int _bufferCount = 1;
+
         public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
         {
+            _bufferCount = Helpers.IsMotionVectorsEnabled() ? 2 : 1;
+
             Start();
         }
 

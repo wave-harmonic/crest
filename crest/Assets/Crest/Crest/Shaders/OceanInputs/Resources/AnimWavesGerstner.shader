@@ -66,7 +66,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 
 				return o;
 			}
-			
+
 			half4 Frag( Varyings input ) : SV_Target
 			{
 				float wt = _Weight;

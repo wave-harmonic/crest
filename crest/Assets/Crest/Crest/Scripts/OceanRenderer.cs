@@ -870,14 +870,12 @@ namespace Crest
 
         void RunUpdate()
         {
-            // Rebuild if needed. Editor-only i suppose?
-#if UNITY_EDITOR
+            // Rebuild if needed. Needs to run in builds (for MVs at the very least).
             if (CalculateSettingsHash() != _generatedSettingsHash)
             {
                 enabled = false;
                 enabled = true;
             }
-#endif
 
             BuildCommandBuffer.FlipDataBuffers(this);
 

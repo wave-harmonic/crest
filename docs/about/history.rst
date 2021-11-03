@@ -29,6 +29,7 @@ Changed
    -  Add buttons to *Spline* inspector to quickly enable water features.
    -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
    -  Caustics no longer render in shadows casted from objects underwater.
+   -  Added new CPU-based collision provider - *Baked FFT Data*.
 
    .. only:: hdrp
 

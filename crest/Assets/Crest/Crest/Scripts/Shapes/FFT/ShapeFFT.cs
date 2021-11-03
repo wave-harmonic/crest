@@ -98,11 +98,11 @@ namespace Crest
         [Header("Collision Data Baking")]
         [Tooltip("Enable running this FFT with baked data. This makes the FFT periodic (repeating in time).")]
         public bool _enableBakedCollision = false;
-        [Tooltip("Frames per second of baked data. Larger values generate more frames and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
+        [Tooltip("Frames per second of baked data. Larger values may help the collision track the surface closely at the cost of more frames and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
         public int _timeResolution = 4;
-        [Tooltip("Smallest wavelength required in collision. To preview disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
+        [Tooltip("Smallest wavelength required in collision. To preview the effect of this, disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
         public float _smallestWavelengthRequired = 2f;
-        [Tooltip("FFT waves will loop with a periodic of this many seconds."), Predicated("_enableBakedCollision"), Range(4f, 128f)]
+        [Tooltip("FFT waves will loop with a period of this many seconds. Smaller values decrease data size but can make waves visibly repetitive."), Predicated("_enableBakedCollision"), Range(4f, 128f)]
         public float _timeLoopLength = 32f;
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;

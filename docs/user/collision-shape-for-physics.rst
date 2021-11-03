@@ -18,25 +18,17 @@ Use of these is demonstrated in the example content.
    We use a technique called *Fixed Point Iteration* to calculate the water height.
    We gave a talk at GDC about this technique which may be useful to learn more: http://www.huwbowles.com/fpi-gdc-2016/.
 
+The *Visualise Collision Area* debug component is useful for visualising the collision shape for comparison against the render surface.
+It draws debug line crosses in the Scene View around the position of the component.
 
-Compute Shape Queries
----------------------
 
-.. sponsor::
+Collision API Usage
+-------------------
 
-   Sponsoring us will help increase our development bandwidth which could work towards using Burst/Jobs for this feature.
+The collision providers built intout our system perform queries asynchronously; queries are offloaded to the GPU or to spare CPU cores for processing.
+This has a few non-trivial impacts on how the query API must be used.
 
-   .. trello:: https://trello.com/c/qUvB1aSO
-
-This is the default and recommended choice.
-Query positions are uploaded to a compute shader which then samples the ocean data and returns the
-desired results.
-The result of the query accurately tracks the height of the surface, including all shape deformations and waves.
-
-Using the GPU to perform the queries is efficient, but the results can take a couple of frames to return to the CPU.
-This has a few non-trivial impacts on how it must be used.
-
-Firstly, queries need to be registered with an ID so that the results can be tracked and retrieved from the GPU later.
+Firstly, queries need to be registered with an ID so that the results can be tracked and retrieved later.
 This ID needs to be globally unique, and therefore should be acquired by calling *GetHashCode()* on an object/component which will be guaranteed to be unique.
 A primary reason why *SampleHeightHelper* is useful is that it is an object in itself and there can pass its own ID, hiding this complexity from the user.
 
@@ -51,8 +43,40 @@ Posting the query and polling for its result are done through the same function.
 Finally due to the above properties, the number of query points posted from a particular owner should be kept consistent across frames.
 The helper classes always submit a fixed number of points this frame, so satisfy this criteria.
 
-Gerstner Waves CPU
-------------------
+
+Compute Shape Queries (GPU)
+---------------------------
+
+This is the default and recommended choice for when a GPU is present.
+Query positions are uploaded to a compute shader which then samples the ocean data and returns the
+desired results.
+The result of the query accurately tracks the height of the surface, including all wave components and depth caches and other Crest features.
+
+
+Baked FFT Data (CPU)
+--------------------
+
+In scenarios where a GPU is not present such as for headless servers, a CPU option is available.
+
+To use this feature, select a *Shape FFT* component that is generating the waves in a scene and enable the **Enable Baked Collision**.
+Next configure the following options:
+
+-  **Time Resolution** - Frames per second of baked data. Larger values may help the collision track the surface closely at the cost of more frames and increase baked data size.
+-  **Smallest Wavelength Required** - Smallest wavelength required in collision. To preview the effect of this, disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size.
+-  **Time Loop Length** - FFT waves will loop with a period of this many seconds. Smaller values decrease data size but can make waves visibly repetitive.
+
+Next click **Bake to asset and assign to current settings** and select a path and filename for the result.
+After the bake completes the current active *Animated Waves Sim Settings* will be configured to use this data.
+
+There are currently a few key limitations of this approach:
+
+-  Only a single set of waves from one *Shape FFT* component is supported. This collision does not support multiple sets of waves.
+-  The *Depth Cache* components are not supported. In order to get a one to one match between the visuals and the collision data, depth caches should not be used.
+-  Varying water levels such as rivers flowing down a gradient or lakes at different altitudes is not supported. This feature assumes a fixed sea level for the whole scene.
+
+
+Gerstner Waves CPU (deprecated)
+-------------------------------
 
 .. admonition:: Deprecated
 

@@ -28,7 +28,11 @@ namespace Crest
         readonly List<Material> _oceanMaterials = new List<Material>();
         readonly List<UnderwaterRenderer> _underwaterRenderers = new List<UnderwaterRenderer>();
 
-        static readonly string[] s_ShaderKeywordsToIgnoreStripping = new string[] { "_FULL_SCREEN_EFFECT", "_DEBUG_VIEW_OCEAN_MASK" };
+        static readonly string[] s_ShaderKeywordsToIgnoreStripping = new string[]
+        {
+            "_FULL_SCREEN_EFFECT",
+            "_DEBUG_VIEW_OCEAN_MASK",
+        };
 
         bool IsUnderwaterShader(string shaderName)
         {

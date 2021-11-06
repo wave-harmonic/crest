@@ -124,6 +124,8 @@ Varyings Vert(Attributes v)
 
 half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 {
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
 #if CREST_BOUNDARY
 	{
 #if CREST_BOUNDARY_HAS_BACKFACE

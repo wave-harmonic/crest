@@ -211,11 +211,8 @@ namespace Crest
                 _boundaryCommandBuffer.Clear();
                 SetUpBoundaryTextures(_boundaryCommandBuffer, descriptor);
 
-                // Since using temporary RTs this is all inverted now...
-                _boundaryCommandBuffer.SetInvertCulling(true);
-
                 // Front faces.
-                _boundaryCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.None, _boundaryFrontFaceTarget);
+                _boundaryCommandBuffer.SetRenderTarget(_boundaryFrontFaceTarget);
                 _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
                 _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryFrontFaceTexture, _boundaryFrontFaceTarget);
                 _boundaryCommandBuffer.DrawMesh
@@ -230,7 +227,7 @@ namespace Crest
                 if (_mode == Mode.Geometry3D || _mode == Mode.GeometryVolume)
                 {
                     // Back faces.
-                    _boundaryCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.None, _boundaryBackFaceTarget);
+                    _boundaryCommandBuffer.SetRenderTarget(_boundaryBackFaceTarget);
                     _boundaryCommandBuffer.ClearRenderTarget(true, false, Color.black);
                     _boundaryCommandBuffer.SetGlobalTexture(sp_CrestWaterBoundaryGeometryBackFaceTexture, _boundaryBackFaceTarget);
                     _boundaryCommandBuffer.DrawMesh
@@ -242,9 +239,6 @@ namespace Crest
                         k_ShaderPassWaterBoundaryBackFace
                     );
                 }
-
-                // Since using temporary RTs this is all inverted now...
-                _boundaryCommandBuffer.SetInvertCulling(false);
 
                 switch (_mode)
                 {

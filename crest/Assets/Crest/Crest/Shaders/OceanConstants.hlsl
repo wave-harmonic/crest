@@ -33,6 +33,10 @@
 // No mask.
 #define UNDERWATER_MASK_NONE 0.0
 
+// The maximum distance the meniscus will be rendered. Only valid when rendering underwater from geometry. The value is
+// used to scale the meniscus as it is calculate using a pixel offset which can make the meniscus large at a distance.
+#define MENISCUS_MAXIMUM_DISTANCE 15.0
+
 #if defined(STEREO_INSTANCING_ON) || defined(STEREO_MULTIVIEW_ON)
 #define CREST_HANDLE_XR 1
 #else

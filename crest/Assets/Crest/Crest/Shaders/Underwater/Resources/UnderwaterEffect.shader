@@ -102,6 +102,11 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 		const float mask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, positionSS).r;
 		const float rawOceanDepth = LOAD_TEXTURE2D_X(_CrestOceanMaskDepthTexture, positionSS).r;
 
+		float meniscusDepth = 0.0;
+#if defined(CREST_BOUNDARY_2D) || defined(CREST_BOUNDARY_3D)
+		meniscusDepth = CrestLinearEyeDepth(input.positionCS.z);
+#endif
+
 		float rawGeometryDepth = 0.0;
 #if CREST_BOUNDARY_VOLUME
 		rawGeometryDepth = input.positionCS.z;
@@ -128,10 +133,12 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			{
 				isBeforeFrontFaceBoundary = true;
 			}
+
+			meniscusDepth = CrestLinearEyeDepth(rawFrontFaceBoundaryDepth);
 		}
 #endif
 
-		float wt = ComputeMeniscusWeight(positionSS, mask, _HorizonNormal, sceneZ);
+		float wt = ComputeMeniscusWeight(positionSS, mask, _HorizonNormal, meniscusDepth);
 
 #if _DEBUG_VIEW_OCEAN_MASK
 		return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);

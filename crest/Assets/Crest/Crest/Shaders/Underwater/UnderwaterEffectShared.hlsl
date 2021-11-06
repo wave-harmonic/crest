@@ -21,9 +21,14 @@ float4 DebugRenderOceanMask(const bool isOceanSurface, const bool isUnderwater, 
 	}
 }
 
-float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const float2 offset, const half magnitude)
+float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const float2 offset, const float magnitude, const float scale)
 {
-	float2 uv = positionSS + offset * magnitude;
+	float2 uv = positionSS + offset * magnitude
+#if CREST_BOUNDARY
+	* scale
+#endif
+	;
+
 	float newMask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, uv).r;
 #if CREST_BOUNDARY
 	// No mask means no underwater effect so ignore the value.
@@ -32,7 +37,7 @@ float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const flo
 	return newMask;
 }
 
-half ComputeMeniscusWeight(const int2 positionSS, const float mask, const float2 horizonNormal, const float sceneZ)
+half ComputeMeniscusWeight(const int2 positionSS, const float mask, const float2 horizonNormal, const float meniscusDepth)
 {
 	float weight = 1.0;
 #if CREST_MENISCUS
@@ -40,12 +45,21 @@ half ComputeMeniscusWeight(const int2 positionSS, const float mask, const float2
 	// Render meniscus by checking the mask along the horizon normal which is flipped using the surface normal from
 	// mask. Adding the mask value will flip the UV when mask is below surface.
 	float2 offset = (float2)-mask * horizonNormal;
-	float multiplier = 0.9;
+	float multiplier = 0;
+
+#if CREST_BOUNDARY
+	// The meniscus at the boundary can be at a distance. We need to scale the offset as 1 pixel at a distance is much
+	// larger than 1 pixel up close.
+	const float scale = 1.0 - saturate(meniscusDepth / MENISCUS_MAXIMUM_DISTANCE);
+#else
+	// Dummy value.
+	const float scale = 0.0;
+#endif
 
 	// Sample three pixels along the normal. If the sample is different than the current mask, apply meniscus.
-	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 1.0) != mask) ? multiplier : 1.0;
-	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 2.0) != mask) ? multiplier : 1.0;
-	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 3.0) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 1.0, scale) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 2.0, scale) != mask) ? multiplier : 1.0;
+	weight *= (MeniscusSampleOceanMask(mask, positionSS, offset, 3.0, scale) != mask) ? multiplier : 1.0;
 #endif // _FULL_SCREEN_EFFECT
 #endif // CREST_MENISCUS
 	return weight;

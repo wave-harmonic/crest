@@ -1,0 +1,62 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// Checks both orthogonal and diagonal pixels to fill artefacts in the mask. If checked pixels are all the same then it
+// assumes that the current pixel should also be the same and fixes it.
+
+#pragma kernel FillMaskArtefacts
+
+// Built-in will not handle this for us unlike other RPs.
+#pragma multi_compile __ STEREO_INSTANCING_ON
+
+#include "UnityCG.cginc"
+#include "../../Helpers/BIRP/Core.hlsl"
+
+RW_TEXTURE2D_X(float, _CrestOceanMaskTexture);
+
+[numthreads(8, 8, 1)]
+void FillMaskArtefacts(const uint3 id : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(id.z);
+
+    const uint3 offset = uint3(1, -1, 0);
+
+    // Check orthogonal pixels.
+    {
+        const float4 pixels = float4
+        (
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.xz)],
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.yz)],
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.zy)],
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.zx)]
+        );
+
+        // If these pixels are all the same, then it is valid that this pixel also equals them.
+        if (pixels.x == pixels.y && pixels.y == pixels.z && pixels.z == pixels.w)
+        {
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)] = pixels.x;
+            return;
+        }
+    }
+
+    // Check diagonal pixels.
+    {
+        const float4 pixels = float4
+        (
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.xx)],
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.yy)],
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.xy)],
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.yx)]
+        );
+
+        // If these pixels are all the same, then it is valid that this pixel also equals them.
+        if (pixels.x == pixels.y && pixels.y == pixels.z && pixels.z == pixels.w)
+        {
+            _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)] = pixels.x;
+            return;
+        }
+    }
+
+    _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)] = _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)];
+}

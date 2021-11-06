@@ -301,8 +301,6 @@ namespace Crest
                 var keywords = renderer.sharedMaterial.shaderKeywords;
                 foreach (var keyword in keywords)
                 {
-                    if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
-
                     if (!ocean.OceanMaterial.IsKeywordEnabled(keyword))
                     {
                         showMessage
@@ -320,7 +318,6 @@ namespace Crest
                 keywords = ocean.OceanMaterial.shaderKeywords;
                 foreach (var keyword in keywords)
                 {
-                    if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
                     if (!sharedKeywords.Contains(keyword)) continue;
 
                     if (!renderer.sharedMaterial.IsKeywordEnabled(keyword))

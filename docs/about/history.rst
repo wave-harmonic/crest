@@ -13,6 +13,14 @@ Release Notes
 |version|
 ---------
 
+.. admonition:: TODO
+
+   Work in progress
+
+
+4.14
+----
+
 Changed
 ^^^^^^^
 .. bullet_list::
@@ -28,6 +36,16 @@ Changed
    -  All water features updated to support varying water level.
    -  Add buttons to *Spline* inspector to quickly enable water features.
    -  Exposed control over *Spline* ribbon alignment - spline points now define the center of the ribbon by default.
+   -  Caustics no longer render in shadows casted from objects underwater.
+
+   .. only:: hdrp
+
+      -  Added motion vectors (for TAA, DLSS and many screen-space effects). `[HDRP]`
+
+   .. only:: urp
+
+      -  Added shadow distance fade to shadow data. `[URP]`
+      -  Improve `URP` shadow settings validation. `[URP]`
 
 Fixed
 ^^^^^
@@ -41,6 +59,18 @@ Fixed
    -  Fix FFT spectrum not being editable when time is paused.
    -  Fix *ShapeFFT* component producing inverted looking waves when enabled in editor play mode.
    -  Fix SSS colour missing or popping in the distance.
+   -  Fix underwater artefacts (bright specks).
+
+   .. only:: birp
+
+      -  Fix shadows for MacOS. `[BIRP]`
+      -  Fix shadows for *Shadow Projection > Close Fit*. `[BIRP]`
+      -  Fix shadows for deferred rendering path. `[BIRP]`
+
+   .. only:: urp
+
+      -  Fix *Crest/Framework* shader compiler errors for 2021.2. `[URP]`
+      -  Fix "xrRendering" build error. `[URP]`
 
    .. only:: hdrp
 
@@ -55,16 +85,33 @@ Removed
    -  Removed *Create Water Body* wizard window.
       The water body setup has been simplified and works without this additional tooling.
    -  *Smoothing* feature removed from *Spline*, underlying code made more robust.
+   -  Remove *Assign Layer* component.
 
 Performance
 ^^^^^^^^^^^
 .. bullet_list::
 
    -  Only calculate inverse view projection matrix when required.
+   -  Reduce shader variants by removing GPU instancing (not supported currently).
+
+   .. only:: birp or hdrp
+
+      -  Reduce shadow simulation GPU performance cost by almost 50%. `[BIRP] [HDRP]`
 
    .. only:: birp or urp
 
-      -  Improve *Underwater Renderer* memory usage. `[BIRP] [URP]`
+      -  Improve *Underwater Renderer* GPU memory usage. `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  Reduce ocean shader GPU performance cost for shadows. `[HDRP]`
+
+Deprecated
+^^^^^^^^^^
+.. bullet_list::
+
+   -  Made *ObjectWaterInteraction* component obsolete, this is replaced by the more simple and robust *SphereWaterInteraction*. Removed usages of this component from the example scenes.
+   -  Made *ShapeGerstner* and *ShapeGerstnerBatched* components obsolete as they are replaced by the *ShapeFFT* component. Example scenes moved over to *ShapeFFT*.
 
 
 4.13

@@ -16,6 +16,8 @@ namespace Crest
         internal const int k_ShaderPassOceanHorizonMask = 1;
         internal const int k_ShaderPassWaterBoundaryFrontFace = 0;
         internal const int k_ShaderPassWaterBoundaryBackFace = 1;
+        internal const string k_ComputeShaderFillMaskArtefacts = "CrestFillMaskArtefacts";
+        internal const string k_ComputeShaderKernelFillMaskArtefacts = "FillMaskArtefacts";
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
@@ -23,14 +25,14 @@ namespace Crest
         public static readonly int sp_CrestWaterBoundaryGeometryBackFaceTexture = Shader.PropertyToID("_CrestWaterBoundaryGeometryBackFaceTexture");
         public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
 
-        RenderTargetIdentifier _maskTarget = new RenderTargetIdentifier
+        internal RenderTargetIdentifier _maskTarget = new RenderTargetIdentifier
         (
             sp_CrestOceanMaskTexture,
             mipLevel: 0,
             CubemapFace.Unknown,
             depthSlice: -1 // Bind all XR slices.
         );
-        RenderTargetIdentifier _depthTarget = new RenderTargetIdentifier
+        internal RenderTargetIdentifier _depthTarget = new RenderTargetIdentifier
         (
             sp_CrestOceanMaskDepthTexture,
             mipLevel: 0,
@@ -59,6 +61,11 @@ namespace Crest
             depthSlice: -1 // Bind all XR slices.
         );
 
+        ComputeShader _fixMaskComputeShader;
+        int _fixMaskKernel;
+        uint _fixMaskThreadGroupSizeX;
+        uint _fixMaskThreadGroupSizeY;
+
         void SetupOceanMask()
         {
             if (_oceanMaskMaterial?.material == null)
@@ -86,6 +93,8 @@ namespace Crest
                     name = "Water Boundary Geometry",
                 };
             }
+
+            SetUpFixMaskArtefactsShader();
         }
 
         void OnDisableOceanMask()
@@ -105,7 +114,25 @@ namespace Crest
             OceanRenderer.Instance.OceanMaterial.DisableKeyword(k_KeywordBoundaryHasBackFace);
         }
 
-        void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
+        internal void SetUpFixMaskArtefactsShader()
+        {
+            if (_fixMaskComputeShader != null)
+            {
+                return;
+            }
+
+            _fixMaskComputeShader = ComputeShaderHelpers.LoadShader(k_ComputeShaderFillMaskArtefacts);
+            _fixMaskKernel = _fixMaskComputeShader.FindKernel(k_ComputeShaderKernelFillMaskArtefacts);
+            _fixMaskComputeShader.GetKernelThreadGroupSizes
+            (
+                _fixMaskKernel,
+                out _fixMaskThreadGroupSizeX,
+                out _fixMaskThreadGroupSizeY,
+                out _
+            );
+        }
+
+        internal static void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
         {
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
             // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
@@ -117,17 +144,19 @@ namespace Crest
             // @Memory: We could potentially try a half resolution mask as the mensicus could mask resolution issues.
             descriptor.colorFormat = RenderTextureFormat.RHalf;
             descriptor.depthBufferBits = 0;
+            descriptor.enableRandomWrite = true;
             buffer.GetTemporaryRT(sp_CrestOceanMaskTexture, descriptor);
 
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 24;
+            descriptor.enableRandomWrite = false;
             buffer.GetTemporaryRT(sp_CrestOceanMaskDepthTexture, descriptor);
         }
 
         /// <summary>
         /// Releases temporary mask textures. Pass any available command buffer through.
         /// </summary>
-        static void CleanUpMaskTextures(CommandBuffer buffer)
+        internal static void CleanUpMaskTextures(CommandBuffer buffer)
         {
             // According to the following source code, we can release a temporary RT using a different CB than the one
             // which allocated it. Unity uses CommandBufferPool.Get in OnCameraSetup (RTs allocated) and OnCameraCleanup
@@ -238,7 +267,7 @@ namespace Crest
             // Must call after clear or temporaries will be cleared.
             SetUpMaskTextures(_oceanMaskCommandBuffer, descriptor);
             _oceanMaskCommandBuffer.SetRenderTarget(_maskTarget, _depthTarget);
-            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.white * 0.5f);
+            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.black);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTarget);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTarget);
 
@@ -252,6 +281,28 @@ namespace Crest
                 _oceanMaskMaterial.material,
                 _farPlaneMultiplier,
                 _debug._disableOceanMask
+            );
+
+            FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor, _maskTarget);
+        }
+
+        internal void FixMaskArtefacts(CommandBuffer buffer, RenderTextureDescriptor descriptor, RenderTargetIdentifier target)
+        {
+            if (_debug._disableArtifactCorrection)
+            {
+                return;
+            }
+
+            buffer.SetComputeTextureParam(_fixMaskComputeShader, _fixMaskKernel, sp_CrestOceanMaskTexture, target);
+            _fixMaskComputeShader.SetKeyword("STEREO_INSTANCING_ON", XRHelpers.IsSinglePass);
+
+            buffer.DispatchCompute
+            (
+                _fixMaskComputeShader,
+                _fixMaskKernel,
+                descriptor.width / (int)_fixMaskThreadGroupSizeX,
+                descriptor.height / (int)_fixMaskThreadGroupSizeY,
+                XRHelpers.IsSinglePass ? 2 : 1
             );
         }
 

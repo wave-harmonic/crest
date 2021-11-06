@@ -56,6 +56,7 @@ half3 ScatterColour
 #if _CAUSTICS_ON
 void ApplyCaustics
 (
+	in const int2 i_positionSS,
 	in const float3 i_scenePos,
 	in const half3 i_lightDir,
 	in const float i_sceneZ,
@@ -94,24 +95,12 @@ void ApplyCaustics
 
 #if _SHADOWS_ON
 	{
-		// Calculate projected position again as we do not want the fudge factor. If we include the fudge factor, the
-		// caustics will not be aligned with shadows.
-		const float2 shadowSurfacePosXZ = i_scenePos.xz + i_lightDir.xz * sceneDepth / i_lightDir.y;
-		half2 causticShadow = 0.0;
-		// As per the comment for the underwater code in ScatterColour,
-		// LOD_1 data can be missing when underwater
-		if (i_underwater)
+		// Apply shadow maps to caustics.
 		{
-			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ, cascadeData0, _LD_SliceIndex);
-			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
+			// Normally, we would use SHADOW_ATTENUATION(), but SHADOWS_SCREEN and UNITY_NO_SCREENSPACE_SHADOWS are not
+			// handled for the transparent pass.
+			causticsStrength *= LOAD_TEXTURE2D_X(_CrestScreenSpaceShadowTexture, i_positionSS).r;
 		}
-		else
-		{
-			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			const float3 uv_biggerLod = WorldToUV(shadowSurfacePosXZ, cascadeData1, _LD_SliceIndex + 1);
-			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
-		}
-		causticsStrength *= 1.0 - causticShadow.y;
 	}
 #endif // _SHADOWS_ON
 
@@ -130,6 +119,7 @@ half3 OceanEmission
 	in const float i_pixelZ,
 	const float i_rawPixelZ,
 	in const half2 i_uvDepth,
+	in const int2 i_positionSS,
 	in const float i_sceneZ,
 	const float i_rawDepth,
 	in const half3 i_bubbleCol,
@@ -183,7 +173,7 @@ half3 OceanEmission
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
 		float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
-		ApplyCaustics(scenePos, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour, cascadeData0, cascadeData1);
+		ApplyCaustics(i_positionSS, scenePos, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour, cascadeData0, cascadeData1);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

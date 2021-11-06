@@ -39,7 +39,7 @@ half ComputeMeniscusWeight(const int2 positionSS, const float mask, const float2
 #if !_FULL_SCREEN_EFFECT
 	// Render meniscus by checking the mask along the horizon normal which is flipped using the surface normal from
 	// mask. Adding the mask value will flip the UV when mask is below surface.
-	float2 offset = float2(-1.0 + mask, -1.0 + mask) * horizonNormal;
+	float2 offset = (float2)-mask * horizonNormal;
 	float multiplier = 0.9;
 
 	// Sample three pixels along the normal. If the sample is different than the current mask, apply meniscus.
@@ -96,6 +96,7 @@ void GetOceanSurfaceAndUnderwaterData
 #ifdef CREST_OCEAN_EMISSION_INCLUDED
 half3 ApplyUnderwaterEffect
 (
+	const int2 i_positionSS,
 	const float3 scenePos,
 	half3 sceneColour,
 	const half3 lightCol,
@@ -156,6 +157,7 @@ half3 ApplyUnderwaterEffect
 	{
 		ApplyCaustics
 		(
+			i_positionSS,
 			scenePos,
 			lightDir,
 			sceneZ,

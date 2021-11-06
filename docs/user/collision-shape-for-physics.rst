@@ -68,11 +68,13 @@ Next configure the following options:
 Next click **Bake to asset and assign to current settings** and select a path and filename for the result.
 After the bake completes the current active *Animated Waves Sim Settings* will be configured to use this data.
 
-There are currently a few key limitations of this approach:
+.. important::
 
--  Only a single set of waves from one *Shape FFT* component is supported. This collision does not support multiple sets of waves.
--  The *Depth Cache* components are not supported. In order to get a one to one match between the visuals and the collision data, depth caches should not be used.
--  Varying water levels such as rivers flowing down a gradient or lakes at different altitudes is not supported. This feature assumes a fixed sea level for the whole scene.
+   There are currently a few key limitations of this approach:
+
+   -  Only a single set of waves from one *Shape FFT* component is supported. This collision does not support multiple sets of waves.
+   -  The *Depth Cache* components are not supported. In order to get a one to one match between the visuals and the collision data, depth caches should not be used.
+   -  Varying water levels such as rivers flowing down a gradient or lakes at different altitudes is not supported. This feature assumes a fixed sea level for the whole scene.
 
 
 Gerstner Waves CPU (deprecated)

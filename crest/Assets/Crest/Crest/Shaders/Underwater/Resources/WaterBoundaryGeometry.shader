@@ -10,6 +10,8 @@ Shader "Hidden/Crest/Hidden/Water Boundary Geometry"
 		#pragma vertex Vert
 		#pragma fragment Frag
 
+		// #pragma enable_d3d11_debug_symbols
+
 		#include "UnityCG.cginc"
 
 		struct Attributes
@@ -27,7 +29,7 @@ Shader "Hidden/Crest/Hidden/Water Boundary Geometry"
 			Varyings o;
 			o.positionCS = UnityObjectToClipPos(input.positionOS);
 #if UNITY_UV_STARTS_AT_TOP
-			// Flip the geometry otherwise it will be flipped when sampling. Only had to since using temporary RTs :\
+			// Flip the geometry otherwise it will be flipped when sampling. Only had to since using temporary RTs.
 			o.positionCS.y *= -1.0;
 #endif
 			return o;

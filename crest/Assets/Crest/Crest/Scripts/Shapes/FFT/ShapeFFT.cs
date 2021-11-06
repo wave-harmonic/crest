@@ -507,6 +507,7 @@ namespace Crest
                     FFTBaker.BakeShapeFFT(target as ShapeFFT);
                 }
 
+                GUI.enabled = OceanRenderer.Instance._simSettingsAnimatedWaves != null;
                 if (GUILayout.Button(bakeAndAssignLabel))
                 {
                     var result = FFTBaker.BakeShapeFFT(target as ShapeFFT);
@@ -521,6 +522,7 @@ namespace Crest
                         OceanRenderer.Instance.enabled = true;
                     }
                 }
+                GUI.enabled = true;
 
                 if (GUILayout.Button(selectCurrentSettingsLabel))
                 {

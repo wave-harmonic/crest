@@ -274,6 +274,8 @@ Shader "Crest/Ocean"
 			#include "OceanShaderHelpers.hlsl"
 			#include "OceanLightingHelpers.hlsl"
 
+			#include "Helpers/WaterBoundary.hlsl"
+
 			#include "OceanEmission.hlsl"
 			#include "OceanNormalMapping.hlsl"
 			#include "OceanReflection.hlsl"
@@ -460,32 +462,8 @@ Shader "Crest/Ocean"
 				half2 uvDepth = screenPos.xy / screenPos.z;
 
 #if CREST_BOUNDARY
-				{
-#if CREST_BOUNDARY_HAS_BACKFACE
-					// Discard ocean after boundary or when not on pixel.
-					float rawBackFaceBoundaryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, input.positionCS.xy);
-					if (rawBackFaceBoundaryDepth == 0.0 || rawBackFaceBoundaryDepth > input.positionCS.z)
-					{
-						discard;
-					}
-#endif // CREST_BOUNDARY_VOLUME
-
-					// Discard ocean before boundary.
-					float rawFrontFaceBoundaryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryFrontFaceTexture, input.positionCS.xy);
-					if (rawFrontFaceBoundaryDepth > 0.0 && rawFrontFaceBoundaryDepth < input.positionCS.z)
-					{
-						discard;
-					}
-
-#if CREST_BOUNDARY_2D
-					// Discard ocean when plane is not in view.
-					if (rawFrontFaceBoundaryDepth == 0.0)
-					{
-						discard;
-					}
-#endif // CREST_BOUNDARY_2D
-				}
-#endif // CREST_BOUNDARY
+				ApplyBoundaryToOceanSurface(input.positionCS);
+#endif
 
 				#if _CLIPSURFACE_ON
 				// Clip surface

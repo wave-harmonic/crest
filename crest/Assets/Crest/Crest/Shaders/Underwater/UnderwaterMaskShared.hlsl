@@ -12,12 +12,7 @@
 #include "../OceanVertHelpers.hlsl"
 #include "../OceanShaderHelpers.hlsl"
 
-#if CREST_BOUNDARY
-TEXTURE2D_X(_CrestWaterBoundaryGeometryFrontFaceTexture);
-#if CREST_BOUNDARY_HAS_BACKFACE
-TEXTURE2D_X(_CrestWaterBoundaryGeometryBackFaceTexture);
-#endif // CREST_BOUNDARY_HAS_BACKFACE
-#endif // CREST_BOUNDARY
+#include "../Helpers/WaterBoundary.hlsl"
 
 struct Attributes
 {
@@ -127,23 +122,8 @@ half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if CREST_BOUNDARY
-	{
-#if CREST_BOUNDARY_HAS_BACKFACE
-		// If no geometry in view, do not render otherwise meniscus will appear at edges.
-		if (LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, input.positionCS.xy) == 0.0)
-		{
-			discard;
-		}
-#endif // CREST_BOUNDARY_HAS_BACKFACE
-
-		// Discard any pixels in front of the boundary geometry otherwise the mask will be incorrect at eye level.
-		float rawFrontFace = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryFrontFaceTexture, input.positionCS.xy);
-		if (rawFrontFace > 0 && rawFrontFace < input.positionCS.z)
-		{
-			discard;
-		}
-	}
-#endif // CREST_BOUNDARY
+	ApplyBoundaryToOceanMask(input.positionCS);
+#endif
 
 	// @MSAAOutlineFix:
 	// The edge of the ocean surface at the near plane will be MSAA'd leaving a noticeable edge. By rendering the mask

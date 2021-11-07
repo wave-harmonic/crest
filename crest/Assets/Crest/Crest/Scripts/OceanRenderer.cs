@@ -555,6 +555,12 @@ namespace Crest
             _generatedSettingsHash = CalculateSettingsHash();
         }
 
+        internal void Rebuild()
+        {
+            enabled = false;
+            enabled = true;
+        }
+
         private void OnDisable()
         {
 #if UNITY_EDITOR
@@ -873,8 +879,7 @@ namespace Crest
             // Rebuild if needed. Needs to run in builds (for MVs at the very least).
             if (CalculateSettingsHash() != _generatedSettingsHash)
             {
-                enabled = false;
-                enabled = true;
+                Rebuild();
             }
 
             BuildCommandBuffer.FlipDataBuffers(this);

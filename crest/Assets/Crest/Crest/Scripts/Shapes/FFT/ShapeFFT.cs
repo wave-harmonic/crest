@@ -518,8 +518,7 @@ namespace Crest
                         Selection.activeObject = OceanRenderer.Instance._simSettingsAnimatedWaves;
 
                         // Rebuild ocean
-                        OceanRenderer.Instance.enabled = false;
-                        OceanRenderer.Instance.enabled = true;
+                        OceanRenderer.Instance.Rebuild();
                     }
                 }
                 GUI.enabled = true;

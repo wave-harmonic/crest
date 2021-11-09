@@ -123,12 +123,6 @@ Import the `Crest` package into project using the *Asset Store* window in the Un
 
       .. include:: includes/_importing-crest-birp.rst
 
-.. only:: hdrp
-
-   .. tab:: `HDRP`
-
-      .. include:: includes/_importing-crest-hdrp.rst
-
 .. only:: urp
 
    .. tab:: `URP`
@@ -244,11 +238,6 @@ Ocean framerate low in edit mode
 .. include:: includes/_animated-materials.rst
 
 .. only:: hdrp
-
-   Ocean surface appears blurred under motion `[HDRP]`
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-   .. include:: includes/_hdrp-taa.rst
 
    Ocean reflections/lighting/fog looks wrong `[HDRP]`
    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

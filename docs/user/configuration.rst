@@ -86,6 +86,12 @@ Subsurface Scattering
 Shallow Scattering
 ^^^^^^^^^^^^^^^^^^
 
+.. admonition:: Deprecated
+
+   *Shallow Scattering* will be removed in a future version.
+   A properly tweaked *Depth Fog Density* achieves better results at lower cost.
+   Consider copying over the value from our materials.
+
 The water colour can be varied in shallow water (this requires a depth cache created so that the system knows which areas are shallow, see section :ref:`shallows`).
 
 .. line_block::

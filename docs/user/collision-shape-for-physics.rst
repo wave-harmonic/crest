@@ -58,18 +58,20 @@ Baked FFT Data (CPU)
 
 .. admonition:: Preview
 
-   In scenarios where a GPU is not present such as for headless servers, a CPU option is available.
-   
-   To use this feature, select a *Shape FFT* component that is generating the waves in a scene and enable the **Enable Baked Collision**.
-   Next configure the following options:
-   
-   -  **Time Resolution** - Frames per second of baked data. Larger values may help the collision track the surface closely at the cost of more frames and increase baked data size.
-   -  **Smallest Wavelength Required** - Smallest wavelength required in collision. To preview the effect of this, disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size.
-   -  **Time Loop Length** - FFT waves will loop with a period of this many seconds. Smaller values decrease data size but can make waves visibly repetitive.
-   
-   Next click **Bake to asset and assign to current settings** and select a path and filename for the result.
-   After the bake completes the current active *Animated Waves Sim Settings* will be configured to use this data.
-   
+   This feature is in preview and may change in the future.
+
+In scenarios where a GPU is not present such as for headless servers, a CPU option is available.
+
+To use this feature, select a *Shape FFT* component that is generating the waves in a scene and enable the **Enable Baked Collision**.
+Next configure the following options:
+
+-  **Time Resolution** - Frames per second of baked data. Larger values may help the collision track the surface closely at the cost of more frames and increase baked data size.
+-  **Smallest Wavelength Required** - Smallest wavelength required in collision. To preview the effect of this, disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size.
+-  **Time Loop Length** - FFT waves will loop with a period of this many seconds. Smaller values decrease data size but can make waves visibly repetitive.
+
+Next click **Bake to asset and assign to current settings** and select a path and filename for the result.
+After the bake completes the current active *Animated Waves Sim Settings* will be configured to use this data.
+
 .. important::
 
    There are currently a few key limitations of this approach:

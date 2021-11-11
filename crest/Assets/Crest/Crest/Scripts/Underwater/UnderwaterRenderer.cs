@@ -84,12 +84,15 @@ namespace Crest
         {
             public bool _viewOceanMask = false;
             public bool _disableOceanMask = false;
+            public bool _viewStencil = false;
             public bool _disableHeightAboveWaterOptimization = false;
             public bool _disableArtifactCorrection = false;
         }
 
         Camera _camera;
         bool _firstRender = true;
+
+        internal bool IsStencilBufferRequired => _mode == Mode.GeometryVolume;
 
         Matrix4x4 _gpuInverseViewProjectionMatrix;
         Matrix4x4 _gpuInverseViewProjectionMatrixRight;
@@ -165,6 +168,7 @@ namespace Crest
         void Disable()
         {
             _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardOpaque, _underwaterEffectCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
             OnDisableOceanMask();
             OnDisableUnderwaterEffect();

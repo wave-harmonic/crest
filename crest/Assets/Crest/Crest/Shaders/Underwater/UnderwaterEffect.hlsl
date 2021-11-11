@@ -70,6 +70,16 @@ fixed4 Frag (Varyings input) : SV_Target
 	// We need this when sampling a screenspace texture.
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+#if _DEBUG_VIEW_STENCIL
+#if CREST_BOUNDARY_FRONT_FACE
+		return float4(0.0, 0.0, 1.0, 1.0); // Front Face
+#elif CREST_BOUNDARY
+		return float4(0.0, 1.0, 0.0, 1.0); // Back Face
+#else
+		return float4(1.0, 0.0, 0.0, 1.0); // Full-Screen
+#endif
+#endif // _DEBUG_VIEW_STENCIL
+
 #if CREST_BOUNDARY
 	float2 uv = input.screenPosition.xy / input.screenPosition.w;
 #else

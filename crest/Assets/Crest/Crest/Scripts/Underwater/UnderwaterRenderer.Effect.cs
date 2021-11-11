@@ -20,10 +20,28 @@ namespace Crest
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
         static readonly int sp_HorizonNormal = Shader.PropertyToID("_HorizonNormal");
         static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
+        static readonly int sp_CrestBoundaryStencil = Shader.PropertyToID("_CrestBoundaryStencil");
 
         CommandBuffer _underwaterEffectCommandBuffer;
         PropertyWrapperMaterial _underwaterEffectMaterial;
         internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
+
+        Material _depthCopyMaterial;
+
+        RenderTargetIdentifier _colorTarget = new RenderTargetIdentifier
+        (
+            BuiltinRenderTextureType.CameraTarget,
+            0,
+            CubemapFace.Unknown,
+            -1
+        );
+        RenderTargetIdentifier _stencilTarget = new RenderTargetIdentifier
+        (
+            sp_CrestBoundaryStencil,
+            0,
+            CubemapFace.Unknown,
+            -1
+        );
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -44,6 +62,11 @@ namespace Crest
                 {
                     name = "Underwater Pass",
                 };
+            }
+
+            if (_depthCopyMaterial == null)
+            {
+                _depthCopyMaterial = new Material(Shader.Find("Hidden/Crest/Helpers/DepthCopy"));
             }
         }
 
@@ -79,6 +102,7 @@ namespace Crest
             }
 
             var temporaryColorBuffer = RenderTexture.GetTemporary(descriptor);
+            temporaryColorBuffer.name = "Crest Temporary Color";
 
             UpdatePostProcessMaterial(
                 _camera,
@@ -87,6 +111,7 @@ namespace Crest
                 _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _debug._viewOceanMask,
+                _debug._viewStencil,
                 _filterOceanData
             );
 
@@ -94,6 +119,23 @@ namespace Crest
             SetInverseViewProjectionMatrix(_underwaterEffectMaterial.material);
 
             _underwaterEffectCommandBuffer.Clear();
+
+            if (IsStencilBufferRequired)
+            {
+                // TODO: Check that QualitySettings.antiAliasing cannot be zero.
+                descriptor.msaaSamples = _camera.allowMSAA ? QualitySettings.antiAliasing : 1;
+                descriptor.colorFormat = RenderTextureFormat.Depth;
+                descriptor.depthBufferBits = 24;
+                descriptor.bindMS = _camera.allowMSAA;
+                _underwaterEffectCommandBuffer.GetTemporaryRT(sp_CrestBoundaryStencil, descriptor);
+                _underwaterEffectCommandBuffer.SetRenderTarget(temporaryColorBuffer, _stencilTarget);
+                _underwaterEffectCommandBuffer.ClearRenderTarget(true, true, Color.black);
+            }
+            else
+            {
+                _underwaterEffectCommandBuffer.SetRenderTarget(temporaryColorBuffer);
+                _underwaterEffectCommandBuffer.ClearRenderTarget(true, false, Color.black);
+            }
 
             if (_camera.allowMSAA)
             {
@@ -108,39 +150,47 @@ namespace Crest
             }
 
             _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
-            _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
+
+            if (IsStencilBufferRequired)
+            {
+                if (_camera.allowMSAA)
+                {
+                    // Blit with a depth write shader to populate the depth buffer.
+                    _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.None, _stencilTarget, _depthCopyMaterial);
+                }
+                else
+                {
+                    _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.Depth, _stencilTarget);
+                }
+
+                _underwaterEffectCommandBuffer.SetRenderTarget(_colorTarget, _stencilTarget);
+            }
+            else
+            {
+                _underwaterEffectCommandBuffer.SetRenderTarget(_colorTarget);
+            }
+
 
             DisableUnderwaterEffectKeywords(_underwaterEffectMaterial.material);
 
             if (_mode == Mode.FullScreen)
             {
-                _underwaterEffectMaterial.material.SetInt("_CullMode", (int)CullMode.Off);
-                _underwaterEffectMaterial.material.SetInt("_ZTest", (int)CompareFunction.Always);
-
-                _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+                _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, shaderPass: 0, MeshTopology.Triangles, 3, 1);
             }
             else
             {
                 _underwaterEffectMaterial.material.DisableKeyword("_FULL_SCREEN_EFFECT");
-                switch (_mode)
-                {
-                    case Mode.Geometry2D:
-                        _underwaterEffectMaterial.material.EnableKeyword(k_KeywordBoundary2D);
-                        break;
-                    case Mode.Geometry3D:
-                        _underwaterEffectMaterial.material.EnableKeyword(k_KeywordBoundary3D);
-                        break;
-                    case Mode.GeometryVolume:
-                        _underwaterEffectMaterial.material.EnableKeyword(k_KeywordBoundaryVolume);
-                        break;
-                }
-                _underwaterEffectMaterial.material.SetInt("_CullMode", (int)(_mode == Mode.GeometryVolume ? CullMode.Front : CullMode.Back));
-                _underwaterEffectMaterial.material.SetInt("_ZTest", (int)(_mode == Mode.GeometryVolume ?  CompareFunction.Always : CompareFunction.LessEqual));
+                _underwaterEffectCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterEffectMaterial.material, submeshIndex: 0, shaderPass: 1);
 
-                _underwaterEffectCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterEffectMaterial.material, 0, 0);
+                if (_mode == Mode.GeometryVolume)
+                {
+                    _underwaterEffectCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterEffectMaterial.material, submeshIndex: 0, shaderPass: 2);
+                    _underwaterEffectCommandBuffer.DrawMesh(_waterVolumeBoundaryGeometry.mesh, _waterVolumeBoundaryGeometry.transform.localToWorldMatrix, _underwaterEffectMaterial.material, submeshIndex: 0, shaderPass: 3);
+                }
             }
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
+            _underwaterEffectCommandBuffer.ReleaseTemporaryRT(sp_CrestBoundaryStencil);
             // We no longer need the temporary mask textures so release them.
             CleanUpMaskTextures(_underwaterEffectCommandBuffer);
             CleanUpBoundaryTextures(_mode, _underwaterEffectCommandBuffer);
@@ -153,6 +203,7 @@ namespace Crest
             bool isMeniscusEnabled,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
+            bool debugViewStencil,
             int dataSliceOffset
         )
         {
@@ -181,6 +232,16 @@ namespace Crest
             else
             {
                 underwaterPostProcessMaterial.DisableKeyword(k_KeywordDebugViewOceanMask);
+            }
+
+            // Enabling/disabling keywords each frame don't seem to have large measurable overhead
+            if (debugViewStencil)
+            {
+                underwaterPostProcessMaterial.EnableKeyword("_DEBUG_VIEW_STENCIL");
+            }
+            else
+            {
+                underwaterPostProcessMaterial.DisableKeyword("_DEBUG_VIEW_STENCIL");
             }
 
             // We sample shadows at the camera position which will be the first slice.

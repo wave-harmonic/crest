@@ -46,7 +46,7 @@ Shader "Hidden/Crest/Hidden/Water Boundary Geometry"
 
 		Pass
 		{
-			Name "Boundary Front Faces"
+			Name "Boundary: Front Faces"
 			Cull Back
 
 			CGPROGRAM
@@ -55,8 +55,25 @@ Shader "Hidden/Crest/Hidden/Water Boundary Geometry"
 
 		Pass
 		{
-			Name "Boundary Back Faces"
+			Name "Boundary: Back Faces"
 			Cull Front
+
+			CGPROGRAM
+			ENDCG
+		}
+
+		Pass
+		{
+			Name "Boundary: Stencil"
+			Cull Front
+
+			ZWrite Off
+
+			Stencil
+			{
+				Ref 5
+				Pass Replace
+			}
 
 			CGPROGRAM
 			ENDCG

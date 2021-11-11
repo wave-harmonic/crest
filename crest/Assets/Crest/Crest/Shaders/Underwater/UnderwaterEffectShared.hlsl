@@ -81,17 +81,20 @@ void GetOceanSurfaceAndUnderwaterData
 	isOceanSurface = false;
 	isUnderwater = mask == UNDERWATER_MASK_BELOW_SURFACE;
 
-#if CREST_BOUNDARY_HAS_BACKFACE
+#if CREST_BOUNDARY
 	const float rawGeometryDepth =
-#if CREST_BOUNDARY_VOLUME
-	// Volume is rendered using the back face so that is the depth.
-	positionCS.z;
-#elif CREST_BOUNDARY_3D
+#if CREST_BOUNDARY_HAS_BACKFACE
 	// 3D has a back face texture for the depth.
 	LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryBackFaceTexture, positionSS);
-#endif // CREST_BOUNDARY_VOLUME
+#else
+	// TODO: Set this as scene depth instead of sampling.
+	// Volume is rendered using the back face so that is the depth.
+	positionCS.z;
+#endif // CREST_BOUNDARY_HAS_BACKFACE
 	;
 
+	// TODO: The scene depth comparison is redundant for back face rendering. If we populated the depth buffer with
+	// the ocean depth we could also remove the ocean comparison for back face rendering.
 	// Use backface depth if closest.
 	if (rawDepth < rawGeometryDepth && rawOceanDepth < rawGeometryDepth)
 	{
@@ -102,7 +105,7 @@ void GetOceanSurfaceAndUnderwaterData
 		sceneZ = CrestLinearEyeDepth(rawDepth);
 		return;
 	}
-#endif // CREST_BOUNDARY_HAS_BACKFACE
+#endif // CREST_BOUNDARY
 
 	// Merge ocean depth with scene depth.
 	if (rawDepth < rawOceanDepth + oceanDepthTolerance)
@@ -202,31 +205,9 @@ half3 ApplyUnderwaterEffect
 
 void ApplyWaterBoundaryToUnderwaterFogAndMeniscus(float4 positionCS, int2 positionSS, float rawDepth, bool isUnderwater, inout float fogDistance, inout float meniscusDepth)
 {
-#if CREST_BOUNDARY_IS_FRONTFACE
+#if CREST_BOUNDARY_FRONT_FACE
 	meniscusDepth = CrestLinearEyeDepth(positionCS.z);
 	fogDistance -= CrestLinearEyeDepth(positionCS.z);
-#endif
-
-#if CREST_BOUNDARY_VOLUME
-	const float rawFrontFaceBoundaryDepth = LOAD_DEPTH_TEXTURE_X(_CrestWaterBoundaryGeometryFrontFaceTexture, positionSS);
-
-	if (rawFrontFaceBoundaryDepth != 0.0)
-	{
-		if (rawDepth > rawFrontFaceBoundaryDepth)
-		{
-			// Viewer is outside the water volume and pixel is outside the water volume. Bail.
-			discard;
-		}
-		else if (isUnderwater)
-		{
-			// Viewer is outside the water volume and pixel is within the water volume. Subtract the distance between
-			// viewer and water volume.
-			fogDistance -= CrestLinearEyeDepth(CREST_MULTILOAD_DEPTH(_CrestWaterBoundaryGeometryFrontFaceTexture, positionSS, rawFrontFaceBoundaryDepth));
-		}
-
-		// Meniscus is rendered at the front face. Rendering at the back face would require extra logic.
-		meniscusDepth = CrestLinearEyeDepth(rawFrontFaceBoundaryDepth);
-	}
 #endif
 }
 

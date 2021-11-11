@@ -80,6 +80,12 @@ After the bake completes the current active *Animated Waves Sim Settings* will b
    -  The *Depth Cache* components are not supported. In order to get a one to one match between the visuals and the collision data, depth caches should not be used.
    -  Varying water levels such as rivers flowing down a gradient or lakes at different altitudes is not supported. This feature assumes a fixed sea level for the whole scene.
 
+.. sponsor::
+
+   Sponsoring us will help increase our development bandwidth which could work towards solving the aforementioned limitations.
+
+   .. trello:: https://trello.com/c/EJCQhvsL
+
 
 Gerstner Waves CPU (deprecated)
 -------------------------------

@@ -13,10 +13,6 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: TODO
-
-   Work in progress
-
 Changed
 ^^^^^^^
 .. bullet_list::
@@ -28,6 +24,14 @@ Fixed
 .. bullet_list::
 
    -  Fix incorrect baked depth cache data that were baked since `Crest` 4.14.
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   .. only:: hdrp
+
+      -  Reduce cost of populating the ocean depth cache. `[HDRP]`
 
 
 4.14

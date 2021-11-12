@@ -32,6 +32,7 @@ namespace Crest
             None,
             GerstnerWavesCPU,
             ComputeShaderQueries,
+            BakedFFT
         }
 
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
@@ -50,12 +51,17 @@ namespace Crest
         [Tooltip("The render texture format to use for the wave simulation. It should only be changed if you need more precision. See the documentation for information.")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
+#if CREST_UNITY_MATHEMATICS
+        [Predicated("_collisionSource", true, (int)CollisionSources.BakedFFT), DecoratedField]
+        public FFTBakedData _bakedFFTData;
+#endif // CREST_UNITY_MATHEMATICS
 
         public override void AddToSettingsHash(ref int settingsHash)
         {
             base.AddToSettingsHash(ref settingsHash);
             Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
             Hashy.AddBool(Helpers.IsMotionVectorsEnabled(), ref settingsHash);
+            Hashy.AddInt((int)_collisionSource, ref settingsHash);
         }
 
         /// <summary>
@@ -83,6 +89,11 @@ namespace Crest
                         Debug.LogError("Crest: Compute shader queries not supported in headless/batch mode. To resolve, assign an Animated Wave Settings asset to the OceanRenderer component and set the Collision Source to be a CPU option.");
                     }
                     break;
+#if CREST_UNITY_MATHEMATICS
+                case CollisionSources.BakedFFT:
+                    result = new CollProviderBakedFFT(_bakedFFTData);
+                    break;
+#endif // CREST_UNITY_MATHEMATICS
             }
 
             if (result == null)
@@ -136,6 +147,44 @@ namespace Crest
                     FixSetCollisionSourceToCompute
                 );
             }
+            else if (_collisionSource == CollisionSources.BakedFFT)
+            {
+#if CREST_UNITY_MATHEMATICS
+                if (_bakedFFTData != null)
+                {
+                    if (!Mathf.Approximately(_bakedFFTData._parameters._windSpeed * 3.6f, ocean._globalWindSpeed))
+                    {
+                        showMessage
+                        (
+                            $"Wind speed on ocean component {ocean._globalWindSpeed} does not match wind speed of baked FFT data {_bakedFFTData._parameters._windSpeed * 3.6f}, collision shape may not match visual surface.",
+                            $"Set global wind speed on ocean component to {_bakedFFTData._parameters._windSpeed * 3.6f}.",
+                            ValidatedHelper.MessageType.Warning, ocean,
+                            FixOceanWindSpeed
+                        );
+                    }
+                }
+#else // CREST_UNITY_MATHEMATICS
+                showMessage
+                (
+                    "The <i>Unity Mathematics (com.unity.mathematics)</i> package is required for baked collisions.",
+                    "Add the <i>Unity Mathematics</i> package.",
+                    ValidatedHelper.MessageType.Error, this,
+                    ValidatedHelper.FixAddMissingMathPackage
+                );
+
+                isValid = false;
+#endif // CREST_UNITY_MATHEMATICS
+
+#if !CREST_UNITY_BURST
+                showMessage
+                (
+                    "The <i>Unity Burst (com.unity.burst)</i> package will greatly improve performance.",
+                    "Add the <i>Unity Burst</i> package.",
+                    ValidatedHelper.MessageType.Warning, this,
+                    ValidatedHelper.FixAddMissingBurstPackage
+                );
+#endif // CREST_UNITY_BURST
+            }
 
             return isValid;
         }
@@ -149,9 +198,22 @@ namespace Crest
                 EditorUtility.SetDirty(OceanRenderer.Instance._simSettingsAnimatedWaves);
             }
         }
+
+#if CREST_UNITY_MATHEMATICS
+        internal static void FixOceanWindSpeed(SerializedObject settingsObject)
+        {
+            if (OceanRenderer.Instance != null
+                && OceanRenderer.Instance._simSettingsAnimatedWaves != null
+                && OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData != null)
+            {
+                Undo.RecordObject(OceanRenderer.Instance, "Set global wind speed to match baked data");
+                OceanRenderer.Instance._globalWindSpeed = OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData._parameters._windSpeed * 3.6f;
+                EditorUtility.SetDirty(OceanRenderer.Instance);
+            }
+        }
+#endif // CREST_UNITY_MATHEMATICS
     }
 
-#if UNITY_EDITOR
     [CustomEditor(typeof(SimSettingsAnimatedWaves), true), CanEditMultipleObjects]
     class SimSettingsAnimatedWavesEditor : SimSettingsBaseEditor
     {
@@ -167,6 +229,5 @@ namespace Crest
             base.OnInspectorGUI();
         }
     }
-#endif
-#endif
+#endif // UNITY_EDITOR
 }

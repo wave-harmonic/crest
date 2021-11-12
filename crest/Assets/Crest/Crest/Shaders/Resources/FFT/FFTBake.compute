@@ -1,0 +1,31 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel FFTBakeMultiRes
+
+Texture2DArray<float3> _InFFTWaves;
+RWTexture2D<float4> _OutDisplacements;
+
+float _WavePatchSize;
+float _BakeTime;
+int _MinSlice;
+
+[numthreads( 8, 8, 1 )]
+void FFTBakeMultiRes( const uint3 id : SV_DispatchThreadID )
+{
+	// Read dimensions
+	int fftRes;
+	int outHeight;
+	{
+		int dummyi;
+		_InFFTWaves.GetDimensions( fftRes, dummyi, dummyi );
+		_OutDisplacements.GetDimensions( dummyi, outHeight );
+	}
+
+	// Compute index of current slice
+	int slice = _MinSlice + id.y / fftRes;
+
+	// Return displacement
+	_OutDisplacements[id.xy] = float4(_InFFTWaves[uint3(id.x, id.y % fftRes, slice)].xyz, 0.0);
+}

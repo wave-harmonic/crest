@@ -1,8 +1,11 @@
 {
     "name": "Crest",
+    "rootNamespace": "",
     "references": [
         "Unity.Postprocessing.Runtime",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Mathematics",
+        "Unity.Burst"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -26,6 +29,16 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.burst",
+            "expression": "1.0.0",
+            "define": "CREST_UNITY_BURST"
+        },
+        {
+            "name": "com.unity.mathematics",
+            "expression": "1.0.0",
+            "define": "CREST_UNITY_MATHEMATICS"
         }
     ],
     "noEngineReferences": false

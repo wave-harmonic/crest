@@ -17,6 +17,12 @@ Release Notes
 
    Work in progress
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Added new CPU-based collision provider - *Baked FFT Data*.
+
 
 4.14
 ----

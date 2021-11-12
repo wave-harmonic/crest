@@ -555,6 +555,12 @@ namespace Crest
             _generatedSettingsHash = CalculateSettingsHash();
         }
 
+        internal void Rebuild()
+        {
+            enabled = false;
+            enabled = true;
+        }
+
         private void OnDisable()
         {
 #if UNITY_EDITOR
@@ -873,22 +879,10 @@ namespace Crest
             // Rebuild if needed. Needs to run in builds (for MVs at the very least).
             if (CalculateSettingsHash() != _generatedSettingsHash)
             {
-                enabled = false;
-                enabled = true;
+                Rebuild();
             }
 
             BuildCommandBuffer.FlipDataBuffers(this);
-
-            // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
-#if UNITY_EDITOR
-            // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
-            // so knock this out.
-            if (EditorApplication.isPlaying)
-#endif
-            {
-                CollisionProvider?.UpdateQueries();
-                FlowProvider?.UpdateQueries();
-            }
 
             // Set global shader params
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
@@ -943,6 +937,20 @@ namespace Crest
                 }
             }
 #endif
+
+            // Run queries at end of update. For CollProviderBakedFFT calling this kicks off
+            // collision processing job, and the next call to Query() will force a complete, and
+            // we don't want that to happen until they've had a chance to run, so schedule them
+            // late.
+#if UNITY_EDITOR
+            // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
+            // so knock this out.
+            if (EditorApplication.isPlaying)
+#endif
+            {
+                CollisionProvider?.UpdateQueries();
+                FlowProvider?.UpdateQueries();
+            }
         }
 
         void WritePerFrameMaterialParams()

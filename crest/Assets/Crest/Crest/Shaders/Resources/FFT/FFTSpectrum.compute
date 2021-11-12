@@ -26,6 +26,7 @@ uint _Size;
 float _WindSpeed;
 float _Turbulence;
 float _Gravity;
+float _Period;
 
 uint WangHash(uint seed)
 {
@@ -62,6 +63,19 @@ float RandGauss(inout uint rngState)
 void DeepDispersion(float k, out float w, out float dwdk)
 {
 	w = sqrt(abs(_Gravity * k));
+
+	// Allow FFT to loop in time
+	if( _Period > 0.0 )
+	{
+		float thisPeriod = PI2 / w;
+		float loops = _Period / thisPeriod;
+		// Make sure loops integral number of times
+		loops = ceil( loops );
+		// Work our way back to frequency
+		thisPeriod = _Period / loops;
+		w = PI2 / thisPeriod;
+	}
+
 	dwdk = _Gravity / (2.0f * w);
 }
 

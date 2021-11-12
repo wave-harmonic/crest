@@ -10,6 +10,7 @@ namespace Crest
     /// Debug draw crosses in an area around the GameObject on the water surface.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Visualise Collision Area")]
+    [ExecuteAlways]
     public class VisualiseCollisionArea : MonoBehaviour
     {
         /// <summary>
@@ -24,12 +25,23 @@ namespace Crest
         [SerializeField]
         float _objectWidth = 0f;
 
-        float[] _resultHeights = new float[s_steps * s_steps];
+        [SerializeField]
+        float _stepSize = 5f;
 
-        static readonly float s_radius = 5f;
-        static readonly int s_steps = 10;
+        [SerializeField]
+        int _steps = 10;
 
-        Vector3[] _samplePositions = new Vector3[s_steps * s_steps];
+        [SerializeField]
+        bool _useDisplacements;
+
+        [SerializeField]
+        bool _useNormals;
+
+        float[] _resultHeights;
+        Vector3[] _resultDisps;
+        Vector3[] _resultNorms;
+
+        Vector3[] _samplePositions;
 
         void Update()
         {
@@ -38,28 +50,74 @@ namespace Crest
                 return;
             }
 
+            if (_resultHeights == null || _resultHeights.Length != _steps * _steps)
+            {
+                _resultHeights = new float[_steps * _steps];
+            }
+            if (_resultDisps == null || _resultDisps.Length != _steps * _steps)
+            {
+                _resultDisps = new Vector3[_steps * _steps];
+            }
+            if (_resultNorms == null || _resultNorms.Length != _steps * _steps)
+            {
+                _resultNorms = new Vector3[_steps * _steps];
+
+                for (int i = 0; i < _resultNorms.Length; i++)
+                {
+                    _resultNorms[i] = Vector3.up;
+                }
+            }
+            if (_samplePositions == null || _samplePositions.Length != _steps * _steps)
+            {
+                _samplePositions = new Vector3[_steps * _steps];
+            }
+
             var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-            for (int i = 0; i < s_steps; i++)
+            for (int i = 0; i < _steps; i++)
             {
-                for (int j = 0; j < s_steps; j++)
+                for (int j = 0; j < _steps; j++)
                 {
-                    _samplePositions[j * s_steps + i] = new Vector3(((i + 0.5f) - s_steps / 2f) * s_radius, 0f, ((j + 0.5f) - s_steps / 2f) * s_radius);
-                    _samplePositions[j * s_steps + i].x += transform.position.x;
-                    _samplePositions[j * s_steps + i].z += transform.position.z;
+                    _samplePositions[j * _steps + i] = new Vector3(((i + 0.5f) - _steps / 2f) * _stepSize, 0f, ((j + 0.5f) - _steps / 2f) * _stepSize);
+                    _samplePositions[j * _steps + i].x += transform.position.x;
+                    _samplePositions[j * _steps + i].z += transform.position.z;
                 }
             }
 
-            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, null, null)))
+            if (_useDisplacements)
             {
-                for (int i = 0; i < s_steps; i++)
+                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultDisps, _useNormals ? _resultNorms : null, null)))
                 {
-                    for (int j = 0; j < s_steps; j++)
+                    for (int i = 0; i < _steps; i++)
                     {
-                        var result = _samplePositions[j * s_steps + i];
-                        result.y = _resultHeights[j * s_steps + i];
+                        for (int j = 0; j < _steps; j++)
+                        {
+                            var result = _samplePositions[j * _steps + i];
+                            result.y = OceanRenderer.Instance.SeaLevel;
+                            result += _resultDisps[j * _steps + i];
 
-                        DebugDrawCross(result, 1f, Color.green);
+                            var norm = _useNormals ? _resultNorms[j * _steps + i] : Vector3.up;
+
+                            DebugDrawCross(result, norm, Mathf.Min(_stepSize / 4f, 1f), Color.green);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, _useNormals ? _resultNorms : null, null)))
+                {
+                    for (int i = 0; i < _steps; i++)
+                    {
+                        for (int j = 0; j < _steps; j++)
+                        {
+                            var result = _samplePositions[j * _steps + i];
+                            result.y = _resultHeights[j * _steps + i];
+
+                            var norm = _useNormals ? _resultNorms[j * _steps + i] : Vector3.up;
+
+                            DebugDrawCross(result, norm, Mathf.Min(_stepSize / 4f, 1f), Color.green);
+                        }
                     }
                 }
             }
@@ -70,6 +128,16 @@ namespace Crest
             Debug.DrawLine(pos - Vector3.up * r, pos + Vector3.up * r, col, duration);
             Debug.DrawLine(pos - Vector3.right * r, pos + Vector3.right * r, col, duration);
             Debug.DrawLine(pos - Vector3.forward * r, pos + Vector3.forward * r, col, duration);
+        }
+
+        public static void DebugDrawCross(Vector3 pos, Vector3 up, float r, Color col, float duration = 0f)
+        {
+            up.Normalize();
+            var right = Vector3.Normalize(Vector3.Cross(up, Vector3.forward));
+            var forward = Vector3.Cross(up, right);
+            Debug.DrawLine(pos - up * r, pos + up * r, col, duration);
+            Debug.DrawLine(pos - right * r, pos + right * r, col, duration);
+            Debug.DrawLine(pos - forward * r, pos + forward * r, col, duration);
         }
     }
 }

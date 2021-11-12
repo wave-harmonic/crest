@@ -104,6 +104,13 @@ public class BoatAlignNormal : FloatingObjectBase
         // height = base sea level + surface displacement y
         height += disp.y;
 
+        if (_debugDraw)
+        {
+            var surfPos = transform.position;
+            surfPos.y = height;
+            VisualiseCollisionArea.DebugDrawCross(surfPos, normal, 1f, Color.red);
+        }
+
         {
             _sampleFlowHelper.Init(transform.position, _boatWidth);
 

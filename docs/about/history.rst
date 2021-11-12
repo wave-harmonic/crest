@@ -23,6 +23,12 @@ Changed
 
    -  Added new CPU-based collision provider - *Baked FFT Data*.
 
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix incorrect baked depth cache data that were baked since `Crest` 4.14.
+
 
 4.14
 ----

@@ -405,10 +405,18 @@ namespace Crest
                 AssetDatabase.ImportAsset(path);
 
                 TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
+                ti.textureShape = TextureImporterShape.Texture2D;
                 ti.textureType = TextureImporterType.SingleChannel;
                 ti.sRGBTexture = false;
                 ti.alphaSource = TextureImporterAlphaSource.None;
+                ti.mipmapEnabled = false;
                 ti.alphaIsTransparency = false;
+                // Compression will clamp negative values.
+                ti.textureCompression = TextureImporterCompression.Uncompressed;
+                ti.filterMode = FilterMode.Point;
+                ti.wrapMode = TextureWrapMode.Clamp;
+                // Values are slightly different with NPOT Scale applied.
+                ti.npotScale = TextureImporterNPOTScale.None;
                 ti.SaveAndReimport();
 
                 Debug.Log("Crest: Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));

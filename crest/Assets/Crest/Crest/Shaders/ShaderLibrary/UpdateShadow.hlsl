@@ -51,10 +51,12 @@ half2 Frag(Varyings input) : SV_Target
 	half2 shadow = 0.0;
 
 	float4 positionWS = float4(input.positionWS.xyz, 1.0);
+	float3 displacement = 0.0;
 	{
 		float3 uv = WorldToUV(positionWS.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		// Offset world position by sea level offset.
 		positionWS.y += _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).y;
+		displacement = SampleLod(_LD_TexArray_AnimatedWaves, uv).xyz;
 	}
 
 	// Shadow from last frame.
@@ -85,6 +87,9 @@ half2 Frag(Varyings input) : SV_Target
 			}
 		}
 	}
+
+	// Add displacement so shorelines do not receive shadows incorrectly.
+	positionWS.xyz += displacement;
 
 	// This was calculated in vertex but we have to sample sea level offset in fragment.
 	float4 mainCameraCoordinates = mul(_MainCameraProjectionMatrix, positionWS);

@@ -25,6 +25,10 @@ Fixed
 
    -  Fix incorrect baked depth cache data that were baked since `Crest` 4.14.
 
+   .. only:: hdrp
+
+      -  Fix motion vectors not working by exposing motion vector toggle on ocean material. `[HDRP]`
+
 Performance
 ^^^^^^^^^^^
 .. bullet_list::

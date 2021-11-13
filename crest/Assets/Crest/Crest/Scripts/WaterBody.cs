@@ -79,6 +79,7 @@ namespace Crest
 
             _waterBodies.Add(this);
 
+            // Needs to execute after the Ocean Renderer as Update is stripped from builds.
             HandleClipInputRegistration();
         }
 

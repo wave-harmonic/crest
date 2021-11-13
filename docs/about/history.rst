@@ -34,6 +34,10 @@ Changed
    -  Add helpbox to *Floating Origin* directing users to documentation for solving potential popping issues.
    -  Improve spacing for spectrum power slider labels.
 
+   .. only:: birp or urp
+
+      -  Ramp planar reflection distortion with distance. `[BIRP] [URP]`
+
 
 Fixed
 ^^^^^

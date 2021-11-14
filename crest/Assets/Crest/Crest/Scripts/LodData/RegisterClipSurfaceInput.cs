@@ -154,7 +154,7 @@ namespace Crest
             }
         }
 
-        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public override void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (weight <= 0f)
             {

@@ -40,6 +40,8 @@ namespace Crest
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsDynamicWaves != null ? _ocean._simSettingsDynamicWaves : GetDefaultSettings<SettingsType>();
 
+        public float TimeLeftToSimulate => _timeToSimulate;
+
         public LodDataMgrDynWaves(OceanRenderer ocean) : base(ocean)
         {
             Start();

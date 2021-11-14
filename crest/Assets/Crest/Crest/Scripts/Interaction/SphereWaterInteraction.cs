@@ -45,6 +45,7 @@ namespace Crest
         [SerializeField]
         bool _warnOnSpeedClamp = false;
 
+        Vector3 _velocity;
         Vector3 _posLast;
 
         float _weightThisFrame;
@@ -100,8 +101,17 @@ namespace Crest
             _sampleHeightHelper.Init(transform.position, 2f * _radius);
             _sampleHeightHelper.Sample(out Vector3 disp, out _, out _);
 
+            LateUpdateComputeVel(ocean);
+
             // Velocity relative to water
-            var relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
+            var relativeVelocity = _velocity;
+            {
+                _sampleFlowHelper.Init(transform.position, 2f * _radius);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
+                relativeVelocity -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+
+                relativeVelocity.y *= _weightUpDownMul;
+            }
 
             var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
 
@@ -134,29 +144,20 @@ namespace Crest
         }
 
         // Velocity of the sphere, relative to the water. Computes on the fly, discards if teleport detected.
-        Vector3 LateUpdateComputeVelRelativeToWater(OceanRenderer ocean)
+        void LateUpdateComputeVel(OceanRenderer ocean)
         {
-            Vector3 vel;
-
-            // feed in water velocity
-            vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
+            // Compue vel using finite difference
+            _velocity = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
             if (ocean.DeltaTimeDynamics < 0.0001f)
             {
-                vel = Vector3.zero;
+                _velocity = Vector3.zero;
             }
 
-            {
-                _sampleFlowHelper.Init(transform.position, 2f * _radius);
-                _sampleFlowHelper.Sample(out var surfaceFlow);
-                vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-            }
-            vel.y *= _weightUpDownMul;
-
-            var speedKmh = vel.magnitude * 3.6f;
+            var speedKmh = _velocity.magnitude * 3.6f;
             if (speedKmh > _teleportSpeed)
             {
                 // teleport detected
-                vel *= 0f;
+                _velocity *= 0f;
 
                 if (_warnOnTeleport)
                 {
@@ -166,15 +167,13 @@ namespace Crest
             else if (speedKmh > _maxSpeed)
             {
                 // limit speed to max
-                vel *= _maxSpeed / speedKmh;
+                _velocity *= _maxSpeed / speedKmh;
 
                 if (_warnOnSpeedClamp)
                 {
                     Debug.LogWarning("Crest: Speed (" + speedKmh.ToString() + ") exceeded max limited, clamped.", this);
                 }
             }
-
-            return vel;
         }
 
         // Weight based on submerged-amount of sphere
@@ -216,10 +215,18 @@ namespace Crest
             Gizmos.DrawWireSphere(transform.position, _radius);
         }
 
-        public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        [Range(0, 1)]
+        public float _doVelCorrection = 1f;
+
+        public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
+            var timeBeforeCurrentTime = (lodData as LodDataMgrDynWaves).TimeLeftToSimulate;
+            //Debug.Log(Time.frameCount + ": " + timeBeforeCurrentTime);
+            var pos = transform.position + -_velocity * timeBeforeCurrentTime * _doVelCorrection;
+            Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, Color.red, 0.5f);
+            var renderMatrix = Matrix4x4.Translate(-_velocity * timeBeforeCurrentTime * _doVelCorrection) * _renderMatrix;
             _mpb.SetFloat(sp_weight, weight * _weightThisFrame);
-            buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, _renderMatrix, _mat, 0, 0, _mpb);
+            buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, renderMatrix, _mat, 0, 0, _mpb);
         }
     }
 

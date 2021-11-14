@@ -31,7 +31,7 @@ namespace Crest
         readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
         // This is how far the simulation time is behind unity's time
-        float _timeToSimulate = 0f;
+        protected float _timeToSimulate = 0f;
 
         public int LastUpdateSubstepCount { get; private set; }
 
@@ -92,9 +92,6 @@ namespace Crest
             // Do a set of substeps to catch up
             GetSimSubstepData(_timeToSimulate, out var numSubsteps, out var substepDt);
 
-            // Record how much we caught up
-            _timeToSimulate -= substepDt * numSubsteps;
-
             LastUpdateSubstepCount = numSubsteps;
 
             // Even if no steps were needed this frame, the sim still needs to advect to compensate for camera motion / ocean scale changes,
@@ -110,6 +107,9 @@ namespace Crest
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
                 var isFirstStep = stepi == 0;
+
+                // Record how much we caught up
+                _timeToSimulate -= substepDt;
 
                 // Buffers are already flipped, but we need to ping-pong for subsequent substeps.
                 if (!isFirstStep)

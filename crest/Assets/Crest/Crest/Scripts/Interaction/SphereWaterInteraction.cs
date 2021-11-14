@@ -100,11 +100,8 @@ namespace Crest
             _sampleHeightHelper.Init(transform.position, 2f * _radius);
             _sampleHeightHelper.Sample(out Vector3 disp, out _, out _);
 
-            // Enforce upwards
-            transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-
             // Velocity relative to water
-            Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
+            var relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
             var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
 

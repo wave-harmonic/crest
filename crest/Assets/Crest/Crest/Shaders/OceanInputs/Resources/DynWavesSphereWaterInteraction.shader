@@ -24,7 +24,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 			#include "UnityCG.cginc"
 
-			#include "../OceanInputsDriven.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float3 _Velocity;

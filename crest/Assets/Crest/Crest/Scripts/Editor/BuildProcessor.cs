@@ -32,6 +32,9 @@ namespace Crest
         {
             "_FULL_SCREEN_EFFECT",
             "_DEBUG_VIEW_OCEAN_MASK",
+
+            // Unity 2021.2 considers this UserDefined."
+            "STEREO_ENABLED_ON",
         };
 
         bool IsUnderwaterShader(string shaderName)

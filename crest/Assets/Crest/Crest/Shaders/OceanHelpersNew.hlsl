@@ -176,7 +176,7 @@ void PosToSliceIndices
 	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 	lodAlpha = saturate((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT));
 
-	if (slice0 == 0.0)
+	if (slice0 == 0)
 	{
 		// blend out lod0 when viewpoint gains altitude. we're using the global _MeshScaleLerp so check for LOD0 is necessary
 		lodAlpha = min(lodAlpha + _MeshScaleLerp, 1.0);

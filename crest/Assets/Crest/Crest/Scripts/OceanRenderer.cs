@@ -331,6 +331,11 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        /// <summary>
+        /// Depth Fog Density with factor applied for underwater.
+        /// </summary>
+        public Vector3 UnderwaterDepthFogDensity { get; private set; }
+
         List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
@@ -1105,7 +1110,7 @@ namespace Crest
             if (isUnderwaterActive)
             {
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
-                var density = _material.GetVector("_DepthFogDensity");
+                var density = UnderwaterDepthFogDensity = _material.GetVector("_DepthFogDensity") * UnderwaterRenderer.Instance.DepthFogDensityFactor;
                 var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
                 var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
                 volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;

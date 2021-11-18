@@ -18,6 +18,7 @@ Changed
 .. bullet_list::
 
    -  Added new CPU-based collision provider - *Baked FFT Data*.
+   -  Add *CREST_OCEAN* scripting defines symbol.
 
 Fixed
 ^^^^^

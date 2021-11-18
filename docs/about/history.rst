@@ -19,6 +19,7 @@ Changed
 
    -  Added new CPU-based collision provider - *Baked FFT Data*.
    -  Add *CREST_OCEAN* scripting defines symbol.
+   -  Add *Depth Fog Density Factor* to *Underwater Renderer* which can be used to decrease underwater fog intensity when underwater.
 
 Fixed
 ^^^^^

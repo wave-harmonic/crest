@@ -26,6 +26,7 @@ Fixed
 
    -  Fix incorrect baked depth cache data that were baked since `Crest` 4.14.
    -  Fix XR `SPI` underwater rendering for Unity 2021.2 standalone.
+   -  Fix *Underwater Renderer* not rendering on *Intel iGPUs*.
 
    .. only:: hdrp
 

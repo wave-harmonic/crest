@@ -119,6 +119,8 @@ namespace Crest
                 underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
 
+            underwaterPostProcessMaterial.SetVector("_DepthFogDensity", OceanRenderer.Instance.UnderwaterDepthFogDensity);
+
             // Enable/Disable meniscus.
             if (isMeniscusEnabled)
             {

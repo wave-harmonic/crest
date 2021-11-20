@@ -67,6 +67,13 @@ Setup
 -  Add the *Underwater Renderer* component to your camera game object.
 
 
+Parameters
+^^^^^^^^^^
+
+|  **Depth Fog Density Factor:** Reduces the underwater depth fog density by a factor.
+   Useful to reduce the intensity of the fog independently from the ocean surface.
+
+
 .. only:: birp or urp
 
    Underwater Curtain `[BIRP] [URP]`

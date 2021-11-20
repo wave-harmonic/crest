@@ -23,6 +23,13 @@ namespace Crest
             return false;
         }
 
+        public static bool IsIntelGPU()
+        {
+            // Works for Windows and MacOS. Grabbed from Unity Graphics repository:
+            // https://github.com/Unity-Technologies/Graphics/blob/68b0d42c/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDRenderPipeline.PostProcess.cs#L198-L199
+            return SystemInfo.graphicsDeviceName.ToLowerInvariant().Contains("intel");
+        }
+
         public static void Swap<T>(ref T a, ref T b)
         {
             var temp = b;

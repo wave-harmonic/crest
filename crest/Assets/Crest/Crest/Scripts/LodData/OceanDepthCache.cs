@@ -192,7 +192,7 @@ namespace Crest
                 _camDepthCache.orthographic = true;
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
                 // Clear to 'very deep'
-                _camDepthCache.backgroundColor = Color.white * 1000f;
+                _camDepthCache.backgroundColor = Color.white * LodDataMgrSeaFloorDepth.k_DepthBaseline;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
                 // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor

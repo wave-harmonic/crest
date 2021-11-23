@@ -22,6 +22,7 @@ Changed
    -  Add *Depth Fog Density Factor* to *Underwater Renderer* which can be used to decrease underwater fog intensity when underwater.
    -  Improve shadows by using displaced position when sampling shadow maps.
       Greatly improves shadows at shorelines.
+   -  Add UV feathering option to Flow shaders.
 
 Fixed
 ^^^^^

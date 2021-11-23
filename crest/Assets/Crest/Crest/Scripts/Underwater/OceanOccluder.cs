@@ -84,8 +84,7 @@ namespace Crest
                 material.SetTexture("_SurfaceNormal", OceanRenderer.Instance.OceanMaterial.GetTexture("_Normals"));
             }
 
-            // var underwater = _currentCamera.GetComponent<IUnderwaterPostProcessPerCameraData>();
-            // if (underwater != null && underwater.enabled)
+            if (UnderwaterRenderer.Instance != null)
             {
                 // TODO: Move registry to this component?
                 UnderwaterRenderer.Instance.RegisterOceanOccluder(this);

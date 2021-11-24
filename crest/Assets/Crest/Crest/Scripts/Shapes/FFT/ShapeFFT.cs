@@ -176,6 +176,7 @@ namespace Crest
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
+        static readonly int sp_MaximumAttenuationDepth = Shader.PropertyToID("_MaximumAttenuationDepth");
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
@@ -210,6 +211,7 @@ namespace Crest
             }
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
+            _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative

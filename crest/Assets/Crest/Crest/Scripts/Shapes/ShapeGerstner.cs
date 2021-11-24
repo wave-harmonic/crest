@@ -199,6 +199,7 @@ namespace Crest
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
+        static readonly int sp_MaximumAttenuationDepth = Shader.PropertyToID("_MaximumAttenuationDepth");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         readonly float _twoPi = 2f * Mathf.PI;
@@ -278,6 +279,7 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);

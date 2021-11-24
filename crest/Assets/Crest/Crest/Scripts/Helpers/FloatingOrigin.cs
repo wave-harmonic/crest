@@ -19,6 +19,7 @@
 // pops will occur. Example - set teleport radius to 16384m, and set normal map scale to 16m which divides evenly into the teleport radius.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Crest
 {
@@ -62,8 +63,13 @@ namespace Crest
         ParticleSystem[] _overrideParticleSystemList = null;
         [Tooltip("Optionally provide a list of rigidbodies to avoid doing a FindObjectsOfType() call."), SerializeField]
         Rigidbody[] _overrideRigidbodyList = null;
-        [Tooltip("Optionally provide a list of Gerstner components to avoid doing a FindObjectsOfType() call."), SerializeField]
-        ShapeGerstnerBatched[] _overrideGerstnerList = null;
+
+        [FormerlySerializedAs("_overrideGerstnerList")]
+        [Tooltip("Optionally provide a list of ShapeGerstnerBatched components to avoid doing a FindObjectsOfType() call."), SerializeField]
+        ShapeGerstnerBatched[] _overrideGerstnerBatchedList = new ShapeGerstnerBatched[0];
+
+        [Tooltip("Optionally provide a list of ShapeGerstner components to avoid doing a FindObjectsOfType() call."), SerializeField]
+        ShapeGerstner[] _overrideGerstnerList = new ShapeGerstner[0];
 
         ParticleSystem.Particle[] _particleBuffer = null;
 
@@ -160,11 +166,22 @@ namespace Crest
                     fo.SetOrigin(newOrigin);
                 }
 
-                // Gerstner components
-                var gerstners = _overrideGerstnerList != null && _overrideGerstnerList.Length > 0 ? _overrideGerstnerList : FindObjectsOfType<ShapeGerstnerBatched>();
-                foreach (var gerstner in gerstners)
                 {
-                    gerstner.SetOrigin(newOrigin);
+                    // ShapeGerstnerBatched
+                    var waves = _overrideGerstnerBatchedList?.Length > 0 ? _overrideGerstnerBatchedList : FindObjectsOfType<ShapeGerstnerBatched>();
+                    foreach (var item in waves)
+                    {
+                        item.SetOrigin(newOrigin);
+                    }
+                }
+
+                {
+                    // ShapeGerstner
+                    var waves = _overrideGerstnerList?.Length > 0 ? _overrideGerstnerList : FindObjectsOfType<ShapeGerstner>();
+                    foreach (var item in waves)
+                    {
+                        item.SetOrigin(newOrigin);
+                    }
                 }
             }
         }

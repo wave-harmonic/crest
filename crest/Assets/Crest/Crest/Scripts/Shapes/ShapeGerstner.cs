@@ -147,6 +147,8 @@ namespace Crest
         float[] _phases;
         float[] _phases2;
 
+        Vector3 _newOrigin;
+
         [HideInInspector]
         public RenderTexture _waveBuffers;
 
@@ -421,6 +423,14 @@ namespace Crest
                     _waveData[vi]._waveDirX[ei] = dx;
                     _waveData[vi]._waveDirZ[ei] = dz;
 
+                    if (_newOrigin != Vector3.zero)
+                    {
+                        var direction = new Vector3(dx, 0f, dz);
+                        var phaseOffsetMeters = Vector3.Dot(_newOrigin, direction);
+                        _phases[componentIdx] = Mathf.Repeat(_phases[componentIdx] + phaseOffsetMeters * k, Mathf.PI * 2f);
+                        _phases2[componentIdx] = Mathf.Repeat(_phases2[componentIdx] + phaseOffsetMeters * k, Mathf.PI * 2f);
+                    }
+
                     // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
                     _waveData[vi]._omega[ei] = k * C;
                     _waveData[vi]._phase[ei] = Mathf.Repeat(_phases[componentIdx], Mathf.PI * 2f);
@@ -429,6 +439,8 @@ namespace Crest
                     outputIdx++;
                 }
             }
+
+            _newOrigin = Vector3.zero;
 
             _lastCascade = cascadeIdx;
 
@@ -486,6 +498,11 @@ namespace Crest
             _bufWaveData.SetData(_waveData);
         }
 
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            _newOrigin = newOrigin;
+        }
+
         void UpdateGenerateWaves(CommandBuffer buf)
         {
             buf.SetComputeFloatParam(_shaderGerstner, sp_TextureRes, _waveBuffers.width);
@@ -496,24 +513,6 @@ namespace Crest
             buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, sp_WaveBuffer, _waveBuffers);
 
             buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / LodDataMgr.THREAD_GROUP_SIZE_X, _waveBuffers.height / LodDataMgr.THREAD_GROUP_SIZE_Y, _lastCascade - _firstCascade + 1);
-        }
-
-        public void SetOrigin(Vector3 newOrigin)
-        {
-            if (_phases == null || _phases2 == null) return;
-
-            var windAngle = _waveDirectionHeadingAngle;
-            for (int i = 0; i < _phases.Length; i++)
-            {
-                var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
-                var phaseOffsetMeters = Vector3.Dot(newOrigin, direction);
-
-                // wave number
-                var k = 2f * Mathf.PI / _wavelengths[i];
-
-                _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
-                _phases2[i] = Mathf.Repeat(_phases2[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
-            }
         }
 
         /// <summary>

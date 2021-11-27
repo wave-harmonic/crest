@@ -16,6 +16,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
+        // NOTE: Must match CREST_OCEAN_DEPTH_BASELINE in OceanConstants.hlsl.
         internal const float k_DepthBaseline = 1_000f;
 
         public override string SimName => "SeaFloorDepth";

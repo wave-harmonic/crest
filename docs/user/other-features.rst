@@ -24,7 +24,7 @@ Decals
         .. include:: includes/_render-alpha-surface.rst
 
 
-Floating origin
+Floating Origin
 ---------------
 
 *Crest* has support for 'floating origin' functionality, based on code from the *Unity Community Wiki*.

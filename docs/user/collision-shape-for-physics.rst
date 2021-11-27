@@ -53,6 +53,8 @@ desired results.
 The result of the query accurately tracks the height of the surface, including all wave components and depth caches and other Crest features.
 
 
+.. _collisions-fft-waves-cpu:
+
 Baked FFT Data (CPU)
 --------------------
 
@@ -86,6 +88,8 @@ After the bake completes the current active *Animated Waves Sim Settings* will b
 
    .. trello:: https://trello.com/c/EJCQhvsL
 
+
+.. _collisions-gerstner-waves-cpu:
 
 Gerstner Waves CPU (deprecated)
 -------------------------------

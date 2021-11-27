@@ -87,14 +87,7 @@ namespace Crest
         {
             var mat = material.targetObject as Material;
             Undo.RecordObject(mat, $"Enable keyword {keyword}");
-            if (enabled)
-            {
-                mat.EnableKeyword(keyword);
-            }
-            else
-            {
-                mat.DisableKeyword(keyword);
-            }
+            mat.SetKeyword(keyword, enabled);
             mat.SetFloat(floatParam, enabled ? 1f : 0f);
         }
 

@@ -121,25 +121,9 @@ namespace Crest
 
             underwaterPostProcessMaterial.SetVector("_DepthFogDensity", OceanRenderer.Instance.UnderwaterDepthFogDensity);
 
-            // Enable/Disable meniscus.
-            if (isMeniscusEnabled)
-            {
-                underwaterPostProcessMaterial.EnableKeyword("CREST_MENISCUS");
-            }
-            else
-            {
-                underwaterPostProcessMaterial.DisableKeyword("CREST_MENISCUS");
-            }
-
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
-            if (debugViewPostProcessMask)
-            {
-                underwaterPostProcessMaterial.EnableKeyword(k_KeywordDebugViewOceanMask);
-            }
-            else
-            {
-                underwaterPostProcessMaterial.DisableKeyword(k_KeywordDebugViewOceanMask);
-            }
+            underwaterPostProcessMaterial.SetKeyword(k_KeywordDebugViewOceanMask, debugViewPostProcessMask);
+            underwaterPostProcessMaterial.SetKeyword("CREST_MENISCUS", isMeniscusEnabled);
 
             // We sample shadows at the camera position which will be the first slice.
             // We also use this for caustics to get the displacement.

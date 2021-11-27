@@ -44,6 +44,10 @@ Simulation Settings
 
 All of the settings below refer to the *Animated Waves Sim Settings* asset.
 
+-  **Attenuation In Shallows** - How much waves are dampened in shallow water.
+-  **Shallows Max Depth** - Any water deeper than this will receive full wave strength.
+   The lower the value, the less effective the depth cache will be at attenuating very large waves.
+   Set to the maximum value (1,000) to disable.
 -  **Collision Source** - Where to obtain ocean shape on CPU for physics / gameplay.
 -  **Max Query Count** - Maximum number of wave queries that can be performed when using ComputeShaderQueries.
 -  **Ping Pong Combine Pass** - Whether to use a graphics shader for combining the wave cascades together.

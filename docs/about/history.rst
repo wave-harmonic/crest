@@ -24,6 +24,7 @@ Changed
       Greatly improves shadows at shorelines.
    -  Add UV feathering option to Flow shaders.
    -  Add *Attenuation in Shallows* to *Dynamic Waves Sims Settings*.
+   -  Add *Shallows Max Depth* to *Sim Settings Animated Waves* as an alternative to having to extend terrain to 500m below sea level to avoid discontinuity issues.
 
 Fixed
 ^^^^^

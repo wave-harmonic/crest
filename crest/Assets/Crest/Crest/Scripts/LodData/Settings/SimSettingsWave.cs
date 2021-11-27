@@ -37,6 +37,8 @@ namespace Crest
         public float _damping = 0.05f;
         [Range(0.1f, 1f), Tooltip("Stability control. Lower values means more stable sim, but may slow down some dynamic waves. This value should be set as large as possible until sim instabilities/flickering begin to appear. Default is 0.7.")]
         public float _courantNumber = 0.7f;
+        [Range(0f, 1f), Tooltip("How much waves are dampened in shallow water.")]
+        public float _attenuationInShallows = 1f;
 
         [Header("Displacement Generation")]
         [Range(0f, 20f), Tooltip("Induce horizontal displacements to sharpen simulated waves.")]

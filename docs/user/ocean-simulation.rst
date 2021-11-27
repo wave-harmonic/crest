@@ -137,6 +137,8 @@ All of the settings below refer to the *Dynamic Wave Sim Settings* asset.
 -  **Gravity Multiplier** - Multiplier for gravity.
    More gravity means dynamic waves will travel faster.
 
+-  **Attenuation in Shallows** - How much waves are dampened in shallow water.
+
 The *OceanDebugGUI* script gives the debug overlay in the example content scenes and reports the number of sim steps taken each frame.
 
 

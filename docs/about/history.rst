@@ -23,6 +23,7 @@ Changed
    -  Improve shadows by using displaced position when sampling shadow maps.
       Greatly improves shadows at shorelines.
    -  Add UV feathering option to Flow shaders.
+   -  Add *Attenuation in Shallows* to *Dynamic Waves Sims Settings*.
 
 Fixed
 ^^^^^

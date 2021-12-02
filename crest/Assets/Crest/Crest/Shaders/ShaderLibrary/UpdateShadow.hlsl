@@ -33,7 +33,10 @@ struct Varyings
 half CrestSampleShadows(const float4 i_positionWS);
 half CrestComputeShadowFade(const float4 i_positionWS);
 
-half ComputeShadow(const float4 i_positionWS, const float i_jitterDiameter)
+// Compiler shows warning when using intermediate returns, disable this.
+#pragma warning(push)
+#pragma warning(disable: 4000)
+half ComputeShadow(const float4 i_positionWS, const float i_jitterDiameter, const half i_terrainHeight)
 {
 	float4 positionWS = i_positionWS;
 
@@ -41,10 +44,37 @@ half ComputeShadow(const float4 i_positionWS, const float i_jitterDiameter)
 	{
 		// Add jitter.
 		positionWS.xz += i_jitterDiameter * (hash33(uint3(abs(positionWS.xz * 10.0), _Time.y * 120.0)) - 0.5).xy;
+
+		// Shadow Bleeding.
+		// If we are not within a terrain, then check for shadow bleeding.
+		if (i_positionWS.y > i_terrainHeight)
+		{
+			half terrainHeight = 0.0;
+			SampleTerrainHeight
+			(
+				_LD_TexArray_SeaFloorDepth,
+				WorldToSafeUV
+				(
+					positionWS.xz,
+					_CrestCascadeData[_LD_SliceIndex],
+					_LD_SliceIndex
+				),
+				terrainHeight
+			);
+
+			// If our current position is below the jittered terrain height, then we have landed within a terrain and
+			// we do not want to sample those shadows.
+			if (i_positionWS.y < terrainHeight)
+			{
+				// Return no shadows.
+				return 1.0;
+			}
+		}
 	}
 
 	return CrestSampleShadows(positionWS);
 }
+#pragma warning(pop)
 
 half2 Frag(Varyings input) : SV_Target
 {
@@ -105,11 +135,25 @@ half2 Frag(Varyings input) : SV_Target
 		positionWS.xyz -= _WorldSpaceCameraPos.xyz;
 #endif
 
+		half terrainHeight = 0.0;
+		SampleTerrainHeight
+		(
+			_LD_TexArray_SeaFloorDepth,
+			WorldToUV
+			(
+				positionWS.xz,
+				_CrestCascadeData[_LD_SliceIndex],
+				_LD_SliceIndex
+			),
+			terrainHeight
+		);
+
 		// Add soft shadowing data.
 		shadowThisFrame[CREST_SHADOW_INDEX_SOFT] = ComputeShadow
 		(
 			positionWS,
-			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_SOFT]
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_SOFT],
+			terrainHeight
 		);
 
 #ifdef CREST_SAMPLE_SHADOW_HARD
@@ -117,7 +161,8 @@ half2 Frag(Varyings input) : SV_Target
 		shadowThisFrame[CREST_SHADOW_INDEX_HARD] = ComputeShadow
 		(
 			positionWS,
-			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_HARD]
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_HARD],
+			terrainHeight
 		);
 #endif
 

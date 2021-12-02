@@ -32,6 +32,7 @@ Fixed
    -  Fix XR `SPI` underwater rendering for Unity 2021.2 standalone.
    -  Fix *Underwater Renderer* not rendering on *Intel iGPUs*.
    -  Fix clip surface inputs losing accuracy with large waves.
+   -  Fix shadow bleeding at shorelines by using the *Sea Floor Depth* data to reject invalid shadows. :pr:`947`
 
    .. only:: hdrp
 

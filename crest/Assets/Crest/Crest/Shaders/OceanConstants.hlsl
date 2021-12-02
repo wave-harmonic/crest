@@ -16,6 +16,7 @@
 // How light is attenuated deep in water
 #define DEPTH_OUTSCATTER_CONSTANT 0.25
 
+// NOTE: Must match k_DepthBaseline in LodDataMgrSeaFloorDepth.cs.
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define CREST_OCEAN_DEPTH_BASELINE 1000.0
 

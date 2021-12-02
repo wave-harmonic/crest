@@ -20,7 +20,6 @@ Changed
    -  Added new CPU-based collision provider - *Baked FFT Data*.
    -  Add *CREST_OCEAN* scripting defines symbol.
    -  Add *Depth Fog Density Factor* to *Underwater Renderer* which can be used to decrease underwater fog intensity when underwater.
-   -  Improve shadows by using displaced position when sampling shadow maps.
       Greatly improves shadows at shorelines.
    -  Add UV feathering option to Flow shaders.
    -  Add *Attenuation in Shallows* to *Dynamic Waves Sims Settings*.
@@ -34,6 +33,7 @@ Fixed
    -  Fix XR `SPI` underwater rendering for Unity 2021.2 standalone.
    -  Fix *Underwater Renderer* not rendering on *Intel iGPUs*.
    -  Fix clip surface inputs losing accuracy with large waves.
+   -  Fix waves at shorelines being incorrectly shadowed. :pr:`945`
    -  Fix shadow bleeding at shorelines by using the *Sea Floor Depth* data to reject invalid shadows. :pr:`947`
    -  Fix exceptions thrown for server/headless builds.
    -  Fix exceptions thrown if foam, dynamic waves and shadows all were disabled.

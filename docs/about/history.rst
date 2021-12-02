@@ -34,6 +34,8 @@ Fixed
    -  Fix *Underwater Renderer* not rendering on *Intel iGPUs*.
    -  Fix clip surface inputs losing accuracy with large waves.
    -  Fix shadow bleeding at shorelines by using the *Sea Floor Depth* data to reject invalid shadows. :pr:`947`
+   -  Fix exceptions thrown for server/headless builds.
+   -  Fix exceptions thrown if foam, dynamic waves and shadows all were disabled.
 
    .. only:: hdrp
 

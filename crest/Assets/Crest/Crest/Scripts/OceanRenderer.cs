@@ -502,8 +502,9 @@ namespace Crest
             CreateDestroySubSystems();
 
             // TODO: Have a BufferCount which will be the run-time buffer size or prune data.
+            // NOTE: Hardcode minimum (2) to avoid breaking server builds and LodData* toggles.
             // Gather the buffer size for shared data.
-            BufferSize = 0;
+            BufferSize = 2;
             foreach (var lodData in _lodDatas)
             {
                 if (lodData.enabled)

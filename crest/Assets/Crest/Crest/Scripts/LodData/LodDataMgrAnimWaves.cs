@@ -177,6 +177,11 @@ namespace Crest
                 isTransition = 0;
                 alpha = 1f;
 
+                if (drawOctaveWavelength < 0f)
+                {
+                    return 1f;
+                }
+
                 // No wavelength preference - don't draw per-lod
                 if (drawOctaveWavelength == 0f)
                 {

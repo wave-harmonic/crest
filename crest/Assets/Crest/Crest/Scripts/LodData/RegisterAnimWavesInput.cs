@@ -25,9 +25,21 @@ namespace Crest
         public override bool Enabled => true;
 
         [Header("Anim Waves Input Settings")]
-        [SerializeField, Tooltip("Which octave to render into, for example set this to 2 to use render into the 2m-4m octave. These refer to the same octaves as the wave spectrum editor. Set this value to 0 to render into all LODs.")]
+
+        [Tooltip("Whether to filter this input by wavelength. If disabled it will render to all LODs.")]
+        [SerializeField]
+        bool _filterByWavelength;
+
+        [Tooltip("Which octave to render into, for example set this to 2 to use render into the 2m-4m octave. These refer to the same octaves as the wave spectrum editor. Set this value to 0 to render into all LODs after Dynamic Waves.")]
+        [Predicated(nameof(_filterByWavelength))]
+        [SerializeField, DecoratedField]
         float _octaveWavelength = 0f;
-        public override float Wavelength => _octaveWavelength;
+        public override float Wavelength => _filterByWavelength ? _octaveWavelength : _renderAfterDynamicWaves ? 0 : -1;
+
+        [Tooltip("Render to all LODs before the combine step where Dynamic Waves are added to the Animated Waves. Useful for scaling waves etc without affecting ripples and wakes.")]
+        [Predicated(nameof(_filterByWavelength), inverted: true)]
+        [SerializeField, DecoratedField]
+        bool _renderAfterDynamicWaves;
 
         public readonly static Color s_gizmoColor = new Color(0f, 1f, 0f, 0.5f);
         protected override Color GizmoColor => s_gizmoColor;

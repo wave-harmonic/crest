@@ -87,4 +87,4 @@ https://github.com/sponsors/wave-harmonic
 
 ### Board Members 🚀
 
-[@pachermann](https://github.com/pachermann) [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o)
+[@pachermann](https://github.com/pachermann) [@Bartolomeus755](https://github.com/Bartolomeus755) [@holdingjason](https://github.com/holdingjason) [@NeistH2o](https://github.com/NeistH2o) [MariusSoft LLC](https://github.com/MariusSoft-LLC)

@@ -20,6 +20,7 @@ float _CrestClipByDefault;
 float _CrestLodAlphaBlackPointFade;
 float _CrestLodAlphaBlackPointWhitePointFade;
 int _CrestDepthTextureOffset;
+float3 _CrestFloatingOriginOffset;
 
 float3 _PrimaryLightDirection;
 float3 _PrimaryLightIntensity;

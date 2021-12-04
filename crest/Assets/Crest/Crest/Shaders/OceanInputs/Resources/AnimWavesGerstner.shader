@@ -58,7 +58,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 
 				o.uv_uvWaves.xy = GetFullScreenTriangleTexCoord(input.VertexID);
 
-				float2 worldPosXZ = UVToWorld( o.uv_uvWaves.xy, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex] );
+				float2 worldPosXZ = UVToWorld( o.uv_uvWaves.xy, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex] ) - _CrestFloatingOriginOffset.xz;
 
 				// UV coordinate into wave buffer
 				float2 wavePos = float2( dot(worldPosXZ, _AxisX), dot(worldPosXZ, float2(-_AxisX.y, _AxisX.x)) );

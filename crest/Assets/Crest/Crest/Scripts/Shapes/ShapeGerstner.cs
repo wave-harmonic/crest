@@ -188,7 +188,11 @@ namespace Crest
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
 
+        // Active material.
         Material _matGenerateWaves;
+        // Cache material options.
+        Material _matGenerateWavesGlobal;
+        Material _matGenerateWavesGeometry;
 
         readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
@@ -636,11 +640,23 @@ namespace Crest
 
             if (_meshForDrawingWaves == null)
             {
-                _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                if (_matGenerateWavesGlobal == null)
+                {
+                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                    _matGenerateWavesGlobal.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGlobal;
             }
             else
             {
-                _matGenerateWaves = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                if (_matGenerateWavesGeometry == null)
+                {
+                    _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    _matGenerateWavesGeometry.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGeometry;
             }
 
             // Submit draws to create the Gerstner waves

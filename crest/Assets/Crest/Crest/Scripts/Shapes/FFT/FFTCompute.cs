@@ -166,6 +166,12 @@ namespace Crest
 
         static Dictionary<int, FFTCompute> _generators = new Dictionary<int, FFTCompute>();
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void InitStatics()
+        {
+            _generators.Clear();
+        }
+
         static int CalculateWaveConditionsHash(int resolution, float loopPeriod, float windTurbulence, float windDirRad, float windSpeed, OceanWaveSpectrum spectrum)
         {
             var conditionsHash = Hashy.CreateHash();

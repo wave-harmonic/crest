@@ -20,7 +20,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
-    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin, LodDataMgrAnimWaves.IShapeUpdatable
+    public partial class ShapeGerstner : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -502,24 +502,6 @@ namespace Crest
             buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, sp_WaveBuffer, _waveBuffers);
 
             buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / LodDataMgr.THREAD_GROUP_SIZE_X, _waveBuffers.height / LodDataMgr.THREAD_GROUP_SIZE_Y, _lastCascade - _firstCascade + 1);
-        }
-
-        public void SetOrigin(Vector3 newOrigin)
-        {
-            if (_phases == null || _phases2 == null) return;
-
-            var windAngle = _waveDirectionHeadingAngle;
-            for (int i = 0; i < _phases.Length; i++)
-            {
-                var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
-                var phaseOffsetMeters = Vector3.Dot(newOrigin, direction);
-
-                // wave number
-                var k = 2f * Mathf.PI / _wavelengths[i];
-
-                _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
-                _phases2[i] = Mathf.Repeat(_phases2[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
-            }
         }
 
         /// <summary>

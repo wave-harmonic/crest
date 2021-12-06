@@ -107,6 +107,11 @@ namespace Crest
             }
         }
 
+        [Tooltip("The height where detail is focused is smoothed to avoid popping which is undesireable after a teleport. Threshold is in Unity units."), SerializeField]
+        float _teleportThreshold = 10f;
+        float _teleportTimer = 0f;
+        Vector3 _oldViewerPosition = Vector3.zero;
+
         public Transform Root { get; private set; }
 
         // does not respond to _timeProvider changing in inspector
@@ -459,6 +464,9 @@ namespace Crest
                 return;
             }
 #endif
+
+            // Force teleport timer after being enabled to always disable scale smoothing for first second.
+            _teleportTimer = 1f;
 
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
@@ -1084,9 +1092,33 @@ namespace Crest
 
             ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
 
+            // Calculate teleport distance and create window for height queries to return a height change.
+            {
+                if (_teleportTimer > 0f)
+                {
+                    _teleportTimer -= Time.deltaTime;
+                }
+
+                // Find the distance. Adding the FO offset will exclude FO shifts so we can determine a normal teleport.
+                // FO shifts are visually the same position and it is incorrect to treat it as a normal teleport.
+                var teleportDistanceSqr = (_oldViewerPosition - camera.transform.position - FloatingOrigin.TeleportOriginThisFrame).sqrMagnitude;
+                // Threshold as sqrMagnitude.
+                var thresholdSqr = _teleportThreshold * _teleportThreshold;
+
+                if (teleportDistanceSqr > thresholdSqr)
+                {
+                    // Height queries can take a few frames so a one second window should be plenty.
+                    _teleportTimer = 1f;
+                }
+
+                _oldViewerPosition = camera.transform.position;
+            }
+
             // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
             // when there are local bodies of water
-            _viewerHeightAboveWaterSmooth = Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
+            _viewerHeightAboveWaterSmooth = _teleportTimer > 0f
+                ? ViewerHeightAboveWater
+                : Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
         }
 
         void LateUpdateLods()

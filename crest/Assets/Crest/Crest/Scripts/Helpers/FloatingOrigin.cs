@@ -71,8 +71,12 @@ namespace Crest
 
         Vector3 _originOffset;
 
+        public static Vector3 TeleportOriginThisFrame { get; private set; }
+
         void LateUpdate()
         {
+            TeleportOriginThisFrame = Vector3.zero;
+
             var newOrigin = Vector3.zero;
             if (Mathf.Abs(transform.position.x) > _threshold) newOrigin.x += transform.position.x;
             if (Mathf.Abs(transform.position.z) > _threshold) newOrigin.z += transform.position.z;
@@ -90,6 +94,8 @@ namespace Crest
 
         void MoveOrigin(Vector3 newOrigin)
         {
+            TeleportOriginThisFrame = newOrigin;
+
             MoveOriginTransforms(newOrigin);
             MoveOriginParticles(newOrigin);
             MoveOriginOcean(newOrigin);

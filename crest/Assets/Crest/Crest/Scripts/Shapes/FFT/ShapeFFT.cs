@@ -59,7 +59,7 @@ namespace Crest
         public float _weight = 1f;
 
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
-        float _respectShallowWaterAttenuation = 1f;
+        public float _respectShallowWaterAttenuation = 1f;
 
         [HideInInspector]
         [Delayed, Tooltip("How many wave components to generate in each octave.")]

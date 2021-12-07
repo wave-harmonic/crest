@@ -17,16 +17,32 @@
 
 RW_TEXTURE2D_X(float, _CrestOceanMaskTexture);
 
-[numthreads(8, 8, 1)]
-void FillMaskArtefacts(const uint3 id : SV_DispatchThreadID)
+#define SIZE 8
+#define LENGTH (SIZE - 1)
+
+groupshared float Samples[SIZE][SIZE];
+
+[numthreads(SIZE, SIZE, 1)]
+void FillMaskArtefacts(const uint3 id : SV_DispatchThreadID, const uint3 groupThreadID : SV_GroupThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(id.z);
 
+    Samples[groupThreadID.x][groupThreadID.y] = _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)];
+    GroupMemoryBarrierWithGroupSync();
+
     const uint3 offset = uint3(1, -1, 0);
+
+    bool isEdge = groupThreadID.x == 0 || groupThreadID.x == LENGTH | groupThreadID.y == 0 || groupThreadID.y == LENGTH;
 
     // Check orthogonal pixels.
     {
-        const float4 pixels = float4
+        const float4 pixels = !isEdge ? float4
+        (
+            Samples[groupThreadID.x + offset.x][groupThreadID.y + offset.z],
+            Samples[groupThreadID.x + offset.y][groupThreadID.y + offset.z],
+            Samples[groupThreadID.x + offset.z][groupThreadID.y + offset.y],
+            Samples[groupThreadID.x + offset.z][groupThreadID.y + offset.x]
+        ) : float4
         (
             _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.xz)],
             _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.yz)],
@@ -44,7 +60,13 @@ void FillMaskArtefacts(const uint3 id : SV_DispatchThreadID)
 
     // Check diagonal pixels.
     {
-        const float4 pixels = float4
+        const float4 pixels = !isEdge ? float4
+        (
+            Samples[groupThreadID.x + offset.x][groupThreadID.y + offset.x],
+            Samples[groupThreadID.x + offset.y][groupThreadID.y + offset.y],
+            Samples[groupThreadID.x + offset.x][groupThreadID.y + offset.y],
+            Samples[groupThreadID.x + offset.y][groupThreadID.y + offset.x]
+        ) : float4
         (
             _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.xx)],
             _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy + offset.yy)],
@@ -60,5 +82,5 @@ void FillMaskArtefacts(const uint3 id : SV_DispatchThreadID)
         }
     }
 
-    _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)] = _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)];
+    _CrestOceanMaskTexture[COORD_TEXTURE2D_X(id.xy)] = Samples[groupThreadID.x][groupThreadID.y];
 }

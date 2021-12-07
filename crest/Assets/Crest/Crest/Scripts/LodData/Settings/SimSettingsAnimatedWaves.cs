@@ -24,7 +24,7 @@ namespace Crest
         public const string k_HelpURL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves-settings";
 
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
-        public float _attenuationInShallows = 0.95f;
+        float _attenuationInShallows = 0.95f;
         public float AttenuationInShallows => _attenuationInShallows;
 
         [Tooltip("Any water deeper than this will receive full wave strength. The lower the value, the less effective the depth cache will be at attenuating very large waves. Set to the maximum value (1,000) to disable.")]

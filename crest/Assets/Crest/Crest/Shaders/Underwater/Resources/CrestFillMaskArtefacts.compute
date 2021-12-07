@@ -7,6 +7,8 @@
 
 #pragma kernel FillMaskArtefacts
 
+#pragma enable_d3d11_debug_symbols
+
 // Built-in will not handle this for us unlike other RPs.
 #pragma multi_compile __ STEREO_INSTANCING_ON
 

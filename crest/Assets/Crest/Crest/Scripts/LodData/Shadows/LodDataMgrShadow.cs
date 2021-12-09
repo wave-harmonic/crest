@@ -178,7 +178,7 @@ namespace Crest
         {
             if (BufCopyShadowMap != null)
             {
-                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+                if (_mainLight != null) _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
                 BufCopyShadowMap.Release();
                 BufCopyShadowMap = null;
             }
@@ -201,7 +201,7 @@ namespace Crest
         void CleanUpScreenSpaceShadows()
         {
             if (_screenSpaceShadowMapCommandBuffer == null) return;
-            _mainLight.RemoveCommandBuffer(LightEvent.AfterScreenspaceMask, _screenSpaceShadowMapCommandBuffer);
+            if (_mainLight != null) _mainLight.RemoveCommandBuffer(LightEvent.AfterScreenspaceMask, _screenSpaceShadowMapCommandBuffer);
             _screenSpaceShadowMapCommandBuffer.Release();
             _screenSpaceShadowMapCommandBuffer = null;
         }
@@ -220,7 +220,7 @@ namespace Crest
         void CleanUpDeferredShadows()
         {
             if (_deferredShadowMapCommandBuffer == null) return;
-            _mainLight.RemoveCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
+            if (_mainLight != null) _mainLight.RemoveCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
             _deferredShadowMapCommandBuffer.Release();
             _deferredShadowMapCommandBuffer = null;
         }

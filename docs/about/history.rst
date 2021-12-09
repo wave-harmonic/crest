@@ -39,6 +39,10 @@ Fixed
    -  Fix exceptions thrown if foam, dynamic waves and shadows all were disabled.
    -  Fix *Floating Origin* for *Shape Gerstner* and *Shape FFT*.
 
+   .. only:: birp
+
+      -  Fix shadow simulation null exceptions if primary light becomes null. `[BIRP]`
+
    .. only:: hdrp
 
       -  Fix motion vectors not working by exposing motion vector toggle on ocean material. `[HDRP]`

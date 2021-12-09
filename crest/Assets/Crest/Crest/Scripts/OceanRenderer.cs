@@ -1127,6 +1127,7 @@ namespace Crest
                 }
 
                 var isCulled = false;
+                tile.MaterialOverridden = false;
 
                 // If there are local bodies of water, this will do overlap tests between the ocean tiles
                 // and the water bodies and turn off any that don't overlap.

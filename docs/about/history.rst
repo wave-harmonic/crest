@@ -24,6 +24,7 @@ Changed
    -  Add UV feathering option to Flow shaders.
    -  Add *Attenuation in Shallows* to *Dynamic Waves Sims Settings*.
    -  Add *Shallows Max Depth* to *Sim Settings Animated Waves* as an alternative to having to extend terrain to 500m below sea level to avoid discontinuity issues.
+   -  Add *Allow No Shadows* to *Sim Settings Shadows* to allow shadows to be enabled/disabled dynamically.
 
 Fixed
 ^^^^^
@@ -38,6 +39,9 @@ Fixed
    -  Fix exceptions thrown for server/headless builds.
    -  Fix exceptions thrown if foam, dynamic waves and shadows all were disabled.
    -  Fix *Floating Origin* for *Shape Gerstner* and *Shape FFT*.
+   -  Fix shadow data not always clearing.
+   -  Fix shadow simulation not recovering after error being resolved in edit mode.
+   -  Fix *Allow Null Light* option on *Sim Settings Shadows* not working.
    -  Fix ocean tiles not reverting to *Ocean Renderer > Material* if *Water Body > Override Material* was used and *Water Body* was disabled or removed.
 
    .. only:: birp

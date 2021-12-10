@@ -54,6 +54,16 @@ namespace Crest
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
 
+        public enum Error
+        {
+            None,
+            NoLight,
+            NoShadows,
+            IncorrectLightType,
+        }
+
+        Error _error;
+
         public LodDataMgrShadow(OceanRenderer ocean) : base(ocean)
         {
             Start();
@@ -116,6 +126,62 @@ namespace Crest
             _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
         }
 
+        /// <summary>
+        /// Validates the primary light.
+        /// </summary>
+        /// <returns>
+        /// Whether the light is valid. An invalid light should be treated as a developer error and not recoverable.
+        /// </returns>
+        bool ValidateLight()
+        {
+            if (_mainLight == null)
+            {
+                if (!Settings._allowNullLight)
+                {
+                    if (_error != Error.NoLight)
+                    {
+                        Debug.LogWarning("Crest: Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
+                        _error = Error.NoLight;
+                    }
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (_mainLight.shadows == LightShadows.None)
+            {
+                if (!Settings._allowNoShadows)
+                {
+                    if (_error != Error.NoShadows)
+                    {
+                        Debug.LogWarning("Crest: Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", _mainLight);
+                        _error = Error.NoShadows;
+                    }
+                    return false;
+                }
+            }
+
+            if (_mainLight.type != LightType.Directional)
+            {
+                if (_error != Error.IncorrectLightType)
+                {
+                    Debug.LogError("Crest: Primary light must be of type Directional.", _mainLight);
+                    _error = Error.IncorrectLightType;
+                }
+                return false;
+            }
+
+            _error = Error.None;
+            return true;
+        }
+
+        /// <summary>
+        /// Stores the primary light.
+        /// </summary>
+        /// <returns>
+        /// Whether there is a light that casts shadows.
+        /// </returns>
         bool StartInitLight()
         {
             if (_mainLight == null)
@@ -124,24 +190,13 @@ namespace Crest
 
                 if (_mainLight == null)
                 {
-                    if (!Settings._allowNullLight)
-                    {
-                        Debug.LogWarning("Crest: Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
-                    }
                     return false;
                 }
+            }
 
-                if (_mainLight.type != LightType.Directional)
-                {
-                    Debug.LogError("Crest: Primary light must be of type Directional.", OceanRenderer.Instance);
-                    return false;
-                }
-
-                if (_mainLight.shadows == LightShadows.None)
-                {
-                    Debug.LogError("Crest: Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
-                    return false;
-                }
+            if (_mainLight.shadows == LightShadows.None)
+            {
+                return false;
             }
 
             return true;
@@ -154,11 +209,8 @@ namespace Crest
         {
             if (_mainLight != OceanRenderer.Instance._primaryLight)
             {
-                if (_mainLight)
-                {
-                    CleanUpShadowCommandBuffers();
-                    _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
-                }
+                _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
+                CleanUpShadowCommandBuffers();
                 _mainLight = null;
             }
         }
@@ -232,7 +284,8 @@ namespace Crest
 
         public override void UpdateLodData()
         {
-            if (!enabled)
+            // If disabled then we hit a failure state. Try and recover in edit mode by proceeding.
+            if (!enabled && Application.isPlaying)
             {
                 return;
             }
@@ -241,15 +294,16 @@ namespace Crest
 
             ClearBufferIfLightChanged();
 
-            if (!StartInitLight())
-            {
-                enabled = false;
-            }
+            var hasShadowCastingLight = StartInitLight();
+            // If in play mode, and this becomes false, then we hit a failed state and will not recover.
+            enabled = ValidateLight();
 
-            if (!s_processData || !enabled)
+            if (!s_processData || !enabled || !hasShadowCastingLight)
             {
                 if (BufCopyShadowMap != null)
                 {
+                    // If we have a command buffer, then there is likely shadow data so we need to clear it.
+                    _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
                     CleanUpShadowCommandBuffers();
                 }
 

@@ -25,6 +25,8 @@ Changed
    -  Add *Attenuation in Shallows* to *Dynamic Waves Sims Settings*.
    -  Add *Shallows Max Depth* to *Sim Settings Animated Waves* as an alternative to having to extend terrain to 500m below sea level to avoid discontinuity issues.
    -  Add *Allow No Shadows* to *Sim Settings Shadows* to allow shadows to be enabled/disabled dynamically.
+   -  Add *Ocean Renderer >  Water Body Culling* option so the ocean can ignore culling.
+      Useful if using *Water Body > Override Material* and still want an ocean.
 
 Fixed
 ^^^^^

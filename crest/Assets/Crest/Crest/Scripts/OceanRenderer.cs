@@ -1138,9 +1138,17 @@ namespace Crest
                 {
                     var chunkBounds = tile.Rend.bounds;
 
+                    var largestOverlap = 0f;
                     var overlappingOne = false;
                     foreach (var body in WaterBody.WaterBodies)
                     {
+                        // If tile has already been excluded from culling, then skip this iteration. But finish this
+                        // iteration if the water body has a material override to work out most influential water body.
+                        if (overlappingOne && body._overrideMaterial == null)
+                        {
+                            continue;
+                        }
+
                         var bounds = body.AABB;
 
                         bool overlapping =
@@ -1152,15 +1160,30 @@ namespace Crest
 
                             if (body._overrideMaterial != null)
                             {
-                                tile.Rend.sharedMaterial = body._overrideMaterial;
-                                tile.MaterialOverridden = true;
+                                var overlap = 0f;
+                                {
+                                    var xMin = Mathf.Max(bounds.min.x, chunkBounds.min.x);
+                                    var xMax = Mathf.Min(bounds.max.x, chunkBounds.max.x);
+                                    var zMin = Mathf.Max(bounds.min.z, chunkBounds.min.z);
+                                    var zMax = Mathf.Min(bounds.max.z, chunkBounds.max.z);
+                                    if (xMin < xMax && zMin < zMax)
+                                    {
+                                        overlap = (xMax - xMin) * (zMax - zMin);
+                                    }
+                                }
+
+                                // If this water body has the most overlap, then the chunk will get its material.
+                                if (overlap > largestOverlap)
+                                {
+                                    tile.Rend.sharedMaterial = body._overrideMaterial;
+                                    tile.MaterialOverridden = true;
+                                    largestOverlap = overlap;
+                                }
                             }
                             else
                             {
                                 tile.MaterialOverridden = false;
                             }
-
-                            break;
                         }
                     }
 

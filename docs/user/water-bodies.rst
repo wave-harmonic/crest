@@ -29,6 +29,7 @@ Crest can be configured to efficiently generate smaller bodies of water, using t
 
 Another advantage of the *WaterBody* component is it allows an optional override material to be provided, to change the appearance of the water.
 This currently only changes the appearance of the water surface, it does not currently affect the underwater effect.
+If you use this feature and which to still have an ocean, then disable *Water Body Culling* on the *Ocean Renderer*.
 
 Rivers
 ------

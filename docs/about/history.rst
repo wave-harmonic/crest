@@ -27,6 +27,7 @@ Changed
    -  Add *Allow No Shadows* to *Sim Settings Shadows* to allow shadows to be enabled/disabled dynamically.
    -  Add *Ocean Renderer >  Water Body Culling* option so the ocean can ignore culling.
       Useful if using *Water Body > Override Material* and still want an ocean.
+   -  Improve multiple *Water Body* overlapping case when *Water Body > Override Material* option is used.
 
 Fixed
 ^^^^^

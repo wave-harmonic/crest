@@ -175,6 +175,9 @@ namespace Crest
         float _gravityMultiplier = 1f;
         public float Gravity => _gravityMultiplier * Physics.gravity.magnitude;
 
+        [Tooltip("Whether 'Water Body' components will cull the ocean tiles. Disable if you want to use the 'Water Body' 'Material Override' feature and still have an ocean.")]
+        public bool _waterBodyCulling = true;
+
 
         [Header("Detail Params")]
 
@@ -1161,7 +1164,7 @@ namespace Crest
                         }
                     }
 
-                    isCulled = !overlappingOne && WaterBody.WaterBodies.Count > 0;
+                    isCulled = _waterBodyCulling && !overlappingOne && WaterBody.WaterBodies.Count > 0;
                 }
 
                 // Cull tiles the viewer cannot see through the underwater fog.

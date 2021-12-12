@@ -109,7 +109,9 @@ namespace Crest
 
         [Tooltip("The height where detail is focused is smoothed to avoid popping which is undesireable after a teleport. Threshold is in Unity units."), SerializeField]
         float _teleportThreshold = 10f;
-        float _teleportTimer = 0f;
+        float _teleportTimerForHeightQueries = 0f;
+        bool _isFirstFrameSinceEnabled = true;
+        internal bool _hasTeleportedThisFrame = false;
         Vector3 _oldViewerPosition = Vector3.zero;
 
         public Transform Root { get; private set; }
@@ -465,8 +467,7 @@ namespace Crest
             }
 #endif
 
-            // Force teleport timer after being enabled to always disable scale smoothing for first second.
-            _teleportTimer = 1f;
+            _isFirstFrameSinceEnabled = true;
 
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
@@ -968,6 +969,8 @@ namespace Crest
                 CollisionProvider?.UpdateQueries();
                 FlowProvider?.UpdateQueries();
             }
+
+            _isFirstFrameSinceEnabled = false;
         }
 
         void WritePerFrameMaterialParams()
@@ -1094,29 +1097,36 @@ namespace Crest
 
             // Calculate teleport distance and create window for height queries to return a height change.
             {
-                if (_teleportTimer > 0f)
+                if (_teleportTimerForHeightQueries > 0f)
                 {
-                    _teleportTimer -= Time.deltaTime;
+                    _teleportTimerForHeightQueries -= Time.deltaTime;
                 }
 
-                // Find the distance. Adding the FO offset will exclude FO shifts so we can determine a normal teleport.
-                // FO shifts are visually the same position and it is incorrect to treat it as a normal teleport.
-                var teleportDistanceSqr = (_oldViewerPosition - camera.transform.position - FloatingOrigin.TeleportOriginThisFrame).sqrMagnitude;
-                // Threshold as sqrMagnitude.
-                var thresholdSqr = _teleportThreshold * _teleportThreshold;
+                var hasTeleported = _isFirstFrameSinceEnabled;
+                if (!_isFirstFrameSinceEnabled)
+                {
+                    // Find the distance. Adding the FO offset will exclude FO shifts so we can determine a normal teleport.
+                    // FO shifts are visually the same position and it is incorrect to treat it as a normal teleport.
+                    var teleportDistanceSqr = (_oldViewerPosition - camera.transform.position - FloatingOrigin.TeleportOriginThisFrame).sqrMagnitude;
+                    // Threshold as sqrMagnitude.
+                    var thresholdSqr = _teleportThreshold * _teleportThreshold;
+                    hasTeleported = teleportDistanceSqr > thresholdSqr;
+                }
 
-                if (teleportDistanceSqr > thresholdSqr)
+                if (hasTeleported)
                 {
                     // Height queries can take a few frames so a one second window should be plenty.
-                    _teleportTimer = 1f;
+                    _teleportTimerForHeightQueries = 1f;
                 }
+
+                _hasTeleportedThisFrame = hasTeleported;
 
                 _oldViewerPosition = camera.transform.position;
             }
 
             // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
             // when there are local bodies of water
-            _viewerHeightAboveWaterSmooth = _teleportTimer > 0f
+            _viewerHeightAboveWaterSmooth = _teleportTimerForHeightQueries > 0f
                 ? ViewerHeightAboveWater
                 : Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
         }

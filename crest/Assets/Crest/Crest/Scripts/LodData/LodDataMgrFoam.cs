@@ -33,6 +33,7 @@ namespace Crest
         readonly int sp_WaveFoamCoverage = Shader.PropertyToID("_WaveFoamCoverage");
         readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
+        readonly int sp_NeedsPrewarming = Shader.PropertyToID("_NeedsPrewarming");
 
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsFoam != null ? _ocean._simSettingsFoam : GetDefaultSettings<SettingsType>();
@@ -60,6 +61,9 @@ namespace Crest
         {
             base.SetAdditionalSimParams(simMaterial);
 
+            // Prewarm simulation for first frame or teleporting. It will not be the same results as running the
+            // simulation for multiple frames - but good enough.
+            simMaterial.SetFloat(sp_NeedsPrewarming, Settings._prewarm && _needsPrewarmingThisStep ? 1f : 0f);
             simMaterial.SetFloat(sp_FoamFadeRate, Settings._foamFadeRate);
             simMaterial.SetFloat(sp_WaveFoamStrength, Settings._waveFoamStrength);
             simMaterial.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);

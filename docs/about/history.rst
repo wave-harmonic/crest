@@ -42,6 +42,8 @@ Fixed
    -  Fix exceptions thrown for server/headless builds.
    -  Fix exceptions thrown if foam, dynamic waves and shadows all were disabled.
    -  Fix *Floating Origin* for *Shape Gerstner* and *Shape FFT*.
+   -  Fix ocean scale smoothing on first frame and teleports.
+      This issue appears as the ocean detail being low and slowly becoming high detailed.
    -  Fix shadow data not always clearing.
    -  Fix shadow simulation not recovering after error being resolved in edit mode.
    -  Fix *Allow Null Light* option on *Sim Settings Shadows* not working.

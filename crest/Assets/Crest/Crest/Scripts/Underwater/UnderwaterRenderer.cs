@@ -145,6 +145,7 @@ namespace Crest
 
         void Disable()
         {
+            CleanUpMaskTextures();
             _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
         }
@@ -153,7 +154,11 @@ namespace Crest
         {
             if (!IsActive)
             {
-                OnDisable();
+                if (Instance != null)
+                {
+                    OnDisable();
+                }
+
                 return;
             }
 

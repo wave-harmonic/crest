@@ -54,6 +54,10 @@ Fixed
 
       -  Fix shadow simulation null exceptions if primary light becomes null. `[BIRP]`
 
+   .. only:: birp or urp
+
+      -  Fix *Underwater Renderer* high memory usage by reverting change of using temporary render textures. `[BIRP] [URP]`
+
    .. only:: hdrp
 
       -  Fix motion vectors not working by exposing motion vector toggle on ocean material. `[HDRP]`

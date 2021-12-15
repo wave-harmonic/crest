@@ -39,6 +39,9 @@ namespace Crest
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
 
+        RenderTexture _maskRT;
+        RenderTexture _depthRT;
+
         ComputeShader _fixMaskComputeShader;
         int _fixMaskKernel;
         uint _fixMaskThreadGroupSizeX;
@@ -82,6 +85,19 @@ namespace Crest
 
         internal static void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
         {
+            // Bail if we do not need to (re)create the textures.
+            if (Instance._maskRT != null && descriptor.width == Instance._maskRT.width && descriptor.height == Instance._maskRT.height)
+            {
+                return;
+            }
+
+            // Release textures before replacing them.
+            if (Instance._maskRT != null)
+            {
+                Instance._maskRT.Release();
+                Instance._depthRT.Release();
+            }
+
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
             // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
             descriptor.msaaSamples = 1;
@@ -94,31 +110,51 @@ namespace Crest
             descriptor.colorFormat = Helpers.IsIntelGPU() ? RenderTextureFormat.RFloat : RenderTextureFormat.RHalf;
             descriptor.depthBufferBits = 0;
             descriptor.enableRandomWrite = true;
-            buffer.GetTemporaryRT(sp_CrestOceanMaskTexture, descriptor);
+
+            Instance._maskRT = new RenderTexture(descriptor);
+            Instance._maskTarget = new RenderTargetIdentifier
+            (
+                Instance._maskRT,
+                mipLevel: 0,
+                CubemapFace.Unknown,
+                depthSlice: -1 // Bind all XR slices.
+            );
 
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 24;
             descriptor.enableRandomWrite = false;
-            buffer.GetTemporaryRT(sp_CrestOceanMaskDepthTexture, descriptor);
+
+            Instance._depthRT = new RenderTexture(descriptor);
+            Instance._depthTarget = new RenderTargetIdentifier
+            (
+                Instance._depthRT,
+                mipLevel: 0,
+                CubemapFace.Unknown,
+                depthSlice: -1 // Bind all XR slices.
+            );
         }
 
         /// <summary>
         /// Releases temporary mask textures. Pass any available command buffer through.
         /// </summary>
-        internal static void CleanUpMaskTextures(CommandBuffer buffer)
+        internal static void CleanUpMaskTextures()
         {
-            // According to the following source code, we can release a temporary RT using a different CB than the one
-            // which allocated it. Unity uses CommandBufferPool.Get in OnCameraSetup (RTs allocated) and OnCameraCleanup
-            // (RTs released) which means they could be different CBs. So pass any available CB through.
-            // com.unity.render-pipelines.universal/Runtime/ScriptableRenderer.cs
-            //
-            // Manually releasing the textures right after they are no longer used is best (after underwater effect).
-            // But they will be released for us if we fail to do so:
-            // > Any temporary textures that were not explicitly released will be removed after camera is done
-            // > rendering, or after Graphics.ExecuteCommandBuffer is done.
-            // https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ReleaseTemporaryRT.html
-            buffer.ReleaseTemporaryRT(sp_CrestOceanMaskTexture);
-            buffer.ReleaseTemporaryRT(sp_CrestOceanMaskDepthTexture);
+            if (Instance == null)
+            {
+                return;
+            }
+
+            if (Instance._maskRT != null)
+            {
+                Instance._maskRT.Release();
+                Instance._maskRT = null;
+            }
+
+            if (Instance._depthRT != null)
+            {
+                Instance._depthRT.Release();
+                Instance._depthRT = null;
+            }
         }
 
         void OnPreRenderOceanMask()

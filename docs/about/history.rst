@@ -28,6 +28,7 @@ Changed
    -  Add *Ocean Renderer >  Water Body Culling* option so the ocean can ignore culling.
       Useful if using *Water Body > Override Material* and still want an ocean.
    -  Improve multiple *Water Body* overlapping case when *Water Body > Override Material* option is used.
+   -  Water Body adds an inclusion to clipping (ie unclips) if *Default Clipping State* is *Everything Clipped*.
 
 Fixed
 ^^^^^

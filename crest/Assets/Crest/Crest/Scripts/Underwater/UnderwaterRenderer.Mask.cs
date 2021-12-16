@@ -11,14 +11,28 @@ namespace Crest
     public partial class UnderwaterRenderer
     {
         const string k_ShaderPathOceanMask = "Hidden/Crest/Underwater/Ocean Mask";
+        const string k_ShaderPathWaterVolumeGeometry = "Hidden/Crest/Water Volume Geometry";
         internal const int k_ShaderPassOceanSurfaceMask = 0;
         internal const int k_ShaderPassOceanHorizonMask = 1;
+        // This must match the Stencil Ref value for front and back face pass in:
+        // Shaders/Underwater/Resources/UnderwaterEffect.shader
+        // Shaders/Underwater/Resources/WaterVolumeGeometry.shader
+        internal const int k_StencilValueVolume = 5;
+
         internal const string k_ComputeShaderFillMaskArtefacts = "CrestFillMaskArtefacts";
         internal const string k_ComputeShaderKernelFillMaskArtefacts = "FillMaskArtefacts";
 
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
+        public static readonly int sp_CrestWaterVolumeFrontFaceTexture = Shader.PropertyToID("_CrestWaterVolumeFrontFaceTexture");
+        public static readonly int sp_CrestWaterVolumeBackFaceTexture = Shader.PropertyToID("_CrestWaterVolumeBackFaceTexture");
         public static readonly int sp_FarPlaneOffset = Shader.PropertyToID("_FarPlaneOffset");
+
+        internal enum VolumePass
+        {
+            FrontFace,
+            BackFace,
+        }
 
         internal RenderTargetIdentifier _maskTarget = new RenderTargetIdentifier
         (
@@ -39,8 +53,26 @@ namespace Crest
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
 
+        Material _volumeMaterial = null;
+        RenderTargetIdentifier _volumeBackFaceTarget = new RenderTargetIdentifier
+        (
+            sp_CrestWaterVolumeBackFaceTexture,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1 // Bind all XR slices.
+        );
+        RenderTargetIdentifier _volumeFrontFaceTarget = new RenderTargetIdentifier
+        (
+            sp_CrestWaterVolumeFrontFaceTexture,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1 // Bind all XR slices.
+        );
+
         RenderTexture _maskRT;
         RenderTexture _depthRT;
+        RenderTexture _volumeFrontFaceRT;
+        RenderTexture _volumeBackFaceRT;
 
         ComputeShader _fixMaskComputeShader;
         int _fixMaskKernel;
@@ -62,7 +94,29 @@ namespace Crest
                 };
             }
 
+            if (_volumeMaterial == null)
+            {
+                _volumeMaterial = new Material(Shader.Find(k_ShaderPathWaterVolumeGeometry));
+            }
+
             SetUpFixMaskArtefactsShader();
+        }
+
+        void OnDisableOceanMask()
+        {
+            DisableOceanMaskKeywords();
+            CleanUpMaskTextures();
+            CleanUpVolumeTextures();
+        }
+
+        void DisableOceanMaskKeywords()
+        {
+            // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
+            // to disable all keywords from a set first.
+            // https://docs.unity3d.com/Manual/shader-keywords-scripts.html
+            // Global keywords are easier to manage. Otherwise we would have to track the material etc.
+            Shader.DisableKeyword(k_KeywordVolume2D);
+            Shader.DisableKeyword(k_KeywordVolumeHasBackFace);
         }
 
         internal void SetUpFixMaskArtefactsShader()
@@ -83,19 +137,19 @@ namespace Crest
             );
         }
 
-        internal static void SetUpMaskTextures(CommandBuffer buffer, RenderTextureDescriptor descriptor)
+        internal void SetUpMaskTextures(RenderTextureDescriptor descriptor)
         {
             // Bail if we do not need to (re)create the textures.
-            if (Instance._maskRT != null && descriptor.width == Instance._maskRT.width && descriptor.height == Instance._maskRT.height)
+            if (_maskRT != null && descriptor.width == _maskRT.width && descriptor.height == _maskRT.height)
             {
                 return;
             }
 
             // Release textures before replacing them.
-            if (Instance._maskRT != null)
+            if (_maskRT != null)
             {
-                Instance._maskRT.Release();
-                Instance._depthRT.Release();
+                _maskRT.Release();
+                _depthRT.Release();
             }
 
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
@@ -111,10 +165,11 @@ namespace Crest
             descriptor.depthBufferBits = 0;
             descriptor.enableRandomWrite = true;
 
-            Instance._maskRT = new RenderTexture(descriptor);
-            Instance._maskTarget = new RenderTargetIdentifier
+            _maskRT = new RenderTexture(descriptor);
+            _maskRT.name = "_CrestOceanMaskTexture";
+            _maskTarget = new RenderTargetIdentifier
             (
-                Instance._maskRT,
+                _maskRT,
                 mipLevel: 0,
                 CubemapFace.Unknown,
                 depthSlice: -1 // Bind all XR slices.
@@ -124,54 +179,76 @@ namespace Crest
             descriptor.depthBufferBits = 24;
             descriptor.enableRandomWrite = false;
 
-            Instance._depthRT = new RenderTexture(descriptor);
-            Instance._depthTarget = new RenderTargetIdentifier
+            _depthRT = new RenderTexture(descriptor);
+            _depthRT.name = "_CrestOceanMaskDepthTexture";
+            _depthTarget = new RenderTargetIdentifier
             (
-                Instance._depthRT,
+                _depthRT,
                 mipLevel: 0,
                 CubemapFace.Unknown,
                 depthSlice: -1 // Bind all XR slices.
             );
         }
 
-        /// <summary>
-        /// Releases temporary mask textures. Pass any available command buffer through.
-        /// </summary>
-        internal static void CleanUpMaskTextures()
+        void SetUpVolumeTextures(RenderTextureDescriptor descriptor)
         {
-            if (Instance == null)
-            {
-                return;
-            }
+            descriptor.msaaSamples = 1;
+            descriptor.useDynamicScale = true;
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = 24;
 
-            if (Instance._maskRT != null)
-            {
-                Instance._maskRT.Release();
-                Instance._maskRT = null;
-            }
+            Helpers.CreateRenderTargetTexture(ref _volumeFrontFaceRT, ref _volumeFrontFaceTarget, descriptor);
+            _volumeFrontFaceRT.name = "_CrestVolumeFrontFaceTexture";
 
-            if (Instance._depthRT != null)
+            if (_mode == Mode.Volume || _mode == Mode.VolumeFlyThrough)
             {
-                Instance._depthRT.Release();
-                Instance._depthRT = null;
+                Helpers.CreateRenderTargetTexture(ref _volumeBackFaceRT, ref _volumeBackFaceTarget, descriptor);
+                _volumeBackFaceRT.name = "_CrestVolumeBackFaceTexture";
             }
+        }
+
+        internal void CleanUpVolumeTextures()
+        {
+            Helpers.DestroyRenderTargetTexture(ref _volumeFrontFaceRT);
+            Helpers.DestroyRenderTargetTexture(ref _volumeBackFaceRT);
+        }
+
+        internal void CleanUpMaskTextures()
+        {
+            Helpers.DestroyRenderTargetTexture(ref _maskRT);
+            Helpers.DestroyRenderTargetTexture(ref _depthRT);
+        }
+
+        internal void SetUpVolume(Material maskMaterial)
+        {
+            Helpers.SetGlobalKeyword(k_KeywordVolume2D, _mode == Mode.Portal);
+            Helpers.SetGlobalKeyword(k_KeywordVolumeHasBackFace, _mode == Mode.Volume || _mode == Mode.VolumeFlyThrough);
+            maskMaterial.SetKeyword(k_KeywordVolume, _mode != Mode.FullScreen);
+            maskMaterial.SetInt("_StencilRef", UseStencilBufferOnMask ? k_StencilValueVolume : 0);
         }
 
         void OnPreRenderOceanMask()
         {
+            _oceanMaskCommandBuffer.Clear();
+
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
 
-            _oceanMaskCommandBuffer.Clear();
-            // Must call after clear or temporaries will be cleared.
-            SetUpMaskTextures(_oceanMaskCommandBuffer, descriptor);
-            _oceanMaskCommandBuffer.SetRenderTarget(_maskTarget, _depthTarget);
-            // Horizon pass makes clearing color redundant. If the horizon enabled ZWrite then we could skip clearing.
-            _oceanMaskCommandBuffer.ClearRenderTarget(true, false, Color.black);
-            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTarget);
-            _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTarget);
+            // Keywords and other things.
+            SetUpVolume(_oceanMaskMaterial.material);
+            SetUpMaskTextures(descriptor);
 
+            // Populate water volume before mask so we can use the stencil.
+            if (_mode != Mode.FullScreen)
+            {
+                SetUpVolumeTextures(descriptor);
+                PopulateVolume(_oceanMaskCommandBuffer, _volumeFrontFaceTarget, _volumeBackFaceTarget);
+                // Copy only the stencil by copying everything and clearing depth.
+                _oceanMaskCommandBuffer.CopyTexture(_mode == Mode.Portal ? _volumeFrontFaceTarget : _volumeBackFaceTarget, _depthTarget);
+                _oceanMaskCommandBuffer.Blit(BuiltinRenderTextureType.None, _depthTarget, Helpers.UtilityMaterial, (int)Helpers.UtilityPass.ClearDepth);
+            }
+
+            SetUpMask(_oceanMaskCommandBuffer, _maskTarget, _depthTarget);
             SetInverseViewProjectionMatrix(_oceanMaskMaterial.material);
-
             PopulateOceanMask(
                 _oceanMaskCommandBuffer,
                 _camera,
@@ -183,6 +260,50 @@ namespace Crest
             );
 
             FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor, _maskTarget);
+        }
+
+        void PopulateVolume(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget)
+        {
+            // Front faces.
+            buffer.SetRenderTarget(frontTarget);
+            buffer.ClearRenderTarget(true, false, Color.black);
+            buffer.SetGlobalTexture(sp_CrestWaterVolumeFrontFaceTexture, frontTarget);
+            if (_mode == Mode.Portal) buffer.SetInvertCulling(_invertCulling);
+            buffer.DrawMesh
+            (
+                _volumeGeometry.mesh,
+                _volumeGeometry.transform.localToWorldMatrix,
+                _volumeMaterial,
+                submeshIndex: 0,
+                (int)VolumePass.FrontFace
+            );
+            buffer.SetInvertCulling(false);
+
+            if (_mode == Mode.Volume || _mode == Mode.VolumeFlyThrough)
+            {
+                // Back faces.
+                buffer.SetRenderTarget(backTarget);
+                buffer.ClearRenderTarget(true, false, Color.black);
+                buffer.SetGlobalTexture(sp_CrestWaterVolumeBackFaceTexture, backTarget);
+                buffer.DrawMesh
+                (
+                    _volumeGeometry.mesh,
+                    _volumeGeometry.transform.localToWorldMatrix,
+                    _volumeMaterial,
+                    submeshIndex: 0,
+                    (int)VolumePass.BackFace
+                );
+            }
+        }
+
+        void SetUpMask(CommandBuffer buffer, RenderTargetIdentifier maskTarget, RenderTargetIdentifier depthTarget)
+        {
+            buffer.SetRenderTarget(maskTarget, depthTarget);
+            // When using the stencil we are already clearing depth and do not want to clear the stencil too. Clear
+            // color only when using the stencil as the horizon effectively clears it when not using it.
+            buffer.ClearRenderTarget(!UseStencilBufferOnMask, UseStencilBufferOnMask, Color.black);
+            buffer.SetGlobalTexture(sp_CrestOceanMaskTexture, maskTarget);
+            buffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, depthTarget);
         }
 
         internal void FixMaskArtefacts(CommandBuffer buffer, RenderTextureDescriptor descriptor, RenderTargetIdentifier target)

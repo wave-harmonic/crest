@@ -32,10 +32,29 @@
 // Water rendered from above.
 #define UNDERWATER_MASK_ABOVE_SURFACE  1.0
 
+// No mask.
+#define UNDERWATER_MASK_NONE 0.0
+
+// The maximum distance the meniscus will be rendered. Only valid when rendering underwater from geometry. The value is
+// used to scale the meniscus as it is calculate using a pixel offset which can make the meniscus large at a distance.
+#define MENISCUS_MAXIMUM_DISTANCE 15.0
+
+
 #if defined(STEREO_INSTANCING_ON) || defined(STEREO_MULTIVIEW_ON)
 #define CREST_HANDLE_XR 1
 #else
 #define CREST_HANDLE_XR 0
 #endif
+
+#if defined(CREST_WATER_VOLUME_3D) || defined(CREST_WATER_VOLUME_VOLUME)
+#define CREST_WATER_VOLUME_HAS_BACKFACE 1
+#endif
+#if defined(CREST_WATER_VOLUME_2D) || defined(CREST_WATER_VOLUME_3D)
+#define CREST_WATER_VOLUME_IS_FRONTFACE 1
+#endif
+#if defined(CREST_WATER_VOLUME_HAS_BACKFACE) || defined(CREST_WATER_VOLUME_IS_FRONTFACE)
+#define CREST_WATER_VOLUME 1
+#endif
+
 
 #endif // CREST_CONSTANTS_H

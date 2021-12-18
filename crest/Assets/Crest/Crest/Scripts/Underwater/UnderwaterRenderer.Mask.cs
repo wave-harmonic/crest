@@ -165,7 +165,8 @@ namespace Crest
             // Must call after clear or temporaries will be cleared.
             SetUpMaskTextures(_oceanMaskCommandBuffer, descriptor);
             _oceanMaskCommandBuffer.SetRenderTarget(_maskTarget, _depthTarget);
-            _oceanMaskCommandBuffer.ClearRenderTarget(true, true, Color.black);
+            // Horizon pass makes clearing color redundant. If the horizon enabled ZWrite then we could skip clearing.
+            _oceanMaskCommandBuffer.ClearRenderTarget(true, false, Color.black);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, _maskTarget);
             _oceanMaskCommandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, _depthTarget);
 

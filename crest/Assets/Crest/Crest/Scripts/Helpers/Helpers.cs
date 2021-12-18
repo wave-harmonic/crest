@@ -14,7 +14,7 @@ namespace Crest
     {
         public static bool IsMSAAEnabled(Camera camera)
         {
-            return camera.allowMSAA && QualitySettings.antiAliasing > 0f;
+            return camera.allowMSAA && QualitySettings.antiAliasing > 1;
         }
 
         public static bool IsMotionVectorsEnabled()

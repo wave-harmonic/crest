@@ -29,6 +29,32 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
+        internal const string k_KeywordVolume = "CREST_WATER_VOLUME";
+        internal const string k_KeywordVolume2D = "CREST_WATER_VOLUME_2D";
+        internal const string k_KeywordVolumeHasBackFace = "CREST_WATER_VOLUME_HAS_BACKFACE";
+
+        // The underlying value matches UnderwaterRenderer.EffectPass.
+        // :UnderwaterRenderer.Mode
+        public enum Mode
+        {
+            // Infinite water as a full-screen triangle.
+            [InspectorNameAttribute("Full-Screen")]
+            FullScreen,
+            // Portal to infinite water rendered from front faces of geometry.
+            Portal,
+            // Volume of water rendered from front faces of geometry only. Back faces used for depth. Camera cannot see
+            // the effect from within the volume.
+            Volume,
+            // Volume of water rendered using front faces, back faces and full-screen triangle. Camera can see effect
+            // from within the volume.
+            [InspectorNameAttribute("Volume (Fly-Through)")]
+            VolumeFlyThrough,
+        }
+
+        [SerializeField]
+        [Tooltip("Rendering mode of the underwater effect (and ocean). See the documentation for more details.")]
+        internal Mode _mode;
+
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
         // data in/out), as more filtering was better in testing.
@@ -45,6 +71,17 @@ namespace Crest
         [Tooltip("Scales the depth fog density. Useful to reduce the intensity of the depth fog when underwater water only.")]
         float _depthFogDensityFactor = 1f;
         public float DepthFogDensityFactor => _depthFogDensityFactor;
+
+
+        [Header("Geometry")]
+
+        [SerializeField, Predicated("_mode", inverted: false, Mode.FullScreen), DecoratedField]
+        [Tooltip("Mesh to use to render the underwater effect.")]
+        internal MeshFilter _volumeGeometry;
+
+        [SerializeField, Predicated("_mode", inverted: true, Mode.Portal), DecoratedField]
+        [Tooltip("If enabled, the back faces of the mesh will be used instead of the front faces.")]
+        bool _invertCulling = false;
 
 
         [Header("Advanced")]
@@ -66,12 +103,16 @@ namespace Crest
         {
             public bool _viewOceanMask = false;
             public bool _disableOceanMask = false;
+            public bool _viewStencil = false;
             public bool _disableHeightAboveWaterOptimization = false;
             public bool _disableArtifactCorrection = false;
         }
 
         Camera _camera;
         bool _firstRender = true;
+
+        internal bool UseStencilBufferOnMask => _mode != Mode.FullScreen;
+        internal bool UseStencilBufferOnEffect => _mode == Mode.VolumeFlyThrough;
 
         Matrix4x4 _gpuInverseViewProjectionMatrix;
         Matrix4x4 _gpuInverseViewProjectionMatrixRight;
@@ -98,7 +139,7 @@ namespace Crest
                     return false;
                 }
 
-                if (!_debug._disableHeightAboveWaterOptimization && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+                if (!_debug._disableHeightAboveWaterOptimization && _mode == Mode.FullScreen && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
                 {
                     return false;
                 }
@@ -115,7 +156,11 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
+            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            {
+                enabled = false;
+                return;
+            }
 #endif
 
             // Setup here because it is the same across pipelines.
@@ -145,9 +190,17 @@ namespace Crest
 
         void Disable()
         {
-            CleanUpMaskTextures();
-            _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
-            _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+            if (_underwaterEffectCommandBuffer != null)
+            {
+                _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            }
+
+            if (_oceanMaskCommandBuffer != null)
+            {
+                _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+            }
+
+            OnDisableOceanMask();
         }
 
         void OnPreRender()
@@ -215,7 +268,21 @@ namespace Crest
         {
             var isValid = true;
 
-            // Intentionally left empty. Here for downstream.
+            if (_mode != Mode.FullScreen && _volumeGeometry == null)
+            {
+                showMessage
+                (
+                    $"<i>{_mode}</i> mode requires a <i>Mesh Filter</i> be set to <i>Volume Geometry</i>.",
+                    "Change <i>Mode</i> to <i>FullScreen</i>.",
+                    ValidatedHelper.MessageType.Error, this,
+                    (SerializedObject so) =>
+                    {
+                        so.FindProperty("_mode").enumValueIndex = (int)Mode.FullScreen;
+                    }
+                );
+
+                isValid = false;
+            }
 
             return isValid;
         }

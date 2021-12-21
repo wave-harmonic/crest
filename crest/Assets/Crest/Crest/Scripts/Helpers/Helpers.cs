@@ -12,6 +12,29 @@ namespace Crest
     /// </summary>
     public static class Helpers
     {
+        static Material s_UtilityMaterial;
+        public static Material UtilityMaterial
+        {
+            get
+            {
+                if (s_UtilityMaterial == null)
+                {
+                    s_UtilityMaterial = new Material(Shader.Find("Hidden/Crest/Helpers/Utility"));
+                }
+
+                return s_UtilityMaterial;
+            }
+        }
+
+        // Need to cast to int but no conversion cost.
+        // https://stackoverflow.com/a/69148528
+        internal enum UtilityPass
+        {
+            CopyDepth,
+            ClearDepth,
+            ClearStencil,
+        }
+
         public static bool IsMSAAEnabled(Camera camera)
         {
             return camera.allowMSAA && QualitySettings.antiAliasing > 1;
@@ -35,6 +58,48 @@ namespace Crest
             var temp = b;
             b = a;
             a = temp;
+        }
+
+        public static void SetGlobalKeyword(string keyword, bool enabled)
+        {
+            if (enabled)
+            {
+                Shader.EnableKeyword(keyword);
+            }
+            else
+            {
+                Shader.DisableKeyword(keyword);
+            }
+        }
+
+        public static void CreateRenderTargetTexture(ref RenderTexture texture, ref RenderTargetIdentifier target, RenderTextureDescriptor descriptor)
+        {
+            if (texture != null && descriptor.width == texture.width && descriptor.height == texture.height)
+            {
+                return;
+            }
+            else if (texture != null)
+            {
+                texture.Release();
+            }
+
+            texture = new RenderTexture(descriptor);
+            target = new RenderTargetIdentifier
+            (
+                texture,
+                mipLevel: 0,
+                CubemapFace.Unknown,
+                depthSlice: -1 // Bind all XR slices.
+            );
+        }
+
+        public static void DestroyRenderTargetTexture(ref RenderTexture texture)
+        {
+            if (texture != null)
+            {
+                texture.Release();
+                texture = null;
+            }
         }
     }
 
@@ -74,6 +139,18 @@ namespace Crest
             {
                 buffer.DisableShaderKeyword(keyword);
             }
+        }
+
+        ///<summary>
+        /// Sets the msaaSamples property to the highest supported MSAA level in the settings.
+        ///</summary>
+        public static void SetMSAASamples(this ref RenderTextureDescriptor descriptor, Camera camera)
+        {
+            // QualitySettings.antiAliasing is zero when disabled which is invalid for msaaSamples.
+            // We need to set this first as GetRenderTextureSupportedMSAASampleCount uses it:
+            // https://docs.unity3d.com/ScriptReference/SystemInfo.GetRenderTextureSupportedMSAASampleCount.html
+            descriptor.msaaSamples = camera.allowMSAA ? Mathf.Max(QualitySettings.antiAliasing, 1) : 1;
+            descriptor.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(descriptor);
         }
     }
 }

@@ -13,6 +13,13 @@ Release Notes
 |version|
 ---------
 
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  Add portals and volumes to *Underwater Renderer* (affects both underwater and ocean surface).
+      See :ref:`portals-volumes` for more information.
+
 Changed
 ^^^^^^^
 .. bullet_list::

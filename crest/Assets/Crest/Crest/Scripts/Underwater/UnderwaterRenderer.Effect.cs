@@ -13,17 +13,46 @@ namespace Crest
         const string k_ShaderPathUnderwaterEffect = "Hidden/Crest/Underwater/Underwater Effect";
         internal const string k_KeywordFullScreenEffect = "_FULL_SCREEN_EFFECT";
         internal const string k_KeywordDebugViewOceanMask = "_DEBUG_VIEW_OCEAN_MASK";
+        internal const string k_KeywordDebugViewStencil = "_DEBUG_VIEW_STENCIL";
 
         internal static readonly int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
+        static readonly int sp_CrestWaterVolumeStencil = Shader.PropertyToID("_CrestWaterVolumeStencil");
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
         static readonly int sp_HorizonNormal = Shader.PropertyToID("_HorizonNormal");
         static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
 
+        // If changed then see how mode is used to select the front-face pass and whether a mapping is required.
+        // :UnderwaterRenderer.Mode
+        enum EffectPass
+        {
+            FullScreen,
+            VolumeFrontFace2D,
+            VolumeFrontFace3D,
+            VolumeFrontFaceVolume,
+            VolumeBackFace,
+            VolumeScene,
+        }
+
         CommandBuffer _underwaterEffectCommandBuffer;
         PropertyWrapperMaterial _underwaterEffectMaterial;
         internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
+
+        RenderTargetIdentifier _colorTarget = new RenderTargetIdentifier
+        (
+            BuiltinRenderTextureType.CameraTarget,
+            0,
+            CubemapFace.Unknown,
+            -1
+        );
+        RenderTargetIdentifier _depthStencilTarget = new RenderTargetIdentifier
+        (
+            sp_CrestWaterVolumeStencil,
+            0,
+            CubemapFace.Unknown,
+            -1
+        );
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -57,6 +86,7 @@ namespace Crest
 
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
             descriptor.useDynamicScale = _camera.allowDynamicResolution;
+
             // Format must be correct for CopyTexture to work. Hopefully this is good enough.
             if (_camera.allowHDR)
             {
@@ -64,14 +94,17 @@ namespace Crest
             }
 
             var temporaryColorBuffer = RenderTexture.GetTemporary(descriptor);
+            temporaryColorBuffer.name = "_CrestCameraColorTexture";
 
             UpdatePostProcessMaterial(
+                _mode,
                 _camera,
                 _underwaterEffectMaterial,
                 _sphericalHarmonicsData,
                 _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _debug._viewOceanMask,
+                _debug._viewStencil,
                 _filterOceanData
             );
 
@@ -80,10 +113,49 @@ namespace Crest
 
             _underwaterEffectCommandBuffer.Clear();
 
-            if (_camera.allowMSAA)
+            // Create a separate stencil buffer context by copying the depth texture.
+            if (UseStencilBufferOnEffect)
+            {
+                descriptor.colorFormat = RenderTextureFormat.Depth;
+                descriptor.depthBufferBits = 24;
+                // bindMS is necessary in this case for depth.
+                descriptor.SetMSAASamples(_camera);
+                descriptor.bindMS = descriptor.msaaSamples > 1;
+
+                _underwaterEffectCommandBuffer.GetTemporaryRT(sp_CrestWaterVolumeStencil, descriptor);
+
+                // Use blit for MSAA. We should be able to use CopyTexture. Might be the following bug:
+                // https://issuetracker.unity3d.com/product/unity/issues/guid/1308132
+                if (Helpers.IsMSAAEnabled(_camera))
+                {
+                    // Blit with a depth write shader to populate the depth buffer.
+                    _underwaterEffectCommandBuffer.Blit
+                    (
+                        BuiltinRenderTextureType.None,
+                        _depthStencilTarget,
+                        Helpers.UtilityMaterial,
+                        (int)Helpers.UtilityPass.CopyDepth
+                    );
+                }
+                else
+                {
+                    // Copy depth then clear stencil.
+                    _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.Depth, _depthStencilTarget);
+                    _underwaterEffectCommandBuffer.Blit
+                    (
+                        BuiltinRenderTextureType.None,
+                        _depthStencilTarget,
+                        Helpers.UtilityMaterial,
+                        (int)Helpers.UtilityPass.ClearStencil
+                    );
+                }
+            }
+
+            // Copy the color buffer into a texture.
+            if (Helpers.IsMSAAEnabled(_camera))
             {
                 // Use blit if MSAA is active because transparents were not included with CopyTexture.
-                // Not sure if we need an MSAA resolve? Not sure how to do that...
+                // This appears to be a bug. CopyTexture + MSAA works fine when the stencil is required.
                 _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
             else
@@ -92,21 +164,94 @@ namespace Crest
                 _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
 
+            if (UseStencilBufferOnEffect)
+            {
+                _underwaterEffectCommandBuffer.SetRenderTarget(_colorTarget, _depthStencilTarget);
+            }
+            else
+            {
+                _underwaterEffectCommandBuffer.SetRenderTarget(_colorTarget);
+            }
+
             _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 
-            _underwaterEffectCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1);
-            _underwaterEffectCommandBuffer.DrawProcedural(Matrix4x4.identity, _underwaterEffectMaterial.material, -1, MeshTopology.Triangles, 3, 1);
+            ExecuteEffect(_underwaterEffectCommandBuffer, _underwaterEffectMaterial.material);
 
             RenderTexture.ReleaseTemporary(temporaryColorBuffer);
+            if (UseStencilBufferOnEffect)
+            {
+                _underwaterEffectCommandBuffer.ReleaseTemporaryRT(sp_CrestWaterVolumeStencil);
+            }
+        }
+
+        void ExecuteEffect(CommandBuffer buffer, Material material)
+        {
+            if (_mode == Mode.FullScreen)
+            {
+                buffer.DrawProcedural
+                (
+                    Matrix4x4.identity,
+                    material,
+                    shaderPass: (int)EffectPass.FullScreen,
+                    MeshTopology.Triangles,
+                    vertexCount: 3,
+                    instanceCount: 1
+                );
+            }
+            else
+            {
+                if (_mode == Mode.Portal)
+                {
+                    buffer.SetInvertCulling(_invertCulling);
+                }
+
+                buffer.DrawMesh
+                (
+                    _volumeGeometry.mesh,
+                    _volumeGeometry.transform.localToWorldMatrix,
+                    material,
+                    submeshIndex: 0,
+                    // Use the mode to select the front-face pass. If the front-face passes in the shader change, then
+                    // a mapping between Mode and EffectPass will need to be made.
+                    // :UnderwaterRenderer.Mode
+                    shaderPass: (int)_mode
+                );
+
+                buffer.SetInvertCulling(false);
+
+                if (_mode == Mode.VolumeFlyThrough)
+                {
+                    buffer.DrawMesh
+                    (
+                        _volumeGeometry.mesh,
+                        _volumeGeometry.transform.localToWorldMatrix,
+                        material,
+                        submeshIndex: 0,
+                        shaderPass: (int)EffectPass.VolumeBackFace
+                    );
+
+                    _underwaterEffectCommandBuffer.DrawProcedural
+                    (
+                        Matrix4x4.identity,
+                        material,
+                        shaderPass: (int)EffectPass.VolumeScene,
+                        MeshTopology.Triangles,
+                        vertexCount: 3,
+                        instanceCount: 1
+                    );
+                }
+            }
         }
 
         internal static void UpdatePostProcessMaterial(
+            Mode mode,
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             bool isMeniscusEnabled,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
+            bool debugViewStencil,
             int dataSliceOffset
         )
         {
@@ -121,6 +266,7 @@ namespace Crest
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
             underwaterPostProcessMaterial.SetKeyword(k_KeywordDebugViewOceanMask, debugViewPostProcessMask);
+            underwaterPostProcessMaterial.SetKeyword(k_KeywordDebugViewStencil, debugViewStencil);
             underwaterPostProcessMaterial.SetKeyword("CREST_MENISCUS", isMeniscusEnabled);
 
             // We sample shadows at the camera position which will be the first slice.
@@ -132,45 +278,41 @@ namespace Crest
             LodDataMgrSeaFloorDepth.Bind(underwaterPostProcessMaterialWrapper);
             LodDataMgrShadow.Bind(underwaterPostProcessMaterialWrapper);
 
-            float seaLevel = OceanRenderer.Instance.SeaLevel;
-
-            // We don't both setting the horizon value if we know we are going to be having to apply the effect
-            // full-screen anyway.
-            var forceFullShader = OceanRenderer.Instance.ViewerHeightAboveWater < -2f;
-            if (!forceFullShader)
+            if (mode == Mode.FullScreen)
             {
-                float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
-                float cameraYPosition = camera.transform.position.y;
-                float nearPlaneFrustumWorldHeight;
+                float seaLevel = OceanRenderer.Instance.SeaLevel;
+
+                // We don't both setting the horizon value if we know we are going to be having to apply the effect
+                // full-screen anyway.
+                var forceFullShader = OceanRenderer.Instance.ViewerHeightAboveWater < -2f;
+                if (!forceFullShader)
                 {
-                    float current = camera.ViewportToWorldPoint(new Vector3(0f, 0f, camera.nearClipPlane)).y;
-                    float maxY = current, minY = current;
+                    float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
+                    float cameraYPosition = camera.transform.position.y;
+                    float nearPlaneFrustumWorldHeight;
+                    {
+                        float current = camera.ViewportToWorldPoint(new Vector3(0f, 0f, camera.nearClipPlane)).y;
+                        float maxY = current, minY = current;
 
-                    current = camera.ViewportToWorldPoint(new Vector3(0f, 1f, camera.nearClipPlane)).y;
-                    maxY = Mathf.Max(maxY, current);
-                    minY = Mathf.Min(minY, current);
+                        current = camera.ViewportToWorldPoint(new Vector3(0f, 1f, camera.nearClipPlane)).y;
+                        maxY = Mathf.Max(maxY, current);
+                        minY = Mathf.Min(minY, current);
 
-                    current = camera.ViewportToWorldPoint(new Vector3(1f, 0f, camera.nearClipPlane)).y;
-                    maxY = Mathf.Max(maxY, current);
-                    minY = Mathf.Min(minY, current);
+                        current = camera.ViewportToWorldPoint(new Vector3(1f, 0f, camera.nearClipPlane)).y;
+                        maxY = Mathf.Max(maxY, current);
+                        minY = Mathf.Min(minY, current);
 
-                    current = camera.ViewportToWorldPoint(new Vector3(1f, 1f, camera.nearClipPlane)).y;
-                    maxY = Mathf.Max(maxY, current);
-                    minY = Mathf.Min(minY, current);
+                        current = camera.ViewportToWorldPoint(new Vector3(1f, 1f, camera.nearClipPlane)).y;
+                        maxY = Mathf.Max(maxY, current);
+                        minY = Mathf.Min(minY, current);
 
-                    nearPlaneFrustumWorldHeight = maxY - minY;
+                        nearPlaneFrustumWorldHeight = maxY - minY;
+                    }
+
+                    forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
                 }
 
-                forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
-            }
-
-            if (forceFullShader)
-            {
-                underwaterPostProcessMaterial.EnableKeyword(k_KeywordFullScreenEffect);
-            }
-            else
-            {
-                underwaterPostProcessMaterial.DisableKeyword(k_KeywordFullScreenEffect);
+                underwaterPostProcessMaterial.SetKeyword(k_KeywordFullScreenEffect, forceFullShader);
             }
 
             // Project ocean normal onto camera plane.

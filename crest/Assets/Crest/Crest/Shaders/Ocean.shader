@@ -257,6 +257,9 @@ Shader "Crest/Ocean"
 
 			#pragma multi_compile_local _ _OLD_UNDERWATER
 
+			// Clipping the ocean surface for underwater volumes.
+			#pragma multi_compile _ CREST_WATER_VOLUME_2D CREST_WATER_VOLUME_HAS_BACKFACE
+
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
@@ -270,6 +273,8 @@ Shader "Crest/Ocean"
 			#include "OceanVertHelpers.hlsl"
 			#include "OceanShaderHelpers.hlsl"
 			#include "OceanLightingHelpers.hlsl"
+
+			#include "Helpers/WaterVolume.hlsl"
 
 			#include "OceanEmission.hlsl"
 			#include "OceanNormalMapping.hlsl"
@@ -483,6 +488,13 @@ Shader "Crest/Ocean"
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 
+				half3 screenPos = input.screenPosXYW;
+				half2 uvDepth = screenPos.xy / screenPos.z;
+
+#if CREST_WATER_VOLUME
+				ApplyVolumeToOceanSurface(input.positionCS);
+#endif
+
 				#if _CLIPUNDERTERRAIN_ON
 				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);
 				#endif
@@ -491,8 +503,6 @@ Shader "Crest/Ocean"
 
 				// water surface depth, and underlying scene opaque surface depth
 				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
-				half3 screenPos = input.screenPosXYW;
-				half2 uvDepth = screenPos.xy / screenPos.z;
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
 				float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepth);
 				float sceneZ = CrestLinearEyeDepth(rawDepth);

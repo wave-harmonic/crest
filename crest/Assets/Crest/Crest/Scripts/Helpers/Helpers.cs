@@ -30,6 +30,7 @@ namespace Crest
         // https://stackoverflow.com/a/69148528
         internal enum UtilityPass
         {
+            CopyColor,
             CopyDepth,
             ClearDepth,
             ClearStencil,

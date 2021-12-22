@@ -54,14 +54,14 @@ namespace Crest
         PropertyWrapperMaterial _oceanMaskMaterial;
 
         Material _volumeMaterial = null;
-        RenderTargetIdentifier _volumeBackFaceTarget = new RenderTargetIdentifier
+        internal RenderTargetIdentifier _volumeBackFaceTarget = new RenderTargetIdentifier
         (
             sp_CrestWaterVolumeBackFaceTexture,
             mipLevel: 0,
             CubemapFace.Unknown,
             depthSlice: -1 // Bind all XR slices.
         );
-        RenderTargetIdentifier _volumeFrontFaceTarget = new RenderTargetIdentifier
+        internal RenderTargetIdentifier _volumeFrontFaceTarget = new RenderTargetIdentifier
         (
             sp_CrestWaterVolumeFrontFaceTexture,
             mipLevel: 0,
@@ -93,7 +93,10 @@ namespace Crest
                     name = "Ocean Mask",
                 };
             }
+        }
 
+        internal void OnEnableMask()
+        {
             if (_volumeMaterial == null)
             {
                 _volumeMaterial = new Material(Shader.Find(k_ShaderPathWaterVolumeGeometry));
@@ -109,7 +112,7 @@ namespace Crest
             CleanUpVolumeTextures();
         }
 
-        void DisableOceanMaskKeywords()
+        internal static void DisableOceanMaskKeywords()
         {
             // Multiple keywords from same set can be enabled at the same time leading to undefined behaviour so we need
             // to disable all keywords from a set first.
@@ -190,7 +193,7 @@ namespace Crest
             );
         }
 
-        void SetUpVolumeTextures(RenderTextureDescriptor descriptor)
+        internal void SetUpVolumeTextures(RenderTextureDescriptor descriptor)
         {
             descriptor.msaaSamples = 1;
             descriptor.useDynamicScale = true;
@@ -262,7 +265,7 @@ namespace Crest
             FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor, _maskTarget);
         }
 
-        void PopulateVolume(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget)
+        internal void PopulateVolume(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget)
         {
             // Front faces.
             buffer.SetRenderTarget(frontTarget);
@@ -296,7 +299,7 @@ namespace Crest
             }
         }
 
-        void SetUpMask(CommandBuffer buffer, RenderTargetIdentifier maskTarget, RenderTargetIdentifier depthTarget)
+        internal void SetUpMask(CommandBuffer buffer, RenderTargetIdentifier maskTarget, RenderTargetIdentifier depthTarget)
         {
             buffer.SetRenderTarget(maskTarget, depthTarget);
             // When using the stencil we are already clearing depth and do not want to clear the stencil too. Clear

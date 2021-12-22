@@ -15,11 +15,13 @@ Shader "Hidden/Crest/Helpers/Utility"
 	#include "../BIRP/Core.hlsl"
 	#include "../BIRP/InputsDriven.hlsl"
 
+	#include "../../FullScreenTriangle.hlsl"
+
 	#include "../../OceanShaderHelpers.hlsl"
 
 	struct Attributes
 	{
-		float4 positionOS : POSITION;
+		uint id : SV_VertexID;
 		UNITY_VERTEX_INPUT_INSTANCE_ID
 	};
 
@@ -29,8 +31,6 @@ Shader "Hidden/Crest/Helpers/Utility"
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
-	TEXTURE2D_X(_CameraDepthTexture);
-
 	Varyings Vertex(Attributes input)
 	{
 		// This will work for all pipelines.
@@ -38,7 +38,7 @@ Shader "Hidden/Crest/Helpers/Utility"
 		UNITY_SETUP_INSTANCE_ID(input);
 		UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-		output.positionCS = UnityObjectToClipPos(input.positionOS);
+		output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
 		return output;
 	}
 	ENDHLSL
@@ -46,6 +46,25 @@ Shader "Hidden/Crest/Helpers/Utility"
 	SubShader
 	{
 		Cull Off ZWrite On ZTest Always
+
+		Pass
+		{
+			// Copies the color texture.
+			Name "Copy Color"
+
+			ZWrite Off
+			ZTest Always
+			Cull Off
+
+			HLSLPROGRAM
+			TEXTURE2D_X(_CameraColorTexture);
+
+			float4 Fragment(Varyings input) : SV_Target
+			{
+				return LOAD_TEXTURE2D_X(_CameraColorTexture, input.positionCS.xy);
+			}
+			ENDHLSL
+		}
 
 		Pass
 		{
@@ -64,6 +83,7 @@ Shader "Hidden/Crest/Helpers/Utility"
 			}
 
 			HLSLPROGRAM
+			TEXTURE2D_X(_CameraDepthTexture);
 			float Fragment(Varyings input) : SV_Depth
 			{
 				return LOAD_DEPTH_TEXTURE_X(_CameraDepthTexture, input.positionCS.xy);

@@ -16,7 +16,7 @@ namespace Crest
         internal const string k_KeywordDebugViewStencil = "_DEBUG_VIEW_STENCIL";
 
         internal static readonly int sp_CrestCameraColorTexture = Shader.PropertyToID("_CrestCameraColorTexture");
-        static readonly int sp_CrestWaterVolumeStencil = Shader.PropertyToID("_CrestWaterVolumeStencil");
+        internal static readonly int sp_CrestWaterVolumeStencil = Shader.PropertyToID("_CrestWaterVolumeStencil");
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
@@ -46,7 +46,7 @@ namespace Crest
             CubemapFace.Unknown,
             -1
         );
-        RenderTargetIdentifier _depthStencilTarget = new RenderTargetIdentifier
+        internal RenderTargetIdentifier _depthStencilTarget = new RenderTargetIdentifier
         (
             sp_CrestWaterVolumeStencil,
             0,
@@ -184,7 +184,7 @@ namespace Crest
             }
         }
 
-        void ExecuteEffect(CommandBuffer buffer, Material material)
+        internal void ExecuteEffect(CommandBuffer buffer, Material material)
         {
             if (_mode == Mode.FullScreen)
             {
@@ -230,7 +230,7 @@ namespace Crest
                         shaderPass: (int)EffectPass.VolumeBackFace
                     );
 
-                    _underwaterEffectCommandBuffer.DrawProcedural
+                    buffer.DrawProcedural
                     (
                         Matrix4x4.identity,
                         material,

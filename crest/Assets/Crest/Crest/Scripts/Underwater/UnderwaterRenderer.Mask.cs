@@ -140,7 +140,7 @@ namespace Crest
         internal void SetUpMaskTextures(RenderTextureDescriptor descriptor)
         {
             // Bail if we do not need to (re)create the textures.
-            if (_maskRT != null && descriptor.width == _maskRT.width && descriptor.height == _maskRT.height)
+            if (_maskRT != null && descriptor.width == _maskRT.width && descriptor.height == _maskRT.height && descriptor.volumeDepth == _maskRT.volumeDepth)
             {
                 return;
             }
@@ -322,7 +322,7 @@ namespace Crest
                 _fixMaskKernel,
                 descriptor.width / (int)_fixMaskThreadGroupSizeX,
                 descriptor.height / (int)_fixMaskThreadGroupSizeY,
-                XRHelpers.IsSinglePass ? 2 : 1
+                descriptor.volumeDepth
             );
         }
 

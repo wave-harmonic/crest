@@ -74,7 +74,7 @@ namespace Crest
 
         public static void CreateRenderTargetTexture(ref RenderTexture texture, ref RenderTargetIdentifier target, RenderTextureDescriptor descriptor)
         {
-            if (texture != null && descriptor.width == texture.width && descriptor.height == texture.height)
+            if (texture != null && descriptor.width == texture.width && descriptor.height == texture.height && descriptor.volumeDepth == texture.volumeDepth)
             {
                 return;
             }

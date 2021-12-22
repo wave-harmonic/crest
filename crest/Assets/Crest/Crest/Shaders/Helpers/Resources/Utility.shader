@@ -20,18 +20,24 @@ Shader "Hidden/Crest/Helpers/Utility"
 	struct Attributes
 	{
 		float4 positionOS : POSITION;
+		UNITY_VERTEX_INPUT_INSTANCE_ID
 	};
 
 	struct Varyings
 	{
 		float4 positionCS : SV_POSITION;
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
 	TEXTURE2D_X(_CameraDepthTexture);
 
 	Varyings Vertex(Attributes input)
 	{
-		Varyings output;
+		// This will work for all pipelines.
+		Varyings output = (Varyings)0;
+		UNITY_SETUP_INSTANCE_ID(input);
+		UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
 		output.positionCS = UnityObjectToClipPos(input.positionOS);
 		return output;
 	}

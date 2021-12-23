@@ -102,6 +102,23 @@ namespace Crest
                 texture = null;
             }
         }
+
+        /// <summary>
+        /// Blit using full screen triangle.
+        /// </summary>
+        public static void Blit(CommandBuffer buffer, RenderTargetIdentifier target, Material material, int pass)
+        {
+            buffer.SetRenderTarget(target);
+            buffer.DrawProcedural
+            (
+                Matrix4x4.identity,
+                material,
+                pass,
+                MeshTopology.Triangles,
+                vertexCount: 3,
+                instanceCount: 1
+            );
+        }
     }
 
     static class Extensions

@@ -129,25 +129,13 @@ namespace Crest
                 if (Helpers.IsMSAAEnabled(_camera))
                 {
                     // Blit with a depth write shader to populate the depth buffer.
-                    _underwaterEffectCommandBuffer.Blit
-                    (
-                        BuiltinRenderTextureType.None,
-                        _depthStencilTarget,
-                        Helpers.UtilityMaterial,
-                        (int)Helpers.UtilityPass.CopyDepth
-                    );
+                    Helpers.Blit(_underwaterEffectCommandBuffer, _depthStencilTarget, Helpers.UtilityMaterial, (int)Helpers.UtilityPass.CopyDepth);
                 }
                 else
                 {
                     // Copy depth then clear stencil.
                     _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.Depth, _depthStencilTarget);
-                    _underwaterEffectCommandBuffer.Blit
-                    (
-                        BuiltinRenderTextureType.None,
-                        _depthStencilTarget,
-                        Helpers.UtilityMaterial,
-                        (int)Helpers.UtilityPass.ClearStencil
-                    );
+                    Helpers.Blit(_underwaterEffectCommandBuffer, _depthStencilTarget, Helpers.UtilityMaterial, (int)Helpers.UtilityPass.ClearStencil);
                 }
             }
 

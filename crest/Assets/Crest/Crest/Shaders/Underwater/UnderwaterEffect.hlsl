@@ -7,7 +7,6 @@
 #include "../OceanShaderData.hlsl"
 #include "../OceanHelpersNew.hlsl"
 #include "../OceanShaderHelpers.hlsl"
-#include "../FullScreenTriangle.hlsl"
 #include "../OceanEmission.hlsl"
 
 #include "../../Helpers/WaterVolume.hlsl"

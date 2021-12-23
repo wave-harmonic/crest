@@ -21,6 +21,17 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	#pragma multi_compile_local __ CREST_MENISCUS
 	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
 	#pragma multi_compile_local __ _DEBUG_VIEW_STENCIL
+
+	#include "UnityCG.cginc"
+	#include "Lighting.cginc"
+
+	#include "../../Helpers/BIRP/Core.hlsl"
+	#include "../../Helpers/BIRP/InputsDriven.hlsl"
+	#include "../../Helpers/BIRP/Lighting.hlsl"
+
+	// Variable downstream as URP XR has issues.
+	#define _CameraForward unity_CameraToWorld._m02_m12_m22
+
 	ENDHLSL
 
 	SubShader

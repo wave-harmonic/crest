@@ -2,12 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#include "UnityCG.cginc"
-#include "Lighting.cginc"
-
-#include "../Helpers/BIRP/Core.hlsl"
-#include "../Helpers/BIRP/InputsDriven.hlsl"
-
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanShaderData.hlsl"
@@ -48,14 +42,13 @@ struct Varyings
 Varyings Vert (Attributes input)
 {
 	Varyings output;
-
+	ZERO_INITIALIZE(Varyings, output);
 	UNITY_SETUP_INSTANCE_ID(input);
-	UNITY_INITIALIZE_OUTPUT(Varyings, output);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if CREST_WATER_VOLUME
 	// Use actual geometry instead of full screen triangle.
-	output.positionCS = UnityObjectToClipPos(float4(input.positionOS, 1.0));
+	output.positionCS = TransformObjectToHClip(input.positionOS);
 	output.screenPosition = ComputeScreenPos(output.positionCS);
 #else
 	output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
@@ -65,7 +58,7 @@ Varyings Vert (Attributes input)
 	return output;
 }
 
-fixed4 Frag (Varyings input) : SV_Target
+real4 Frag (Varyings input) : SV_Target
 {
 	// We need this when sampling a screenspace texture.
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -84,7 +77,7 @@ fixed4 Frag (Varyings input) : SV_Target
 
 #if _DEBUG_VIEW_STENCIL
 	return DebugRenderStencil(sceneColour);
-#endif // _DEBUG_VIEW_STENCIL
+#endif
 
 	bool isOceanSurface; bool isUnderwater; float sceneZ;
 	GetOceanSurfaceAndUnderwaterData(input.positionCS, positionSS, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
@@ -105,9 +98,10 @@ fixed4 Frag (Varyings input) : SV_Target
 		// Unity's lead. Fixes caustics stuttering when far from zero.
 		const float3 positionWS = ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_VP);
 		const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
-		float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
-		const float3 lightDir = _WorldSpaceLightPos0.xyz;
-		const half3 lightCol = _LightColor0;
+		float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(_CameraForward, -view);
+		const Light lightMain = GetMainLight();
+		const real3 lightDir = lightMain.direction;
+		const real3 lightCol = lightMain.color;
 		sceneColour = ApplyUnderwaterEffect(positionSS, scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, fogDistance, view, isOceanSurface);
 	}
 

@@ -27,6 +27,9 @@
 // MACROS
 //
 
+#define ZERO_INITIALIZE(type, name) UNITY_INITIALIZE_OUTPUT(type,name)
+#define TransformObjectToHClip(positionOS) UnityObjectToClipPos(float4(positionOS, 1.0))
+
 // Taken from:
 // com.unity.render-pipelines.core@10.5.0/ShaderLibrary/API/D3D11.hlsl
 // com.unity.render-pipelines.core@10.5.0/ShaderLibrary/API/Metal.hlsl

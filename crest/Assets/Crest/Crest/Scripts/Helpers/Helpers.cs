@@ -167,7 +167,7 @@ namespace Crest
             // QualitySettings.antiAliasing is zero when disabled which is invalid for msaaSamples.
             // We need to set this first as GetRenderTextureSupportedMSAASampleCount uses it:
             // https://docs.unity3d.com/ScriptReference/SystemInfo.GetRenderTextureSupportedMSAASampleCount.html
-            descriptor.msaaSamples = camera.allowMSAA ? Mathf.Max(QualitySettings.antiAliasing, 1) : 1;
+            descriptor.msaaSamples = Helpers.IsMSAAEnabled(camera) ? Mathf.Max(QualitySettings.antiAliasing, 1) : 1;
             descriptor.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(descriptor);
         }
     }

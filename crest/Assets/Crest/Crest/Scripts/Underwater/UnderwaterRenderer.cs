@@ -108,7 +108,7 @@ namespace Crest
             public bool _disableArtifactCorrection = false;
         }
 
-        Camera _camera;
+        internal Camera _camera;
         bool _firstRender = true;
 
         internal bool UseStencilBufferOnMask => _mode != Mode.FullScreen;

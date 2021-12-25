@@ -243,20 +243,21 @@ namespace Crest
         {
             float column = 1f;
 
-            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, _drawLodDatasActualSize, ref _drawAnimWaves, ref column, 0.5f);
-            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, _drawLodDatasActualSize, ref _drawDynWaves, ref column, 0.5f, 2f);
-            DrawSim<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, _drawLodDatasActualSize, ref _drawFoam, ref column);
-            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, _drawLodDatasActualSize, ref _drawFlow, ref column, 0.5f, 2f);
-            DrawSim<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, _drawLodDatasActualSize, ref _drawShadow, ref column);
-            DrawSim<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, _drawLodDatasActualSize, ref _drawSeaFloorDepth, ref column);
-            DrawSim<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, _drawLodDatasActualSize, ref _drawClipSurface, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataAnimWaves, ref _drawAnimWaves, ref column, 0.5f);
+            DrawSim(OceanRenderer.Instance._lodDataDynWaves, ref _drawDynWaves, ref column, 0.5f, 2f);
+            DrawSim(OceanRenderer.Instance._lodDataFoam, ref _drawFoam, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataFlow, ref _drawFlow, ref column, 0.5f, 2f);
+            DrawSim(OceanRenderer.Instance._lodDataShadow, ref _drawShadow, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataSeaDepths, ref _drawSeaFloorDepth, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataClipSurface, ref _drawClipSurface, ref column);
         }
 
-        static void DrawSim<SimType>(LodDataMgr lodData, bool actualSize, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f) where SimType : LodDataMgr
+        void DrawSim(LodDataMgr lodData, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f)
         {
             if (lodData == null) return;
 
-            var type = typeof(SimType);
+            // Compute short names that will fit in UI and cache them.
+            var type = lodData.GetType();
             if (!s_simNames.ContainsKey(type))
             {
                 s_simNames.Add(type, type.Name.Substring(10));
@@ -264,7 +265,7 @@ namespace Crest
 
             float togglesBegin = Screen.height - _bottomPanelHeight;
             float b = 7f;
-            float h = actualSize ? lodData.DataTexture.height : togglesBegin / (float)lodData.DataTexture.volumeDepth;
+            float h = _drawLodDatasActualSize ? lodData.DataTexture.height : togglesBegin / (float)lodData.DataTexture.volumeDepth;
             float w = h + b;
             float x = Screen.width - w * offset + b * (offset - 1f);
 

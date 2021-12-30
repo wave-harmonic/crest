@@ -104,7 +104,8 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 #if CREST_BLUR
 				half3 sceneColour = _CrestCameraColorTexture.SampleLevel(sampler_CrestCameraColorTexture, uvScreenSpace, 0).rgb;
-				half3 sceneColour2 = _CrestCameraColorTexture.SampleLevel(my_linear_clamp_sampler, uvScreenSpace, _BlurLevels).rgb;
+				// half3 sceneColour2 = _CrestCameraColorTexture.SampleLevel(my_linear_clamp_sampler, uvScreenSpace, _BlurLevels).rgb;
+				half3 sceneColour2 = _CrestCameraColorTexture.SampleLevel(my_linear_clamp_sampler, uvScreenSpace, log2(max(sceneZ, 1.0))).rgb;
 #else
 				half3 sceneColour = _CrestCameraColorTexture.SampleLevel(sampler_CrestCameraColorTexture, uvScreenSpace, 0).rgb;
 #endif
@@ -123,7 +124,8 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 					const float3 lightDir = _WorldSpaceLightPos0.xyz;
 					const half3 lightCol = _LightColor0;
 #if CREST_BLUR
-					sceneColour = lerp(sceneColour, sceneColour2, saturate(min(sceneZ / 50.0, 50.0) * _BlurDepthMultiplier));
+					// sceneColour = lerp(sceneColour, sceneColour2, saturate(min(sceneZ / 50.0, 50.0) * _BlurDepthMultiplier));
+					sceneColour = lerp(sceneColour, sceneColour2, 0.5);
 #endif
 					sceneColour = ApplyUnderwaterEffect(scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);
 				}

@@ -116,6 +116,7 @@ Shader "Hidden/Crest/Helpers/Utility"
 			ZWrite Off
 			ZTest Always
 			Cull Off
+			Blend Zero One
 
 			Stencil
 			{
@@ -123,6 +124,13 @@ Shader "Hidden/Crest/Helpers/Utility"
 				Comp Always
 				Pass Replace
 			}
+
+			HLSLPROGRAM
+			float Fragment(Varyings input) : SV_Target
+			{
+				return 0.0;
+			}
+			ENDHLSL
 		}
 	}
 }

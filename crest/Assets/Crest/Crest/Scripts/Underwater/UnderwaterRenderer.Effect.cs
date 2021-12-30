@@ -172,7 +172,7 @@ namespace Crest
             }
         }
 
-        internal void ExecuteEffect(CommandBuffer buffer, Material material)
+        internal void ExecuteEffect(CommandBuffer buffer, Material material, MaterialPropertyBlock properties = null)
         {
             if (_mode == Mode.FullScreen)
             {
@@ -183,7 +183,8 @@ namespace Crest
                     shaderPass: (int)EffectPass.FullScreen,
                     MeshTopology.Triangles,
                     vertexCount: 3,
-                    instanceCount: 1
+                    instanceCount: 1,
+                    properties
                 );
             }
             else
@@ -202,7 +203,8 @@ namespace Crest
                     // Use the mode to select the front-face pass. If the front-face passes in the shader change, then
                     // a mapping between Mode and EffectPass will need to be made.
                     // :UnderwaterRenderer.Mode
-                    shaderPass: (int)_mode
+                    shaderPass: (int)_mode,
+                    properties
                 );
 
                 buffer.SetInvertCulling(false);
@@ -215,7 +217,8 @@ namespace Crest
                         _volumeGeometry.transform.localToWorldMatrix,
                         material,
                         submeshIndex: 0,
-                        shaderPass: (int)EffectPass.VolumeBackFace
+                        shaderPass: (int)EffectPass.VolumeBackFace,
+                        properties
                     );
 
                     buffer.DrawProcedural
@@ -225,7 +228,8 @@ namespace Crest
                         shaderPass: (int)EffectPass.VolumeScene,
                         MeshTopology.Triangles,
                         vertexCount: 3,
-                        instanceCount: 1
+                        instanceCount: 1,
+                        properties
                     );
                 }
             }

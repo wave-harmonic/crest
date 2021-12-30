@@ -25,6 +25,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 			#pragma multi_compile_local __ CREST_MENISCUS
+			#pragma multi_compile_local __ CREST_BLUR
 			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
 
@@ -46,9 +47,16 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			#include "../../FullScreenTriangle.hlsl"
 			#include "../../OceanEmission.hlsl"
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture);
+			// UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture);
+			// sampler2D _CrestCameraColorTexture;
+			Texture2D _CrestCameraColorTexture;
+			SamplerState sampler_CrestCameraColorTexture;
+			SamplerState my_linear_clamp_sampler;
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
+
+			float _BlurLevels;
+			float _BlurDepthMultiplier;
 
 			#include "../UnderwaterEffectShared.hlsl"
 
@@ -85,7 +93,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
-				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestCameraColorTexture, uvScreenSpace).rgb;
 				float rawDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
 				const float mask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace).x;
 				const float rawOceanDepth = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
@@ -94,6 +101,13 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 				GetOceanSurfaceAndUnderwaterData(uvScreenSpace, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
 
 				float wt = ComputeMeniscusWeight(uvScreenSpace, mask, _HorizonNormal, sceneZ);
+
+#if CREST_BLUR
+				half3 sceneColour = _CrestCameraColorTexture.SampleLevel(sampler_CrestCameraColorTexture, uvScreenSpace, 0).rgb;
+				half3 sceneColour2 = _CrestCameraColorTexture.SampleLevel(my_linear_clamp_sampler, uvScreenSpace, _BlurLevels).rgb;
+#else
+				half3 sceneColour = _CrestCameraColorTexture.SampleLevel(sampler_CrestCameraColorTexture, uvScreenSpace, 0).rgb;
+#endif
 
 #if _DEBUG_VIEW_OCEAN_MASK
 				return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);
@@ -108,6 +122,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
 					const float3 lightDir = _WorldSpaceLightPos0.xyz;
 					const half3 lightCol = _LightColor0;
+#if CREST_BLUR
+					sceneColour = lerp(sceneColour, sceneColour2, saturate(min(sceneZ / 50.0, 50.0) * _BlurDepthMultiplier));
+#endif
 					sceneColour = ApplyUnderwaterEffect(scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);
 				}
 

@@ -56,6 +56,9 @@ namespace Crest
             }
 
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
+            descriptor.useMipMap = true;
+            descriptor.mipCount = _blurLevels;
+            descriptor.autoGenerateMips = false;
             descriptor.useDynamicScale = _camera.allowDynamicResolution;
             // Format must be correct for CopyTexture to work. Hopefully this is good enough.
             if (_camera.allowHDR)
@@ -75,22 +78,30 @@ namespace Crest
                 _filterOceanData
             );
 
+            _underwaterEffectMaterial.material.SetFloat("_BlurLevels", _blurLevels);
+            _underwaterEffectMaterial.material.SetFloat("_BlurDepthMultiplier", _blurMultiplier);
+            if (_blur) _underwaterEffectMaterial.material.EnableKeyword("CREST_BLUR");
+            else _underwaterEffectMaterial.material.DisableKeyword("CREST_BLUR");
+
             // Call after UpdatePostProcessMaterial as it copies material from ocean which will overwrite this.
             SetInverseViewProjectionMatrix(_underwaterEffectMaterial.material);
 
             _underwaterEffectCommandBuffer.Clear();
 
-            if (_camera.allowMSAA)
+            // if (_camera.allowMSAA)
             {
                 // Use blit if MSAA is active because transparents were not included with CopyTexture.
                 // Not sure if we need an MSAA resolve? Not sure how to do that...
                 _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
             }
-            else
-            {
-                // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
-                _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
-            }
+            // else
+            // {
+            //     // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
+            //     _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
+            // }
+
+            // temporaryColorBuffer.GenerateMips();
+            _underwaterEffectCommandBuffer.GenerateMips(temporaryColorBuffer);
 
             _underwaterEffectMaterial.SetTexture(sp_CrestCameraColorTexture, temporaryColorBuffer);
 

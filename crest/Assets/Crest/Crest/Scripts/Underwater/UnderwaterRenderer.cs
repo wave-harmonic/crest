@@ -42,6 +42,12 @@ namespace Crest
         public bool IsMeniscusEnabled => _meniscus;
 
 
+        public bool _blur = true;
+        public int _blurLevels = 3;
+
+        public float _blurMultiplier = 1f;
+
+
         [Header("Advanced")]
 
         [SerializeField]

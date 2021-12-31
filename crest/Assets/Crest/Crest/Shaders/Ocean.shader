@@ -266,6 +266,8 @@ Shader "Crest/Ocean"
 			#include "Helpers/BIRP/Core.hlsl"
 			#include "Helpers/BIRP/InputsDriven.hlsl"
 
+			#include "ShaderLibrary/Common.hlsl"
+
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
 			#include "OceanShaderData.hlsl"
@@ -552,9 +554,9 @@ Shader "Crest/Ocean"
 
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
-				ApplyNormalMapsWithFlow(positionXZWSUndisplaced, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
+				ApplyNormalMapsWithFlow(_NormalsTiledTexture, positionXZWSUndisplaced, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += SampleNormalMaps(positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
+				n_pixel.xz += SampleNormalMaps(_NormalsTiledTexture, positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
 				#endif
 				#endif
 
@@ -637,7 +639,6 @@ Shader "Crest/Ocean"
 					sceneZ,
 					rawDepth,
 					bubbleCol,
-					_Normals,
 					underwater,
 					scatterCol,
 					cascadeData0,

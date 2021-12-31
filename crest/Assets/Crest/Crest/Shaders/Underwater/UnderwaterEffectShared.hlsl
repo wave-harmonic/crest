@@ -209,11 +209,12 @@ half3 ApplyUnderwaterEffect
 	{
 		ApplyCaustics
 		(
+			_CausticsTiledTexture,
+			_CausticsDistortionTiledTexture,
 			i_positionSS,
 			scenePos,
 			lightDir,
 			sceneZ,
-			_Normals,
 			true,
 			sceneColour,
 			_CrestCascadeData[sliceIndex],

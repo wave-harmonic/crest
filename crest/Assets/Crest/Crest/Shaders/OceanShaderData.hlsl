@@ -17,17 +17,12 @@ float4 _CameraDepthTexture_TexelSize;
 
 TEXTURE2D_X(_CrestScreenSpaceShadowTexture);
 
-// NOTE: _Normals is used outside of _APPLYNORMALMAPPING_ON so we cannot surround it here.
-sampler2D _Normals;
 sampler2D _ReflectionTex;
 #if _OVERRIDEREFLECTIONCUBEMAP_ON
 samplerCUBE _ReflectionCubemapOverride;
 #endif
 #if _FOAM_ON
 sampler2D _FoamTexture;
-#endif
-#if _CAUSTICS_ON
-sampler2D _CausticsTexture;
 #endif
 
 /////////////////////////////
@@ -58,10 +53,19 @@ half4 _DepthFogDensity;
 // Normals
 // ----------------------------------------------------------------------------
 
+#if defined(_APPLYNORMALMAPPING_ON) || defined(_CAUSTICS_ON)
+// NOTE: _Normals is used outside of _APPLYNORMALMAPPING_ON so we cannot surround it here.
+Texture2D _Normals;
+SamplerState sampler_Normals;
+float4 _Normals_TexelSize;
+#endif
+
 half _NormalsStrengthOverall;
 #if _APPLYNORMALMAPPING_ON
 half _NormalsStrength;
 half _NormalsScale;
+static const WaveHarmonic::Crest::TiledTexture _NormalsTiledTexture =
+    WaveHarmonic::Crest::TiledTexture::Make(_Normals, sampler_Normals, _Normals_TexelSize, _NormalsScale);
 #endif
 
 // ----------------------------------------------------------------------------
@@ -149,6 +153,15 @@ half _CausticsFocalDepth;
 half _CausticsDepthOfField;
 half _CausticsDistortionScale;
 half _CausticsDistortionStrength;
+
+Texture2D _CausticsTexture;
+SamplerState sampler_CausticsTexture;
+float4 _CausticsTexture_TexelSize;
+
+static const WaveHarmonic::Crest::TiledTexture _CausticsTiledTexture =
+    WaveHarmonic::Crest::TiledTexture::Make(_CausticsTexture, sampler_CausticsTexture, _CausticsTexture_TexelSize, _CausticsTextureScale);
+static const WaveHarmonic::Crest::TiledTexture _CausticsDistortionTiledTexture =
+    WaveHarmonic::Crest::TiledTexture::Make(_Normals, sampler_Normals, _Normals_TexelSize, _CausticsDistortionScale);
 #endif
 
 // Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,

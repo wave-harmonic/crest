@@ -51,6 +51,8 @@ Shader "Crest/Underwater Curtain"
 
 			#include "../Helpers/BIRP/Core.hlsl"
 
+			#include "../ShaderLibrary/Common.hlsl"
+
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanShaderData.hlsl"
@@ -219,7 +221,7 @@ Shader "Crest/Underwater Curtain"
 				if (sceneZ01 != 0.0)
 				{
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
-					ApplyCaustics(input.positionCS.xy, scenePos, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
+					ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, input.positionCS.xy, scenePos, lightDir, sceneZ, true, sceneColour, cascadeData0, cascadeData1);
 				}
 #endif // _CAUSTICS_ON
 

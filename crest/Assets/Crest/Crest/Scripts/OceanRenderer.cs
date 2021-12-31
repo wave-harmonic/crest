@@ -263,6 +263,10 @@ namespace Crest
         [Predicated("_createClipSurfaceData"), DecoratedField]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
+        [Tooltip("TODO"), SerializeField]
+        bool _createAlbedoData = false;
+        public bool CreateAlbedoData => _createAlbedoData;
+
         [Header("Edit Mode Params")]
 
         [SerializeField]
@@ -328,6 +332,7 @@ namespace Crest
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
+        [HideInInspector] public LodDataMgrAlbedo _lodDataAlbedo;
 
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
@@ -509,6 +514,7 @@ namespace Crest
             LodDataMgrFoam.BindNullToGraphicsShaders();
             LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
             LodDataMgrShadow.BindNullToGraphicsShaders();
+            LodDataMgrAlbedo.BindNullToGraphicsShaders();
 
             CreateDestroySubSystems();
 
@@ -770,6 +776,24 @@ namespace Crest
                         _lodDataShadow.OnDisable();
                         _lodDatas.Remove(_lodDataShadow);
                         _lodDataShadow = null;
+                    }
+                }
+
+                if (CreateAlbedoData)
+                {
+                    if (_lodDataAlbedo == null)
+                    {
+                        _lodDataAlbedo = new LodDataMgrAlbedo(this);
+                        _lodDatas.Add(_lodDataAlbedo);
+                    }
+                }
+                else
+                {
+                    if (_lodDataAlbedo != null)
+                    {
+                        _lodDataAlbedo.OnDisable();
+                        _lodDatas.Remove(_lodDataAlbedo);
+                        _lodDataAlbedo = null;
                     }
                 }
             }
@@ -1134,6 +1158,7 @@ namespace Crest
             _lodDataFoam?.UpdateLodData();
             _lodDataSeaDepths?.UpdateLodData();
             _lodDataShadow?.UpdateLodData();
+            _lodDataAlbedo?.UpdateLodData();
         }
 
         void LateUpdateTiles()
@@ -1313,6 +1338,7 @@ namespace Crest
             _lodDataFoam = null;
             _lodDataSeaDepths = null;
             _lodDataShadow = null;
+            _lodDataAlbedo = null;
 
             if (CollisionProvider != null)
             {

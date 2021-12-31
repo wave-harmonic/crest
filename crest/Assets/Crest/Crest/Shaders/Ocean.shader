@@ -520,6 +520,7 @@ Shader "Crest/Ocean"
 				float3 dummy = 0.;
 				float3 n_pixel = float3(0.0, 1.0, 0.0);
 				half sss = 0.;
+				float4 albedo = 0.0;
 				#if _FOAM_ON
 				float foam = 0.0;
 				#endif
@@ -531,6 +532,9 @@ Shader "Crest/Ocean"
 					#if _FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, foam);
 					#endif
+
+					// TODO add define?
+					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_smallerLod, wt_smallerLod, albedo);
 				}
 				if (wt_biggerLod > 0.001)
 				{
@@ -540,6 +544,8 @@ Shader "Crest/Ocean"
 					#if _FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
 					#endif
+
+					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_biggerLod, wt_biggerLod, albedo);
 				}
 
 #if _SUBSURFACESCATTERING_ON
@@ -672,6 +678,8 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
 				#endif
+
+				col = lerp(col, albedo.xyz, albedo.w);
 
 				// Fog
 				if (!underwater)

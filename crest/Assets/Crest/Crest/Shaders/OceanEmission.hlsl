@@ -88,7 +88,7 @@ void ApplyCaustics
 	// Removing the fudge factor (4.0) will cause the caustics to move around more with the waves. But this will also
 	// result in stretched/dilated caustics in certain areas. This is especially noticeable on angled surfaces.
 	float2 surfacePosXZ = i_scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
-	half2 causticN = _CausticsDistortionStrength * UnpackNormal(i_distortionTexture.Sample(surfacePosXZ / _CausticsDistortionScale)).xy;
+	half2 causticN = _CausticsDistortionStrength * UnpackNormal(i_distortionTexture.Sample(surfacePosXZ / i_distortionTexture._scale)).xy;
 	float3 cuv1 = float3((surfacePosXZ / i_causticsTexture._scale + 1.3 * causticN + float2(0.044 * _CrestTime + 17.16, -0.169 * _CrestTime)), mipLod);
 	float3 cuv2 = float3((1.37 * surfacePosXZ / i_causticsTexture._scale + 1.77 * causticN + float2(0.248 * _CrestTime, 0.117 * _CrestTime)), mipLod);
 

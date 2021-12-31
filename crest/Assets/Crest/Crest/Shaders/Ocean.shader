@@ -190,9 +190,8 @@ Shader "Crest/Ocean"
 
 		[Header(Debug Options)]
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
-		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
-		[Toggle] _DebugVisualiseFlow("Debug Visualise Flow", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
+		[KeywordEnum(None, ShapeSample, AnimatedWaves, Flow, Shadows, Foam)] _DebugVisualise("Debug Visualise With Colours", Float) = 0
 	}
 
 	SubShader
@@ -251,9 +250,9 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
-			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
-			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
 			#pragma shader_feature_local _DEBUGDISABLESMOOTHLOD_ON
+			#pragma shader_feature_local _DEBUGVISUALISE_NONE _DEBUGVISUALISE_SHAPESAMPLE _DEBUGVISUALISE_ANIMATEDWAVES \
+				_DEBUGVISUALISE_FLOW _DEBUGVISUALISE_SHADOWS _DEBUGVISUALISE_FOAM
 
 			#pragma multi_compile_local _ _OLD_UNDERWATER
 
@@ -298,7 +297,7 @@ Shader "Crest/Ocean"
 				half3 screenPosXYW : TEXCOORD4;
 				float4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 				float3 worldPos : TEXCOORD7;
-				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				#if defined(_DEBUGVISUALISE_SHAPESAMPLE) || defined(_DEBUGVISUALISE_ANIMATEDWAVES)
 				half3 debugtint : TEXCOORD8;
 				#endif
 				half4 grabPos : TEXCOORD9;
@@ -365,6 +364,10 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
 
+					#if _DEBUGVISUALISE_ANIMATEDWAVES
+					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_smallerLod, 0.0);
+					#endif
+
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
 					#endif
@@ -376,6 +379,10 @@ Shader "Crest/Ocean"
 				if (wt_biggerLod > 0.001)
 				{
 					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
+
+					#if _DEBUGVISUALISE_ANIMATEDWAVES
+					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_biggerLod, 0.0);
+					#endif
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
@@ -421,7 +428,7 @@ Shader "Crest/Ocean"
 				o.worldPos.y += seaLevelOffset;
 
 				// debug tinting to see which shape textures are used
-				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				#if _DEBUGVISUALISE_SHAPESAMPLE
 				#define TINT_COUNT (uint)7
 				half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 				o.debugtint = wt_smallerLod * tintCols[_LD_SliceIndex % TINT_COUNT] + wt_biggerLod * tintCols[(_LD_SliceIndex + 1) % TINT_COUNT];
@@ -688,12 +695,17 @@ Shader "Crest/Ocean"
 				}
 #endif
 
-				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				#if !_DEBUGVISUALISE_NONE
+				#if _DEBUGVISUALISE_FLOW && _FLOW_ON
+				col.rb = lerp(col.rb, input.flow_shadow.xy, 0.5);
+				#elif _DEBUGVISUALISE_SHADOWS && _SHADOWS_ON
+				col.rgb = half3(input.flow_shadow.zw, 0.0);
+				#elif _DEBUGVISUALISE_FOAM && _FOAM_ON
+				col.rgb = half3(foam, 0.0, 0.0);
+				#elif _DEBUGVISUALISE_ANIMATEDWAVES
+				col.rgb = input.debugtint + 0.5;
+				#elif _DEBUGVISUALISE_SHAPESAMPLE
 				col = lerp(col.rgb, input.debugtint, 0.5);
-				#endif
-				#if _DEBUGVISUALISEFLOW_ON
-				#if _FLOW_ON
-				col.rg = lerp(col.rg, input.flow_shadow.xy, 0.5);
 				#endif
 				#endif
 

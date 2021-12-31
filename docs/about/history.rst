@@ -37,6 +37,7 @@ Changed
    -  Improve multiple *Water Body* overlapping case when *Water Body > Override Material* option is used.
    -  Water Body adds an inclusion to clipping (ie unclips) if *Default Clipping State* is *Everything Clipped*.
    -  Add scroll bar to *Ocean Debug GUI* when using *Draw LOD Datas Actual Size*.
+   -  Add support for *TrailRenderer*, *LineRenderer* and *ParticleSystem* to be used as ocean inputs in addition to *MeshRenderer*.
 
 Fixed
 ^^^^^

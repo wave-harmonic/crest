@@ -21,9 +21,6 @@ sampler2D _ReflectionTex;
 #if _OVERRIDEREFLECTIONCUBEMAP_ON
 samplerCUBE _ReflectionCubemapOverride;
 #endif
-#if _FOAM_ON
-sampler2D _FoamTexture;
-#endif
 
 /////////////////////////////
 // Constant buffer: CrestPerMaterial
@@ -130,7 +127,6 @@ half _WaveFoamFeather;
 half _WaveFoamLightScale;
 half _ShorelineFoamMinDepth;
 #if _FOAM3DLIGHTING_ON
-float4 _FoamTexture_TexelSize;
 half _WaveFoamNormalStrength;
 half _WaveFoamSpecularFallOff;
 half _WaveFoamSpecularBoost;
@@ -139,6 +135,13 @@ half _WaveFoamSpecularBoost;
 half4 _FoamBubbleColor;
 half _FoamBubbleParallax;
 half _WaveFoamBubblesCoverage;
+
+Texture2D _FoamTexture;
+SamplerState sampler_FoamTexture;
+float4 _FoamTexture_TexelSize;
+
+static const WaveHarmonic::Crest::TiledTexture _FoamTiledTexture =
+    WaveHarmonic::Crest::TiledTexture::Make(_FoamTexture, sampler_FoamTexture, _FoamTexture_TexelSize, _FoamScale);
 #endif
 
 // ----------------------------------------------------------------------------

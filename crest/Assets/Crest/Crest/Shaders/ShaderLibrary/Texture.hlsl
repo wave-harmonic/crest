@@ -12,6 +12,7 @@ namespace WaveHarmonic
 			SamplerState _sampler;
 			half _size;
 			half _scale;
+			float _texel;
 
 			static TiledTexture Make
 			(
@@ -28,6 +29,7 @@ namespace WaveHarmonic
 				_texture._scale = i_scale;
 				// Safely assume a square texture.
 				_texture._size = i_size.z;
+				_texture._texel = i_size.x;
 				return _texture;
 			}
 

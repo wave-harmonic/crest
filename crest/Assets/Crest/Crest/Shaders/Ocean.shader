@@ -584,6 +584,7 @@ Shader "Crest/Ocean"
 				#if !_FLOW_ON
 				ComputeFoam
 				(
+					_FoamTiledTexture,
 					foam,
 					positionXZWSUndisplaced,
 					input.worldPos.xz,
@@ -602,6 +603,7 @@ Shader "Crest/Ocean"
 				#else
 				ComputeFoamWithFlow
 				(
+					_FoamTiledTexture,
 					input.flow_shadow.xy,
 					foam,
 					positionXZWSUndisplaced,

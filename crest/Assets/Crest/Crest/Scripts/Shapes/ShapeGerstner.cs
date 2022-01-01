@@ -783,16 +783,6 @@ namespace Crest
                 );
             }
 
-            if (showMessage == ValidatedHelper.HelpBox)
-            {
-                showMessage
-                (
-                    "The <i>ShapeGerstner</i> component is now obsolete.",
-                    "Prefer using <i>ShapeFFT</i> instead.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
-            }
-
             return isValid;
         }
     }

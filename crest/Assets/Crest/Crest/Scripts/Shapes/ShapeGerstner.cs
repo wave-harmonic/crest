@@ -250,8 +250,8 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            // Nyquist rate
-            return texelSize * 2f;
+            // Nyquist rate x 2, for higher quality
+            return texelSize * 4f;
         }
 
         public void CrestUpdate(CommandBuffer buf)

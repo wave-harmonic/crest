@@ -57,6 +57,9 @@ namespace Crest
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;
 
+        [Tooltip("Each Gerstner wave is actually a pair of waves travelling in opposite directions (similar to FFT). This weight is applied to the wave travelling in against-wind direction. Set to 0 to obtain simple single waves."), Range(0f, 1f)]
+        public float _reverseWaveWeight = 0.5f;
+
         [Header("Generation Settings")]
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
         public int _componentsPerOctave = 8;
@@ -552,7 +555,7 @@ namespace Crest
             {
                 var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _powers[i]);
                 _amplitudes[i] = Random.value * amp;
-                _amplitudes2[i] = Random.value * amp * 0.5f;
+                _amplitudes2[i] = Random.value * amp * _reverseWaveWeight;
             }
         }
 

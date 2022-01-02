@@ -9,16 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 467d18cefc08f7f44bd5688ce841f075, type: 3}
-  m_Name: Examples_SimSettings_Waves
+  m_Script: {fileID: 11500000, guid: bb677dee139ee1f44923109b04329851, type: 3}
+  m_Name: Examples_SimSettings_Albedo
   m_EditorClassIdentifier: 
   _version: 0
-  _minGridSize: 0
-  _maxGridSize: 0
-  _simulationFrequency: 120
-  _damping: 0
-  _courantNumber: 1
-  _attenuationInShallows: 1
-  _horizDisplace: 9.66
-  _displaceClamp: 0.3
-  _gravityMultiplier: 1
+  _resolution: 2048

@@ -43,7 +43,7 @@ namespace Crest.Spline
 
         [SerializeField]
         float _radius = 20f;
-        [SerializeField, Delayed]
+        [SerializeField, UnityEngine.Delayed]
         int _subdivisions = 1;
 
         public float Radius => _radius;

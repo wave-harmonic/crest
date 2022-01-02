@@ -4,6 +4,7 @@
 
 using System;
 using UnityEngine;
+using System.Reflection;
 
 #if UNITY_EDITOR
 using Crest.EditorHelpers;
@@ -18,6 +19,22 @@ namespace Crest
         public readonly Type _requiredComponentType;
         public readonly bool _inverted;
         public readonly object _disableIfValueIs;
+
+        readonly Type _type;
+        readonly MethodInfo _method;
+
+        /// <summary>
+        /// The field with this attribute will be drawn enabled/disabled based on return of method.
+        /// </summary>
+        /// <param name="type">The type to call the method on. Must be either a static type or the type the field is defined on.</param>
+        /// <param name="method">Method name. Method must match signature: bool MethodName(Component component). Can be any visibility and static or instance.</param>
+        /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
+        public PredicatedAttribute(Type type, string method, bool inverted = false)
+        {
+            _type = type;
+            _method = _type.GetMethod(method, Helpers.s_AnyMethod);
+            _inverted = inverted;
+        }
 
         /// <summary>
         /// The field with this attribute will be drawn enabled/disabled based on another field. For example can be used
@@ -114,6 +131,14 @@ namespace Crest
                 {
                     enabled = GUIEnabled(otherProperty);
                 }
+            }
+
+            if (_type != null)
+            {
+                // Static is both abstract and sealed: https://stackoverflow.com/a/1175950
+                object @object = _type.IsAbstract && _type.IsSealed ? null : Convert.ChangeType(property.serializedObject.targetObject, _type);
+                enabled = (bool) _method.Invoke(@object, new object[] { property.serializedObject.targetObject });
+                if (_inverted) enabled = !enabled;
             }
 
             if (_requiredComponentType != null && property.serializedObject.targetObject != null)

@@ -7,12 +7,12 @@ namespace Crest.Examples
     using UnityEditor;
     using UnityEngine;
 
-    public class CycleChildren : MonoBehaviour
+    public class ExamplesController : MonoBehaviour
     {
-        [SerializeField]
+        [SerializeField, Predicated(typeof(ExamplesController), "IsController"), DecoratedField]
         KeyCode _previous = KeyCode.Comma;
 
-        [SerializeField]
+        [SerializeField, Predicated(typeof(ExamplesController), "IsController"), DecoratedField]
         KeyCode _next = KeyCode.Period;
 
         public void Previous() => Cycle(true);
@@ -48,8 +48,15 @@ namespace Crest.Examples
             }
         }
 
-        void Cycle(bool isReverse = false)
+        // Called by Predicated attribute. Signature must not be changed.
+        bool IsController(Component component)
         {
+            return transform.parent == null || !transform.parent.TryGetComponent<ExamplesController>(out _);
+        }
+
+        internal void Cycle(bool isReverse = false)
+        {
+            var hasActive = false;
             var previous = transform.GetChild(transform.childCount - 1);
             foreach (Transform current in transform)
             {
@@ -59,6 +66,8 @@ namespace Crest.Examples
                     {
                         current.gameObject.SetActive(false);
                         previous.gameObject.SetActive(true);
+                        Selection.activeGameObject = previous.gameObject;
+                        hasActive = true;
                         break;
                     }
                 }
@@ -68,23 +77,35 @@ namespace Crest.Examples
                     {
                         previous.gameObject.SetActive(false);
                         current.gameObject.SetActive(true);
+                        Selection.activeGameObject = current.gameObject;
+                        hasActive = true;
                         break;
                     }
                 }
 
                 previous = current;
             }
+
+            if (!hasActive)
+            {
+                transform.GetChild(0).gameObject.SetActive(true);
+            }
         }
     }
 
-    [CustomEditor(typeof(CycleChildren))]
-    public class CycleChildrenEditor : Editor
+    [CustomEditor(typeof(ExamplesController))]
+    public class ExamplesControllerEditor : Editor
     {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            var target = this.target as CycleChildren;
+            var target = this.target as ExamplesController;
+
+            if (target.transform.parent != null && target.transform.parent.TryGetComponent<ExamplesController>(out var parent))
+            {
+                target = parent;
+            }
 
             if (GUILayout.Button("Previous"))
             {

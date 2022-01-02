@@ -16,10 +16,25 @@ namespace Crest.Examples
         UnityEvent _onDisable = new UnityEvent();
 
         [SerializeField]
-        UnityEvent _onUpdate = new UnityEvent();
+        UnityEvent<float> _onUpdate = new UnityEvent<float>();
 
-        void OnEnable() => _onEnable.Invoke();
-        void OnDisable() => _onDisable.Invoke();
-        void Update() => _onUpdate.Invoke();
+        float _timeSinceEnabled;
+
+        void OnEnable()
+        {
+            _timeSinceEnabled = 0f;
+            _onEnable.Invoke();
+        }
+
+        void OnDisable()
+        {
+            _onDisable.Invoke();
+        }
+
+        void Update()
+        {
+            _timeSinceEnabled += Time.deltaTime;
+            _onUpdate.Invoke(_timeSinceEnabled);
+        }
     }
 }

@@ -4,6 +4,7 @@
 
 namespace Crest
 {
+    using System.Reflection;
     using UnityEngine;
     using UnityEngine.Rendering;
 
@@ -12,6 +13,9 @@ namespace Crest
     /// </summary>
     public static class Helpers
     {
+        public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+            BindingFlags.Static;
+
         static Material s_UtilityMaterial;
         public static Material UtilityMaterial
         {

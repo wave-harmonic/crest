@@ -51,7 +51,7 @@ Texture2DArray _LD_TexArray_Foam;
 Texture2DArray _LD_TexArray_Flow;
 Texture2DArray _LD_TexArray_DynamicWaves;
 Texture2DArray _LD_TexArray_Shadow;
-Texture2DArray _LD_TexArray_Albedo;
+Texture2DArray _LD_TexArray_Turbidity;
 
 // These are used in lods where we operate on data from
 // previously calculated lods. Used in simulations and

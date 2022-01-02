@@ -534,7 +534,7 @@ Shader "Crest/Ocean"
 					#endif
 
 					// TODO add define?
-					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_smallerLod, wt_smallerLod, albedo);
+					SampleTurbidity(_LD_TexArray_Turbidity, uv_slice_smallerLod, wt_smallerLod, albedo);
 				}
 				if (wt_biggerLod > 0.001)
 				{
@@ -545,7 +545,7 @@ Shader "Crest/Ocean"
 					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
 					#endif
 
-					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_biggerLod, wt_biggerLod, albedo);
+					SampleTurbidity(_LD_TexArray_Turbidity, uv_slice_biggerLod, wt_biggerLod, albedo);
 				}
 
 #if _SUBSURFACESCATTERING_ON
@@ -628,7 +628,8 @@ Shader "Crest/Ocean"
 					AmbientLight(),
 					lightDir,
 					lightCol,
-					underwater
+					underwater,
+					albedo
 				);
 				half3 col = OceanEmission
 				(
@@ -679,7 +680,7 @@ Shader "Crest/Ocean"
 				col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
 				#endif
 
-				col = lerp(col, albedo.xyz, albedo.w);
+				//col = lerp(col, albedo.xyz, albedo.w);
 
 				// Fog
 				if (!underwater)

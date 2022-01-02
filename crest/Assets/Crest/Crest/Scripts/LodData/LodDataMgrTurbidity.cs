@@ -13,9 +13,9 @@ namespace Crest
     /// <summary>
     /// 
     /// </summary>
-    public class LodDataMgrAlbedo : LodDataMgr
+    public class LodDataMgrTurbidity : LodDataMgr
     {
-        public override string SimName => "Albedo";
+        public override string SimName => "Turbidity";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8B8A8_UNorm;
         protected override bool NeedToReadWriteTextureData => false;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
@@ -34,7 +34,7 @@ namespace Crest
         //public override SimSettingsBase SettingsBase => Settings;
         //public SettingsType Settings => _ocean._simSettingsFlow != null ? _ocean._simSettingsFlow : GetDefaultSettings<SettingsType>();
 
-        public LodDataMgrAlbedo(OceanRenderer ocean) : base(ocean)
+        public LodDataMgrTurbidity(OceanRenderer ocean) : base(ocean)
         {
             Start();
         }
@@ -90,16 +90,16 @@ namespace Crest
             _targetsClear = drawList.Count == 0;
         }
 
-        readonly static string s_textureArrayName = "_LD_TexArray_Albedo";
+        readonly static string s_textureArrayName = "_LD_TexArray_Turbidity";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         public static int ParamIdSampler(bool sourceLod = false) => s_textureArrayParamIds.GetId(sourceLod);
         protected override int GetParamIdSampler(bool sourceLod = false) => ParamIdSampler(sourceLod);
 
         public static void Bind(IPropertyWrapper properties)
         {
-            if (OceanRenderer.Instance._lodDataAlbedo != null)
+            if (OceanRenderer.Instance._lodDataTurbidity != null)
             {
-                properties.SetTexture(OceanRenderer.Instance._lodDataAlbedo.GetParamIdSampler(), OceanRenderer.Instance._lodDataAlbedo.DataTexture);
+                properties.SetTexture(OceanRenderer.Instance._lodDataTurbidity.GetParamIdSampler(), OceanRenderer.Instance._lodDataTurbidity.DataTexture);
             }
             else
             {

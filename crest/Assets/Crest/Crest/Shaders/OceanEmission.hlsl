@@ -14,24 +14,25 @@ half3 ScatterColour
 	in const half3 i_ambientLighting,
 	in const half3 i_lightDir,
 	in const half3 i_lightCol,
-	in const bool i_underwater
+	in const bool i_underwater,
+	in const half3 i_turbidity
 )
 {
 	// base colour
 	float v = abs(i_view.y);
-	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
+	half3 col = i_turbidity; //lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
 
 #if _SHADOWS_ON
-	col = lerp(_DiffuseShadow, col, i_shadow);
+	//col = lerp(_DiffuseShadow, col, i_shadow);
 #endif
 
 #if _SUBSURFACESCATTERING_ON
 	{
 #if _SUBSURFACESHALLOWCOLOUR_ON
 		float shallowness = pow(1. - saturate(i_surfaceOceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
-		half3 shallowCol = _SubSurfaceShallowCol;
+		half3 shallowCol = i_turbidity;
 #if _SHADOWS_ON
-		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
+		//shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
 #endif
 		col = lerp(col, shallowCol, shallowness);
 #endif

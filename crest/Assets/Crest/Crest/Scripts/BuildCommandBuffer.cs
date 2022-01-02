@@ -80,9 +80,9 @@ namespace Crest
                 ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
             }
 
-            if (ocean._lodDataAlbedo != null && ocean._lodDataAlbedo.enabled)
+            if (ocean._lodDataTurbidity != null && ocean._lodDataTurbidity.enabled)
             {
-                ocean._lodDataAlbedo.BuildCommandBuffer(ocean, buf);
+                ocean._lodDataTurbidity.BuildCommandBuffer(ocean, buf);
             }
         }
 

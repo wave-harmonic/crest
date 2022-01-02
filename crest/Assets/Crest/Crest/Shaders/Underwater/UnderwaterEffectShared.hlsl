@@ -199,7 +199,8 @@ half3 ApplyUnderwaterEffect
 				_AmbientLighting,
 				lightDir,
 				lightCol,
-				true
+				true,
+				_Diffuse
 			);
 		}
 	}

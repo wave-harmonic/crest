@@ -12,6 +12,14 @@ using UnityEditor.VersionControl;
 namespace Crest.EditorHelpers
 {
     /// <summary>
+    /// Interface for editors that receive an argument
+    /// </summary>
+    interface IEditorWithArg
+    {
+        void SetArgument(int argument);
+    }
+
+    /// <summary>
     /// Helper for drawing embedded asset editors
     /// </summary>
     internal class EmbeddedAssetEditor
@@ -57,7 +65,7 @@ namespace Crest.EditorHelpers
 
         const int kIndentOffset = 3;
 
-        public void DrawEditorCombo(GUIContent label, PropertyDrawer drawer, SerializedProperty property, string extension)
+        public void DrawEditorCombo(GUIContent label, PropertyDrawer drawer, SerializedProperty property, string extension, int argument)
         {
             type = drawer.fieldInfo.FieldType;
 
@@ -68,7 +76,8 @@ namespace Crest.EditorHelpers
                 extension,
                 string.Empty,
                 false,
-                property
+                property,
+                argument
             );
         }
 
@@ -76,13 +85,15 @@ namespace Crest.EditorHelpers
         /// Call this from OnInspectorGUI.  Will draw the asset reference field, and
         /// the embedded editor, or a Create Asset button, if no asset is set.
         /// </summary>
-        public void DrawEditorCombo(
-            GUIContent label, string title, string defaultName, string extension, string message, bool indent, SerializedProperty property)
+        public void DrawEditorCombo(GUIContent label, string title, string defaultName, string extension, string message,
+            bool indent, SerializedProperty property, int argument)
         {
-            UpdateEditor(property);
+            UpdateEditor(property, argument);
 
             if (m_Editor == null)
-                AssetFieldWithCreateButton(label, property, title, defaultName, extension, message, property.serializedObject);
+            {
+                AssetFieldWithCreateButton(label, property, title, defaultName, extension, message, property.serializedObject, argument);
+            }
             else
             {
                 EditorGUILayout.BeginVertical(GUI.skin.box);
@@ -94,7 +105,7 @@ namespace Crest.EditorHelpers
                 if (EditorGUI.EndChangeCheck())
                 {
                     property.serializedObject.ApplyModifiedProperties();
-                    UpdateEditor(property);
+                    UpdateEditor(property, argument);
                 }
                 if (m_Editor != null)
                 {
@@ -147,7 +158,7 @@ namespace Crest.EditorHelpers
         private void AssetFieldWithCreateButton(
             GUIContent label,
             SerializedProperty property,
-            string title, string defaultName, string extension, string message, SerializedObject serializedObject)
+            string title, string defaultName, string extension, string message, SerializedObject serializedObject, int argument)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -172,7 +183,7 @@ namespace Crest.EditorHelpers
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
-                UpdateEditor(property);
+                UpdateEditor(property, argument);
             }
         }
 
@@ -185,7 +196,7 @@ namespace Crest.EditorHelpers
             }
         }
 
-        public void UpdateEditor(SerializedProperty property)
+        public void UpdateEditor(SerializedProperty property, int argument)
         {
             var target = property.objectReferenceValue;
 
@@ -200,6 +211,10 @@ namespace Crest.EditorHelpers
             if (m_Editor == null && target != null)
             {
                 m_Editor = Editor.CreateEditor(target);
+
+                // Pass through argument for editors that receive it
+                (m_Editor as IEditorWithArg)?.SetArgument(argument);
+
                 if (OnCreateEditor != null)
                 {
                     OnCreateEditor(m_Editor);

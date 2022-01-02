@@ -35,10 +35,10 @@ namespace Crest
         public static readonly float MIN_POWER_LOG = -8f;
         public static readonly float MAX_POWER_LOG = 5f;
 
-        [Tooltip("Variance of wave directions, in degrees. Gerstner-only - use the Turbulence param on the ShapeFFT component for FFT."), Range(0f, 180f)]
+        [Tooltip("Variance of wave directions, in degrees. Gerstner-only - use the Turbulence param on the ShapeFFT component for FFT."), Range(0f, 180f), HideInInspector]
         public float _waveDirectionVariance = 90f;
 
-        [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
+        [Tooltip("More gravity means faster waves."), Range(0f, 25f), HideInInspector]
         public float _gravityScale = 1f;
 
         [Range(0f, 2f), HideInInspector]
@@ -98,7 +98,8 @@ namespace Crest
 
 #if UNITY_EDITOR
 #pragma warning disable 414
-        [SerializeField] bool _showAdvancedControls = false;
+        [SerializeField, HideInInspector]
+        bool _showAdvancedControls = false;
 #pragma warning restore 414
 
         public enum SpectrumModel
@@ -288,13 +289,21 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(OceanWaveSpectrum))]
-    public class OceanWaveSpectrumEditor : Editor
+    public class OceanWaveSpectrumEditor : Editor, Crest.EditorHelpers.IEditorWithArg
     {
-        readonly static string[] modelDescriptions = new string[]
+        bool _beingEditedOnGerstnerComponent = false;
+        public void SetArgument(int beingEditedOnGerstnerComponent)
+        {
+            _beingEditedOnGerstnerComponent = beingEditedOnGerstnerComponent == 1;
+        }
+
+        readonly static string[] s_modelDescriptions = new string[]
         {
             "Select an option to author waves using a spectrum model.",
             "Fully developed sea with infinite fetch.",
         };
+
+        readonly static GUIContent s_timeScaleLabel = new GUIContent("Time Scale");
 
         static void Upgrade(SerializedObject soSpectrum)
         {
@@ -328,7 +337,20 @@ namespace Crest
 
             base.OnInspectorGUI();
 
-            var showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
+            bool showAdvancedControls = false;
+            if (_beingEditedOnGerstnerComponent)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_gravityScale"));
+
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_waveDirectionVariance"));
+
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_showAdvancedControls"));
+                showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_gravityScale"), s_timeScaleLabel);
+            }
 
             var spSpectrumModel = serializedObject.FindProperty("_model");
             var spectraIndex = serializedObject.FindProperty("_model").enumValueIndex;
@@ -420,7 +442,7 @@ namespace Crest
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
-            EditorGUILayout.HelpBox(modelDescriptions[(int)spectrumModel], MessageType.Info);
+            EditorGUILayout.HelpBox(s_modelDescriptions[(int)spectrumModel], MessageType.Info);
             EditorGUILayout.Space();
 
             if (spectrumModel == OceanWaveSpectrum.SpectrumModel.None)

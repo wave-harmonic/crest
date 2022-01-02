@@ -35,7 +35,8 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
+        // Embedded editor given agument 1 to signify it's being edited within this ShapeGerstner component
+        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded(1)]
         public OceanWaveSpectrum _spectrum;
         OceanWaveSpectrum _activeSpectrum = null;
 

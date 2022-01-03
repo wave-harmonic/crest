@@ -49,8 +49,7 @@ Shader "Hidden/Crest/Inputs/Albedo/Spline Geometry"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float3 uv_slice : TEXCOORD1;
-                float2 axis : TEXCOORD2;
+                float2 uv : TEXCOORD1;
                 float invNormDistToShoreline : TEXCOORD4;
                 float alpha : TEXCOORD5;
             };
@@ -63,6 +62,8 @@ Shader "Hidden/Crest/Inputs/Albedo/Spline Geometry"
             float _Weight;
             CBUFFER_END
 
+			sampler2D _albedo;
+
             Varyings Vert(Attributes v)
             {
                 Varyings o;
@@ -71,13 +72,10 @@ Shader "Hidden/Crest/Inputs/Albedo/Spline Geometry"
                 o.positionCS = UnityObjectToClipPos(positionOS);
                 const float3 worldPos = mul( unity_ObjectToWorld, float4(positionOS, 1.0) ).xyz;
 
-                // UV coordinate into the cascade we are rendering into
-                o.uv_slice.xyz = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
-
                 o.invNormDistToShoreline = v.invNormDistToShoreline;
 
-                // Rotate local-space sideays axis around y-axis, by 90deg, and by object to world to move into world space
-                o.axis = v.axis.y * unity_ObjectToWorld._m00_m20 - v.axis.x * unity_ObjectToWorld._m02_m22;
+				o.uv.x = dot(float3(v.axis.x, 0, v.axis.y), worldPos) / 2.0;
+				o.uv.y = 2.0 * v.invNormDistToShoreline;
 
                 o.alpha = v.alpha;
 
@@ -86,13 +84,15 @@ Shader "Hidden/Crest/Inputs/Albedo/Spline Geometry"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float wt = _Weight;
+                float alpha = _Weight * input.alpha;
 
                 // Feather at front/back
                 if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
-                wt *= min( input.invNormDistToShoreline / _FeatherWaveStart, 1.0 );
+                alpha *= min( input.invNormDistToShoreline / _FeatherWaveStart, 1.0 );
 
-                return float4(wt * input.alpha * input.axis, 0.0, 1.0);
+				float4 sample = tex2D(_albedo, input.uv);
+
+                return float4(sample.xyz, alpha * sample.w);
             }
             ENDCG
         }

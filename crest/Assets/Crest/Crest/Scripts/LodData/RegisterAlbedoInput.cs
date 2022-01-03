@@ -36,6 +36,8 @@ namespace Crest
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Albedo/Spline Geometry";
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataAlbedo.k_defaultAlpha, 0f);
 
+        public Texture2D _texture;
+
 #if UNITY_EDITOR
         protected override string FeatureToggleName => "_createAlbedoData";
         protected override string FeatureToggleLabel => "Create Albedo Data";
@@ -46,6 +48,23 @@ namespace Crest
 
         protected override string MaterialFeatureDisabledError => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING;
         protected override string MaterialFeatureDisabledFix => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (_splineMaterial != null)
+            {
+                _splineMaterial.SetTexture("_albedo", _texture);
+            }
+        }
 #endif // UNITY_EDITOR
+
+        protected override void CreateSplineMaterial()
+        {
+            base.CreateSplineMaterial();
+
+            _splineMaterial.SetTexture("_albedo", _texture);
+        }
     }
 }

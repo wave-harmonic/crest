@@ -525,9 +525,11 @@ Shader "Crest/Ocean"
 				float3 dummy = 0.;
 				float3 n_pixel = float3(0.0, 1.0, 0.0);
 				half sss = 0.;
-				float4 albedo = 0.0;
 				#if _FOAM_ON
 				float foam = 0.0;
+				#endif
+				#if _ALBEDO_ON
+				float4 albedo = 0.0;
 				#endif
 				if (wt_smallerLod > 0.001)
 				{
@@ -687,7 +689,10 @@ Shader "Crest/Ocean"
 				col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
 				#endif
 
+				// Composite albedo input on top
+				#if _ALBEDO_ON
 				col = lerp(col, albedo.xyz, albedo.w);
+				#endif
 
 				// Fog
 				if (!underwater)

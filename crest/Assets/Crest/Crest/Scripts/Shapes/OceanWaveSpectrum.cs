@@ -35,7 +35,7 @@ namespace Crest
         public static readonly float MIN_POWER_LOG = -8f;
         public static readonly float MAX_POWER_LOG = 5f;
 
-        [Tooltip("Variance of wave directions, in degrees. Gerstner-only - use the Turbulence param on the ShapeFFT component for FFT."), Range(0f, 180f), HideInInspector]
+        [Tooltip("Variance of wave directions, in degrees."), Range(0f, 180f), HideInInspector]
         public float _waveDirectionVariance = 90f;
 
         [Tooltip("More gravity means faster waves."), Range(0f, 25f), HideInInspector]
@@ -194,7 +194,7 @@ namespace Crest
             // Amplitude
             var a = Mathf.Sqrt(a_2);
 
-            // Gerstner fudge -one hack to get Gerstners looking on par with FFT
+            // Gerstner fudge - one hack to get Gerstners looking on par with FFT
             if (_version > 0)
             {
                 a *= 5f;

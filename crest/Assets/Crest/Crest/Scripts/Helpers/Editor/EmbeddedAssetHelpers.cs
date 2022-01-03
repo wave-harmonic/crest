@@ -84,15 +84,13 @@ namespace Crest.EditorHelpers
         /// Call this from OnInspectorGUI.  Will draw the asset reference field, and
         /// the embedded editor, or a Create Asset button, if no asset is set.
         /// </summary>
-        public void DrawEditorCombo(GUIContent label, string title, string defaultName, string extension, string message,
-            bool indent, SerializedProperty property)
+        public void DrawEditorCombo(
+            GUIContent label, string title, string defaultName, string extension, string message, bool indent, SerializedProperty property)
         {
             UpdateEditor(property);
 
             if (m_Editor == null)
-            {
                 AssetFieldWithCreateButton(label, property, title, defaultName, extension, message, property.serializedObject);
-            }
             else
             {
                 EditorGUILayout.BeginVertical(GUI.skin.box);

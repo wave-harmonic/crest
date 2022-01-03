@@ -12,7 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Albedo Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#albedo")]
-    public class RegisterAlbedoInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAlbedo, SplinePointDataFlow> // TODO
+    public class RegisterAlbedoInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAlbedo, SplinePointDataAlbedo>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -27,30 +27,25 @@ namespace Crest
 
         public override float Wavelength => 0f;
 
-        protected override Color GizmoColor => new Color(0f, 0f, 1f, 0.5f);
+        protected override Color GizmoColor => new Color(1f, 0f, 1f, 0.5f);
 
         protected override string ShaderPrefix => string.Empty;
 
-        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+        protected override bool FollowHorizontalMotion => false;
 
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Albedo/Spline Geometry";
-        protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f); // TODO
-
-        [Header("Other Settings")]
-
-        [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
-        bool _followHorizontalMotion = false;
+        protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataAlbedo.k_defaultAlpha, 0f);
 
 #if UNITY_EDITOR
-        protected override string FeatureToggleName => "_createAlbedoSim";
-        protected override string FeatureToggleLabel => "Create Albedo Sim";
+        protected override string FeatureToggleName => "_createAlbedoData";
+        protected override string FeatureToggleLabel => "Create Albedo Data";
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateAlbedoData;
 
-        //protected override string RequiredShaderKeywordProperty => LodDataMgrAlbedo.MATERIAL_KEYWORD_PROPERTY;
-        //protected override string RequiredShaderKeyword => LodDataMgrAlbedo.MATERIAL_KEYWORD;
+        protected override string RequiredShaderKeywordProperty => LodDataMgrAlbedo.MATERIAL_KEYWORD_PROPERTY;
+        protected override string RequiredShaderKeyword => LodDataMgrAlbedo.MATERIAL_KEYWORD;
 
-        //protected override string MaterialFeatureDisabledError => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING;
-        //protected override string MaterialFeatureDisabledFix => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+        protected override string MaterialFeatureDisabledError => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING;
+        protected override string MaterialFeatureDisabledFix => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
 }

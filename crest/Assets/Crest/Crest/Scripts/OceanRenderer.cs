@@ -263,7 +263,7 @@ namespace Crest
         [Predicated("_createClipSurfaceData"), DecoratedField]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
-        [Tooltip("TODO"), SerializeField]
+        [Tooltip("Albedo - a colour layer composited onto the water surface."), SerializeField]
         bool _createAlbedoData = false;
         public bool CreateAlbedoData => _createAlbedoData;
 

@@ -8,10 +8,8 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    //using SettingsType = SimSettingsFlow;
-
     /// <summary>
-    /// 
+    /// A colour layer that can be composited onto the water surface.
     /// </summary>
     public class LodDataMgrAlbedo : LodDataMgr
     {
@@ -21,18 +19,13 @@ namespace Crest
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 
-        //internal const string MATERIAL_KEYWORD_PROPERTY = "_Flow";
-        //internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FLOW_ON";
-        //internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Flow is not enabled on the ocean material and will not be visible.";
-        //internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Flow</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
-        //internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Flow feature is disabled on the this but is enabled on the ocean material.";
-        //internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Flow Data</i> option on this component to turn it on, or disable the <i>Flow</i> feature on the ocean material to save performance.";
+        internal const string MATERIAL_KEYWORD_PROPERTY = "_Albedo";
+        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_ALBEDO_ON";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Albedo is not enabled on the ocean material and will not be visible.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Albedo</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Albedo feature is disabled on the this but is enabled on the ocean material.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Albedo Data</i> option on this component to turn it on, or disable the <i>Albedo</i> feature on the ocean material to save performance.";
         bool _targetsClear = false;
-
-        //public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";
-
-        //public override SimSettingsBase SettingsBase => Settings;
-        //public SettingsType Settings => _ocean._simSettingsFlow != null ? _ocean._simSettingsFlow : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrAlbedo(OceanRenderer ocean) : base(ocean)
         {
@@ -43,29 +36,15 @@ namespace Crest
         {
             base.Start();
 
-//#if UNITY_EDITOR
-//            if (OceanRenderer.Instance.OceanMaterial != null
-//                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
-//                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
-//            {
-//                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
-//            }
-//#endif
+#if UNITY_EDITOR
+            if (OceanRenderer.Instance.OceanMaterial != null
+                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
+            {
+                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
+            }
+#endif
         }
-
-        //internal override void OnEnable()
-        //{
-        //    base.OnEnable();
-
-        //    Shader.EnableKeyword(FLOW_KEYWORD);
-        //}
-
-        //internal override void OnDisable()
-        //{
-        //    base.OnDisable();
-
-        //    Shader.DisableKeyword(FLOW_KEYWORD);
-        //}
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {

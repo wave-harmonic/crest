@@ -184,6 +184,10 @@ Shader "Crest/Ocean"
 		// Clips purely based on water depth
 		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
 
+		[Header(Albedo)]
+		// Albedo is a colour that is composited onto the surface. Requires 'Create Albedo Data' enabled on OceanRenderer component.
+		[Toggle] _Albedo("Enable", Float) = 0
+
 		[Header(Rendering)]
 		// What projection modes will this material support? Choosing perspective or orthographic is an optimisation.
 		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
@@ -247,6 +251,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _SHADOWS_ON
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
+			#pragma shader_feature_local _ALBEDO_ON
 
 			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
@@ -533,8 +538,9 @@ Shader "Crest/Ocean"
 					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, foam);
 					#endif
 
-					// TODO add define?
+					#if _ALBEDO_ON
 					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_smallerLod, wt_smallerLod, albedo);
+					#endif
 				}
 				if (wt_biggerLod > 0.001)
 				{
@@ -545,7 +551,9 @@ Shader "Crest/Ocean"
 					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
 					#endif
 
+					#if _ALBEDO_ON
 					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_biggerLod, wt_biggerLod, albedo);
+					#endif
 				}
 
 #if _SUBSURFACESCATTERING_ON

@@ -41,6 +41,7 @@ Changed
    -  Un-deprecate *ShapeGerstner* as it is useful in some situations for adding a small number of distinct waves with high degree of control.
    -  Add *Reverse Wave Weight* setting to *ShapeGerstner* for fine control over generated wave pairs.
    -  Double sample count for *ShapeGerstner* waves to improve quality.
+   -  Tidy up wave spectrum inspector by only showing *ShapeGerstner*-specific controls when editing within a *ShapeGerstner* component.
 
 Fixed
 ^^^^^
@@ -61,6 +62,7 @@ Fixed
    -  Fix shadow simulation not recovering after error being resolved in edit mode.
    -  Fix *Allow Null Light* option on *Sim Settings Shadows* not working.
    -  Fix ocean tiles not reverting to *Ocean Renderer > Material* if *Water Body > Override Material* was used and *Water Body* was disabled or removed.
+   -  Add *Time Scale* control for FFT (*Gravity* setting was broken).
 
    .. only:: birp
 

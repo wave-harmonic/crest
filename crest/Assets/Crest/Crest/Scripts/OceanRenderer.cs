@@ -266,6 +266,8 @@ namespace Crest
         [Tooltip("Albedo - a colour layer composited onto the water surface."), SerializeField]
         bool _createAlbedoData = false;
         public bool CreateAlbedoData => _createAlbedoData;
+        [Predicated("_createAlbedoData"), Embedded]
+        public SimSettingsAlbedo _settingsAlbedo;
 
         [Header("Edit Mode Params")]
 

@@ -289,14 +289,8 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(OceanWaveSpectrum))]
-    public class OceanWaveSpectrumEditor : Editor, Crest.EditorHelpers.IEditorWithArg
+    public class OceanWaveSpectrumEditor : Editor, Crest.EditorHelpers.IEmbeddableEditor
     {
-        bool _beingEditedOnGerstnerComponent = false;
-        public void SetArgument(int beingEditedOnGerstnerComponent)
-        {
-            _beingEditedOnGerstnerComponent = beingEditedOnGerstnerComponent == 1;
-        }
-
         readonly static string[] s_modelDescriptions = new string[]
         {
             "Select an option to author waves using a spectrum model.",
@@ -304,6 +298,12 @@ namespace Crest
         };
 
         readonly static GUIContent s_timeScaleLabel = new GUIContent("Time Scale");
+
+        bool _beingEditedOnGerstnerComponent = false;
+        public void SetTypeOfHostComponent(System.Type hostComponentType)
+        {
+            _beingEditedOnGerstnerComponent = hostComponentType == typeof(ShapeGerstner);
+        }
 
         static void Upgrade(SerializedObject soSpectrum)
         {

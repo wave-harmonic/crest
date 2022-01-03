@@ -15,21 +15,12 @@ namespace Crest
     {
 #if UNITY_EDITOR
         internal EmbeddedAssetEditor editor;
-
-        // Generic argument that can be passed to embedded editor
-        int _argument;
 #endif
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="argument">Generic argument that can be passed to embedded editor</param>
-        public EmbeddedAttribute(int argument = 0)
+        public EmbeddedAttribute()
         {
 #if UNITY_EDITOR
             editor = new EmbeddedAssetEditor();
-
-            _argument = argument;
 #endif
         }
 
@@ -37,7 +28,7 @@ namespace Crest
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
             EmbeddedAttribute embeddedAttribute = this;
-            embeddedAttribute.editor.DrawEditorCombo(label, drawer, property, "asset", _argument);
+            embeddedAttribute.editor.DrawEditorCombo(label, drawer, property, "asset");
         }
 
         internal override bool NeedsControlRectangle => false;

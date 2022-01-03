@@ -18,6 +18,7 @@ namespace Crest
         protected override bool NeedToReadWriteTextureData => false;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
+        protected override int ResolutionOverride => 768;
 
         internal const string MATERIAL_KEYWORD_PROPERTY = "_Albedo";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_ALBEDO_ON";

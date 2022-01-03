@@ -12,7 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Albedo Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#albedo")]
-    public class RegisterAlbedoInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAlbedo, SplinePointDataAlbedo>
+    public class RegisterAlbedoInput : RegisterLodDataInput<LodDataMgrAlbedo>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -33,11 +33,6 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => false;
 
-        protected override string SplineShaderName => "Hidden/Crest/Inputs/Albedo/Spline Geometry";
-        protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataAlbedo.k_defaultAlpha, 0f);
-
-        public Texture2D _texture;
-
 #if UNITY_EDITOR
         protected override string FeatureToggleName => "_createAlbedoData";
         protected override string FeatureToggleLabel => "Create Albedo Data";
@@ -48,23 +43,6 @@ namespace Crest
 
         protected override string MaterialFeatureDisabledError => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING;
         protected override string MaterialFeatureDisabledFix => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
-
-        protected override void Update()
-        {
-            base.Update();
-
-            if (_splineMaterial != null)
-            {
-                _splineMaterial.SetTexture("_albedo", _texture);
-            }
-        }
 #endif // UNITY_EDITOR
-
-        protected override void CreateSplineMaterial()
-        {
-            base.CreateSplineMaterial();
-
-            _splineMaterial.SetTexture("_albedo", _texture);
-        }
     }
 }

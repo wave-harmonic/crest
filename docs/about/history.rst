@@ -42,6 +42,7 @@ Changed
    -  Add *Reverse Wave Weight* setting to *ShapeGerstner* for fine control over generated wave pairs.
    -  Double sample count for *ShapeGerstner* waves to improve quality.
    -  Tidy up wave spectrum inspector by only showing *ShapeGerstner*-specific controls when editing within a *ShapeGerstner* component.
+   -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
 
 Fixed
 ^^^^^

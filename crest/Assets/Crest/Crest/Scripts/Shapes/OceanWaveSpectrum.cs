@@ -299,10 +299,10 @@ namespace Crest
 
         readonly static GUIContent s_timeScaleLabel = new GUIContent("Time Scale");
 
-        bool _beingEditedOnGerstnerComponent = false;
+        System.Type _hostComponentType = null;
         public void SetTypeOfHostComponent(System.Type hostComponentType)
         {
-            _beingEditedOnGerstnerComponent = hostComponentType == typeof(ShapeGerstner);
+            _hostComponentType = hostComponentType;
         }
 
         static void Upgrade(SerializedObject soSpectrum)
@@ -337,8 +337,10 @@ namespace Crest
 
             base.OnInspectorGUI();
 
+            bool beingEditedOnGerstnerComponent = _hostComponentType == typeof(ShapeGerstner);
+
             bool showAdvancedControls = false;
-            if (_beingEditedOnGerstnerComponent)
+            if (beingEditedOnGerstnerComponent)
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_gravityScale"));
 
@@ -464,6 +466,16 @@ namespace Crest
                         spec.ApplyPiersonMoskowitzSpectrum();
                         break;
                 }
+            }
+
+            // Display a notice if its being edited as a standalone asset (not embedded in a component) because
+            // it displays the FFT-interface.
+            if (_hostComponentType == null)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("This editor is displaying the FFT spectrum settings. " +
+                    "To edit settings specific to the ShapeGerstner component, assign this asset to a ShapeGerstner component " +
+                    "and edit it there by expanding the Spectrum field.", MessageType.Info);
             }
 
             serializedObject.ApplyModifiedProperties();

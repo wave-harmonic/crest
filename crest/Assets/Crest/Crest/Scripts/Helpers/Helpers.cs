@@ -75,7 +75,8 @@ namespace Crest
 
         public static void CreateRenderTargetTexture(ref RenderTexture texture, ref RenderTargetIdentifier target, RenderTextureDescriptor descriptor)
         {
-            if (texture != null && descriptor.width == texture.width && descriptor.height == texture.height && descriptor.volumeDepth == texture.volumeDepth)
+            if (texture != null && descriptor.width == texture.width && descriptor.height == texture.height &&
+                descriptor.volumeDepth == texture.volumeDepth && descriptor.useDynamicScale == texture.useDynamicScale)
             {
                 return;
             }
@@ -106,7 +107,7 @@ namespace Crest
         /// <summary>
         /// Blit using full screen triangle.
         /// </summary>
-        public static void Blit(CommandBuffer buffer, RenderTargetIdentifier target, Material material, int pass)
+        public static void Blit(CommandBuffer buffer, RenderTargetIdentifier target, Material material, int pass, MaterialPropertyBlock properties = null)
         {
             buffer.SetRenderTarget(target);
             buffer.DrawProcedural
@@ -116,7 +117,8 @@ namespace Crest
                 pass,
                 MeshTopology.Triangles,
                 vertexCount: 3,
-                instanceCount: 1
+                instanceCount: 1,
+                properties
             );
         }
     }

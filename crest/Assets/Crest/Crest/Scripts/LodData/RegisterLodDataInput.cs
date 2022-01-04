@@ -58,7 +58,7 @@ namespace Crest
     {
 #if UNITY_EDITOR
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
-        [Predicated(typeof(MeshRenderer)), DecoratedField]
+        [Predicated(typeof(Renderer)), DecoratedField]
         bool _checkShaderName = true;
 #endif
 
@@ -90,7 +90,7 @@ namespace Crest
             return registered;
         }
 
-        protected Renderer _renderer;
+        internal Renderer _renderer;
         protected Material _material;
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
@@ -106,7 +106,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
-                    ValidatedHelper.ValidateRenderer(gameObject, ValidatedHelper.DebugLog, ShaderPrefix);
+                    ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, ShaderPrefix);
                 }
 #endif
 
@@ -183,7 +183,7 @@ namespace Crest
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
 
-        [SerializeField, Predicated(typeof(MeshRenderer)), DecoratedField]
+        [SerializeField, Predicated(typeof(Renderer)), DecoratedField]
         bool _disableRenderer = true;
 
         protected abstract Color GizmoColor { get; }
@@ -209,7 +209,17 @@ namespace Crest
                 var rend = GetComponent<Renderer>();
                 if (rend)
                 {
-                    rend.enabled = false;
+                    if (rend is TrailRenderer || rend is LineRenderer)
+                    {
+                        // If we disable using "enabled" then the line/trail positions will not be updated. This keeps
+                        // the scripting side of the component running and just disables the rendering. Similar to
+                        // disabling the Renderer module on the Particle System.
+                        rend.forceRenderingOff = true;
+                    }
+                    else
+                    {
+                        rend.enabled = false;
+                    }
                 }
             }
 
@@ -417,7 +427,7 @@ namespace Crest
 
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            var isValid = ValidatedHelper.ValidateRenderer(gameObject, showMessage, RendererRequired, RendererOptional, ShaderPrefix);
+            var isValid = ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, RendererRequired, RendererOptional, ShaderPrefix);
 
             if (ocean != null && !FeatureEnabled(ocean))
             {
@@ -442,7 +452,25 @@ namespace Crest
     }
 
     [CustomEditor(typeof(RegisterLodDataInputBase), true), CanEditMultipleObjects]
-    class RegisterLodDataInputBaseEditor : ValidatedEditor { }
+    class RegisterLodDataInputBaseEditor : ValidatedEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            // Show a note of what renderer we are currently using.
+            var target = this.target as RegisterLodDataInputBase;
+            if (target._renderer != null)
+            {
+                // Enable rich text in help boxes. Store original so we can revert since this might be a "hack".
+                var styleRichText = GUI.skin.GetStyle("HelpBox").richText;
+                GUI.skin.GetStyle("HelpBox").richText = true;
+                EditorGUILayout.HelpBox($"Using renderer of type <i>{target._renderer.GetType()}</i>", MessageType.Info);
+                // Revert skin since it persists.
+                GUI.skin.GetStyle("HelpBox").richText = styleRichText;
+            }
+
+            base.OnInspectorGUI();
+        }
+    }
 
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
     {
@@ -457,7 +485,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "A <i>Crest Spline</i> component is required to drive this data. Alternatively a <i>MeshRenderer</i> can be added. Neither is currently attached to ocean input.",
+                    "A <i>Crest Spline</i> component is required to drive this data. Alternatively a <i>Renderer</i> can be added. Neither is currently attached to ocean input.",
                     "Attach a <i>Crest Spline</i> component.",
                     ValidatedHelper.MessageType.Error, gameObject,
                     ValidatedHelper.FixAttachComponent<Spline.Spline>

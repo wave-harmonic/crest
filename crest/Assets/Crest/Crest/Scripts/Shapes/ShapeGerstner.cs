@@ -57,6 +57,9 @@ namespace Crest
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;
 
+        [Tooltip("Each Gerstner wave is actually a pair of waves travelling in opposite directions (similar to FFT). This weight is applied to the wave travelling in against-wind direction. Set to 0 to obtain simple single waves."), Range(0f, 1f)]
+        public float _reverseWaveWeight = 0.5f;
+
         [Header("Generation Settings")]
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
         public int _componentsPerOctave = 8;
@@ -247,8 +250,8 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            // Nyquist rate
-            return texelSize * 2f;
+            // Nyquist rate x 2, for higher quality
+            return texelSize * 4f;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -552,7 +555,7 @@ namespace Crest
             {
                 var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _powers[i]);
                 _amplitudes[i] = Random.value * amp;
-                _amplitudes2[i] = Random.value * amp * 0.5f;
+                _amplitudes2[i] = Random.value * amp * _reverseWaveWeight;
             }
         }
 
@@ -780,16 +783,6 @@ namespace Crest
                     "A <i>Spline</i> component is attached but it has validation errors.",
                     "Check this component in the Inspector for issues.",
                     ValidatedHelper.MessageType.Error, this
-                );
-            }
-
-            if (showMessage == ValidatedHelper.HelpBox)
-            {
-                showMessage
-                (
-                    "The <i>ShapeGerstner</i> component is now obsolete.",
-                    "Prefer using <i>ShapeFFT</i> instead.",
-                    ValidatedHelper.MessageType.Warning, this
                 );
             }
 

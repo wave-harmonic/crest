@@ -22,6 +22,7 @@ float _ShorelineFoamStrength;
 float _SimDeltaTime;
 float _SimDeltaTimePrev;
 float _LODChange;
+bool _NeedsPrewarming;
 CBUFFER_END
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
@@ -70,6 +71,10 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// fade
 	foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
 
+	// Prewarm wave foam. 1.0 / _FoamFadeRate perfectly matches a paused ocean in edit mode, but this is an unnatural
+	// accumulation of foam and causes overshoots when _WaveFoamStrength is less than 1.0.
+	float simDeltaTime = _NeedsPrewarming ? max(_SimDeltaTime, min(1.0, _WaveFoamStrength - 1.0) / _FoamFadeRate) : _SimDeltaTime;
+
 	// Sample displacement texture and generate foam from it
 	const float3 dd = float3(cascadeData._oneOverTextureRes, 0.0, cascadeData._texelWidth);
 	half4 data = SampleLod( _LD_TexArray_AnimatedWaves, uv_slice );
@@ -87,13 +92,17 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / cascadeData._texelWidth;
 	// Determinant is < 1 for pinched, < 0 for overlap/inversion
 	const float det = determinant( jacobian );
-	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate( _WaveFoamCoverage - det + foamBase * 0.7 );
+	foam += 5.0 * simDeltaTime * _WaveFoamStrength * saturate( _WaveFoamCoverage - det + foamBase * 0.7 );
+
+	// Prewarm shoreline foam. 1.0 / _FoamFadeRate perfectly matches a paused ocean in edit mode which is fine for
+	// shoreline foam.
+	simDeltaTime = _NeedsPrewarming ? (1.0 / _FoamFadeRate) : _SimDeltaTime;
 
 	// Add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 	const float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, cascadeData, sliceIndex);
 	const half2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice_displaced, 0.0).xy;
 	const half signedOceanDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y + disp.y;
-	foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
+	foam += _ShorelineFoamStrength * simDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 	_LD_TexArray_Target[id] = saturate(foam);
 }

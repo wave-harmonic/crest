@@ -53,7 +53,7 @@ namespace Crest
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
 
-        Material _volumeMaterial = null;
+        internal Material _volumeMaterial = null;
         internal RenderTargetIdentifier _volumeBackFaceTarget = new RenderTargetIdentifier
         (
             sp_CrestWaterVolumeBackFaceTexture,
@@ -143,7 +143,7 @@ namespace Crest
         internal void SetUpMaskTextures(RenderTextureDescriptor descriptor)
         {
             // Bail if we do not need to (re)create the textures.
-            if (_maskRT != null && descriptor.width == _maskRT.width && descriptor.height == _maskRT.height && descriptor.volumeDepth == _maskRT.volumeDepth)
+            if (_maskRT != null && descriptor.width == _maskRT.width && descriptor.height == _maskRT.height && descriptor.volumeDepth == _maskRT.volumeDepth && descriptor.useDynamicScale == _maskRT.useDynamicScale)
             {
                 return;
             }
@@ -158,8 +158,6 @@ namespace Crest
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
             // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
             descriptor.msaaSamples = 1;
-            // Without this sampling coordinates will be incorrect if used by camera. No harm always being "true".
-            descriptor.useDynamicScale = true;
 
             // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
             // @Memory: We could potentially try a half resolution mask as the mensicus could mask resolution issues.
@@ -196,7 +194,6 @@ namespace Crest
         internal void SetUpVolumeTextures(RenderTextureDescriptor descriptor)
         {
             descriptor.msaaSamples = 1;
-            descriptor.useDynamicScale = true;
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 24;
 
@@ -236,6 +233,8 @@ namespace Crest
 
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
 
+            descriptor.useDynamicScale = _camera.allowDynamicResolution;
+
             // Keywords and other things.
             SetUpVolume(_oceanMaskMaterial.material);
             SetUpMaskTextures(descriptor);
@@ -265,10 +264,12 @@ namespace Crest
             FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor, _maskTarget);
         }
 
-        internal void PopulateVolume(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget)
+        internal void PopulateVolume(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget, MaterialPropertyBlock properties = null, Vector2Int targetSize = default)
         {
             // Front faces.
             buffer.SetRenderTarget(frontTarget);
+            // Support RTHandle scaling.
+            if (targetSize != Vector2Int.zero) buffer.SetViewport(new Rect(0f, 0f, targetSize.x, targetSize.y));
             buffer.ClearRenderTarget(true, false, Color.black);
             buffer.SetGlobalTexture(sp_CrestWaterVolumeFrontFaceTexture, frontTarget);
             if (_mode == Mode.Portal) buffer.SetInvertCulling(_invertCulling);
@@ -278,7 +279,8 @@ namespace Crest
                 _volumeGeometry.transform.localToWorldMatrix,
                 _volumeMaterial,
                 submeshIndex: 0,
-                (int)VolumePass.FrontFace
+                (int)VolumePass.FrontFace,
+                properties
             );
             buffer.SetInvertCulling(false);
 
@@ -286,6 +288,8 @@ namespace Crest
             {
                 // Back faces.
                 buffer.SetRenderTarget(backTarget);
+                // Support RTHandle scaling.
+                if (targetSize != Vector2Int.zero) buffer.SetViewport(new Rect(0f, 0f, targetSize.x, targetSize.y));
                 buffer.ClearRenderTarget(true, false, Color.black);
                 buffer.SetGlobalTexture(sp_CrestWaterVolumeBackFaceTexture, backTarget);
                 buffer.DrawMesh
@@ -294,7 +298,8 @@ namespace Crest
                     _volumeGeometry.transform.localToWorldMatrix,
                     _volumeMaterial,
                     submeshIndex: 0,
-                    (int)VolumePass.BackFace
+                    (int)VolumePass.BackFace,
+                    properties
                 );
             }
         }

@@ -12,6 +12,10 @@ user input, as covered in this video:
 
    Basics of Adding Ocean Inputs
 
+.. tip::
+
+   For inputs, you are not limited to only using a :link:`MeshRenderer <{UnityDocsLinkBase}class-MeshRenderer.html>`.
+   Almost any renderer can be used like a :link:`TrailRenderer <{UnityDocsLinkBase}class-TrailRenderer.html>`, :link:`LineRenderer <{UnityDocsLinkBase}class-LineRenderer.html>` or :link:`ParticleSystem <{UnityDocsLinkBase}class-ParticleSystem.html>`.
 
 The following shaders can be used with any ocean input:
 

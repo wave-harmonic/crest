@@ -38,6 +38,9 @@ namespace Crest
         [SerializeField] bool _drawSeaFloorDepth = false;
         [SerializeField] bool _drawClipSurface = false;
 
+        const float k_ScrollBarWidth = 20f;
+        float _scroll;
+
         readonly static float _leftPanelWidth = 180f;
         readonly static float _bottomPanelHeight = 25f;
         readonly static Color _guiColor = Color.black * 0.7f;
@@ -50,8 +53,30 @@ namespace Crest
 
         public static bool OverGUI(Vector2 screenPosition)
         {
-            return s_Instance != null && (s_Instance._guiVisible && screenPosition.x < _leftPanelWidth ||
-                s_Instance._showOceanData && screenPosition.y < _bottomPanelHeight);
+            if (s_Instance == null)
+            {
+                return false;
+            }
+
+            // Over left panel.
+            if (s_Instance._guiVisible && screenPosition.x < _leftPanelWidth)
+            {
+                return true;
+            }
+
+            // Over bottom panel.
+            if (s_Instance._showOceanData && screenPosition.y < _bottomPanelHeight)
+            {
+                return true;
+            }
+
+            // Over scroll bar.
+            if (s_Instance._showOceanData && screenPosition.x > Screen.width - k_ScrollBarWidth)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         void OnEnable()
@@ -243,36 +268,78 @@ namespace Crest
         {
             float column = 1f;
 
-            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, _drawLodDatasActualSize, ref _drawAnimWaves, ref column, 0.5f);
-            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, _drawLodDatasActualSize, ref _drawDynWaves, ref column, 0.5f, 2f);
-            DrawSim<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, _drawLodDatasActualSize, ref _drawFoam, ref column);
-            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, _drawLodDatasActualSize, ref _drawFlow, ref column, 0.5f, 2f);
-            DrawSim<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, _drawLodDatasActualSize, ref _drawShadow, ref column);
-            DrawSim<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, _drawLodDatasActualSize, ref _drawSeaFloorDepth, ref column);
-            DrawSim<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, _drawLodDatasActualSize, ref _drawClipSurface, ref column);
+            DrawVerticalScrollBar();
+
+            DrawSim(OceanRenderer.Instance._lodDataAnimWaves, ref _drawAnimWaves, ref column, 0.5f);
+            DrawSim(OceanRenderer.Instance._lodDataDynWaves, ref _drawDynWaves, ref column, 0.5f, 2f);
+            DrawSim(OceanRenderer.Instance._lodDataFoam, ref _drawFoam, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataFlow, ref _drawFlow, ref column, 0.5f, 2f);
+            DrawSim(OceanRenderer.Instance._lodDataShadow, ref _drawShadow, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataSeaDepths, ref _drawSeaFloorDepth, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataClipSurface, ref _drawClipSurface, ref column);
         }
 
-        static void DrawSim<SimType>(LodDataMgr lodData, bool actualSize, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f) where SimType : LodDataMgr
+        void DrawVerticalScrollBar()
+        {
+            if (!_drawLodDatasActualSize)
+            {
+                return;
+            }
+
+            // Data is uniform so use animated waves since it should always be there.
+            var lodData = OceanRenderer.Instance._lodDataAnimWaves;
+
+            // Make scroll bar wider as resizable window hover area covers part of it.
+            var style = GUI.skin.verticalScrollbar;
+            style.fixedWidth = k_ScrollBarWidth;
+
+            var height = Screen.height - _bottomPanelHeight;
+            var rect = new Rect(Screen.width - style.fixedWidth, 0f, style.fixedWidth, height);
+
+            // Background.
+            GUI.color = _guiColor;
+            GUI.DrawTexture(rect, Texture2D.whiteTexture);
+            GUI.color = Color.white;
+
+            _scroll = GUI.VerticalScrollbar
+            (
+                rect,
+                _scroll,
+                size: height,
+                topValue: 0f,
+                bottomValue: lodData.DataTexture.height * lodData.DataTexture.volumeDepth,
+                style
+            );
+        }
+
+        void DrawSim(LodDataMgr lodData, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f)
         {
             if (lodData == null) return;
 
-            var type = typeof(SimType);
+            // Compute short names that will fit in UI and cache them.
+            var type = lodData.GetType();
             if (!s_simNames.ContainsKey(type))
             {
                 s_simNames.Add(type, type.Name.Substring(10));
             }
 
+            var isRightmost = offset == 1f;
+
+            // Zero out here so we maintain scroll when switching back to actual size.
+            var scroll = _drawLodDatasActualSize ? _scroll : 0f;
+
             float togglesBegin = Screen.height - _bottomPanelHeight;
             float b = 7f;
-            float h = actualSize ? lodData.DataTexture.height : togglesBegin / (float)lodData.DataTexture.volumeDepth;
+            float h = _drawLodDatasActualSize ? lodData.DataTexture.height : togglesBegin / (float)lodData.DataTexture.volumeDepth;
             float w = h + b;
             float x = Screen.width - w * offset + b * (offset - 1f);
+            if (_drawLodDatasActualSize) x -= k_ScrollBarWidth;
 
             if (doDraw)
             {
                 // Background behind slices
                 GUI.color = _guiColor;
-                GUI.DrawTexture(new Rect(x, 0, offset == 1f ? w : w - b, Screen.height - _bottomPanelHeight), Texture2D.whiteTexture);
+                GUI.DrawTexture(new Rect(x, 0, isRightmost ? w : w - b, Screen.height - _bottomPanelHeight), Texture2D.whiteTexture);
                 GUI.color = Color.white;
 
                 // Only use Graphics.DrawTexture in EventType.Repaint events if called in OnGUI
@@ -281,7 +348,7 @@ namespace Crest
                     for (int idx = 0; idx < lodData.DataTexture.volumeDepth; idx++)
                     {
                         float y = idx * h;
-                        if (offset == 1f) w += b;
+                        if (isRightmost) w += b;
 
                         s_textureArrayMaterials.TryGetValue(lodData.DataTexture, out var material);
                         if (material == null)
@@ -294,7 +361,7 @@ namespace Crest
                         material.SetInt("_Depth", idx);
                         material.SetFloat("_Scale", scale);
                         material.SetFloat("_Bias", bias);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, material);
+                        Graphics.DrawTexture(new Rect(x + b, (y + b / 2f) - scroll, h - b, h - b), lodData.DataTexture, material);
                     }
                 }
             }

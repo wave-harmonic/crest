@@ -30,6 +30,9 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
+        // Is this the first step since being enabled?
+        protected bool _needsPrewarmingThisStep = true;
+
         // This is how far the simulation time is behind unity's time
         float _timeToSimulate = 0f;
 
@@ -55,6 +58,7 @@ namespace Crest
                 return;
             }
             _renderSimProperties = new PropertyWrapperCompute();
+            _needsPrewarmingThisStep = true;
         }
 
         protected override void InitData()
@@ -119,6 +123,11 @@ namespace Crest
                     // and substeps are "sub-frame".
                     Helpers.Swap(ref _sources, ref current);
                 }
+                else
+                {
+                    // We only want to handle teleports for the first step.
+                    _needsPrewarmingThisStep = _needsPrewarmingThisStep || OceanRenderer.Instance._hasTeleportedThisFrame;
+                }
 
                 _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
 
@@ -164,6 +173,8 @@ namespace Crest
                     }
                 }
 
+                // The very first step since being enabled.
+                _needsPrewarmingThisStep = false;
                 _substepDtPrevious = substepDt;
             }
 

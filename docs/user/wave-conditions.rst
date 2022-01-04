@@ -17,6 +17,8 @@ Wave Systems
 
 The *ShapeFFT* component is used to generate waves in Crest.
 
+For advanced situations where a high level of control is required over the wave shape, the *ShapeGerstner* component can be used to add specific wave components.
+
 .. _wave-authoring-section:
 
 Authoring

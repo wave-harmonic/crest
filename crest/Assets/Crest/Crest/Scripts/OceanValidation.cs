@@ -112,14 +112,14 @@ namespace Crest
             PackageManagerHelpers.AddMissingPackage("com.unity.burst");
         }
 
-        public static bool ValidateRenderer(GameObject gameObject, ShowMessage showMessage, string shaderPrefix)
+        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, string shaderPrefix) where T : Renderer
         {
-            return ValidateRenderer(gameObject, showMessage, isRendererRequired: true, isRendererOptional: false, shaderPrefix);
+            return ValidateRenderer<T>(gameObject, showMessage, isRendererRequired: true, isRendererOptional: false, shaderPrefix);
         }
 
-        public static bool ValidateRenderer(GameObject gameObject, ShowMessage showMessage, bool isRendererRequired, bool isRendererOptional, string shaderPrefix = null)
+        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, bool isRendererRequired, bool isRendererOptional, string shaderPrefix = null) where T : Renderer
         {
-            gameObject.TryGetComponent<MeshRenderer>(out var renderer);
+            gameObject.TryGetComponent<T>(out var renderer);
 
             if (isRendererRequired)
             {
@@ -131,9 +131,18 @@ namespace Crest
                         return true;
                     }
 
+                    var type = typeof(T);
+                    var name = type.Name;
+
+                    // Give users a hint as to what "Renderer" really means.
+                    if (type == typeof(Renderer))
+                    {
+                        name += " (Mesh, Trail etc)";
+                    }
+
                     showMessage
                     (
-                        "A MeshRenderer component is required but none is attached to ocean input.",
+                        $"A <i>{name}</i> component is required but none is attached to ocean input.",
                         "Attach a <i>MeshRenderer</i> component.",
                         MessageType.Error, gameObject,
                         FixAttachComponent<MeshRenderer>

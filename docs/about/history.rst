@@ -19,6 +19,7 @@ Preview
 
    -  Add portals and volumes to *Underwater Renderer* (affects both underwater and ocean surface).
       See :ref:`portals-volumes` for more information.
+   -  Added *Albedo Data* feature which allows layering colour onto the water surface similar to decals.
 
 Changed
 ^^^^^^^

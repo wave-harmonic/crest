@@ -529,7 +529,7 @@ Shader "Crest/Ocean"
 				float foam = 0.0;
 				#endif
 				#if _ALBEDO_ON
-				float4 albedo = 0.0;
+				half4 albedo = 0.0;
 				#endif
 				if (wt_smallerLod > 0.001)
 				{

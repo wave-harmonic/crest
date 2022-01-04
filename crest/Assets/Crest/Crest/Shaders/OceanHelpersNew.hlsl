@@ -117,7 +117,7 @@ void SampleFlow(in Texture2DArray i_oceanFlowSampler, in float3 i_uv_slice, in f
 	io_flow += i_wt * i_oceanFlowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
 }
 
-void SampleAlbedo(in Texture2DArray i_oceanAlbedoSampler, in float3 i_uv_slice, in float i_wt, inout float4 io_albedo)
+void SampleAlbedo(in Texture2DArray i_oceanAlbedoSampler, in float3 i_uv_slice, in float i_wt, inout half4 io_albedo)
 {
 	io_albedo += i_wt * i_oceanAlbedoSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
 }

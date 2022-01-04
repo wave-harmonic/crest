@@ -41,6 +41,7 @@ Changed
    -  Un-deprecate *ShapeGerstner* as it is useful in some situations for adding a small number of distinct waves with high degree of control.
    -  Add *Reverse Wave Weight* setting to *ShapeGerstner* for fine control over generated wave pairs.
    -  Double sample count for *ShapeGerstner* waves to improve quality.
+   -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
 
 Fixed
 ^^^^^

@@ -269,7 +269,7 @@ namespace Crest
 
         [SerializeField]
 #pragma warning disable 414
-        bool _showOceanProxyPlane = false;
+        internal bool _showOceanProxyPlane = false;
 #pragma warning restore 414
 #if UNITY_EDITOR
         GameObject _proxyPlane;
@@ -1157,9 +1157,12 @@ namespace Crest
             {
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
                 var density = UnderwaterDepthFogDensity = _material.GetVector("_DepthFogDensity") * UnderwaterRenderer.Instance.DepthFogDensityFactor;
-                var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
-                var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
-                volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
+                if (Application.isPlaying)
+                {
+                    var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+                    var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
+                    volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
+                }
             }
 
             var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
@@ -1233,7 +1236,7 @@ namespace Crest
                 }
 
                 // Cull tiles the viewer cannot see through the underwater fog.
-                if (!isCulled && isUnderwaterActive)
+                if (!isCulled && isUnderwaterActive && Application.isPlaying)
                 {
                     isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
                 }

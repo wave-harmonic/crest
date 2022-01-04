@@ -148,12 +148,8 @@ namespace Crest
                 return;
             }
 
-            // Release textures before replacing them.
-            if (_maskRT != null)
-            {
-                _maskRT.Release();
-                _depthRT.Release();
-            }
+            Helpers.DestroyRenderTargetTexture(ref _maskRT);
+            Helpers.DestroyRenderTargetTexture(ref _depthRT);
 
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
             // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
@@ -167,6 +163,7 @@ namespace Crest
             descriptor.enableRandomWrite = true;
 
             _maskRT = new RenderTexture(descriptor);
+            _maskRT.hideFlags = HideFlags.HideAndDontSave;
             _maskRT.name = "_CrestOceanMaskTexture";
             _maskTarget = new RenderTargetIdentifier
             (
@@ -182,6 +179,7 @@ namespace Crest
 
             _depthRT = new RenderTexture(descriptor);
             _depthRT.name = "_CrestOceanMaskDepthTexture";
+            _depthRT.hideFlags = HideFlags.HideAndDontSave;
             _depthTarget = new RenderTargetIdentifier
             (
                 _depthRT,
@@ -240,7 +238,7 @@ namespace Crest
             SetUpMaskTextures(descriptor);
 
             // Populate water volume before mask so we can use the stencil.
-            if (_mode != Mode.FullScreen)
+            if (_mode != Mode.FullScreen && _volumeGeometry != null)
             {
                 SetUpVolumeTextures(descriptor);
                 PopulateVolume(_oceanMaskCommandBuffer, _volumeFrontFaceTarget, _volumeBackFaceTarget);
@@ -275,7 +273,7 @@ namespace Crest
             if (_mode == Mode.Portal) buffer.SetInvertCulling(_invertCulling);
             buffer.DrawMesh
             (
-                _volumeGeometry.mesh,
+                _volumeGeometry.sharedMesh,
                 _volumeGeometry.transform.localToWorldMatrix,
                 _volumeMaterial,
                 submeshIndex: 0,
@@ -294,7 +292,7 @@ namespace Crest
                 buffer.SetGlobalTexture(sp_CrestWaterVolumeBackFaceTexture, backTarget);
                 buffer.DrawMesh
                 (
-                    _volumeGeometry.mesh,
+                    _volumeGeometry.sharedMesh,
                     _volumeGeometry.transform.localToWorldMatrix,
                     _volumeMaterial,
                     submeshIndex: 0,
@@ -379,6 +377,8 @@ namespace Crest
                 foreach (OceanChunkRenderer chunk in chunksToRender)
                 {
                     Renderer renderer = chunk.Rend;
+                    // Can happen in edit mode.
+                    if (renderer == null) continue;
                     Bounds bounds = renderer.bounds;
                     if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
                     {

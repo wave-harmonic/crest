@@ -36,9 +36,21 @@ namespace Crest
             ClearStencil,
         }
 
+        public static bool IsPreviewOfGameCamera(Camera camera)
+        {
+            return camera.cameraType == CameraType.Game && camera.name.StartsWith("Preview");
+        }
+
         public static bool IsMSAAEnabled(Camera camera)
         {
-            return camera.allowMSAA && QualitySettings.antiAliasing > 1;
+            var isMSAA = camera.allowMSAA;
+#if UNITY_EDITOR
+            // Game View Preview ignores allowMSAA.
+            isMSAA = isMSAA || IsPreviewOfGameCamera(camera);
+            // Scene view doesn't support MSAA.
+            isMSAA = isMSAA && camera.cameraType != CameraType.SceneView;
+#endif
+            return isMSAA && QualitySettings.antiAliasing > 1;
         }
 
         public static bool IsMotionVectorsEnabled()
@@ -89,10 +101,14 @@ namespace Crest
             }
             else if (texture != null)
             {
-                texture.Release();
+                DestroyRenderTargetTexture(ref texture);
             }
 
-            texture = new RenderTexture(descriptor);
+            texture = new RenderTexture(descriptor)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+            };
+
             target = new RenderTargetIdentifier
             (
                 texture,
@@ -102,11 +118,33 @@ namespace Crest
             );
         }
 
+        /// <summary>
+        /// Uses Destroy in play mode or DestroyImmediate in edit mode.
+        /// </summary>
+        public static void Destroy(Object @object)
+        {
+#if UNITY_EDITOR
+            // We must use DestroyImmediate in edit mode. As it apparently has an overhead, use recommended Destroy in
+            // play mode. DestroyImmediate is generally recommended in edit mode by Unity:
+            // https://docs.unity3d.com/ScriptReference/Object.DestroyImmediate.html
+            if (!Application.isPlaying)
+            {
+                Object.DestroyImmediate(@object);
+            }
+            else
+#endif
+            {
+                Object.Destroy(@object);
+            }
+        }
+
         public static void DestroyRenderTargetTexture(ref RenderTexture texture)
         {
             if (texture != null)
             {
                 texture.Release();
+                // Destroy the object or the reference will linger in memory profiler.
+                Helpers.Destroy(texture);
                 texture = null;
             }
         }

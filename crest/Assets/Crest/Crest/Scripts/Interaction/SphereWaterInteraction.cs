@@ -46,6 +46,7 @@ namespace Crest
         bool _warnOnSpeedClamp = false;
 
         Vector3 _velocity;
+        Vector3 _velocityClamped;
         Vector3 _posLast;
 
         float _weightThisFrame;
@@ -104,7 +105,7 @@ namespace Crest
             LateUpdateComputeVel(ocean);
 
             // Velocity relative to water
-            var relativeVelocity = _velocity;
+            var relativeVelocity = _velocityClamped;
             {
                 _sampleFlowHelper.Init(transform.position, 2f * _radius);
                 _sampleFlowHelper.Sample(out var surfaceFlow);
@@ -153,6 +154,8 @@ namespace Crest
                 _velocity = Vector3.zero;
             }
 
+            _velocityClamped = _velocity;
+
             var speedKmh = _velocity.magnitude * 3.6f;
             if (speedKmh > _teleportSpeed)
             {
@@ -167,7 +170,7 @@ namespace Crest
             else if (speedKmh > _maxSpeed)
             {
                 // limit speed to max
-                _velocity *= _maxSpeed / speedKmh;
+                _velocityClamped *= _maxSpeed / speedKmh;
 
                 if (_warnOnSpeedClamp)
                 {

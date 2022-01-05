@@ -42,6 +42,7 @@ Changed
    -  Add *Reverse Wave Weight* setting to *ShapeGerstner* for fine control over generated wave pairs.
    -  Double sample count for *ShapeGerstner* waves to improve quality.
    -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
+   -  *Underwater Renderer* validates *Ocean Renderer* material.
 
 Fixed
 ^^^^^

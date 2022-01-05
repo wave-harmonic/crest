@@ -223,17 +223,23 @@ namespace Crest
             Gizmos.DrawWireSphere(transform.position, _radius);
         }
 
-        [Range(0, 1)]
-        public float _doVelCorrection = 1f;
-
         public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             var timeBeforeCurrentTime = (lodData as LodDataMgrDynWaves).TimeLeftToSimulate;
 
-            //var pos = transform.position + -_velocity * timeBeforeCurrentTime * _doVelCorrection;
+            // Draw little red markers for each substep position
+            //var pos = transform.position + -_velocity * timeBeforeCurrentTime;
             //Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, Color.red, 0.5f);
 
-            var renderMatrix = Matrix4x4.Translate(-_velocity * timeBeforeCurrentTime * _doVelCorrection) * _renderMatrix;
+            // _renderMatrix is only updated at the frame update rate, whereas this input wants to apply
+            // to substeps. Reconstruct the position of this input at the current substep time. This produces
+            // much smoother interaction shapes for moving objects. Increasing sim freq helps further.
+            var renderMatrix = _renderMatrix;
+            var offset = _velocity * timeBeforeCurrentTime;
+            renderMatrix.m03 -= offset.x;
+            renderMatrix.m13 -= offset.y;
+            renderMatrix.m23 -= offset.z;
+
             _mpb.SetFloat(sp_weight, weight * _weightThisFrame);
             buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, renderMatrix, _mat, 0, 0, _mpb);
         }

@@ -154,8 +154,6 @@ namespace Crest
                 _velocity = Vector3.zero;
             }
 
-            _velocityClamped = _velocity;
-
             var speedKmh = _velocity.magnitude * 3.6f;
             if (speedKmh > _teleportSpeed)
             {
@@ -166,16 +164,23 @@ namespace Crest
                 {
                     Debug.LogWarning("Crest: Teleport detected (speed = " + speedKmh.ToString() + "), velocity discarded.", this);
                 }
+
+                speedKmh = _velocity.magnitude * 3.6f;
             }
-            else if (speedKmh > _maxSpeed)
+
+            if (speedKmh > _maxSpeed)
             {
                 // limit speed to max
-                _velocityClamped *= _maxSpeed / speedKmh;
+                _velocityClamped = _velocity * _maxSpeed / speedKmh;
 
                 if (_warnOnSpeedClamp)
                 {
                     Debug.LogWarning("Crest: Speed (" + speedKmh.ToString() + ") exceeded max limited, clamped.", this);
                 }
+            }
+            else
+            {
+                _velocityClamped = _velocity;
             }
         }
 
@@ -224,9 +229,10 @@ namespace Crest
         public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             var timeBeforeCurrentTime = (lodData as LodDataMgrDynWaves).TimeLeftToSimulate;
-            //Debug.Log(Time.frameCount + ": " + timeBeforeCurrentTime);
-            var pos = transform.position + -_velocity * timeBeforeCurrentTime * _doVelCorrection;
-            Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, Color.red, 0.5f);
+
+            //var pos = transform.position + -_velocity * timeBeforeCurrentTime * _doVelCorrection;
+            //Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, Color.red, 0.5f);
+
             var renderMatrix = Matrix4x4.Translate(-_velocity * timeBeforeCurrentTime * _doVelCorrection) * _renderMatrix;
             _mpb.SetFloat(sp_weight, weight * _weightThisFrame);
             buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, renderMatrix, _mat, 0, 0, _mpb);

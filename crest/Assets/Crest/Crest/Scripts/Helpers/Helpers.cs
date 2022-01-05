@@ -54,6 +54,13 @@ namespace Crest
             return SystemInfo.graphicsDeviceName.ToLowerInvariant().Contains("intel");
         }
 
+        public static bool MaskIncludesLayer(int mask, int layer)
+        {
+            // Taken from:
+            // http://answers.unity.com/answers/1332280/view.html
+            return mask == (mask | (1 << layer));
+        }
+
         public static void Swap<T>(ref T a, ref T b)
         {
             var temp = b;

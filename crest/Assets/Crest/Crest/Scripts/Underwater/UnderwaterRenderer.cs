@@ -216,6 +216,12 @@ namespace Crest
                 return;
             }
 
+            if (!Helpers.MaskIncludesLayer(_camera.cullingMask, OceanRenderer.Instance.Layer))
+            {
+                OnDisable();
+                return;
+            }
+
             if (GL.wireframe)
             {
                 OnDisable();

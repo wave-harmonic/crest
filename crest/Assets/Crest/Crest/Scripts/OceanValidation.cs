@@ -91,6 +91,13 @@ namespace Crest
             mat.SetFloat(floatParam, enabled ? 1f : 0f);
         }
 
+        internal static void FixSetMaterialIntProperty(SerializedObject material, string label, string intParam, int value)
+        {
+            var mat = material.targetObject as Material;
+            Undo.RecordObject(mat, $"change {label}");
+            mat.SetInt(intParam, value);
+        }
+
         static void FixRemoveRenderer(SerializedObject componentOrGameObject)
         {
             // We will either get the component or the GameObject it is attached to.

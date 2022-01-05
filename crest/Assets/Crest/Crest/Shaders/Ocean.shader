@@ -190,9 +190,8 @@ Shader "Crest/Ocean"
 
 		[Header(Debug Options)]
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
-		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
-		[Toggle] _DebugVisualiseFlow("Debug Visualise Flow", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
+		[KeywordEnum(None, ShapeSample, AnimatedWaves, Flow, Shadows, Foam)] _DebugVisualise("Debug Visualise With Colours", Float) = 0
 	}
 
 	SubShader
@@ -251,17 +250,22 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
-			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
-			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
 			#pragma shader_feature_local _DEBUGDISABLESMOOTHLOD_ON
+			#pragma shader_feature_local _DEBUGVISUALISE_NONE _DEBUGVISUALISE_SHAPESAMPLE _DEBUGVISUALISE_ANIMATEDWAVES \
+				_DEBUGVISUALISE_FLOW _DEBUGVISUALISE_SHADOWS _DEBUGVISUALISE_FOAM
 
 			#pragma multi_compile_local _ _OLD_UNDERWATER
+
+			// Clipping the ocean surface for underwater volumes.
+			#pragma multi_compile _ CREST_WATER_VOLUME_2D CREST_WATER_VOLUME_HAS_BACKFACE
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
 			#include "Helpers/BIRP/Core.hlsl"
 			#include "Helpers/BIRP/InputsDriven.hlsl"
+
+			#include "ShaderLibrary/Common.hlsl"
 
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
@@ -270,6 +274,8 @@ Shader "Crest/Ocean"
 			#include "OceanVertHelpers.hlsl"
 			#include "OceanShaderHelpers.hlsl"
 			#include "OceanLightingHelpers.hlsl"
+
+			#include "Helpers/WaterVolume.hlsl"
 
 			#include "OceanEmission.hlsl"
 			#include "OceanNormalMapping.hlsl"
@@ -291,7 +297,7 @@ Shader "Crest/Ocean"
 				half3 screenPosXYW : TEXCOORD4;
 				float4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 				float3 worldPos : TEXCOORD7;
-				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				#if defined(_DEBUGVISUALISE_SHAPESAMPLE) || defined(_DEBUGVISUALISE_ANIMATEDWAVES)
 				half3 debugtint : TEXCOORD8;
 				#endif
 				half4 grabPos : TEXCOORD9;
@@ -358,6 +364,10 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
 
+					#if _DEBUGVISUALISE_ANIMATEDWAVES
+					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_smallerLod, 0.0);
+					#endif
+
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
 					#endif
@@ -369,6 +379,10 @@ Shader "Crest/Ocean"
 				if (wt_biggerLod > 0.001)
 				{
 					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
+
+					#if _DEBUGVISUALISE_ANIMATEDWAVES
+					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_biggerLod, 0.0);
+					#endif
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
@@ -414,7 +428,7 @@ Shader "Crest/Ocean"
 				o.worldPos.y += seaLevelOffset;
 
 				// debug tinting to see which shape textures are used
-				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				#if _DEBUGVISUALISE_SHAPESAMPLE
 				#define TINT_COUNT (uint)7
 				half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 				o.debugtint = wt_smallerLod * tintCols[_LD_SliceIndex % TINT_COUNT] + wt_biggerLod * tintCols[(_LD_SliceIndex + 1) % TINT_COUNT];
@@ -438,6 +452,36 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+#if _CLIPSURFACE_ON
+				{
+					// Clip surface
+					half clipValue = 0.0;
+
+					uint slice0; uint slice1; float alpha;
+					PosToSliceIndices(input.worldPos.xz, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, alpha);
+
+					const CascadeParams cascadeData0 = _CrestCascadeData[slice0];
+					const CascadeParams cascadeData1 = _CrestCascadeData[slice1];
+					const float weight0 = (1.0 - alpha) * cascadeData0._weight;
+					const float weight1 = (1.0 - weight0) * cascadeData1._weight;
+
+					if (weight0 > 0.001)
+					{
+						const float3 uv = WorldToUV(input.worldPos.xz, cascadeData0, slice0);
+						SampleClip(_LD_TexArray_ClipSurface, uv, weight0, clipValue);
+					}
+					if (weight1 > 0.001)
+					{
+						const float3 uv = WorldToUV(input.worldPos.xz, cascadeData1, slice1);
+						SampleClip(_LD_TexArray_ClipSurface, uv, weight1, clipValue);
+					}
+
+					clipValue = lerp(_CrestClipByDefault, clipValue, weight0 + weight1);
+					// Add 0.5 bias to tighten and smooth clipped edges.
+					clip(-clipValue + 0.5);
+				}
+#endif // _CLIPSURFACE_ON
+
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
@@ -453,23 +497,12 @@ Shader "Crest/Ocean"
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 
-				#if _CLIPSURFACE_ON
-				// Clip surface
-				half clipVal = 0.0;
-				if (wt_smallerLod > 0.001)
-				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, cascadeData0, _LD_SliceIndex);
-					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
-				}
-				if (wt_biggerLod > 0.001)
-				{
-					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
-					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
-				}
-				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
-				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
-				clip(-clipVal + 0.5);
-				#endif
+				half3 screenPos = input.screenPosXYW;
+				half2 uvDepth = screenPos.xy / screenPos.z;
+
+#if CREST_WATER_VOLUME
+				ApplyVolumeToOceanSurface(input.positionCS);
+#endif
 
 				#if _CLIPUNDERTERRAIN_ON
 				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);
@@ -479,8 +512,6 @@ Shader "Crest/Ocean"
 
 				// water surface depth, and underlying scene opaque surface depth
 				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
-				half3 screenPos = input.screenPosXYW;
-				half2 uvDepth = screenPos.xy / screenPos.z;
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
 				float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepth);
 				float sceneZ = CrestLinearEyeDepth(rawDepth);
@@ -530,9 +561,9 @@ Shader "Crest/Ocean"
 
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
-				ApplyNormalMapsWithFlow(positionXZWSUndisplaced, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
+				ApplyNormalMapsWithFlow(_NormalsTiledTexture, positionXZWSUndisplaced, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += SampleNormalMaps(positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
+				n_pixel.xz += SampleNormalMaps(_NormalsTiledTexture, positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
 				#endif
 				#endif
 
@@ -553,6 +584,7 @@ Shader "Crest/Ocean"
 				#if !_FLOW_ON
 				ComputeFoam
 				(
+					_FoamTiledTexture,
 					foam,
 					positionXZWSUndisplaced,
 					input.worldPos.xz,
@@ -571,6 +603,7 @@ Shader "Crest/Ocean"
 				#else
 				ComputeFoamWithFlow
 				(
+					_FoamTiledTexture,
 					input.flow_shadow.xy,
 					foam,
 					positionXZWSUndisplaced,
@@ -615,7 +648,6 @@ Shader "Crest/Ocean"
 					sceneZ,
 					rawDepth,
 					bubbleCol,
-					_Normals,
 					underwater,
 					scatterCol,
 					cascadeData0,
@@ -665,12 +697,17 @@ Shader "Crest/Ocean"
 				}
 #endif
 
-				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				#if !_DEBUGVISUALISE_NONE
+				#if _DEBUGVISUALISE_FLOW && _FLOW_ON
+				col.rb = lerp(col.rb, input.flow_shadow.xy, 0.5);
+				#elif _DEBUGVISUALISE_SHADOWS && _SHADOWS_ON
+				col.rgb = half3(input.flow_shadow.zw, 0.0);
+				#elif _DEBUGVISUALISE_FOAM && _FOAM_ON
+				col.rgb = half3(foam, 0.0, 0.0);
+				#elif _DEBUGVISUALISE_ANIMATEDWAVES
+				col.rgb = input.debugtint + 0.5;
+				#elif _DEBUGVISUALISE_SHAPESAMPLE
 				col = lerp(col.rgb, input.debugtint, 0.5);
-				#endif
-				#if _DEBUGVISUALISEFLOW_ON
-				#if _FLOW_ON
-				col.rg = lerp(col.rg, input.flow_shadow.xy, 0.5);
 				#endif
 				#endif
 

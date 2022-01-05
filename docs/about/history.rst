@@ -13,17 +13,63 @@ Release Notes
 |version|
 ---------
 
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  Add portals and volumes to *Underwater Renderer* (affects both underwater and ocean surface).
+      See :ref:`portals-volumes` for more information.
+
 Changed
 ^^^^^^^
 .. bullet_list::
 
    -  Added new CPU-based collision provider - *Baked FFT Data*.
+   -  Add *CREST_OCEAN* scripting defines symbol.
+   -  Add *Depth Fog Density Factor* to *Underwater Renderer* which can be used to decrease underwater fog intensity when underwater.
+      Greatly improves shadows at shorelines.
+   -  Add UV feathering option to Flow shaders.
+   -  Add *Attenuation in Shallows* to *Dynamic Waves Sims Settings*.
+   -  Add *Shallows Max Depth* to *Sim Settings Animated Waves* as an alternative to having to extend terrain to 500m below sea level to avoid discontinuity issues.
+   -  Add *Allow No Shadows* to *Sim Settings Shadows* to allow shadows to be enabled/disabled dynamically.
+   -  Add *Ocean Renderer >  Water Body Culling* option so the ocean can ignore culling.
+      Useful if using *Water Body > Override Material* and still want an ocean.
+   -  Improve multiple *Water Body* overlapping case when *Water Body > Override Material* option is used.
+   -  Water Body adds an inclusion to clipping (ie unclips) if *Default Clipping State* is *Everything Clipped*.
+   -  Add scroll bar to *Ocean Debug GUI* when using *Draw LOD Datas Actual Size*.
+   -  Add support for *TrailRenderer*, *LineRenderer* and *ParticleSystem* to be used as ocean inputs in addition to *MeshRenderer*.
+   -  Un-deprecate *ShapeGerstner* as it is useful in some situations for adding a small number of distinct waves with high degree of control.
+   -  Add *Reverse Wave Weight* setting to *ShapeGerstner* for fine control over generated wave pairs.
+   -  Double sample count for *ShapeGerstner* waves to improve quality.
+   -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
 
 Fixed
 ^^^^^
 .. bullet_list::
 
    -  Fix incorrect baked depth cache data that were baked since `Crest` 4.14.
+   -  Fix XR `SPI` underwater rendering for Unity 2021.2 standalone.
+   -  Fix *Underwater Renderer* not rendering on *Intel iGPUs*.
+   -  Fix clip surface inputs losing accuracy with large waves.
+   -  Fix waves at shorelines being incorrectly shadowed. :pr:`945`
+   -  Fix shadow bleeding at shorelines by using the *Sea Floor Depth* data to reject invalid shadows. :pr:`947`
+   -  Fix exceptions thrown for server/headless builds.
+   -  Fix exceptions thrown if foam, dynamic waves and shadows all were disabled.
+   -  Fix *Floating Origin* for *Shape Gerstner* and *Shape FFT*.
+   -  Fix ocean scale smoothing on first frame and teleports.
+      This issue appears as the ocean detail being low and slowly becoming high detailed.
+   -  Fix shadow data not always clearing.
+   -  Fix shadow simulation not recovering after error being resolved in edit mode.
+   -  Fix *Allow Null Light* option on *Sim Settings Shadows* not working.
+   -  Fix ocean tiles not reverting to *Ocean Renderer > Material* if *Water Body > Override Material* was used and *Water Body* was disabled or removed.
+
+   .. only:: birp
+
+      -  Fix shadow simulation null exceptions if primary light becomes null. `[BIRP]`
+
+   .. only:: birp or urp
+
+      -  Fix *Underwater Renderer* high memory usage by reverting change of using temporary render textures. `[BIRP] [URP]`
 
    .. only:: hdrp
 

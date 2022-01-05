@@ -68,8 +68,8 @@ namespace Crest
             _reflectionIntensity = RenderSettings.reflectionIntensity;
             _fogDensity = RenderSettings.fogDensity;
 
-            Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
-            _averageDensity = (density.r + density.g + density.b) / 3f;
+            var density = OceanRenderer.Instance.UnderwaterDepthFogDensity;
+            _averageDensity = (density.x + density.y + density.z) / 3f;
 
             _isInitialised = true;
         }
@@ -95,10 +95,13 @@ namespace Crest
 
         void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.Instance == null || UnderwaterRenderer.Instance == null)
             {
                 return;
             }
+
+            var density = OceanRenderer.Instance.UnderwaterDepthFogDensity;
+            _averageDensity = (density.x + density.y + density.z) / 3f;
 
             float depthMultiplier = Mathf.Exp(_averageDensity *
                 Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f) *

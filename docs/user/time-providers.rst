@@ -22,6 +22,8 @@ The *TimeProviderCustom* also allows driving any time to the system which may gi
 A final alternative option is to create a new class that implements the *ITimeProvider* interface and call *OceanRenderer.Instance.PushTimeProvider()* to apply it to the system.
 
 
+.. _network-synchronisation:
+
 Network Synchronisation
 -----------------------
 
@@ -33,7 +35,7 @@ This is supported by attaching a *TimeProviderNetworked.cs* component to a GameO
 If using the :link:`Mirror <https://assetstore.unity.com/packages/tools/network/mirror-129321?aid=1011lic2K>` network system, set this property to the :link:`network time offset <https://mirror-networking.com/docs/api/Mirror.NetworkTime.html#Mirror_NetworkTime_offset>`.
 
 
-Timelines and cutscenes
+Timelines and Cutscenes
 -----------------------
 
 One use case for this is for cutscenes/timelines when the waves conditions must be known in advance and repeatable.

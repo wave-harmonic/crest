@@ -12,6 +12,10 @@ user input, as covered in this video:
 
    Basics of Adding Ocean Inputs
 
+.. tip::
+
+   For inputs, you are not limited to only using a :link:`MeshRenderer <{UnityDocsLinkBase}class-MeshRenderer.html>`.
+   Almost any renderer can be used like a :link:`TrailRenderer <{UnityDocsLinkBase}class-TrailRenderer.html>`, :link:`LineRenderer <{UnityDocsLinkBase}class-LineRenderer.html>` or :link:`ParticleSystem <{UnityDocsLinkBase}class-ParticleSystem.html>`.
 
 The following shaders can be used with any ocean input:
 
@@ -44,6 +48,10 @@ Simulation Settings
 
 All of the settings below refer to the *Animated Waves Sim Settings* asset.
 
+-  **Attenuation In Shallows** - How much waves are dampened in shallow water.
+-  **Shallows Max Depth** - Any water deeper than this will receive full wave strength.
+   The lower the value, the less effective the depth cache will be at attenuating very large waves.
+   Set to the maximum value (1,000) to disable.
 -  **Collision Source** - Where to obtain ocean shape on CPU for physics / gameplay.
 -  **Max Query Count** - Maximum number of wave queries that can be performed when using ComputeShaderQueries.
 -  **Ping Pong Combine Pass** - Whether to use a graphics shader for combining the wave cascades together.
@@ -136,6 +144,8 @@ All of the settings below refer to the *Dynamic Wave Sim Settings* asset.
 
 -  **Gravity Multiplier** - Multiplier for gravity.
    More gravity means dynamic waves will travel faster.
+
+-  **Attenuation in Shallows** - How much waves are dampened in shallow water.
 
 The *OceanDebugGUI* script gives the debug overlay in the example content scenes and reports the number of sim steps taken each frame.
 

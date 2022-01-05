@@ -880,7 +880,7 @@ namespace Crest
             // Renderer
             if (_mode == GerstnerMode.Geometry)
             {
-                isValid = ValidatedHelper.ValidateRenderer(gameObject, showMessage, "Crest/Inputs/Animated Waves/Gerstner");
+                isValid = ValidatedHelper.ValidateRenderer<MeshRenderer>(gameObject, showMessage, "Crest/Inputs/Animated Waves/Gerstner");
             }
             else if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
             {

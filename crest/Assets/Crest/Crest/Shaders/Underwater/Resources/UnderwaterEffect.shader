@@ -19,100 +19,141 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 	#pragma multi_compile_local __ CREST_MENISCUS
-	#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
+	#pragma multi_compile_local __ _DEBUG_VIEW_STENCIL
 
 	#include "UnityCG.cginc"
 	#include "Lighting.cginc"
 
 	#include "../../Helpers/BIRP/Core.hlsl"
 	#include "../../Helpers/BIRP/InputsDriven.hlsl"
-
-	#include "../../OceanGlobals.hlsl"
-	#include "../../OceanInputsDriven.hlsl"
-	#include "../../OceanShaderData.hlsl"
-	#include "../../OceanHelpersNew.hlsl"
-	#include "../../OceanShaderHelpers.hlsl"
 	#include "../../FullScreenTriangle.hlsl"
-	#include "../../OceanEmission.hlsl"
+	#include "../../Helpers/BIRP/Lighting.hlsl"
 
-	TEXTURE2D_X(_CrestCameraColorTexture);
-	TEXTURE2D_X(_CrestOceanMaskTexture);
-	TEXTURE2D_X(_CrestOceanMaskDepthTexture);
+	// Variable downstream as URP XR has issues.
+	#define _CameraForward unity_CameraToWorld._m02_m12_m22
 
-	#include "../UnderwaterEffectShared.hlsl"
-
-	struct Attributes
-	{
-		uint id : SV_VertexID;
-		UNITY_VERTEX_INPUT_INSTANCE_ID
-	};
-
-	struct Varyings
-	{
-		float4 positionCS : SV_POSITION;
-		float2 uv : TEXCOORD0;
-		UNITY_VERTEX_OUTPUT_STEREO
-	};
-
-	Varyings Vert (Attributes input)
-	{
-		Varyings output;
-
-		UNITY_SETUP_INSTANCE_ID(input);
-		UNITY_INITIALIZE_OUTPUT(Varyings, output);
-		UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-		output.positionCS = GetFullScreenTriangleVertexPosition(input.id);
-		output.uv = GetFullScreenTriangleTexCoord(input.id);
-
-		return output;
-	}
-
-	fixed4 Frag (Varyings input) : SV_Target
-	{
-		// We need this when sampling a screenspace texture.
-		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-		const int2 positionSS = input.positionCS.xy;
-		half3 sceneColour = LOAD_TEXTURE2D_X(_CrestCameraColorTexture, positionSS).rgb;
-		float rawDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
-		const float mask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, positionSS).r;
-		const float rawOceanDepth = LOAD_TEXTURE2D_X(_CrestOceanMaskDepthTexture, positionSS).r;
-
-		bool isOceanSurface; bool isUnderwater; float sceneZ;
-		GetOceanSurfaceAndUnderwaterData(positionSS, rawOceanDepth, mask, rawDepth, isOceanSurface, isUnderwater, sceneZ, 0.0);
-
-		float wt = ComputeMeniscusWeight(positionSS, mask, _HorizonNormal, sceneZ);
-
-#if _DEBUG_VIEW_OCEAN_MASK
-		return DebugRenderOceanMask(isOceanSurface, isUnderwater, mask, sceneColour);
-#endif
-
-		if (isUnderwater)
-		{
-			// Position needs to be reconstructed in the fragment shader to avoid precision issues as per
-			// Unity's lead. Fixes caustics stuttering when far from zero.
-			const float3 positionWS = ComputeWorldSpacePosition(input.uv, rawDepth, UNITY_MATRIX_I_VP);
-			const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
-			float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -view);
-			const float3 lightDir = _WorldSpaceLightPos0.xyz;
-			const half3 lightCol = _LightColor0;
-			sceneColour = ApplyUnderwaterEffect(positionSS, scenePos, sceneColour, lightCol, lightDir, rawDepth, sceneZ, view, isOceanSurface);
-		}
-
-		return half4(wt * sceneColour, 1.0);
-	}
 	ENDHLSL
 
 	SubShader
 	{
-		// No culling or depth
-		Cull Off ZWrite Off ZTest Always
+		ZWrite Off
 
 		Pass
 		{
+			Name "Full Screen"
+			Cull Off
+			ZTest Always
+
 			HLSLPROGRAM
+			// Both "__" and "_FULL_SCREEN_EFFECT" are fullscreen triangles. The latter only denotes an optimisation of
+			// whether to skip the horizon calculation.
+			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
+
+			#include "../UnderwaterEffect.hlsl"
+			ENDHLSL
+		}
+
+		Pass
+		{
+			// Only adds fog to the front face and in effect anything behind it.
+			Name "Volume: Front Face (2D)"
+			Cull Back
+			ZTest LEqual
+
+			HLSLPROGRAM
+			#define CREST_WATER_VOLUME 1
+			#define CREST_WATER_VOLUME_FRONT_FACE 1
+			#include "../UnderwaterEffect.hlsl"
+			ENDHLSL
+		}
+
+		Pass
+		{
+			// Only adds fog to the front face and in effect anything behind it.
+			Name "Volume: Front Face (3D)"
+			Cull Back
+			ZTest LEqual
+
+			HLSLPROGRAM
+			#define CREST_WATER_VOLUME 1
+			#define CREST_WATER_VOLUME_HAS_BACKFACE 1
+			#define CREST_WATER_VOLUME_FRONT_FACE 1
+			#include "../UnderwaterEffect.hlsl"
+			ENDHLSL
+		}
+
+		Pass
+		{
+			// Only adds fog to the front face and in effect anything behind it.
+			Name "Volume: Front Face (Fly-Through)"
+			Cull Back
+			ZTest LEqual
+
+			Stencil
+			{
+				// Must match k_StencilValueVolume in:
+				// Scripts/Underwater/UnderwaterRenderer.Mask.cs
+				Ref 5
+				Comp Always
+				Pass Replace
+				ZFail IncrSat
+			}
+
+			HLSLPROGRAM
+			#define CREST_WATER_VOLUME 1
+			#define CREST_WATER_VOLUME_HAS_BACKFACE 1
+			#define CREST_WATER_VOLUME_FRONT_FACE 1
+			#include "../UnderwaterEffect.hlsl"
+			ENDHLSL
+		}
+
+		Pass
+		{
+			// Back face will only render if view is within the volume and there is no scene in front. It will only add
+			// fog to the back face (and in effect anything behind it). No caustics.
+			Name "Volume: Back Face"
+			Cull Front
+			ZTest LEqual
+
+			Stencil
+			{
+				// Must match k_StencilValueVolume in:
+				// Scripts/Underwater/UnderwaterRenderer.Mask.cs
+				Ref 5
+				Comp NotEqual
+				Pass Replace
+				ZFail IncrSat
+			}
+
+			HLSLPROGRAM
+			#define CREST_WATER_VOLUME 1
+			#define CREST_WATER_VOLUME_BACK_FACE 1
+			#include "../UnderwaterEffect.hlsl"
+			ENDHLSL
+		}
+
+		Pass
+		{
+			// When inside a volume, this pass will render to the scene within the volume.
+			Name "Volume: Scene (Full Screen)"
+			Cull Back
+			ZTest Always
+			Stencil
+			{
+				// We want to render over the scene that's inside the volume, but not over already fogged areas. It will
+				// handle all of the scene within the geometry once the camera is within the volume.
+				// 0 = Outside of geometry as neither face passes have touched it.
+				// 1 = Only back face z failed which means scene is in front of back face but not front face.
+				// 2 = Both front and back face z failed which means outside geometry.
+				Ref 1
+				Comp Equal
+				Pass Replace
+			}
+
+			HLSLPROGRAM
+			#define CREST_WATER_VOLUME_FULL_SCREEN 1
+			#include "../UnderwaterEffect.hlsl"
 			ENDHLSL
 		}
 	}

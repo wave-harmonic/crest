@@ -67,6 +67,20 @@ Setup
 -  Add the *Underwater Renderer* component to your camera game object.
 
 
+Parameters
+^^^^^^^^^^
+
+-  **Mode:** How the underwater effect (and ocean surface) is rendered:
+
+   -  **Full-Screen:** Full screen effect.
+   -  **Portal:** Renders the underwater effect and ocean surface from the geometry's front-face and behind it.
+   -  **Volume:** Renders the underwater effect and ocean surface from the geometry's front-face to its back-face.
+   -  **Volume (Fly-Through):** Renders the underwater effect and ocean surface from the geometry's front-face to its back-face - even from within the volume.
+
+-  **Depth Fog Density Factor:** Reduces the underwater depth fog density by a factor.
+   Useful to reduce the intensity of the fog independently from the ocean surface.
+
+
 .. only:: birp or urp
 
    Underwater Curtain `[BIRP] [URP]`
@@ -85,6 +99,33 @@ Setup
       See *Ocean-Underwater.mat* for an example.
 
    -  Place *UnderWaterCurtainGeom* and *UnderWaterMeniscus* prefabs under the camera (with cleared transform).
+
+.. _detecting_above_or_below_water:
+
+Detecting Above or Below Water
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The *OceanRenderer* component has the *ViewerHeightAboveWater* property which can be accessed with ``OceanRenderer.Instance.ViewerHeightAboveWater``.
+It will return the signed height from the ocean surface of the camera rendering the ocean.
+Internally this uses the *SampleHeightHelper* class which can be found in *SamplingHelpers.cs*.
+
+There is also the *OceanSampleHeightEvents* example component (requires example content to be imported) which uses :link:`UnityEvents <{UnityDocLink}/UnityEvents.html>` to provide a scriptless approach to triggering changes.
+Simply attach it to a game object, and it will invoke a UnityEvent when the attached game object is above or below the ocean surface once per state change. A common use case is to use it to trigger different audio when above or below the surface.
+
+
+.. _portals-volumes:
+
+Portals & Volumes
+^^^^^^^^^^^^^^^^^
+
+.. admonition:: Preview
+
+   This feature is in preview and may change in the future.
+
+The underwater effect can be rendered from a provided mesh which will effectively become a portal (2D) or volume (3D).
+Change the *Mode* property to one of your choosing and set the *Volume Geometry* to a *Mesh Filter* (it will use its transform).
+This feature also clips the ocean surface to match.
+A common use case would be a window on a boat.
 
 
 .. only:: hdrp
@@ -124,16 +165,3 @@ Setup
    #. Configure the ocean material for underwater rendering.
       Ensure that *Double-Sided* is enabled under *Surface Options* on the ocean material so that the underside of the ocean surface renders.
       See *Ocean-Underwater.mat* for an example.
-
-
-.. _detecting_above_or_below_water:
-
-Detecting Above or Below Water
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The *OceanRenderer* component has the *ViewerHeightAboveWater* property which can be accessed with ``OceanRenderer.Instance.ViewerHeightAboveWater``.
-It will return the signed height from the ocean surface of the camera rendering the ocean.
-Internally this uses the *SampleHeightHelper* class which can be found in *SamplingHelpers.cs*.
-
-There is also the *OceanSampleHeightEvents* example component (requires example content to be imported) which uses :link:`UnityEvents <{UnityDocLink}/UnityEvents.html>` to provide a scriptless approach to triggering changes.
-Simply attach it to a game object, and it will invoke a UnityEvent when the attached game object is above or below the ocean surface once per state change. A common use case is to use it to trigger different audio when above or below the surface.

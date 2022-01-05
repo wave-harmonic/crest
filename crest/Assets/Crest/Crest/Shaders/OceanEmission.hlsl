@@ -56,11 +56,12 @@ half3 ScatterColour
 #if _CAUSTICS_ON
 void ApplyCaustics
 (
+	in const WaveHarmonic::Crest::TiledTexture i_causticsTexture,
+	in const WaveHarmonic::Crest::TiledTexture i_distortionTexture,
 	in const int2 i_positionSS,
 	in const float3 i_scenePos,
 	in const half3 i_lightDir,
 	in const float i_sceneZ,
-	in sampler2D i_normals,
 	in const bool i_underwater,
 	inout half3 io_sceneColour,
 	in const CascadeParams cascadeData0,
@@ -87,9 +88,9 @@ void ApplyCaustics
 	// Removing the fudge factor (4.0) will cause the caustics to move around more with the waves. But this will also
 	// result in stretched/dilated caustics in certain areas. This is especially noticeable on angled surfaces.
 	float2 surfacePosXZ = i_scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
-	half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-	float4 cuv1 = float4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
-	float4 cuv2 = float4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + float2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
+	half2 causticN = _CausticsDistortionStrength * UnpackNormal(i_distortionTexture.Sample(surfacePosXZ / i_distortionTexture._scale)).xy;
+	float3 cuv1 = float3((surfacePosXZ / i_causticsTexture._scale + 1.3 * causticN + float2(0.044 * _CrestTime + 17.16, -0.169 * _CrestTime)), mipLod);
+	float3 cuv2 = float3((1.37 * surfacePosXZ / i_causticsTexture._scale + 1.77 * causticN + float2(0.248 * _CrestTime, 0.117 * _CrestTime)), mipLod);
 
 	half causticsStrength = _CausticsStrength;
 
@@ -105,7 +106,11 @@ void ApplyCaustics
 #endif // _SHADOWS_ON
 
 	io_sceneColour.xyz *= 1.0 + causticsStrength *
-		(0.5*tex2Dlod(_CausticsTexture, cuv1).xyz + 0.5*tex2Dlod(_CausticsTexture, cuv2).xyz - _CausticsTextureAverage);
+	(
+		0.5 * i_causticsTexture.SampleLevel(cuv1.xy, cuv1.z).xyz +
+		0.5 * i_causticsTexture.SampleLevel(cuv2.xy, cuv2.z).xyz -
+		_CausticsTextureAverage
+	);
 }
 #endif // _CAUSTICS_ON
 
@@ -123,7 +128,6 @@ half3 OceanEmission
 	in const float i_sceneZ,
 	const float i_rawDepth,
 	in const half3 i_bubbleCol,
-	in sampler2D i_normals,
 	in const bool i_underwater,
 	in const half3 i_scatterCol,
 	in const CascadeParams cascadeData0,
@@ -173,7 +177,7 @@ half3 OceanEmission
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
 		float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
-		ApplyCaustics(i_positionSS, scenePos, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour, cascadeData0, cascadeData1);
+		ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, i_positionSS, scenePos, i_lightDir, i_sceneZ, i_underwater, sceneColour, cascadeData0, cascadeData1);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

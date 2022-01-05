@@ -233,15 +233,7 @@ namespace Crest
                 }
                 else
                 {
-                    if (_inverted)
-                    {
-                        _signedDistancedMaterial.EnableKeyword("_INVERTED");
-                    }
-                    else
-                    {
-                        _signedDistancedMaterial.DisableKeyword("_INVERTED");
-                    }
-
+                    _signedDistancedMaterial.SetKeyword("_INVERTED", _inverted);
                     _signedDistancedMaterial.SetInt(sp_BlendOp, (int)(_inverted ? BlendOp.Min : BlendOp.Max));
                 }
 

@@ -59,8 +59,12 @@ Can *Crest* work with multiplayer?
 Yes, the animated waves are deterministic and easily synchronized.
 See discussion in :issue:`75`.
 However, the dynamic wave sim is not synchronized over the network and can not currently be relied upon in networked situations.
-Additionally, *Crest* does not currently support being run as a CPU-only headless instance.
-We hope to improve this in the future.
+
+For more information, see the following sections relevant to networking and server environments:
+
+-  :ref:`network-synchronisation`
+-  :ref:`collisions-fft-waves-cpu`
+-  :ref:`collisions-gerstner-waves-cpu`
 
 Errors are present in the log that report *Kernel 'xxx.yyy' not found*
 ----------------------------------------------------------------------
@@ -94,6 +98,7 @@ Can the density of the fog in the water be reduced?
 ---------------------------------------------------
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material.
 This applies to both above water and underwater.
+The *Depth Fog Density Factor* on the *Underwater Renderer* can reduce the density of the fog for the underwater effect.
 
 .. only:: birp or urp
 

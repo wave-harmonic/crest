@@ -37,6 +37,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			float _AttenuationInShallows;
 			float2 _AxisX;
 			float _RespectShallowWaterAttenuation;
+			half _MaximumAttenuationDepth;
 			CBUFFER_END
 
 			struct Attributes
@@ -57,7 +58,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 
 				o.uv_uvWaves.xy = GetFullScreenTriangleTexCoord(input.VertexID);
 
-				float2 worldPosXZ = UVToWorld( o.uv_uvWaves.xy, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex] );
+				float2 worldPosXZ = UVToWorld( o.uv_uvWaves.xy, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex] ) - _CrestFloatingOriginOffset.xz;
 
 				// UV coordinate into wave buffer
 				float2 wavePos = float2( dot(worldPosXZ, _AxisX), dot(worldPosXZ, float2(-_AxisX.y, _AxisX.x)) );
@@ -76,6 +77,10 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 					_LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, float3(input.uv_uvWaves.xy, _LD_SliceIndex), 0.0).xy;
 				const half depth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
 				half depth_wt = saturate(2.0 * depth / _AverageWavelength);
+				if (_MaximumAttenuationDepth < CREST_OCEAN_DEPTH_BASELINE)
+				{
+					depth_wt = lerp(depth_wt, 1.0, saturate(depth / _MaximumAttenuationDepth));
+				}
 				const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
 				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 

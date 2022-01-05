@@ -4,6 +4,12 @@
 
 Shader "Hidden/Crest/Underwater/Ocean Mask"
 {
+	Properties
+	{
+		// Needed so it can be scripted.
+		_StencilRef("Stencil Reference", Int) = 0
+	}
+
 	SubShader
 	{
 		Pass
@@ -13,11 +19,19 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			// use it for underwater rendering features.
 			Cull Off
 
+			Stencil
+			{
+				Ref [_StencilRef]
+				Comp Equal
+			}
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 			// for VFACE
 			#pragma target 3.0
+
+			#pragma multi_compile_local _ CREST_WATER_VOLUME
 
 			#include "UnityCG.cginc"
 
@@ -34,7 +48,13 @@ Shader "Hidden/Crest/Underwater/Ocean Mask"
 			Cull Off
 			ZWrite Off
 			// Horizon must be rendered first or it will overwrite the mask with incorrect values. ZTest not needed.
-			ZTest Off
+			ZTest Always
+
+			Stencil
+			{
+				Ref [_StencilRef]
+				Comp Equal
+			}
 
 			CGPROGRAM
 			#pragma vertex Vert

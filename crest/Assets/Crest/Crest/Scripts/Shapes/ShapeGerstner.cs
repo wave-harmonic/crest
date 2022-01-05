@@ -20,7 +20,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
-    public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin, LodDataMgrAnimWaves.IShapeUpdatable
+    public partial class ShapeGerstner : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -55,7 +55,10 @@ namespace Crest
         public float _weight = 1f;
 
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
-        float _respectShallowWaterAttenuation = 1f;
+        public float _respectShallowWaterAttenuation = 1f;
+
+        [Tooltip("Each Gerstner wave is actually a pair of waves travelling in opposite directions (similar to FFT). This weight is applied to the wave travelling in against-wind direction. Set to 0 to obtain simple single waves."), Range(0f, 1f)]
+        public float _reverseWaveWeight = 0.5f;
 
         [Header("Generation Settings")]
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
@@ -188,7 +191,11 @@ namespace Crest
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
 
+        // Active material.
         Material _matGenerateWaves;
+        // Cache material options.
+        Material _matGenerateWavesGlobal;
+        Material _matGenerateWavesGeometry;
 
         readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
@@ -199,6 +206,7 @@ namespace Crest
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
         static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
+        static readonly int sp_MaximumAttenuationDepth = Shader.PropertyToID("_MaximumAttenuationDepth");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         readonly float _twoPi = 2f * Mathf.PI;
@@ -242,8 +250,8 @@ namespace Crest
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
-            // Nyquist rate
-            return texelSize * 2f;
+            // Nyquist rate x 2, for higher quality
+            return texelSize * 4f;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -278,6 +286,7 @@ namespace Crest
 
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
@@ -498,24 +507,6 @@ namespace Crest
             buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / LodDataMgr.THREAD_GROUP_SIZE_X, _waveBuffers.height / LodDataMgr.THREAD_GROUP_SIZE_Y, _lastCascade - _firstCascade + 1);
         }
 
-        public void SetOrigin(Vector3 newOrigin)
-        {
-            if (_phases == null || _phases2 == null) return;
-
-            var windAngle = _waveDirectionHeadingAngle;
-            for (int i = 0; i < _phases.Length; i++)
-            {
-                var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
-                var phaseOffsetMeters = Vector3.Dot(newOrigin, direction);
-
-                // wave number
-                var k = 2f * Mathf.PI / _wavelengths[i];
-
-                _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
-                _phases2[i] = Mathf.Repeat(_phases2[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
-            }
-        }
-
         /// <summary>
         /// Resamples wave spectrum
         /// </summary>
@@ -564,7 +555,7 @@ namespace Crest
             {
                 var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _powers[i]);
                 _amplitudes[i] = Random.value * amp;
-                _amplitudes2[i] = Random.value * amp * 0.5f;
+                _amplitudes2[i] = Random.value * amp * _reverseWaveWeight;
             }
         }
 
@@ -634,11 +625,23 @@ namespace Crest
 
             if (_meshForDrawingWaves == null)
             {
-                _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                if (_matGenerateWavesGlobal == null)
+                {
+                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                    _matGenerateWavesGlobal.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGlobal;
             }
             else
             {
-                _matGenerateWaves = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                if (_matGenerateWavesGeometry == null)
+                {
+                    _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    _matGenerateWavesGeometry.hideFlags = HideFlags.HideAndDontSave;
+                }
+
+                _matGenerateWaves = _matGenerateWavesGeometry;
             }
 
             // Submit draws to create the Gerstner waves
@@ -780,16 +783,6 @@ namespace Crest
                     "A <i>Spline</i> component is attached but it has validation errors.",
                     "Check this component in the Inspector for issues.",
                     ValidatedHelper.MessageType.Error, this
-                );
-            }
-
-            if (showMessage == ValidatedHelper.HelpBox)
-            {
-                showMessage
-                (
-                    "The <i>ShapeGerstner</i> component is now obsolete.",
-                    "Prefer using <i>ShapeFFT</i> instead.",
-                    ValidatedHelper.MessageType.Warning, this
                 );
             }
 

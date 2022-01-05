@@ -32,5 +32,8 @@ namespace Crest
 
         [Tooltip("Whether to disable the null light warning, use this if you assign it dynamically and expect it to be null at points")]
         public bool _allowNullLight = false;
+
+        [Tooltip("Whether to disable the no shadows warning. Use this if you toggle the shadows on the primary light dynamically.")]
+        public bool _allowNoShadows = false;
     }
 }

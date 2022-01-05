@@ -21,6 +21,19 @@ float3 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams, in flo
 	return float3(uv, i_sliceIndex);
 }
 
+// Moves to the next LOD slice if out of bounds of current LOD slice.
+float3 WorldToSafeUV(in float2 i_samplePos, in CascadeParams i_cascadeParams, in float i_sliceIndex)
+{
+	float2 uv = WorldToUV(i_samplePos, i_cascadeParams);
+	if (uv.x > 1.0 || uv.y > 1.0 || uv.x < 0.0 || uv.y < 0.0)
+	{
+		i_sliceIndex += 1.0;
+		i_cascadeParams = _CrestCascadeData[i_sliceIndex];
+		uv = WorldToUV(i_samplePos, i_cascadeParams);
+	}
+	return float3(uv, i_sliceIndex);
+}
+
 float2 UVToWorld(in float2 i_uv, in float i_sliceIndex, in CascadeParams i_cascadeParams)
 {
 	const float texelSize = i_cascadeParams._texelWidth;
@@ -138,6 +151,11 @@ void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice,
 	}
 }
 
+void SampleTerrainHeight(const Texture2DArray i_texture, const float3 i_uv, inout half io_terrainHeight)
+{
+	io_terrainHeight = i_texture.SampleLevel(LODData_linear_clamp_sampler, i_uv, 0.0).x;
+}
+
 void SampleSeaLevelOffset(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_seaLevelOffset)
 {
 	io_seaLevelOffset += i_wt * i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 ).y;
@@ -176,7 +194,7 @@ void PosToSliceIndices
 	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 	lodAlpha = saturate((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT));
 
-	if (slice0 == 0.0)
+	if (slice0 == 0)
 	{
 		// blend out lod0 when viewpoint gains altitude. we're using the global _MeshScaleLerp so check for LOD0 is necessary
 		lodAlpha = min(lodAlpha + _MeshScaleLerp, 1.0);

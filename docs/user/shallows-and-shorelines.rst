@@ -14,6 +14,7 @@ By default this generation is done at run-time during startup, but the component
 
 The seabed affects the wave simulation in a physical way - the rule of thumb is *waves will be affected by the seabed when the water depth is less than half of their wavelength*.
 So for example when the water is 250m deep, this will start to dampen 500m wavelengths from the spectrum, so it is recommended that the seabed drop down to at least 500m away from islands so that there is a smooth transition between shallow and deep water without a 'step' in the sea floor which appears as a discontinuity in the surface waves and/or a line of foam.
+Alternatively, there is *Shallows Max Depth* on the :ref:`Sim Settings Animated Waves <animated_waves_settings>` asset which smooths the attenuation to a provided maximum depth where waves will be at full strength.
 
 Setup
 -----

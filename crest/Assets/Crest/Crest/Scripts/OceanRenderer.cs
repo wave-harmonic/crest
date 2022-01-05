@@ -107,6 +107,13 @@ namespace Crest
             }
         }
 
+        [Tooltip("The height where detail is focused is smoothed to avoid popping which is undesireable after a teleport. Threshold is in Unity units."), SerializeField]
+        float _teleportThreshold = 10f;
+        float _teleportTimerForHeightQueries = 0f;
+        bool _isFirstFrameSinceEnabled = true;
+        internal bool _hasTeleportedThisFrame = false;
+        Vector3 _oldViewerPosition = Vector3.zero;
+
         public Transform Root { get; private set; }
 
         // does not respond to _timeProvider changing in inspector
@@ -174,6 +181,9 @@ namespace Crest
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
         public float Gravity => _gravityMultiplier * Physics.gravity.magnitude;
+
+        [Tooltip("Whether 'Water Body' components will cull the ocean tiles. Disable if you want to use the 'Water Body' 'Material Override' feature and still have an ocean.")]
+        public bool _waterBodyCulling = true;
 
 
         [Header("Detail Params")]
@@ -331,6 +341,11 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        /// <summary>
+        /// Depth Fog Density with factor applied for underwater.
+        /// </summary>
+        public Vector3 UnderwaterDepthFogDensity { get; private set; }
+
         List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
@@ -452,6 +467,8 @@ namespace Crest
             }
 #endif
 
+            _isFirstFrameSinceEnabled = true;
+
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
 
@@ -497,8 +514,9 @@ namespace Crest
             CreateDestroySubSystems();
 
             // TODO: Have a BufferCount which will be the run-time buffer size or prune data.
+            // NOTE: Hardcode minimum (2) to avoid breaking server builds and LodData* toggles.
             // Gather the buffer size for shared data.
-            BufferSize = 0;
+            BufferSize = 2;
             foreach (var lodData in _lodDatas)
             {
                 if (lodData.enabled)
@@ -951,6 +969,8 @@ namespace Crest
                 CollisionProvider?.UpdateQueries();
                 FlowProvider?.UpdateQueries();
             }
+
+            _isFirstFrameSinceEnabled = false;
         }
 
         void WritePerFrameMaterialParams()
@@ -1075,9 +1095,40 @@ namespace Crest
 
             ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
 
+            // Calculate teleport distance and create window for height queries to return a height change.
+            {
+                if (_teleportTimerForHeightQueries > 0f)
+                {
+                    _teleportTimerForHeightQueries -= Time.deltaTime;
+                }
+
+                var hasTeleported = _isFirstFrameSinceEnabled;
+                if (!_isFirstFrameSinceEnabled)
+                {
+                    // Find the distance. Adding the FO offset will exclude FO shifts so we can determine a normal teleport.
+                    // FO shifts are visually the same position and it is incorrect to treat it as a normal teleport.
+                    var teleportDistanceSqr = (_oldViewerPosition - camera.transform.position - FloatingOrigin.TeleportOriginThisFrame).sqrMagnitude;
+                    // Threshold as sqrMagnitude.
+                    var thresholdSqr = _teleportThreshold * _teleportThreshold;
+                    hasTeleported = teleportDistanceSqr > thresholdSqr;
+                }
+
+                if (hasTeleported)
+                {
+                    // Height queries can take a few frames so a one second window should be plenty.
+                    _teleportTimerForHeightQueries = 1f;
+                }
+
+                _hasTeleportedThisFrame = hasTeleported;
+
+                _oldViewerPosition = camera.transform.position;
+            }
+
             // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
             // when there are local bodies of water
-            _viewerHeightAboveWaterSmooth = Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
+            _viewerHeightAboveWaterSmooth = _teleportTimerForHeightQueries > 0f
+                ? ViewerHeightAboveWater
+                : Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
         }
 
         void LateUpdateLods()
@@ -1105,7 +1156,7 @@ namespace Crest
             if (isUnderwaterActive)
             {
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
-                var density = _material.GetVector("_DepthFogDensity");
+                var density = UnderwaterDepthFogDensity = _material.GetVector("_DepthFogDensity") * UnderwaterRenderer.Instance.DepthFogDensityFactor;
                 var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
                 var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
                 volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
@@ -1121,6 +1172,7 @@ namespace Crest
                 }
 
                 var isCulled = false;
+                tile.MaterialOverridden = false;
 
                 // If there are local bodies of water, this will do overlap tests between the ocean tiles
                 // and the water bodies and turn off any that don't overlap.
@@ -1128,9 +1180,17 @@ namespace Crest
                 {
                     var chunkBounds = tile.Rend.bounds;
 
+                    var largestOverlap = 0f;
                     var overlappingOne = false;
                     foreach (var body in WaterBody.WaterBodies)
                     {
+                        // If tile has already been excluded from culling, then skip this iteration. But finish this
+                        // iteration if the water body has a material override to work out most influential water body.
+                        if (overlappingOne && body._overrideMaterial == null)
+                        {
+                            continue;
+                        }
+
                         var bounds = body.AABB;
 
                         bool overlapping =
@@ -1142,19 +1202,34 @@ namespace Crest
 
                             if (body._overrideMaterial != null)
                             {
-                                tile.Rend.sharedMaterial = body._overrideMaterial;
-                                tile.MaterialOverridden = true;
+                                var overlap = 0f;
+                                {
+                                    var xMin = Mathf.Max(bounds.min.x, chunkBounds.min.x);
+                                    var xMax = Mathf.Min(bounds.max.x, chunkBounds.max.x);
+                                    var zMin = Mathf.Max(bounds.min.z, chunkBounds.min.z);
+                                    var zMax = Mathf.Min(bounds.max.z, chunkBounds.max.z);
+                                    if (xMin < xMax && zMin < zMax)
+                                    {
+                                        overlap = (xMax - xMin) * (zMax - zMin);
+                                    }
+                                }
+
+                                // If this water body has the most overlap, then the chunk will get its material.
+                                if (overlap > largestOverlap)
+                                {
+                                    tile.Rend.sharedMaterial = body._overrideMaterial;
+                                    tile.MaterialOverridden = true;
+                                    largestOverlap = overlap;
+                                }
                             }
                             else
                             {
                                 tile.MaterialOverridden = false;
                             }
-
-                            break;
                         }
                     }
 
-                    isCulled = !overlappingOne && WaterBody.WaterBodies.Count > 0;
+                    isCulled = _waterBodyCulling && !overlappingOne && WaterBody.WaterBodies.Count > 0;
                 }
 
                 // Cull tiles the viewer cannot see through the underwater fog.

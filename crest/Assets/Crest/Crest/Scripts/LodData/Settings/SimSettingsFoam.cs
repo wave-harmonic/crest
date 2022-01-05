@@ -27,6 +27,8 @@ namespace Crest
         public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#id5";
 
         [Header("General settings")]
+        [Tooltip("Prewarms the simulation on load and teleports. Results are only an approximation but are better than no foam.")]
+        public bool _prewarm = true;
         [Range(0f, 20f), Tooltip("Speed at which foam fades/dissipates.")]
         public float _foamFadeRate = 0.8f;
 

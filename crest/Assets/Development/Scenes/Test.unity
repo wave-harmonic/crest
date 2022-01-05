@@ -43,7 +43,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_GIWorkflowMode: 0
   m_GISettings:
     serializedVersion: 2
@@ -98,7 +98,8 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 1
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 4ab96e03026384cceb83ef24c0bd8d79,
+    type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -118,6 +119,8 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -133,27 +136,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
   m_Name: Default Waves (auto)
   m_EditorClassIdentifier: 
-  _windSpeed: 10
+  _version: 1
   _fetch: 500000
   _waveDirectionVariance: 90
   _gravityScale: 1
   _smallWavelengthMultiplier: 1
   _multiplier: 1
   _powerLog:
-  - -6
-  - -6
-  - -6
-  - -4.0088496
-  - -3.4452133
-  - -2.6996124
-  - -2.615044
-  - -1.2080691
-  - -0.53905386
-  - 0.27448857
-  - 0.53627354
-  - 1.0282621
-  - 1.4403292
-  - -6
+  - -7.39794
+  - -7.39794
+  - -7.39794
+  - -5.40679
+  - -4.8431535
+  - -4.0975523
+  - -4.0129843
+  - -2.606009
+  - -1.9369938
+  - -1.1234515
+  - -0.8616665
+  - -0.3696779
+  - 0.042389154
+  - -7.39794
   _powerDisabled: 0000000000000000000000000000
   _chopScales:
   - 1
@@ -187,6 +190,7 @@ MonoBehaviour:
   - 1
   _chop: 1.6
   _showAdvancedControls: 0
+  _model: 0
 --- !u!1001 &5936305147364438762
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -211,6 +215,11 @@ PrefabInstance:
       objectReference: {fileID: 525439133}
     - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
         type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
+        type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -226,6 +235,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
         type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
+        type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -237,16 +251,6 @@ PrefabInstance:
     - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
-        type: 3}
-      propertyPath: m_RootOrder
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,

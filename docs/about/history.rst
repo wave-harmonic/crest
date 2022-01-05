@@ -42,6 +42,7 @@ Changed
    -  Add *Reverse Wave Weight* setting to *ShapeGerstner* for fine control over generated wave pairs.
    -  Double sample count for *ShapeGerstner* waves to improve quality.
    -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
+   -  *Underwater Renderer* validates *Ocean Renderer* material.
 
 Fixed
 ^^^^^
@@ -62,6 +63,7 @@ Fixed
    -  Fix shadow simulation not recovering after error being resolved in edit mode.
    -  Fix *Allow Null Light* option on *Sim Settings Shadows* not working.
    -  Fix ocean tiles not reverting to *Ocean Renderer > Material* if *Water Body > Override Material* was used and *Water Body* was disabled or removed.
+   -  Fix underwater rendering when the camera's culling mask excludes the *Ocean Renderer > Layer*.
 
    .. only:: birp
 

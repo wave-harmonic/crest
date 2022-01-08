@@ -119,6 +119,7 @@ The dynamic wave simulation is not suitable for use further than approximately 1
 At this kind of distance the stability of the simulation can be compromised.
 Use the *FloatingOrigin*  component to avoid travelling far distances from the world origin.
 
+
 .. _dynamic_waves_settings:
 
 Simulation Settings
@@ -126,7 +127,7 @@ Simulation Settings
 
 All of the settings below refer to the *Dynamic Wave Sim Settings* asset.
 
-The key settings that impact stability of hte simulation are the **Damping** and **Courant Number** settings described below.
+The key settings that impact stability of the simulation are the **Damping** and **Courant Number** settings described below.
 
 -  **Simulation Frequency** - Frequency to run the dynamic wave sim, in updates per second.
    Lower frequencies can be more efficient but may limit wave speed or lead to visible jitter.

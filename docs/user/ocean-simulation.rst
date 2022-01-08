@@ -445,7 +445,7 @@ This is useful for projecting colour onto the surface.
 
 This is somewhat similar to decals, except the colour only affects the water.
 
-HDRP has a Decal feature that works with the water, and the effect is more configurable and may be preferred over this feature. `[HDRP]`
+HDRP has a :link:`Decal Projector <{HDRPDocLink}/Decal-Projector.html>` feature that works with the water, and the effect is more configurable and may be preferred over this feature. When using this feature be sure to enable :link:`Affects Transparent <{HDRPDocLink}/Decal-Projector.html#properties>`.
 
 URP 2022 has a decal system but it does not support transparent surfaces like water.
 

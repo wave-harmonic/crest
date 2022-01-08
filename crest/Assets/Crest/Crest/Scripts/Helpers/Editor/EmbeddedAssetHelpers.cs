@@ -12,6 +12,14 @@ using UnityEditor.VersionControl;
 namespace Crest.EditorHelpers
 {
     /// <summary>
+    /// Interface for editors that receive an argument
+    /// </summary>
+    interface IEmbeddableEditor
+    {
+        void SetTypeOfHostComponent(System.Type hostType);
+    }
+
+    /// <summary>
     /// Helper for drawing embedded asset editors
     /// </summary>
     internal class EmbeddedAssetEditor
@@ -200,6 +208,13 @@ namespace Crest.EditorHelpers
             if (m_Editor == null && target != null)
             {
                 m_Editor = Editor.CreateEditor(target);
+
+                // Pass through argument for editors that receive it
+                if (property.serializedObject.targetObject != null)
+                {
+                    (m_Editor as IEmbeddableEditor)?.SetTypeOfHostComponent(property.serializedObject.targetObject.GetType());
+                }
+
                 if (OnCreateEditor != null)
                 {
                     OnCreateEditor(m_Editor);

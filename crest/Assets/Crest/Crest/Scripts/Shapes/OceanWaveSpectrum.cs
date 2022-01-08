@@ -35,10 +35,10 @@ namespace Crest
         public static readonly float MIN_POWER_LOG = -8f;
         public static readonly float MAX_POWER_LOG = 5f;
 
-        [Tooltip("Variance of wave directions, in degrees. Gerstner-only - use the Turbulence param on the ShapeFFT component for FFT."), Range(0f, 180f)]
+        [Tooltip("Variance of wave directions, in degrees."), Range(0f, 180f), HideInInspector]
         public float _waveDirectionVariance = 90f;
 
-        [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
+        [Tooltip("More gravity means faster waves."), Range(0f, 25f), HideInInspector]
         public float _gravityScale = 1f;
 
         [Range(0f, 2f), HideInInspector]
@@ -98,7 +98,8 @@ namespace Crest
 
 #if UNITY_EDITOR
 #pragma warning disable 414
-        [SerializeField] bool _showAdvancedControls = false;
+        [SerializeField, HideInInspector]
+        bool _showAdvancedControls = false;
 #pragma warning restore 414
 
         public enum SpectrumModel
@@ -193,7 +194,7 @@ namespace Crest
             // Amplitude
             var a = Mathf.Sqrt(a_2);
 
-            // Gerstner fudge -one hack to get Gerstners looking on par with FFT
+            // Gerstner fudge - one hack to get Gerstners looking on par with FFT
             if (_version > 0)
             {
                 a *= 5f;
@@ -288,13 +289,21 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(OceanWaveSpectrum))]
-    public class OceanWaveSpectrumEditor : Editor
+    public class OceanWaveSpectrumEditor : Editor, Crest.EditorHelpers.IEmbeddableEditor
     {
-        readonly static string[] modelDescriptions = new string[]
+        readonly static string[] s_modelDescriptions = new string[]
         {
             "Select an option to author waves using a spectrum model.",
             "Fully developed sea with infinite fetch.",
         };
+
+        readonly static GUIContent s_timeScaleLabel = new GUIContent("Time Scale");
+
+        System.Type _hostComponentType = null;
+        public void SetTypeOfHostComponent(System.Type hostComponentType)
+        {
+            _hostComponentType = hostComponentType;
+        }
 
         static void Upgrade(SerializedObject soSpectrum)
         {
@@ -326,9 +335,34 @@ namespace Crest
         {
             Upgrade(serializedObject);
 
+            // Display a notice if its being edited as a standalone asset (not embedded in a component) because
+            // it displays the FFT-interface.
+            if (_hostComponentType == null)
+            {
+                EditorGUILayout.HelpBox("This editor is displaying the FFT spectrum settings. " +
+                    "To edit settings specific to the ShapeGerstner component, assign this asset to a ShapeGerstner component " +
+                    "and edit it there by expanding the Spectrum field.", MessageType.Info);
+                EditorGUILayout.Space();
+            }
+
             base.OnInspectorGUI();
 
-            var showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
+            bool beingEditedOnGerstnerComponent = _hostComponentType == typeof(ShapeGerstner);
+
+            bool showAdvancedControls = false;
+            if (beingEditedOnGerstnerComponent)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_gravityScale"));
+
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_waveDirectionVariance"));
+
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_showAdvancedControls"));
+                showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_gravityScale"), s_timeScaleLabel);
+            }
 
             var spSpectrumModel = serializedObject.FindProperty("_model");
             var spectraIndex = serializedObject.FindProperty("_model").enumValueIndex;
@@ -420,7 +454,7 @@ namespace Crest
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
-            EditorGUILayout.HelpBox(modelDescriptions[(int)spectrumModel], MessageType.Info);
+            EditorGUILayout.HelpBox(s_modelDescriptions[(int)spectrumModel], MessageType.Info);
             EditorGUILayout.Space();
 
             if (spectrumModel == OceanWaveSpectrum.SpectrumModel.None)

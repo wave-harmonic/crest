@@ -216,6 +216,12 @@ namespace Crest
                 return;
             }
 
+            if (!Helpers.MaskIncludesLayer(_camera.cullingMask, OceanRenderer.Instance.Layer))
+            {
+                OnDisable();
+                return;
+            }
+
             if (GL.wireframe)
             {
                 OnDisable();
@@ -283,6 +289,35 @@ namespace Crest
                 );
 
                 isValid = false;
+            }
+
+            if (ocean != null && ocean.OceanMaterial != null)
+            {
+                var material = ocean.OceanMaterial;
+
+                if (!material.IsKeywordEnabled("_UNDERWATER_ON"))
+                {
+                    showMessage
+                    (
+                        $"<i>Underwater</i> is not enabled on material <i>{material.name}</i>. " +
+                        "The underside of the ocean surface will not be rendered correctly.",
+                        $"Enable <i>Underwater</i> on <i>{material.name}</i>.",
+                        ValidatedHelper.MessageType.Warning, material,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, "_UNDERWATER_ON", "_Underwater", enabled: true)
+                    );
+                }
+
+                if (material.GetFloat("_CullMode") == (int)CullMode.Back)
+                {
+                    showMessage
+                    (
+                        $"<i>Cull Mode</i> is set to <i>Back</i> on material <i>{material.name}</i>. " +
+                        "The underside of the ocean surface will not be rendered.",
+                        $"Set <i>Cull Mode</i> to <i>Off</i> (or <i>Front</i>) on <i>{material.name}</i>.",
+                        ValidatedHelper.MessageType.Warning, material,
+                        (material) => ValidatedHelper.FixSetMaterialIntProperty(material, "Cull Mode", "_CullMode", (int)CullMode.Off)
+                    );
+                }
             }
 
             return isValid;

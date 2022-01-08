@@ -64,6 +64,9 @@ Fixed
    -  Fix *Allow Null Light* option on *Sim Settings Shadows* not working.
    -  Fix ocean tiles not reverting to *Ocean Renderer > Material* if *Water Body > Override Material* was used and *Water Body* was disabled or removed.
    -  Fix underwater rendering when the camera's culling mask excludes the *Ocean Renderer > Layer*.
+   -  Fix visible "rings" in dynamic wave sim resulting from fast moving objects that have the *Sphere Water Interaction* component attached. Simulation frequency can be increased to improve result further, at the cost of more simulation steps per frame.
+   -  Fix *Sphere Water Interaction* component not working in standalone builds.
+
 
    .. only:: birp
 

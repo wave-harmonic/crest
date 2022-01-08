@@ -65,7 +65,7 @@ namespace Crest
                 _renderMat = new Material(Shader.Find("Crest/Inputs/Clip Surface/Include Area"));
             }
 
-            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+            public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, _transform, _renderMat);
             }

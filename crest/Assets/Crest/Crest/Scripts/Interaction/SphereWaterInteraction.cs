@@ -30,7 +30,7 @@ namespace Crest
         [Range(0.01f, 50f), SerializeField]
         float _radius = 1f;
 
-        [Range(-4f, 4f), SerializeField]
+        [Range(-20f, 20f), SerializeField]
         float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;

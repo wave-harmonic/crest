@@ -335,6 +335,16 @@ namespace Crest
         {
             Upgrade(serializedObject);
 
+            // Display a notice if its being edited as a standalone asset (not embedded in a component) because
+            // it displays the FFT-interface.
+            if (_hostComponentType == null)
+            {
+                EditorGUILayout.HelpBox("This editor is displaying the FFT spectrum settings. " +
+                    "To edit settings specific to the ShapeGerstner component, assign this asset to a ShapeGerstner component " +
+                    "and edit it there by expanding the Spectrum field.", MessageType.Info);
+                EditorGUILayout.Space();
+            }
+
             base.OnInspectorGUI();
 
             bool beingEditedOnGerstnerComponent = _hostComponentType == typeof(ShapeGerstner);
@@ -466,16 +476,6 @@ namespace Crest
                         spec.ApplyPiersonMoskowitzSpectrum();
                         break;
                 }
-            }
-
-            // Display a notice if its being edited as a standalone asset (not embedded in a component) because
-            // it displays the FFT-interface.
-            if (_hostComponentType == null)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("This editor is displaying the FFT spectrum settings. " +
-                    "To edit settings specific to the ShapeGerstner component, assign this asset to a ShapeGerstner component " +
-                    "and edit it there by expanding the Spectrum field.", MessageType.Info);
             }
 
             serializedObject.ApplyModifiedProperties();

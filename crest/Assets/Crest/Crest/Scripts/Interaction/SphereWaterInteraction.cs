@@ -45,6 +45,10 @@ namespace Crest
         [SerializeField]
         bool _warnOnSpeedClamp = false;
 
+        [Header("Debug")]
+        [Tooltip("Draws debug lines at each substep position. Editor only."), SerializeField]
+        bool _debugSubsteps = false;
+
         Vector3 _velocity;
         Vector3 _velocityClamped;
         Vector3 _posLast;
@@ -227,9 +231,15 @@ namespace Crest
         {
             var timeBeforeCurrentTime = (lodData as LodDataMgrDynWaves).TimeLeftToSimulate;
 
-            // Draw little red markers for each substep position
-            //var pos = transform.position + -_velocity * timeBeforeCurrentTime;
-            //Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, Color.red, 0.5f);
+#if UNITY_EDITOR
+            // Draw debug lines at each substep position. Alternate colours each frame so that substeps are clearly visible.
+            if (_debugSubsteps)
+            {
+                var col = 0.7f * (Time.frameCount % 2 == 1 ? Color.green : Color.red);
+                var pos = transform.position + /*(fixup ? 1f : 0f) **/ -_velocity * timeBeforeCurrentTime;
+                Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, col, 0.5f);
+            }
+#endif
 
             // _renderMatrix is only updated at the frame update rate, whereas this input wants to apply
             // to substeps. Reconstruct the position of this input at the current substep time. This produces

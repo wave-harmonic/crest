@@ -84,6 +84,20 @@ namespace Crest
                 OceanRenderer.Instance.OceanMaterial.DisableKeyword("_OLD_UNDERWATER");
             }
 
+#if UNITY_EDITOR
+            // Check if scene view has disabled fog rendering.
+            if (_camera.cameraType == CameraType.SceneView)
+            {
+                var sceneView = EditorHelpers.EditorHelpers.GetSceneViewFromSceneCamera(_camera);
+                // Skip rendering if fog is disabled or for some reason we could not find the scene view.
+                if (sceneView == null || !sceneView.sceneViewState.fogEnabled)
+                {
+                    _underwaterEffectCommandBuffer?.Clear();
+                    return;
+                }
+            }
+#endif
+
             RenderTextureDescriptor descriptor = XRHelpers.GetRenderTextureDescriptor(_camera);
             descriptor.useDynamicScale = _camera.allowDynamicResolution;
 
@@ -174,7 +188,7 @@ namespace Crest
 
         internal void ExecuteEffect(CommandBuffer buffer, Material material, MaterialPropertyBlock properties = null)
         {
-            if (_mode == Mode.FullScreen)
+            if (_mode == Mode.FullScreen || _volumeGeometry == null)
             {
                 buffer.DrawProcedural
                 (
@@ -196,7 +210,7 @@ namespace Crest
 
                 buffer.DrawMesh
                 (
-                    _volumeGeometry.mesh,
+                    _volumeGeometry.sharedMesh,
                     _volumeGeometry.transform.localToWorldMatrix,
                     material,
                     submeshIndex: 0,
@@ -213,7 +227,7 @@ namespace Crest
                 {
                     buffer.DrawMesh
                     (
-                        _volumeGeometry.mesh,
+                        _volumeGeometry.sharedMesh,
                         _volumeGeometry.transform.localToWorldMatrix,
                         material,
                         submeshIndex: 0,

@@ -30,6 +30,10 @@ Only the camera rendering the ocean surface will be used.
 Underwater Renderer
 -------------------
 
+.. note::
+
+   You can enable/disable rendering in the scene view by toggling fog in the :link:`scene view control bar <{UnityDocLink}/ViewModes.html>`.
+
 The *Underwater Renderer* component executes a fullscreen underwater effect between the transparent pass and post-processing pass.
 
 It is similar to a post-processing effect, but has the benefit of allowing other renderers to execute after it and still receive post-processing.

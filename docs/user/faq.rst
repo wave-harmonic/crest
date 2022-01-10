@@ -94,6 +94,10 @@ Does Crest support orthographic projection?
 -------------------------------------------
 Yes. Please see :ref:`orthographic_projection`.
 
+How do I disable underwater fog rendering in the scene view?
+------------------------------------------------------------
+You can enable/disable rendering in the scene view by toggling fog in the :link:`scene view control bar <{UnityDocLink}/ViewModes.html>`.
+
 Can the density of the fog in the water be reduced?
 ---------------------------------------------------
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material.

@@ -53,6 +53,21 @@ namespace Crest.EditorHelpers
                 UnityEditorInternal.InternalEditorUtility.layers);
             return UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(temporary);
         }
+
+        /// <summary>Attempts to get the scene view this camera is rendering.</summary>
+        /// <returns>The scene view or null if not found.</returns>
+        public static SceneView GetSceneViewFromSceneCamera(Camera camera)
+        {
+            foreach (SceneView sceneView in SceneView.sceneViews)
+            {
+                if (sceneView.camera == camera)
+                {
+                    return sceneView;
+                }
+            }
+
+            return null;
+        }
     }
 }
 

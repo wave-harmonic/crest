@@ -4,6 +4,7 @@
 
 namespace Crest
 {
+    using System.Collections.Generic;
     using UnityEditor;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -15,6 +16,7 @@ namespace Crest
     ///
     /// For convenience, all shader material settings are copied from the main ocean shader.
     /// </summary>
+    [ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Renderer")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "underwater.html" + Internal.Constants.HELP_URL_RP)]
@@ -120,6 +122,10 @@ namespace Crest
         // XR MP will create two instances of this class so it needs to be static to track the pass/eye.
         internal static int s_xrPassIndex = -1;
 
+#if UNITY_EDITOR
+        List<Camera> _editorCameras = new List<Camera>();
+#endif
+
         // Use instance to denote whether this is active or not. Only one camera is supported.
         public static UnderwaterRenderer Instance { get; private set; }
 
@@ -139,7 +145,7 @@ namespace Crest
                     return false;
                 }
 
-                if (!_debug._disableHeightAboveWaterOptimization && _mode == Mode.FullScreen && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+                if (Application.isPlaying && !_debug._disableHeightAboveWaterOptimization && _mode == Mode.FullScreen && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
                 {
                     return false;
                 }
@@ -187,6 +193,10 @@ namespace Crest
             SetupUnderwaterEffect();
             _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
             _camera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+
+#if UNITY_EDITOR
+            EnableEditMode();
+#endif
         }
 
         void Disable()
@@ -202,6 +212,10 @@ namespace Crest
             }
 
             OnDisableOceanMask();
+
+#if UNITY_EDITOR
+            DisableEditMode();
+#endif
         }
 
         void OnPreRender()
@@ -210,7 +224,8 @@ namespace Crest
             {
                 if (Instance != null)
                 {
-                    OnDisable();
+                    _oceanMaskCommandBuffer?.Clear();
+                    _underwaterEffectCommandBuffer?.Clear();
                 }
 
                 return;
@@ -218,15 +233,19 @@ namespace Crest
 
             if (!Helpers.MaskIncludesLayer(_camera.cullingMask, OceanRenderer.Instance.Layer))
             {
-                OnDisable();
+                _oceanMaskCommandBuffer?.Clear();
+                _underwaterEffectCommandBuffer?.Clear();
                 return;
             }
 
+#if UNITY_EDITOR
             if (GL.wireframe)
             {
-                OnDisable();
+                _oceanMaskCommandBuffer?.Clear();
+                _underwaterEffectCommandBuffer?.Clear();
                 return;
             }
+#endif
 
             if (Instance == null)
             {
@@ -269,6 +288,71 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
+    // Edit Mode.
+    public partial class UnderwaterRenderer
+    {
+        void EnableEditMode()
+        {
+            Camera.onPreRender -= OnBeforeRender;
+            Camera.onPreRender += OnBeforeRender;
+        }
+
+        void DisableEditMode()
+        {
+            foreach (var camera in _editorCameras)
+            {
+                // This can happen on recompile. Thankfully, command buffers will be removed for us.
+                if (camera == null)
+                {
+                    continue;
+                }
+
+                if (_oceanMaskCommandBuffer != null)
+                {
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                }
+
+                if (_underwaterEffectCommandBuffer != null)
+                {
+                    camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+                }
+            }
+
+            _editorCameras.Clear();
+            Camera.onPreRender -= OnBeforeRender;
+        }
+
+        void OnBeforeRender(Camera camera)
+        {
+            // Skip rendering altogether if proxy plane is being used.
+            if (OceanRenderer.Instance == null || (!Application.isPlaying && OceanRenderer.Instance._showOceanProxyPlane))
+            {
+                _oceanMaskCommandBuffer?.Clear();
+                _underwaterEffectCommandBuffer?.Clear();
+                return;
+            }
+
+            // Only use for scene and game preview cameras.
+            if (camera.cameraType != CameraType.SceneView && !Helpers.IsPreviewOfGameCamera(camera))
+            {
+                return;
+            }
+
+            if (!_editorCameras.Contains(camera))
+            {
+                _editorCameras.Add(camera);
+                camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                camera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            }
+
+            var oldCamera = _camera;
+            _camera = camera;
+            OnPreRender();
+            _camera = oldCamera;
+        }
+    }
+
+    // Validation.
     public partial class UnderwaterRenderer : IValidated
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
@@ -325,6 +409,16 @@ namespace Crest
     }
 
     [CustomEditor(typeof(UnderwaterRenderer)), CanEditMultipleObjects]
-    public class UnderwaterRendererEditor : ValidatedEditor { }
+    public class UnderwaterRendererEditor : ValidatedEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox("Scene view rendering can be enabled/disabled with the scene view fog toggle in the scene view command bar.", MessageType.Info);
+            EditorGUILayout.Space();
+
+            base.OnInspectorGUI();
+        }
+    }
 #endif
 }

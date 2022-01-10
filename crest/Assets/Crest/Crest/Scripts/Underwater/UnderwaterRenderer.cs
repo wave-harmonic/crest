@@ -72,7 +72,18 @@ namespace Crest
         [SerializeField, Range(0.01f, 1f)]
         [Tooltip("Scales the depth fog density. Useful to reduce the intensity of the depth fog when underwater water only.")]
         float _depthFogDensityFactor = 1f;
-        public float DepthFogDensityFactor => _depthFogDensityFactor;
+        public static float DepthFogDensityFactor
+        {
+            get
+            {
+                if (Instance != null)
+                {
+                    return Instance._depthFogDensityFactor;
+                }
+
+                return 1f;
+            }
+        }
 
 
         [Header("Geometry")]

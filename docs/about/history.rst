@@ -17,15 +17,15 @@ Preview
 ^^^^^^^
 .. bullet_list::
 
+   -  Add new CPU-based collision provider - *Baked FFT Data*.
    -  Add portals and volumes to *Underwater Renderer* (affects both underwater and ocean surface).
       See :ref:`portals-volumes` for more information.
-   -  Added *Albedo Data* feature which allows layering colour onto the water surface similar to decals.
+   -  Add *Albedo Data* feature which allows layering colour onto the water surface similar to decals.
 
 Changed
 ^^^^^^^
 .. bullet_list::
 
-   -  Added new CPU-based collision provider - *Baked FFT Data*.
    -  Add support for rendering in edit mode (camera preview and scene view) to *Underwater Renderer*.
       It can be enabled/disabled with the fog scene view toggle.
    -  Add *CREST_OCEAN* scripting defines symbol.
@@ -48,6 +48,11 @@ Changed
    -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
    -  *Underwater Renderer* validates *Ocean Renderer* material.
 
+   .. only:: urp
+
+      -  Add support for secondary lights like point or spot to ocean shader.
+         Only supports pixel lights and not vertex lights. `[URP]`
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -69,9 +74,9 @@ Fixed
    -  Fix ocean tiles not reverting to *Ocean Renderer > Material* if *Water Body > Override Material* was used and *Water Body* was disabled or removed.
    -  Add *Time Scale* control for FFT (*Gravity* setting was broken).
    -  Fix underwater rendering when the camera's culling mask excludes the *Ocean Renderer > Layer*.
-   -  Fix visible "rings" in dynamic wave sim resulting from fast moving objects that have the *Sphere Water Interaction* component attached. Simulation frequency can be increased to improve result further, at the cost of more simulation steps per frame.
+   -  Fix visible "rings" in dynamic wave sim resulting from fast moving objects that have the *Sphere Water Interaction* component attached.
+      Simulation frequency can be increased to improve result further, at the cost of more simulation steps per frame.
    -  Fix *Sphere Water Interaction* component not working in standalone builds.
-
 
    .. only:: birp
 
@@ -80,6 +85,10 @@ Fixed
    .. only:: birp or urp
 
       -  Fix *Underwater Renderer* high memory usage by reverting change of using temporary render textures. `[BIRP] [URP]`
+
+   .. only:: hdrp or urp
+
+      -  Fix possible "Extensions" class naming collision compilation error. `[HDRP] [URP]`
 
    .. only:: hdrp
 

@@ -57,8 +57,12 @@ Together these controls give the flexibility to express the great variation one 
 
 .. _wave-splines-section:
 
-Wave Splines (preview)
-----------------------
+Wave Splines
+------------
+
+.. admonition:: Preview
+
+   This feature is in preview and may change in the future.
 
 .. youtube:: JRzPcUP5aaA
 

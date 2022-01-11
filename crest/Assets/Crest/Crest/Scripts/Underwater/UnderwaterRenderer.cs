@@ -156,6 +156,9 @@ namespace Crest
                     return false;
                 }
 
+                // Only run optimisation in play mode otherwise shared height above water will cause rendering to be
+                // skipped for other cameras which could be confusing. This issue will also be present in play mode but
+                // game view camera is always dominant camera which is less confusing.
                 if (Application.isPlaying && !_debug._disableHeightAboveWaterOptimization && _mode == Mode.FullScreen && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
                 {
                     return false;

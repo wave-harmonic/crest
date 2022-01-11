@@ -1,29 +1,6 @@
 Other Features
 ==============
 
-Decals
-------
-
-.. only:: birp
-
-    .. tab:: `BIRP`
-
-        .. include:: includes/_render-alpha-surface.rst
-
-.. only:: hdrp
-
-    .. tab:: `HDRP`
-
-        Use the :link:`Decal Projector <{HDRPDocLink}/Decal-Projector.html>`.
-        Make sure to enable :link:`Affects Transparent <{HDRPDocLink}/Decal-Projector.html#properties>`.
-
-.. only:: urp
-
-    .. tab:: `URP`
-
-        .. include:: includes/_render-alpha-surface.rst
-
-
 Floating Origin
 ---------------
 

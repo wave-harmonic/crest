@@ -318,9 +318,14 @@ namespace Crest
 
                 if (_splineMaterial == null)
                 {
-                    _splineMaterial = new Material(Shader.Find(SplineShaderName));
+                    CreateSplineMaterial();
                 }
             }
+        }
+
+        protected virtual void CreateSplineMaterial()
+        {
+            _splineMaterial = new Material(Shader.Find(SplineShaderName));
         }
 
         public override void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
@@ -380,7 +385,7 @@ namespace Crest
 
                     if (_splineMaterial == null)
                     {
-                        _splineMaterial = new Material(Shader.Find(SplineShaderName));
+                        CreateSplineMaterial();
                     }
                 }
                 else

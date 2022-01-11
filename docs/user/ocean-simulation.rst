@@ -433,3 +433,31 @@ The *Crest/Inputs/Flow/Add Flow Map* shader writes a flow texture into the syste
 It assumes the x component of the flow velocity is packed into 0-1 range in the red channel, and the z component of the velocity is packed into 0-1 range in the green channel.
 The shader reads the values, subtracts 0.5, and multiplies them by the provided scale value on the shader.
 The process of adding ocean inputs is demonstrated in :numref:`adding-inputs-video`.
+
+.. _albedo-section:
+
+Albedo
+------
+
+.. admonition:: Preview
+
+   This feature is currently in preview.
+
+Overview
+^^^^^^^^
+
+The Albedo feature allows a colour layer to be composited on top of the water surface.
+This is useful for projecting colour onto the surface.
+
+This is somewhat similar to decals, except the colour only affects the water.
+
+HDRP has a :link:`Decal Projector <{HDRPDocLink}/Decal-Projector.html>` feature that works with the water, and the effect is more configurable and may be preferred over this feature. When using this feature be sure to enable :link:`Affects Transparent <{HDRPDocLink}/Decal-Projector.html#properties>`.
+
+URP 2022 has a decal system but it does not support transparent surfaces like water.
+
+User Inputs
+^^^^^^^^^^^
+
+Any geometry or particle system can add colour to the water. It will be projected from a top down perspective onto the water surface.
+
+To tag GameObjects to render onto the water, attach the *RegisterAlbedoInput* component.

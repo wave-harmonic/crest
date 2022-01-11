@@ -79,6 +79,11 @@ namespace Crest
             {
                 ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
             }
+
+            if (ocean._lodDataAlbedo != null && ocean._lodDataAlbedo.enabled)
+            {
+                ocean._lodDataAlbedo.BuildCommandBuffer(ocean, buf);
+            }
         }
 
         public static void FlipDataBuffers(OceanRenderer ocean)

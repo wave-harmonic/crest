@@ -96,6 +96,8 @@ namespace Crest
         public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
         protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
 
+        protected virtual int ResolutionOverride => -1;
+
         // shape texture resolution
         int _shapeRes = -1;
 
@@ -162,7 +164,7 @@ namespace Crest
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
-            var resolution = OceanRenderer.Instance.LodDataResolution;
+            var resolution = ResolutionOverride == -1 ? OceanRenderer.Instance.LodDataResolution : ResolutionOverride;
             var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _targets = new BufferedData<RenderTexture>(BufferCount, () => CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData));
 

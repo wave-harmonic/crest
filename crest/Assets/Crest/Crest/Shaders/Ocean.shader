@@ -184,6 +184,10 @@ Shader "Crest/Ocean"
 		// Clips purely based on water depth
 		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
 
+		[Header(Albedo)]
+		// Albedo is a colour that is composited onto the surface. Requires 'Create Albedo Data' enabled on OceanRenderer component.
+		[Toggle] _Albedo("Enable", Float) = 0
+
 		[Header(Rendering)]
 		// What projection modes will this material support? Choosing perspective or orthographic is an optimisation.
 		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
@@ -246,6 +250,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _SHADOWS_ON
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
+			#pragma shader_feature_local _ALBEDO_ON
 
 			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
@@ -532,6 +537,9 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				float foam = 0.0;
 				#endif
+				#if _ALBEDO_ON
+				half4 albedo = 0.0;
+				#endif
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(positionXZWSUndisplaced, cascadeData0, _LD_SliceIndex);
@@ -539,6 +547,10 @@ Shader "Crest/Ocean"
 
 					#if _FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, foam);
+					#endif
+
+					#if _ALBEDO_ON
+					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_smallerLod, wt_smallerLod, albedo);
 					#endif
 				}
 				if (wt_biggerLod > 0.001)
@@ -548,6 +560,10 @@ Shader "Crest/Ocean"
 
 					#if _FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, foam);
+					#endif
+
+					#if _ALBEDO_ON
+					SampleAlbedo(_LD_TexArray_Albedo, uv_slice_biggerLod, wt_biggerLod, albedo);
 					#endif
 				}
 
@@ -681,6 +697,11 @@ Shader "Crest/Ocean"
 				// Override final result with white foam - bubbles on surface
 				#if _FOAM_ON
 				col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
+				#endif
+
+				// Composite albedo input on top
+				#if _ALBEDO_ON
+				col = lerp(col, albedo.xyz, albedo.w);
 				#endif
 
 				// Fog

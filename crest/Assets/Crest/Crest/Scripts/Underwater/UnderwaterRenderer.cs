@@ -336,18 +336,49 @@ namespace Crest
             Camera.onPreRender -= OnBeforeRender;
         }
 
-        void OnBeforeRender(Camera camera)
+        /// <summary>
+        /// Whether the effect is active for the editor only camera (eg scene view). You can check game preview cameras,
+        /// but do not check game cameras.
+        /// </summary>
+        internal bool IsActiveForEditorCamera(Camera camera)
         {
             // Skip rendering altogether if proxy plane is being used.
             if (OceanRenderer.Instance == null || (!Application.isPlaying && OceanRenderer.Instance._showOceanProxyPlane))
             {
+                // These two clears will only run for built-in renderer as they'll be null for SRPs.
                 _oceanMaskCommandBuffer?.Clear();
                 _underwaterEffectCommandBuffer?.Clear();
-                return;
+                return false;
             }
 
             // Only use for scene and game preview cameras.
             if (camera.cameraType != CameraType.SceneView && !Helpers.IsPreviewOfGameCamera(camera))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool IsFogEnabledForEditorCamera(Camera camera)
+        {
+            // Check if scene view has disabled fog rendering.
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                var sceneView = EditorHelpers.EditorHelpers.GetSceneViewFromSceneCamera(camera);
+                // Skip rendering if fog is disabled or for some reason we could not find the scene view.
+                if (sceneView == null || !sceneView.sceneViewState.fogEnabled)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        void OnBeforeRender(Camera camera)
+        {
+            if (!IsActiveForEditorCamera(camera))
             {
                 return;
             }

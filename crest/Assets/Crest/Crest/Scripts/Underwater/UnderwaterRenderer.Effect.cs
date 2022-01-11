@@ -85,16 +85,10 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            // Check if scene view has disabled fog rendering.
-            if (_camera.cameraType == CameraType.SceneView)
+            if (!IsFogEnabledForEditorCamera(_camera))
             {
-                var sceneView = EditorHelpers.EditorHelpers.GetSceneViewFromSceneCamera(_camera);
-                // Skip rendering if fog is disabled or for some reason we could not find the scene view.
-                if (sceneView == null || !sceneView.sceneViewState.fogEnabled)
-                {
-                    _underwaterEffectCommandBuffer?.Clear();
-                    return;
-                }
+                _underwaterEffectCommandBuffer?.Clear();
+                return;
             }
 #endif
 

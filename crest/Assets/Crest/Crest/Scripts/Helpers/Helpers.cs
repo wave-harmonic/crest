@@ -92,23 +92,8 @@ namespace Crest
             }
         }
 
-        public static void CreateRenderTargetTexture(ref RenderTexture texture, ref RenderTargetIdentifier target, RenderTextureDescriptor descriptor)
+        public static void RenderTargetIdentifierXR(ref RenderTexture texture, ref RenderTargetIdentifier target)
         {
-            if (texture != null && descriptor.width == texture.width && descriptor.height == texture.height &&
-                descriptor.volumeDepth == texture.volumeDepth && descriptor.useDynamicScale == texture.useDynamicScale)
-            {
-                return;
-            }
-            else if (texture != null)
-            {
-                DestroyRenderTargetTexture(ref texture);
-            }
-
-            texture = new RenderTexture(descriptor)
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-            };
-
             target = new RenderTargetIdentifier
             (
                 texture,
@@ -116,6 +101,36 @@ namespace Crest
                 CubemapFace.Unknown,
                 depthSlice: -1 // Bind all XR slices.
             );
+        }
+
+        /// <summary>
+        /// Creates an RT reference and adds it to the RTI. Native object behind RT is not created so you can change its
+        /// properties before being used.
+        /// </summary>
+        public static void CreateRenderTargetTextureReference(ref RenderTexture texture, ref RenderTargetIdentifier target)
+        {
+            // Do not overwrite reference or it will create reference leak.
+            if (texture == null)
+            {
+                // Dummy values. We are only creating an RT reference, not an RT native object. RT should be configured
+                // properly before using or calling Create.
+                texture = new RenderTexture(0, 0, 0)
+                {
+                    hideFlags = HideFlags.HideAndDontSave,
+                };
+            }
+
+            // Always call this in case of recompilation as RTI will lose its reference to the RT.
+            RenderTargetIdentifierXR(ref texture, ref target);
+        }
+
+        public static bool RenderTargetTextureNeedsUpdating(RenderTexture texture, RenderTextureDescriptor descriptor)
+        {
+            return
+                descriptor.width != texture.width ||
+                descriptor.height != texture.height ||
+                descriptor.volumeDepth != texture.volumeDepth ||
+                descriptor.useDynamicScale != texture.useDynamicScale;
         }
 
         /// <summary>
@@ -135,17 +150,6 @@ namespace Crest
 #endif
             {
                 Object.Destroy(@object);
-            }
-        }
-
-        public static void DestroyRenderTargetTexture(ref RenderTexture texture)
-        {
-            if (texture != null)
-            {
-                texture.Release();
-                // Destroy the object or the reference will linger in memory profiler.
-                Helpers.Destroy(texture);
-                texture = null;
             }
         }
 

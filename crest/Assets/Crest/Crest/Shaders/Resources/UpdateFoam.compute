@@ -17,6 +17,9 @@ CBUFFER_START(CrestPerMaterial)
 float _FoamFadeRate;
 float _WaveFoamStrength;
 float _WaveFoamCoverage;
+float _DynamicWaveFoamStrength;
+float _DynamicWaveFoamMaxTexelSize;
+float _DynamicWaveFoamMinHeight;
 float _ShorelineFoamMaxDepth;
 float _ShorelineFoamStrength;
 float _SimDeltaTime;
@@ -97,6 +100,15 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// Prewarm shoreline foam. 1.0 / _FoamFadeRate perfectly matches a paused ocean in edit mode which is fine for
 	// shoreline foam.
 	simDeltaTime = _NeedsPrewarming ? (1.0 / _FoamFadeRate) : _SimDeltaTime;
+
+	if (_DynamicWaveFoamStrength > 0.0 && cascadeData._texelWidth < _DynamicWaveFoamMaxTexelSize)
+	{
+		half simHeight = SampleLod(_LD_TexArray_DynamicWaves, uv_slice).x;
+		if (simHeight > _DynamicWaveFoamMinHeight)
+		{
+			foam += _DynamicWaveFoamStrength * simHeight;
+		}
+	}
 
 	// Add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 	const float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, cascadeData, sliceIndex);

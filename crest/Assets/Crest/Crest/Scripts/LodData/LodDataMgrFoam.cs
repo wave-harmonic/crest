@@ -31,6 +31,9 @@ namespace Crest
         readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
         readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
         readonly int sp_WaveFoamCoverage = Shader.PropertyToID("_WaveFoamCoverage");
+        readonly int sp_DynamicWaveFoamStrength = Shader.PropertyToID("_DynamicWaveFoamStrength");
+        readonly int sp_DynamicWaveFoamMaxTexelSize = Shader.PropertyToID("_DynamicWaveFoamMaxTexelSize");
+        readonly int sp_DynamicWaveFoamMinHeight = Shader.PropertyToID("_DynamicWaveFoamMinHeight");
         readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
         readonly int sp_NeedsPrewarming = Shader.PropertyToID("_NeedsPrewarming");
@@ -67,6 +70,9 @@ namespace Crest
             simMaterial.SetFloat(sp_FoamFadeRate, Settings._foamFadeRate);
             simMaterial.SetFloat(sp_WaveFoamStrength, Settings._waveFoamStrength);
             simMaterial.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);
+            simMaterial.SetFloat(sp_DynamicWaveFoamStrength, Settings._dynamicWaveFoamStrength);
+            simMaterial.SetFloat(sp_DynamicWaveFoamMaxTexelSize, 0.5f * Settings._dynamicWaveFoamMaxWavelength);
+            simMaterial.SetFloat(sp_DynamicWaveFoamMinHeight, Settings._dynamicWaveFoamMinHeight);
             simMaterial.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
             simMaterial.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
@@ -79,6 +85,9 @@ namespace Crest
 
             // assign flow - to slot 1 current frame data
             LodDataMgrFlow.Bind(simMaterial);
+
+            // Assign dyn waves
+            LodDataMgrDynWaves.Bind(simMaterial);
         }
 
         protected override void GetSimSubstepData(float timeToSimulate, out int numSubsteps, out float substepDt)

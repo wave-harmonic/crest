@@ -225,7 +225,7 @@ namespace Crest
                 _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             }
 
-            OnDisableOceanMask();
+            OnDisableMask();
 
 #if UNITY_EDITOR
             DisableEditMode();

@@ -39,6 +39,7 @@ Changed
       Useful if using *Water Body > Override Material* and still want an ocean.
    -  Improve multiple *Water Body* overlapping case when *Water Body > Override Material* option is used.
    -  Water Body adds an inclusion to clipping (ie unclips) if *Default Clipping State* is *Everything Clipped*.
+   -  Add *Underwater Renderer* support for *Water Body > Override Material*.
    -  Add scroll bar to *Ocean Debug GUI* when using *Draw LOD Datas Actual Size*.
    -  Add support for *TrailRenderer*, *LineRenderer* and *ParticleSystem* to be used as ocean inputs in addition to *MeshRenderer*.
    -  Un-deprecate *ShapeGerstner* as it is useful in some situations for adding a small number of distinct waves with high degree of control.

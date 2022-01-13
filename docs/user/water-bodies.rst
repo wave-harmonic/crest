@@ -28,7 +28,8 @@ Crest can be configured to efficiently generate smaller bodies of water, using t
    It is recommended to cover a larger area than the lake itself, to give a protective margin against LOD effects in the distance.
 
 Another advantage of the *WaterBody* component is it allows an optional override material to be provided, to change the appearance of the water.
-If you use this feature and which to still have an ocean, then disable *Water Body Culling* on the *Ocean Renderer*.
+Since this feature cannot be applied partially to an ocean tile, and an ocean tile can overlap two water bodies, this feature does not work well with bordering water bodies.
+If you use this feature and want to still have an ocean, then disable *Water Body Culling* on the *Ocean Renderer*.
 
 Rivers
 ------

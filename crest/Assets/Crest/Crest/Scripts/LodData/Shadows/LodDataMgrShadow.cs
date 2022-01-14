@@ -26,8 +26,8 @@ namespace Crest
         protected override Texture2DArray NullTexture => s_nullTexture;
         public override int BufferCount => 2;
 
-        internal const string MATERIAL_KEYWORD_PROPERTY = "_Shadows";
-        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_SHADOWS_ON";
+        internal static readonly string MATERIAL_KEYWORD_PROPERTY = "_Shadows";
+        internal static readonly string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_SHADOWS_ON";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Shadowing is not enabled on the ocean material and will not be visible.";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Shadowing</i> option in the <i>Scattering<i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The shadow feature is disabled on this component but is enabled on the ocean material.";

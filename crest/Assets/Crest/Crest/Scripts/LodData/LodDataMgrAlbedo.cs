@@ -22,8 +22,8 @@ namespace Crest
         protected override Texture2DArray NullTexture => s_nullTexture;
         protected override int ResolutionOverride => Settings._resolution;
 
-        internal const string MATERIAL_KEYWORD_PROPERTY = "_Albedo";
-        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_ALBEDO_ON";
+        internal static readonly string MATERIAL_KEYWORD_PROPERTY = "_Albedo";
+        internal static readonly string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_ALBEDO_ON";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Albedo is not enabled on the ocean material and will not be visible.";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Albedo</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Albedo feature is disabled on the this but is enabled on the ocean material.";

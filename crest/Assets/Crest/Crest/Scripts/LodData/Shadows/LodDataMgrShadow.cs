@@ -75,7 +75,8 @@ namespace Crest
 
             {
                 _renderMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
-                var shader = Shader.Find("Hidden/Crest/Simulation/Update Shadow");
+                var shaderPath = "Hidden/Crest/Simulation/Update Shadow";
+                var shader = Shader.Find(shaderPath);
                 for (int i = 0; i < _renderMaterial.Length; i++)
                 {
                     _renderMaterial[i] = new PropertyWrapperMaterial(shader);
@@ -94,9 +95,11 @@ namespace Crest
             // Define here so we can override check per pipeline downstream.
             var isShadowsDisabled = false;
 
-            if (QualitySettings.shadows == ShadowQuality.Disable)
             {
-                isShadowsDisabled = true;
+                if (QualitySettings.shadows == ShadowQuality.Disable)
+                {
+                    isShadowsDisabled = true;
+                }
             }
 
             if (isShadowsDisabled)
@@ -219,11 +222,14 @@ namespace Crest
         {
             BufCopyShadowMap = new CommandBuffer();
             BufCopyShadowMap.name = "Shadow data";
-            _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
 
-            // Call this regardless of rendering path as it has no negative consequences for forward.
-            SetUpDeferredShadows();
-            SetUpScreenSpaceShadows();
+            {
+                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+
+                // Call this regardless of rendering path as it has no negative consequences for forward.
+                SetUpDeferredShadows();
+                SetUpScreenSpaceShadows();
+            }
         }
 
         void CleanUpShadowCommandBuffers()

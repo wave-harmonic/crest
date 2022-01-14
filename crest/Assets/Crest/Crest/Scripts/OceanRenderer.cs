@@ -1049,7 +1049,7 @@ namespace Crest
 
         void LateUpdatePosition()
         {
-            Vector3 pos = Viewpoint.position;
+            var pos = Viewpoint.position;
 
             // maintain y coordinate - sea level
             pos.y = Root.position.y;
@@ -1068,7 +1068,6 @@ namespace Crest
             }
 
             Root.position = pos;
-
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, Root.position);
         }
 

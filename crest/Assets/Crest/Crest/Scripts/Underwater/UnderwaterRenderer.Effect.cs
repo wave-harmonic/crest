@@ -37,7 +37,7 @@ namespace Crest
 
         CommandBuffer _underwaterEffectCommandBuffer;
         PropertyWrapperMaterial _underwaterEffectMaterial;
-        Material _currentOceanMaterial;
+        internal Material _currentOceanMaterial;
         internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
         RenderTargetIdentifier _colorTarget = new RenderTargetIdentifier

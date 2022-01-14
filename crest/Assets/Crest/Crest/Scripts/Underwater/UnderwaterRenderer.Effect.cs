@@ -114,7 +114,8 @@ namespace Crest
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _debug._viewOceanMask,
                 _debug._viewStencil,
-                _filterOceanData
+                _filterOceanData,
+                ref _currentOceanMaterial
             );
 
             // Call after UpdatePostProcessMaterial as it copies material from ocean which will overwrite this.
@@ -244,7 +245,7 @@ namespace Crest
             }
         }
 
-        internal void UpdatePostProcessMaterial(
+        internal static void UpdatePostProcessMaterial(
             Mode mode,
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
@@ -253,7 +254,8 @@ namespace Crest
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             bool debugViewStencil,
-            int dataSliceOffset
+            int dataSliceOffset,
+            ref Material currentOceanMaterial
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -282,11 +284,11 @@ namespace Crest
                     }
                 }
 
-                if (copyParamsFromOceanMaterial || material != _currentOceanMaterial)
+                if (copyParamsFromOceanMaterial || material != currentOceanMaterial)
                 {
                     // Measured this at approx 0.05ms on Dell laptop.
                     underwaterPostProcessMaterial.CopyPropertiesFromMaterial(material);
-                    _currentOceanMaterial = material;
+                    currentOceanMaterial = material;
                 }
             }
 

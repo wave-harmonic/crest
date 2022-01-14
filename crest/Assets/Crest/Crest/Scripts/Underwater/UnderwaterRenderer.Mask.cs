@@ -92,7 +92,7 @@ namespace Crest
             SetUpFixMaskArtefactsShader();
         }
 
-        void OnDisableMask()
+        internal void OnDisableMask()
         {
             DisableOceanMaskKeywords();
             if (_maskRT != null) _maskRT.Release();

@@ -45,10 +45,11 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// Slice to sample previous frames data from. LOD change takes into account shifting of the cascades in scale.
 	const float sliceIndexSource = id.z + _LODChange;
 
-	// Off either end of the cascade - not useful to sample
+	// Off either end of the cascade - not useful to sample anything from previous frame. Always initialise
+	// with 0 values.
 	if (sliceIndexSource < 0.0 || sliceIndexSource >= depth - 1.0)
 	{
-		_LD_TexArray_Target[id] = 0;
+		_LD_TexArray_Target[id] = (float2)0;
 		return;
 	}
 

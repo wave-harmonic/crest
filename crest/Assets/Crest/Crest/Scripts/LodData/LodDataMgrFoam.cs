@@ -21,8 +21,8 @@ namespace Crest
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 
-        internal const string MATERIAL_KEYWORD_PROPERTY = "_Foam";
-        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FOAM_ON";
+        internal static readonly string MATERIAL_KEYWORD_PROPERTY = "_Foam";
+        internal static readonly string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FOAM_ON";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Foam is not enabled on the ocean material and will not be visible.";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Foam</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Foam feature is disabled on this component but is enabled on the ocean material.";

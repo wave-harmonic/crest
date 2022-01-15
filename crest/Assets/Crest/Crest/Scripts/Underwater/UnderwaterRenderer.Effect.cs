@@ -37,6 +37,7 @@ namespace Crest
 
         CommandBuffer _underwaterEffectCommandBuffer;
         PropertyWrapperMaterial _underwaterEffectMaterial;
+        internal Material _currentOceanMaterial;
         internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
         RenderTargetIdentifier _colorTarget = new RenderTargetIdentifier
@@ -113,7 +114,8 @@ namespace Crest
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _debug._viewOceanMask,
                 _debug._viewStencil,
-                _filterOceanData
+                _filterOceanData,
+                ref _currentOceanMaterial
             );
 
             // Call after UpdatePostProcessMaterial as it copies material from ocean which will overwrite this.
@@ -252,14 +254,42 @@ namespace Crest
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             bool debugViewStencil,
-            int dataSliceOffset
+            int dataSliceOffset,
+            ref Material currentOceanMaterial
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
-            if (copyParamsFromOceanMaterial)
+
+            // Copy ocean material parameters to underwater material.
             {
-                // Measured this at approx 0.05ms on dell laptop
-                underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                var material = OceanRenderer.Instance.OceanMaterial;
+                // Grab material from a water body if camera is within its XZ bounds.
+                foreach (var body in WaterBody.WaterBodies)
+                {
+                    if (body._overrideMaterial == null)
+                    {
+                        continue;
+                    }
+
+                    var bounds = body.AABB;
+                    var position = camera.transform.position;
+                    var contained =
+                        position.x >= bounds.min.x && position.x <= bounds.max.x &&
+                        position.z >= bounds.min.z && position.z <= bounds.max.z;
+                    if (contained)
+                    {
+                        material = body._overrideMaterial;
+                        // Water bodies should not overlap so grab the first one.
+                        break;
+                    }
+                }
+
+                if (copyParamsFromOceanMaterial || material != currentOceanMaterial)
+                {
+                    // Measured this at approx 0.05ms on Dell laptop.
+                    underwaterPostProcessMaterial.CopyPropertiesFromMaterial(material);
+                    currentOceanMaterial = material;
+                }
             }
 
             underwaterPostProcessMaterial.SetVector("_DepthFogDensity", OceanRenderer.Instance.UnderwaterDepthFogDensity);

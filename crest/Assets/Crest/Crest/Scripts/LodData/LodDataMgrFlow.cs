@@ -21,8 +21,8 @@ namespace Crest
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 
-        internal const string MATERIAL_KEYWORD_PROPERTY = "_Flow";
-        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FLOW_ON";
+        internal static readonly string MATERIAL_KEYWORD_PROPERTY = "_Flow";
+        internal static readonly string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FLOW_ON";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Flow is not enabled on the ocean material and will not be visible.";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Flow</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Flow feature is disabled on the this but is enabled on the ocean material.";

@@ -34,40 +34,16 @@ namespace Crest
             BackFace,
         }
 
-        internal RenderTargetIdentifier _maskTarget = new RenderTargetIdentifier
-        (
-            sp_CrestOceanMaskTexture,
-            mipLevel: 0,
-            CubemapFace.Unknown,
-            depthSlice: -1 // Bind all XR slices.
-        );
-        internal RenderTargetIdentifier _depthTarget = new RenderTargetIdentifier
-        (
-            sp_CrestOceanMaskDepthTexture,
-            mipLevel: 0,
-            CubemapFace.Unknown,
-            depthSlice: -1 // Bind all XR slices.
-        );
+        internal RenderTargetIdentifier _maskTarget;
+        internal RenderTargetIdentifier _depthTarget;
 
         internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
         PropertyWrapperMaterial _oceanMaskMaterial;
 
         internal Material _volumeMaterial = null;
-        internal RenderTargetIdentifier _volumeBackFaceTarget = new RenderTargetIdentifier
-        (
-            sp_CrestWaterVolumeBackFaceTexture,
-            mipLevel: 0,
-            CubemapFace.Unknown,
-            depthSlice: -1 // Bind all XR slices.
-        );
-        internal RenderTargetIdentifier _volumeFrontFaceTarget = new RenderTargetIdentifier
-        (
-            sp_CrestWaterVolumeFrontFaceTexture,
-            mipLevel: 0,
-            CubemapFace.Unknown,
-            depthSlice: -1 // Bind all XR slices.
-        );
+        internal RenderTargetIdentifier _volumeBackFaceTarget;
+        internal RenderTargetIdentifier _volumeFrontFaceTarget;
 
         RenderTexture _maskRT;
         RenderTexture _depthRT;
@@ -102,14 +78,27 @@ namespace Crest
                 _volumeMaterial = new Material(Shader.Find(k_ShaderPathWaterVolumeGeometry));
             }
 
+            // Create a reference to handle the RT. The RT properties will be replaced with a descriptor before the
+            // native object is created, and since it is lazy it is near zero cost.
+            Helpers.CreateRenderTargetTextureReference(ref _maskRT, ref _maskTarget);
+            _maskRT.name = "_CrestOceanMaskTexture";
+            Helpers.CreateRenderTargetTextureReference(ref _depthRT, ref _depthTarget);
+            _depthRT.name = "_CrestOceanMaskDepthTexture";
+            Helpers.CreateRenderTargetTextureReference(ref _volumeFrontFaceRT, ref _volumeFrontFaceTarget);
+            _volumeFrontFaceRT.name = "_CrestVolumeFrontFaceTexture";
+            Helpers.CreateRenderTargetTextureReference(ref _volumeBackFaceRT, ref _volumeBackFaceTarget);
+            _volumeBackFaceRT.name = "_CrestVolumeBackFaceTexture";
+
             SetUpFixMaskArtefactsShader();
         }
 
-        void OnDisableOceanMask()
+        internal void OnDisableMask()
         {
             DisableOceanMaskKeywords();
-            CleanUpMaskTextures();
-            CleanUpVolumeTextures();
+            if (_maskRT != null) _maskRT.Release();
+            if (_depthRT != null) _depthRT.Release();
+            if (_volumeFrontFaceRT != null) _volumeFrontFaceRT.Release();
+            if (_volumeBackFaceRT != null) _volumeBackFaceRT.Release();
         }
 
         internal static void DisableOceanMaskKeywords()
@@ -142,14 +131,10 @@ namespace Crest
 
         internal void SetUpMaskTextures(RenderTextureDescriptor descriptor)
         {
-            // Bail if we do not need to (re)create the textures.
-            if (_maskRT != null && descriptor.width == _maskRT.width && descriptor.height == _maskRT.height && descriptor.volumeDepth == _maskRT.volumeDepth && descriptor.useDynamicScale == _maskRT.useDynamicScale)
+            if (!Helpers.RenderTargetTextureNeedsUpdating(_maskRT, descriptor))
             {
                 return;
             }
-
-            Helpers.DestroyRenderTargetTexture(ref _maskRT);
-            Helpers.DestroyRenderTargetTexture(ref _depthRT);
 
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
             // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
@@ -162,59 +147,36 @@ namespace Crest
             descriptor.depthBufferBits = 0;
             descriptor.enableRandomWrite = true;
 
-            _maskRT = new RenderTexture(descriptor);
-            _maskRT.hideFlags = HideFlags.HideAndDontSave;
-            _maskRT.name = "_CrestOceanMaskTexture";
-            _maskTarget = new RenderTargetIdentifier
-            (
-                _maskRT,
-                mipLevel: 0,
-                CubemapFace.Unknown,
-                depthSlice: -1 // Bind all XR slices.
-            );
+            _maskRT.Release();
+            _maskRT.descriptor = descriptor;
 
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 24;
             descriptor.enableRandomWrite = false;
 
-            _depthRT = new RenderTexture(descriptor);
-            _depthRT.name = "_CrestOceanMaskDepthTexture";
-            _depthRT.hideFlags = HideFlags.HideAndDontSave;
-            _depthTarget = new RenderTargetIdentifier
-            (
-                _depthRT,
-                mipLevel: 0,
-                CubemapFace.Unknown,
-                depthSlice: -1 // Bind all XR slices.
-            );
+            _depthRT.Release();
+            _depthRT.descriptor = descriptor;
         }
 
         internal void SetUpVolumeTextures(RenderTextureDescriptor descriptor)
         {
+            if (!Helpers.RenderTargetTextureNeedsUpdating(_volumeFrontFaceRT, descriptor))
+            {
+                return;
+            }
+
             descriptor.msaaSamples = 1;
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 24;
 
-            Helpers.CreateRenderTargetTexture(ref _volumeFrontFaceRT, ref _volumeFrontFaceTarget, descriptor);
-            _volumeFrontFaceRT.name = "_CrestVolumeFrontFaceTexture";
+            _volumeFrontFaceRT.Release();
+            _volumeFrontFaceRT.descriptor = descriptor;
 
             if (_mode == Mode.Volume || _mode == Mode.VolumeFlyThrough)
             {
-                Helpers.CreateRenderTargetTexture(ref _volumeBackFaceRT, ref _volumeBackFaceTarget, descriptor);
-                _volumeBackFaceRT.name = "_CrestVolumeBackFaceTexture";
+                _volumeBackFaceRT.Release();
+                _volumeBackFaceRT.descriptor = descriptor;
             }
-        }
-
-        internal void CleanUpVolumeTextures()
-        {
-            Helpers.DestroyRenderTargetTexture(ref _volumeFrontFaceRT);
-            Helpers.DestroyRenderTargetTexture(ref _volumeBackFaceRT);
-        }
-
-        internal void CleanUpMaskTextures()
-        {
-            Helpers.DestroyRenderTargetTexture(ref _maskRT);
-            Helpers.DestroyRenderTargetTexture(ref _depthRT);
         }
 
         internal void SetUpVolume(Material maskMaterial)

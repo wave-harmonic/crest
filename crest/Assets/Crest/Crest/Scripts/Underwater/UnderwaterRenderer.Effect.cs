@@ -262,6 +262,7 @@ namespace Crest
 
             // Copy ocean material parameters to underwater material.
             {
+                WaterBody dominantWaterBody = null;
                 var material = OceanRenderer.Instance.OceanMaterial;
                 // Grab material from a water body if camera is within its XZ bounds.
                 foreach (var body in WaterBody.WaterBodies)
@@ -278,6 +279,7 @@ namespace Crest
                         position.z >= bounds.min.z && position.z <= bounds.max.z;
                     if (contained)
                     {
+                        dominantWaterBody = body;
                         material = body._overrideMaterial;
                         // Water bodies should not overlap so grab the first one.
                         break;
@@ -290,9 +292,10 @@ namespace Crest
                     underwaterPostProcessMaterial.CopyPropertiesFromMaterial(material);
                     currentOceanMaterial = material;
                 }
-            }
 
-            underwaterPostProcessMaterial.SetVector("_DepthFogDensity", OceanRenderer.Instance.UnderwaterDepthFogDensity);
+                underwaterPostProcessMaterial.SetVector("_DepthFogDensity", dominantWaterBody == null
+                    ? OceanRenderer.Instance.UnderwaterDepthFogDensity : dominantWaterBody.UnderwaterDepthFogDensity);
+            }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
             underwaterPostProcessMaterial.SetKeyword(k_KeywordDebugViewOceanMask, debugViewPostProcessMask);

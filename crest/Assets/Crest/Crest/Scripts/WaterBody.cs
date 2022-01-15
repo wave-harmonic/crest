@@ -40,6 +40,9 @@ namespace Crest
         public static List<WaterBody> WaterBodies => _waterBodies;
         static List<WaterBody> _waterBodies = new List<WaterBody>();
 
+        public float VolumeExtinctionLength { get; private set; }
+        public Vector3 UnderwaterDepthFogDensity { get; private set; }
+
         public Bounds AABB { get; private set; }
 
         [Tooltip("Water geometry tiles that overlap this waterbody area will be assigned this material. This " +
@@ -128,6 +131,32 @@ namespace Crest
 
                     _clipInput = null;
                 }
+            }
+        }
+
+        internal void UpdateDepthFogDensityParameters()
+        {
+            if (_overrideMaterial == null)
+            {
+                return;
+            }
+
+            UnderwaterDepthFogDensity = _overrideMaterial.GetVector("_DepthFogDensity") * UnderwaterRenderer.DepthFogDensityFactor;
+            // Only run optimisation in play mode due to shared height above water.
+            if (Application.isPlaying)
+            {
+                var minimumFogDensity = Mathf.Min(Mathf.Min(UnderwaterDepthFogDensity.x, UnderwaterDepthFogDensity.y), UnderwaterDepthFogDensity.z);
+                var underwaterCullLimit = Mathf.Clamp
+                (
+                    OceanRenderer.Instance._underwaterCullLimit,
+                    OceanRenderer.UNDERWATER_CULL_LIMIT_MINIMUM,
+                    OceanRenderer.UNDERWATER_CULL_LIMIT_MAXIMUM
+                );
+                VolumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
+            }
+            else
+            {
+                VolumeExtinctionLength = 0f;
             }
         }
 

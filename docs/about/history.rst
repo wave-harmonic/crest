@@ -78,6 +78,7 @@ Fixed
    -  Fix visible "rings" in dynamic wave sim resulting from fast moving objects that have the *Sphere Water Interaction* component attached.
       Simulation frequency can be increased to improve result further, at the cost of more simulation steps per frame.
    -  Fix *Sphere Water Interaction* component not working in standalone builds.
+   -  Fix pop/discontinuity issue with dynamic waves.
 
    .. only:: birp
 

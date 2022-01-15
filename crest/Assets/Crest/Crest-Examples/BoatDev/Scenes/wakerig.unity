@@ -276,6 +276,15 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 8527199615902766, guid: a4c0a041b31f24d0d8f10f1f384f7e8a, type: 3}
+      propertyPath: _spectrum
+      value: 
+      objectReference: {fileID: 11400000, guid: 02c797a6329139b4aa4f3722248aba4c,
+        type: 2}
+    - target: {fileID: 8527199615902766, guid: a4c0a041b31f24d0d8f10f1f384f7e8a, type: 3}
+      propertyPath: _spectrumFixedAtRuntime
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8527199615902766, guid: a4c0a041b31f24d0d8f10f1f384f7e8a, type: 3}
       propertyPath: _waveDirectionHeadingAngle
       value: -90
       objectReference: {fileID: 0}
@@ -454,6 +463,11 @@ PrefabInstance:
       propertyPath: _lodCount
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 8808763024429789617, guid: a4c0a041b31f24d0d8f10f1f384f7e8a,
+        type: 3}
+      propertyPath: _material
+      value: 
+      objectReference: {fileID: 2100000, guid: 4ee1dcb33f9d13449837c5422e910412, type: 2}
     - target: {fileID: 8808763024429789617, guid: a4c0a041b31f24d0d8f10f1f384f7e8a,
         type: 3}
       propertyPath: _primaryLight

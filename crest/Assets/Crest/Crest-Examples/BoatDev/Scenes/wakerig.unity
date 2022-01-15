@@ -478,6 +478,11 @@ PrefabInstance:
       propertyPath: _createFlowSim
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8808763024429789617, guid: a4c0a041b31f24d0d8f10f1f384f7e8a,
+        type: 3}
+      propertyPath: _lodDataResolution
+      value: 384
+      objectReference: {fileID: 0}
     - target: {fileID: 8808763024930784623, guid: a4c0a041b31f24d0d8f10f1f384f7e8a,
         type: 3}
       propertyPath: m_IsActive

@@ -6,7 +6,7 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 {
 	Properties
 	{
-		_Speed("Speed", Range(0.0, 10.0)) = 1.0
+		_Speed("Speed", Range(0.0, 30.0)) = 1.0
 		_Direction("Direction", Range(0.0, 1.0)) = 0.0
 		[Toggle] _FeatherAtUVExtents("Feather At UV Extents", Float) = 0
 		_FeatherWidth("Feather Width", Range(0.001, 0.5)) = 0.1

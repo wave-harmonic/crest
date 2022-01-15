@@ -127,7 +127,8 @@ namespace Crest
             UpdateScaleDifference();
         }
 
-        // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs
+        // Borrowed from SRP code:
+        // https://github.com/Unity-Technologies/Graphics/blob/7d292932bec3b4257a4defaf698fc7d77e2027f5/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs#L181-L184
         public static Matrix4x4 CalculateWorldToCameraMatrixRHS(Vector3 position, Quaternion rotation)
         {
             return Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(position, rotation, Vector3.one).inverse;
@@ -135,6 +136,7 @@ namespace Crest
 
         public void SetViewProjectionMatrices(int lodIdx, CommandBuffer buf)
         {
+            // This will work for CG but not for HDRP hlsl files.
             buf.SetViewProjectionMatrices(GetWorldToCameraMatrix(lodIdx), GetProjectionMatrix(lodIdx));
         }
 

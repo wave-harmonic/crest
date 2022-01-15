@@ -36,9 +36,9 @@ namespace Crest
         float _weightUpDownMul = 0.5f;
 
         [Range(0f, 1f)]
-        public float _innerSphereOffset;
+        public float _innerSphereOffset = 0.109f;
         [Range(0f, 10f)]
-        public float _innerSphereMultiplier;
+        public float _innerSphereMultiplier = 0.155f;
 
         [Range(0f, 2f)]
         public float _velOffset = 0.04f;

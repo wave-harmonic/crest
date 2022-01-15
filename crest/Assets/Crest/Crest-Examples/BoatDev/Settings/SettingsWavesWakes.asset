@@ -16,7 +16,7 @@ MonoBehaviour:
   _minGridSize: 0
   _maxGridSize: 0
   _simulationFrequency: 60
-  _damping: 0.05
+  _damping: 0
   _courantNumber: 1
   _attenuationInShallows: 1
   _horizDisplace: 9.66

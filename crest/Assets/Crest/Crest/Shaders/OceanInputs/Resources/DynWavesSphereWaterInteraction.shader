@@ -34,6 +34,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			float _Weight;
 			float _Radius;
 			float3 _DisplacementAtInputPosition;
+			float _InnerSphereOffset;
+			float _InnerSphereMultiplier;
 			CBUFFER_END
 
 			float _MinWavelength;
@@ -110,11 +112,12 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
 				float forceHoriz = 0.0;
-				if( signedDist > 0.0 )
+				if( signedDist > 0.0 || signedDist < -_Radius*_InnerSphereOffset )
 				{
 					// Range / radius of interaction force
 					const float a = 1.43 / _MinWavelength;
-					forceHoriz = dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
+					forceHoriz = sign(signedDist) * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, abs(signedDist) );
+					if (signedDist < 0.0) forceHoriz *= _InnerSphereMultiplier;
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

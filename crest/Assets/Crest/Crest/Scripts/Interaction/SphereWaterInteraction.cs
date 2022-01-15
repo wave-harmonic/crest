@@ -30,10 +30,20 @@ namespace Crest
         [Range(0.01f, 50f), SerializeField]
         float _radius = 1f;
 
-        [Range(-20f, 20f), SerializeField]
+        [Range(-40f, 40f), SerializeField]
         float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
+
+        [Range(0f, 1f)]
+        public float _innerSphereOffset;
+        [Range(0f, 10f)]
+        public float _innerSphereMultiplier;
+
+        [Range(0f, 2f)]
+        public float _velOffset = 0.04f;
+
+        public bool _compensateForWaveMotion = false;
 
         [Header("Limits")]
         [Tooltip("Teleport speed (km/h) - if the calculated speed is larger than this amount, the object is deemed to have teleported and the computed velocity is discarded."), SerializeField]
@@ -66,6 +76,8 @@ namespace Crest
         static int sp_weight = Shader.PropertyToID("_Weight");
         static int sp_simDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_radius = Shader.PropertyToID("_Radius");
+        static int sp_innerSphereOffset = Shader.PropertyToID("_InnerSphereOffset");
+        static int sp_innerSphereMultiplier = Shader.PropertyToID("_InnerSphereMultiplier");
 
         public float Wavelength => 2f * _radius;
 
@@ -128,8 +140,10 @@ namespace Crest
 
             _mpb.SetVector(sp_velocity, relativeVelocity);
             _mpb.SetFloat(sp_simDeltaTime, dt);
-            _mpb.SetFloat(sp_radius, _radius);
-            _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, disp);
+            _mpb.SetFloat(sp_radius, _radius * 1.1f);
+            _mpb.SetFloat(sp_innerSphereOffset, _innerSphereOffset);
+            _mpb.SetFloat(sp_innerSphereMultiplier, _innerSphereMultiplier);
+            _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, _compensateForWaveMotion ? disp : Vector3.zero);
 
             // Weighting with this value helps keep ripples consistent for different gravity values
             var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier) / 5f;
@@ -224,7 +238,7 @@ namespace Crest
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
-            Gizmos.DrawWireSphere(transform.position, _radius);
+            Gizmos.DrawWireSphere(transform.position + _velOffset * _velocity, _radius);
         }
 
         public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
@@ -236,7 +250,7 @@ namespace Crest
             if (_debugSubsteps)
             {
                 var col = 0.7f * (Time.frameCount % 2 == 1 ? Color.green : Color.red);
-                var pos = transform.position + /*(fixup ? 1f : 0f) **/ -_velocity * timeBeforeCurrentTime;
+                var pos = transform.position + /*(fixup ? 1f : 0f) **/ - _velocity * (timeBeforeCurrentTime - _velOffset);
                 Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, col, 0.5f);
             }
 #endif
@@ -245,7 +259,7 @@ namespace Crest
             // to substeps. Reconstruct the position of this input at the current substep time. This produces
             // much smoother interaction shapes for moving objects. Increasing sim freq helps further.
             var renderMatrix = _renderMatrix;
-            var offset = _velocity * timeBeforeCurrentTime;
+            var offset = _velocity * (timeBeforeCurrentTime - _velOffset);
             renderMatrix.m03 -= offset.x;
             renderMatrix.m13 -= offset.y;
             renderMatrix.m23 -= offset.z;

@@ -1190,6 +1190,12 @@ namespace Crest
                     var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
                     volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
                 }
+
+                foreach (var body in WaterBody.WaterBodies)
+                {
+                    // Will update depth fog density for underwater and volume extinction length for culling.
+                    body.UpdateDepthFogDensityParameters();
+                }
             }
 
             var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
@@ -1203,6 +1209,7 @@ namespace Crest
 
                 var isCulled = false;
                 tile.MaterialOverridden = false;
+                WaterBody dominantWaterBody = null;
 
                 // If there are local bodies of water, this will do overlap tests between the ocean tiles
                 // and the water bodies and turn off any that don't overlap.
@@ -1250,6 +1257,7 @@ namespace Crest
                                     tile.Rend.sharedMaterial = body._overrideMaterial;
                                     tile.MaterialOverridden = true;
                                     largestOverlap = overlap;
+                                    dominantWaterBody = body;
                                 }
                             }
                             else
@@ -1266,7 +1274,9 @@ namespace Crest
                 // Only run optimisation in play mode due to shared height above water.
                 if (!isCulled && isUnderwaterActive && Application.isPlaying)
                 {
-                    isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
+                    isCulled = definitelyUnderwater &&
+                        (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >=
+                        (dominantWaterBody == null ? volumeExtinctionLength : dominantWaterBody.VolumeExtinctionLength);
                 }
 
                 tile.Rend.enabled = !isCulled;

@@ -114,10 +114,19 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				float forceHoriz = 0.0;
 				if( signedDist > 0.0 || signedDist < -_Radius*_InnerSphereOffset )
 				{
-					// Range / radius of interaction force
+					// Range / radius of interaction force.
 					const float a = 1.43 / _MinWavelength;
-					forceHoriz = sign(signedDist) * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, abs(signedDist) );
-					if (signedDist < 0.0) forceHoriz *= _InnerSphereMultiplier;
+
+					// Invert within sphere, to balance / negate forces applied outside of sphere.
+					float forceSign = sign(signedDist);
+
+					forceHoriz = forceSign * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, abs(signedDist) );
+
+					// If inside sphere, add an additional weight.
+					if (signedDist < 0.0)
+					{
+						forceHoriz *= _InnerSphereMultiplier;
+					}
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

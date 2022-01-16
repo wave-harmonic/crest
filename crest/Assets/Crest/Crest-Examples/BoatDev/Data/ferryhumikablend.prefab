@@ -260,7 +260,7 @@ GameObject:
   - component: {fileID: 2719601275906391550}
   - component: {fileID: 2719601275906391551}
   m_Layer: 0
-  m_Name: InteractionSphere (2)
+  m_Name: WakeFront1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -317,7 +317,7 @@ GameObject:
   - component: {fileID: 2719601275937381647}
   - component: {fileID: 2719601275937381644}
   m_Layer: 0
-  m_Name: InteractionSphere (3)
+  m_Name: WakeFront0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -455,7 +455,7 @@ GameObject:
   - component: {fileID: 2719601277126386220}
   - component: {fileID: 2719601277126386221}
   m_Layer: 0
-  m_Name: InteractionSphere (1)
+  m_Name: WakeBack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -686,7 +686,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2989439222087732126}
-  m_LocalRotation: {x: -0, y: -0.99999875, z: -0, w: -0.0016033358}
+  m_LocalRotation: {x: -0, y: -0.99999875, z: 0, w: -0.0016056981}
   m_LocalPosition: {x: -106.7, y: 0, z: 54.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:

@@ -57,6 +57,19 @@ namespace Crest
         [Tooltip("Used to automatically add turning input")]
         public float _turnBias = 0f;
 
+        // Debug
+        [Space(10)]
+
+        [SerializeField]
+        DebugFields _debug = new DebugFields();
+
+        [Serializable]
+        class DebugFields
+        {
+            [Tooltip("Draw queries for each force point as gizmos.")]
+            public bool _drawQueries = false;
+        }
+
         private const float WATER_DENSITY = 1000;
 
         public override Vector3 Velocity => _rb.velocity;
@@ -129,6 +142,12 @@ namespace Crest
                 waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
 
+            if (_debug._drawQueries)
+            {
+                Debug.DrawLine(transform.position + 5f * Vector3.up, transform.position + 5f * Vector3.up +
+                    waterSurfaceVel, new Color(1, 1, 1, 0.6f));
+            }
+
             // Buoyancy
             FixedUpdateBuoyancy();
             FixedUpdateDrag(waterSurfaceVel);
@@ -145,6 +164,16 @@ namespace Crest
             _queryPoints[_forcePoints.Length] = transform.position;
 
             collProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _queryResultDisps, null, _queryResultVels);
+
+            if (_debug._drawQueries)
+            {
+                for (var i = 0; i < _forcePoints.Length; i++)
+                {
+                    var query = _queryPoints[i];
+                    query.y = OceanRenderer.Instance.SeaLevel + _queryResultDisps[i].y;
+                    VisualiseCollisionArea.DebugDrawCross(query, 1f, Color.magenta);
+                }
+            }
         }
 
         void FixedUpdateEngine()

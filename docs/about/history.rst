@@ -48,6 +48,7 @@ Changed
    -  Tidy up wave spectrum inspector by only showing *ShapeGerstner*-specific controls when editing within a *ShapeGerstner* component.
    -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
    -  *Underwater Renderer* validates *Ocean Renderer* material.
+   -  Add *Debug > Draw Queries* to *Boat Probes* to draw gizmos for queries.
 
    .. only:: urp
 

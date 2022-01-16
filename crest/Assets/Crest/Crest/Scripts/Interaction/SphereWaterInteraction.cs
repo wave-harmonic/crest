@@ -36,7 +36,7 @@ namespace Crest
         public float _weightUpDownMul = 0.5f;
 
         [Range(0f, 10f), Tooltip("Model parameter that can be used to modify the shape of the interaction.")]
-        public float _innerSphereMultiplier = 0.155f;
+        public float _innerSphereMultiplier = 1.55f;
         [Range(0f, 1f), Tooltip("Model parameter that can be used to modify the shape of the interaction.")]
         public float _innerSphereOffset = 0.109f;
 
@@ -141,7 +141,11 @@ namespace Crest
 
             _mpb.SetVector(sp_velocity, relativeVelocity);
             _mpb.SetFloat(sp_simDeltaTime, dt);
-            _mpb.SetFloat(sp_radius, _radius * 1.1f);
+            
+            // Enlarge radius slightly - this tends to help waves 'wrap' the sphere slightly better
+            float radiusScale = 1.1f;
+            _mpb.SetFloat(sp_radius, _radius * radiusScale);
+            
             _mpb.SetFloat(sp_innerSphereOffset, _innerSphereOffset);
             _mpb.SetFloat(sp_innerSphereMultiplier, _innerSphereMultiplier);
             _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, _compensateForWaveMotion * disp);
@@ -251,7 +255,7 @@ namespace Crest
             if (_debugSubsteps)
             {
                 var col = 0.7f * (Time.frameCount % 2 == 1 ? Color.green : Color.red);
-                var pos = transform.position + /*(fixup ? 1f : 0f) **/ - _velocity * (timeBeforeCurrentTime - _velocityOffset);
+                var pos = transform.position + /*(fixup ? 1f : 0f) **/ -_velocity * (timeBeforeCurrentTime - _velocityOffset);
                 Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, col, 0.5f);
             }
 #endif

@@ -253,10 +253,10 @@ MonoBehaviour:
   _radius: 1
   _weight: 4
   _weightUpDownMul: 0.5
-  _innerSphereOffset: 0.109
   _innerSphereMultiplier: 1.55
-  _velOffset: 0.04
-  _compensateForWaveMotion: 0
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -394,10 +394,10 @@ MonoBehaviour:
   _radius: 2.5
   _weight: 6
   _weightUpDownMul: 0.5
-  _innerSphereOffset: 0.109
   _innerSphereMultiplier: 1.55
-  _velOffset: 0.08
-  _compensateForWaveMotion: 0
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.08
+  _compensateForWaveMotion: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -769,10 +769,10 @@ MonoBehaviour:
   _radius: 0.5
   _weight: 6
   _weightUpDownMul: 0.5
-  _innerSphereOffset: 0.109
   _innerSphereMultiplier: 1.55
-  _velOffset: 0.04
-  _compensateForWaveMotion: 0
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.456
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -913,10 +913,10 @@ MonoBehaviour:
   _radius: 5
   _weight: 6
   _weightUpDownMul: 0.5
-  _innerSphereOffset: 0.109
   _innerSphereMultiplier: 1.55
-  _velOffset: 0.16
-  _compensateForWaveMotion: 0
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.16
+  _compensateForWaveMotion: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1353,10 +1353,10 @@ MonoBehaviour:
   _radius: 10
   _weight: 8
   _weightUpDownMul: 0.5
-  _innerSphereOffset: 0.109
   _innerSphereMultiplier: 1.55
-  _velOffset: 0.46
-  _compensateForWaveMotion: 0
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.46
+  _compensateForWaveMotion: 0.5
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100

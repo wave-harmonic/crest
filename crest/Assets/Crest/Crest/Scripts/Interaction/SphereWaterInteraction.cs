@@ -32,19 +32,19 @@ namespace Crest
 
         [Range(-40f, 40f), Tooltip("Intensity of the forces.")]
         public float _weight = 1f;
-        [Range(0f, 2f), Tooltip("Intensity of the forces from vertical motion of the sphere."]
+        [Range(0f, 2f), Tooltip("Intensity of the forces from vertical motion of the sphere.")]
         public float _weightUpDownMul = 0.5f;
 
-        [Range(0f, 1f), Tooltip("Model parameter that can be used to modify the shape of the interaction.")]
-        public float _innerSphereOffset = 0.109f;
         [Range(0f, 10f), Tooltip("Model parameter that can be used to modify the shape of the interaction.")]
         public float _innerSphereMultiplier = 0.155f;
+        [Range(0f, 1f), Tooltip("Model parameter that can be used to modify the shape of the interaction.")]
+        public float _innerSphereOffset = 0.109f;
 
         [Range(0f, 2f), Tooltip("Offset in direction of motion to help ripples appear in front of sphere.")]
-        public float _velOffset = 0.04f;
+        public float _velocityOffset = 0.04f;
 
-        [Tooltip("Correct for wave displacement. This can fix issues where the dynamic wave input visibly drifts away from the boat in the presence of large waves. In some cases enabling this option results in a feedback loop causing visible rings on the surface, so is disabled by default.")]
-        public bool _compensateForWaveMotion = false;
+        [Range(0f, 1f), Tooltip("Correct for wave displacement. Increasing this can fix issues where the dynamic wave input visibly drifts away from the boat in the presence of large waves. However in some cases enabling this option results in a feedback loop causing visible rings on the surface so a balance may need to be struck to minimize both issues.")]
+        public float _compensateForWaveMotion = 0.45f;
 
         [Header("Limits")]
         [Tooltip("Teleport speed (km/h) - if the calculated speed is larger than this amount, the object is deemed to have teleported and the computed velocity is discarded."), SerializeField]
@@ -144,7 +144,7 @@ namespace Crest
             _mpb.SetFloat(sp_radius, _radius * 1.1f);
             _mpb.SetFloat(sp_innerSphereOffset, _innerSphereOffset);
             _mpb.SetFloat(sp_innerSphereMultiplier, _innerSphereMultiplier);
-            _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, _compensateForWaveMotion ? disp : Vector3.zero);
+            _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, _compensateForWaveMotion * disp);
 
             // Weighting with this value helps keep ripples consistent for different gravity values
             var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier) / 5f;
@@ -239,7 +239,7 @@ namespace Crest
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
-            Gizmos.DrawWireSphere(transform.position + _velOffset * _velocity, _radius);
+            Gizmos.DrawWireSphere(transform.position + _velocityOffset * _velocity, _radius);
         }
 
         public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
@@ -251,7 +251,7 @@ namespace Crest
             if (_debugSubsteps)
             {
                 var col = 0.7f * (Time.frameCount % 2 == 1 ? Color.green : Color.red);
-                var pos = transform.position + /*(fixup ? 1f : 0f) **/ - _velocity * (timeBeforeCurrentTime - _velOffset);
+                var pos = transform.position + /*(fixup ? 1f : 0f) **/ - _velocity * (timeBeforeCurrentTime - _velocityOffset);
                 Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, col, 0.5f);
             }
 #endif
@@ -260,7 +260,7 @@ namespace Crest
             // to substeps. Reconstruct the position of this input at the current substep time. This produces
             // much smoother interaction shapes for moving objects. Increasing sim freq helps further.
             var renderMatrix = _renderMatrix;
-            var offset = _velocity * (timeBeforeCurrentTime - _velOffset);
+            var offset = _velocity * (timeBeforeCurrentTime - _velocityOffset);
             renderMatrix.m03 -= offset.x;
             renderMatrix.m13 -= offset.y;
             renderMatrix.m23 -= offset.z;

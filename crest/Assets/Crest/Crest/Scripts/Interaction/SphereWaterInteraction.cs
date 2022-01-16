@@ -27,22 +27,23 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        [Range(0.01f, 50f), SerializeField]
-        float _radius = 1f;
+        [Range(0.01f, 50f), Tooltip("Radius of the sphere that is modelled.")]
+        public float _radius = 1f;
 
-        [Range(-40f, 40f), SerializeField]
-        float _weight = 1f;
-        [Range(0f, 2f), SerializeField]
-        float _weightUpDownMul = 0.5f;
+        [Range(-40f, 40f), Tooltip("Intensity of the forces.")]
+        public float _weight = 1f;
+        [Range(0f, 2f), Tooltip("Intensity of the forces from vertical motion of the sphere."]
+        public float _weightUpDownMul = 0.5f;
 
-        [Range(0f, 1f)]
+        [Range(0f, 1f), Tooltip("Model parameter that can be used to modify the shape of the interaction.")]
         public float _innerSphereOffset = 0.109f;
-        [Range(0f, 10f)]
+        [Range(0f, 10f), Tooltip("Model parameter that can be used to modify the shape of the interaction.")]
         public float _innerSphereMultiplier = 0.155f;
 
-        [Range(0f, 2f)]
+        [Range(0f, 2f), Tooltip("Offset in direction of motion to help ripples appear in front of sphere.")]
         public float _velOffset = 0.04f;
 
+        [Tooltip("Correct for wave displacement. This can fix issues where the dynamic wave input visibly drifts away from the boat in the presence of large waves. In some cases enabling this option results in a feedback loop causing visible rings on the surface, so is disabled by default.")]
         public bool _compensateForWaveMotion = false;
 
         [Header("Limits")]

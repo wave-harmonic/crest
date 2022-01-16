@@ -22,10 +22,6 @@ Only the camera rendering the ocean surface will be used.
    Transparent materials may not render correctly underwater.
    See :ref:`transparent-object-underwater` for possible workarounds.
 
-.. admonition:: Bug
-
-   Underwater effects do *not* support orthographic projection.
-
 
 Underwater Renderer
 -------------------

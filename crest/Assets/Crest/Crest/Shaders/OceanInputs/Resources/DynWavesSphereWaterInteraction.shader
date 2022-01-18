@@ -36,6 +36,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			float3 _DisplacementAtInputPosition;
 			float _InnerSphereOffset;
 			float _InnerSphereMultiplier;
+			float _LargeWaveMultiplier;
 			CBUFFER_END
 
 			float _MinWavelength;
@@ -68,7 +69,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
-				if( 2.0 * _Radius < _CrestCascadeData[_LodIdx]._texelWidth ) o.positionCS *= 0.0;
+				if (_LargeWaveMultiplier * _Radius < _CrestCascadeData[_LodIdx]._texelWidth) o.positionCS *= 0.0;
 
 				return o;
 			}

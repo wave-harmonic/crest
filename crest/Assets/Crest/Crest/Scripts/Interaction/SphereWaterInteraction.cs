@@ -46,6 +46,9 @@ namespace Crest
         [Range(0f, 1f), Tooltip("Correct for wave displacement. Increasing this can fix issues where the dynamic wave input visibly drifts away from the boat in the presence of large waves. However in some cases enabling this option results in a feedback loop causing visible rings on the surface so a balance may need to be struck to minimize both issues.")]
         public float _compensateForWaveMotion = 0.45f;
 
+        [Tooltip("If the dynamic waves are not visible far enough in the distance from the camera, this can be used to boost the output.")]
+        public bool _boostLargeWaves = false;
+
         [Header("Limits")]
         [Tooltip("Teleport speed (km/h) - if the calculated speed is larger than this amount, the object is deemed to have teleported and the computed velocity is discarded."), SerializeField]
         float _teleportSpeed = 500f;
@@ -79,6 +82,7 @@ namespace Crest
         static int sp_radius = Shader.PropertyToID("_Radius");
         static int sp_innerSphereOffset = Shader.PropertyToID("_InnerSphereOffset");
         static int sp_innerSphereMultiplier = Shader.PropertyToID("_InnerSphereMultiplier");
+        static int sp_largeWaveMultiplier = Shader.PropertyToID("_LargeWaveMultiplier");
 
         public float Wavelength => 2f * _radius;
 
@@ -148,6 +152,7 @@ namespace Crest
             
             _mpb.SetFloat(sp_innerSphereOffset, _innerSphereOffset);
             _mpb.SetFloat(sp_innerSphereMultiplier, _innerSphereMultiplier);
+            _mpb.SetFloat(sp_largeWaveMultiplier, _boostLargeWaves ? 2f : 1f);
             _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, _compensateForWaveMotion * disp);
 
             // Weighting with this value helps keep ripples consistent for different gravity values

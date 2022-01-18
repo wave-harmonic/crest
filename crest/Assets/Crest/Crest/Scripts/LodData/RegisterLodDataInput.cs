@@ -148,7 +148,15 @@ namespace Crest
                     buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
                 }
 
-                buf.DrawRenderer(_renderer, _material);
+                for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
+                {
+                    // Empty material slots is a user error. Unity complains about it so we should too.
+                    Debug.AssertFormat(_renderer.sharedMaterials[i] != null, _renderer,
+                        "Crest: {0} has empty material slots. Remove these slots or fill them with a material.", _renderer);
+
+                    // Submesh count generally must equal number of materials.
+                    buf.DrawRenderer(_renderer, _renderer.sharedMaterials[i], submeshIndex: i);
+                }
             }
         }
 

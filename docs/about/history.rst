@@ -84,6 +84,7 @@ Fixed
    .. only:: birp
 
       -  Fix shadow simulation null exceptions if primary light becomes null. `[BIRP]`
+      -  Fix *Underwater Renderer* using a non directional light when a transparent object is in range of light and in view of camera. `[BIRP]`
 
    .. only:: birp or urp
 

@@ -103,6 +103,14 @@ namespace Crest
             );
         }
 
+        public static RenderTargetIdentifier RenderTargetIdentifierXR(int id) => new RenderTargetIdentifier
+        (
+            id,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1  // Bind all XR slices.
+        );
+
         /// <summary>
         /// Creates an RT reference and adds it to the RTI. Native object behind RT is not created so you can change its
         /// properties before being used.

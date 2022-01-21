@@ -211,7 +211,7 @@ namespace Crest
             SetupOceanMask();
             OnEnableMask();
             SetupUnderwaterEffect();
-            _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+            _camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
             _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
 
             _currentEnableShaderAPI = _enableShaderAPI;
@@ -225,7 +225,7 @@ namespace Crest
         {
             if (_oceanMaskCommandBuffer != null)
             {
-                _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                _camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
             }
 
             if (_underwaterEffectCommandBuffer != null)
@@ -350,7 +350,7 @@ namespace Crest
 
                 if (_oceanMaskCommandBuffer != null)
                 {
-                    camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
                 }
 
                 if (_underwaterEffectCommandBuffer != null)
@@ -414,7 +414,7 @@ namespace Crest
             if (!_editorCameras.Contains(camera))
             {
                 _editorCameras.Add(camera);
-                camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
                 camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             }
 

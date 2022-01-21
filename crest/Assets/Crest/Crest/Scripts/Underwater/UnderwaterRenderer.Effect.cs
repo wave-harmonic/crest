@@ -22,6 +22,8 @@ namespace Crest
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
         static readonly int sp_HorizonNormal = Shader.PropertyToID("_HorizonNormal");
         static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
+        static readonly int sp_LightColor0 = Shader.PropertyToID("_LightColor0");
+        static readonly int sp_WorldSpaceLightPos0 = Shader.PropertyToID("_WorldSpaceLightPos0");
 
         // If changed then see how mode is used to select the front-face pass and whether a mapping is required.
         // :UnderwaterRenderer.Mode
@@ -122,6 +124,13 @@ namespace Crest
             SetInverseViewProjectionMatrix(_underwaterEffectMaterial.material);
 
             _underwaterEffectCommandBuffer.Clear();
+
+            if (RenderSettings.sun != null)
+            {
+                // Unity does not set up lighting for us so we will get the last value which could incorrect.
+                _underwaterEffectCommandBuffer.SetGlobalVector(sp_LightColor0, RenderSettings.sun.color.linear * RenderSettings.sun.intensity);
+                _underwaterEffectCommandBuffer.SetGlobalVector(sp_WorldSpaceLightPos0, -RenderSettings.sun.transform.forward);
+            }
 
             // Create a separate stencil buffer context by copying the depth texture.
             if (UseStencilBufferOnEffect)

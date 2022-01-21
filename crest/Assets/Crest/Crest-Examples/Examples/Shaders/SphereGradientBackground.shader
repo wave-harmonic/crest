@@ -21,6 +21,7 @@ Shader "Hidden/Crest/SphereGradientBackground"
 			#pragma fragment frag
 
 			#include "UnityCG.cginc"
+			#include "Lighting.cginc"
 
 			struct Attributes
 			{
@@ -54,7 +55,7 @@ Shader "Hidden/Crest/SphereGradientBackground"
 				alpha = pow(alpha, _Exponent);
 
 				float3 col = lerp(_ColorAwayFromSun, _ColorTowardsSun, alpha);
-				return float4(col, 1.0);
+				return float4(col * saturate(max(_LightColor0.r, max(_LightColor0.g, _LightColor0.b))), 1.0);
 			}
 			ENDCG
 		}

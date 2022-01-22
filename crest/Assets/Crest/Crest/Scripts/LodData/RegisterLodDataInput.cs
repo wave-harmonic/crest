@@ -154,8 +154,10 @@ namespace Crest
                     Debug.AssertFormat(_renderer.sharedMaterials[i] != null, _renderer,
                         "Crest: {0} has empty material slots. Remove these slots or fill them with a material.", _renderer);
 
+                    // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
+                    // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
                     // Submesh count generally must equal number of materials.
-                    buf.DrawRenderer(_renderer, _renderer.sharedMaterials[i], submeshIndex: i);
+                    buf.DrawRenderer(_renderer, _renderer.sharedMaterials[i], submeshIndex: i, shaderPass: 0);
                 }
             }
         }

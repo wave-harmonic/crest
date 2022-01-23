@@ -4,28 +4,31 @@
 
 using UnityEngine;
 
-/// <summary>
-/// Moves this transform.
-/// </summary>
-public class SimpleMotion : MonoBehaviour
+namespace Crest.Examples
 {
     /// <summary>
-    /// The version of this asset. Can be used to migrate across versions. This value should
-    /// only be changed when the editor upgrades the version.
+    /// Moves this transform.
     /// </summary>
-    [SerializeField, HideInInspector]
+    public class SimpleMotion : MonoBehaviour
+    {
+        /// <summary>
+        /// The version of this asset. Can be used to migrate across versions. This value should
+        /// only be changed when the editor upgrades the version.
+        /// </summary>
+        [SerializeField, HideInInspector]
 #pragma warning disable 414
-    int _version = 0;
+        int _version = 0;
 #pragma warning restore 414
 
-    [Header("Translation")]
-    public Vector3 _velocity;
+        [Header("Translation")]
+        public Vector3 _velocity;
 
-    void Update()
-    {
-        // Translation
+        void Update()
         {
-            transform.position += _velocity * Time.deltaTime;
+            // Translation
+            {
+                transform.position += _velocity * Time.deltaTime;
+            }
         }
     }
 }

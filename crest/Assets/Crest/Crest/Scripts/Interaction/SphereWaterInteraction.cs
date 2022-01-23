@@ -260,7 +260,7 @@ namespace Crest
             if (_debugSubsteps)
             {
                 var col = 0.7f * (Time.frameCount % 2 == 1 ? Color.green : Color.red);
-                var pos = transform.position + /*(fixup ? 1f : 0f) **/ -_velocity * (timeBeforeCurrentTime - _velocityOffset);
+                var pos = transform.position - _velocity * (timeBeforeCurrentTime - _velocityOffset);
                 Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, col, 0.5f);
             }
 #endif

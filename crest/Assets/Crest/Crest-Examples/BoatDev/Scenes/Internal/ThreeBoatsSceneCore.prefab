@@ -94,10 +94,13 @@ MonoBehaviour:
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _smoothingIterations: 60
   _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
+  _enableBakedCollision: 0
+  _timeResolution: 4
+  _smallestWavelengthRequired: 2
+  _timeLoopLength: 32
 --- !u!1 &4156536484472635459
 GameObject:
   m_ObjectHideFlags: 0
@@ -196,7 +199,7 @@ MonoBehaviour:
   _version: 0
   _animate: 1
   _warmUp: 1
-  _onTime: 0.3
+  _onTime: 0.02
   _period: 6
 --- !u!114 &4156536484472635480
 MonoBehaviour:
@@ -260,17 +263,19 @@ MonoBehaviour:
   _globalWindSpeed: 150
   _viewpoint: {fileID: 0}
   _camera: {fileID: 0}
+  _teleportThreshold: 10
   _timeProvider: {fileID: 0}
-  _primaryLight: {fileID: 0}
+  _primaryLight: {fileID: 6335068685541798300}
   _searchForPrimaryLightOnStartup: 1
   _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _layerName: 
   _layer: 4
   _gravityMultiplier: 1
+  _waterBodyCulling: 1
   _minScale: 8
   _maxScale: 256
   _dropDetailHeightBasedOnWaves: 0.2
-  _lodDataResolution: 256
+  _lodDataResolution: 384
   _geometryDownSampleFactor: 2
   _lodCount: 8
   _underwaterCullLimit: 0.001
@@ -289,6 +294,8 @@ MonoBehaviour:
   _createClipSurfaceData: 0
   _simSettingsClipSurface: {fileID: 0}
   _defaultClippingState: 0
+  _createAlbedoData: 0
+  _settingsAlbedo: {fileID: 0}
   _showOceanProxyPlane: 0
   _editModeFPS: 30
   _followSceneCamera: 1
@@ -498,6 +505,12 @@ PrefabInstance:
 --- !u!4 &1277394908984322107 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,
+    type: 3}
+  m_PrefabInstance: {fileID: 203029847731052212}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &6335068685541798300 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 6141750961475219240, guid: 37bbe23c17398419cbc8674f5c5dbccb,
     type: 3}
   m_PrefabInstance: {fileID: 203029847731052212}
   m_PrefabAsset: {fileID: 0}

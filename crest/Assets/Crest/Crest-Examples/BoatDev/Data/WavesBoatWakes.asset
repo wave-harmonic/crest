@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
+  m_Name: WavesBoatWakes
+  m_EditorClassIdentifier: 
+  _version: 1
+  _fetch: 500000
+  _waveDirectionVariance: 90
+  _gravityScale: 1
+  _smallWavelengthMultiplier: 1
+  _multiplier: 1
+  _powerLog:
+  - -7.39794
+  - -7.39794
+  - -6.598513
+  - -6.1406407
+  - -4.8268056
+  - -4.3421416
+  - -3.232016
+  - -2.909008
+  - -2.7731915
+  - -2.4056463
+  - -2.5869184
+  - -4.421911
+  - -7.39794
+  - -7.39794
+  _powerDisabled: 0000000000000000000001010101
+  _chopScales:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  _gravityScales:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  _chop: 1.69
+  _showAdvancedControls: 0
+  _model: 0

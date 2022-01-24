@@ -79,12 +79,12 @@ The authors recommend duplicating and modifying one of the existing boat prefabs
 #. Set the boat dimension:
 
    -  BoatProbes: Set the *Min Spatial Length* param to the width of the boat.
-   -  BoatAlignNormal: Set the boat Boat Width and Boat Length to the width and length of the boat.
+   -  BoatAlignNormal: Set the *Boat Width* and *Boat Length* params to the width and length of the boat.
    -  If, even after experimenting with the mass and drag, the boat is responding too much to small waves, increase these parameters (try doubling or quadrupling at first and then compensate).
 
 #. There are power settings for engine turning which also help to give a feeling of weight.
 
-#. The dynamic wave interaction is driven by the object in the boat hierarchy called *WaterObjectInteractionSphere*.
+#. The dynamic wave interaction is driven by the object in the boat hierarchy called *SphereWaterInteraction*.
    It can be scaled to match the dimensions of the boat.
    The *Weight* param controls the strength of the interaction.
 

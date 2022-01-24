@@ -17,6 +17,7 @@ namespace Crest
             new SceneItem("main", "Assets/Crest/Crest-Examples/Main/Scenes/main.unity"),
             new SceneItem("boat", "Assets/Crest/Crest-Examples/BoatDev/Scenes/boat.unity"),
             new SceneItem("threeboats", "Assets/Crest/Crest-Examples/BoatDev/Scenes/threeboats.unity"),
+            new SceneItem("boatwakes", "Assets/Crest/Crest-Examples/BoatDev/Scenes/BoatWakes.unity"),
             new SceneItem("whirlpool", "Assets/Crest/Crest-Examples/Whirlpool/Scenes/whirlpool.unity"),
         };
         List<SceneItem> _testScenes = new List<SceneItem> {

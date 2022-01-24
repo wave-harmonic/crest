@@ -12,11 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 467d18cefc08f7f44bd5688ce841f075, type: 3}
   m_Name: SettingsWavesWakes
   m_EditorClassIdentifier: 
+  _version: 0
   _minGridSize: 0
   _maxGridSize: 0
-  _damping: 0.25
+  _simulationFrequency: 120
+  _damping: 0
   _courantNumber: 1
-  _maxSimStepsPerFrame: 3
-  _horizDisplace: 6
+  _attenuationInShallows: 1
+  _horizDisplace: 9.66
   _displaceClamp: 0.3
-  _gravityMultiplier: 12
+  _gravityMultiplier: 1

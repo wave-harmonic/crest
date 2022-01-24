@@ -34,6 +34,9 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			float _Weight;
 			float _Radius;
 			float3 _DisplacementAtInputPosition;
+			float _InnerSphereOffset;
+			float _InnerSphereMultiplier;
+			float _LargeWaveMultiplier;
 			CBUFFER_END
 
 			float _MinWavelength;
@@ -66,7 +69,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
-				if( 2.0 * _Radius < _CrestCascadeData[_LodIdx]._texelWidth ) o.positionCS *= 0.0;
+				if (_LargeWaveMultiplier * _Radius < _CrestCascadeData[_LodIdx]._texelWidth) o.positionCS *= 0.0;
 
 				return o;
 			}
@@ -110,11 +113,21 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
 				float forceHoriz = 0.0;
-				if( signedDist > 0.0 )
+				if( signedDist > 0.0 || signedDist < -_Radius*_InnerSphereOffset )
 				{
-					// Range / radius of interaction force
+					// Range / radius of interaction force.
 					const float a = 1.43 / _MinWavelength;
-					forceHoriz = dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
+
+					// Invert within sphere, to balance / negate forces applied outside of sphere.
+					float forceSign = sign(signedDist);
+
+					forceHoriz = forceSign * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, abs(signedDist) );
+
+					// If inside sphere, add an additional weight.
+					if (signedDist < 0.0)
+					{
+						forceHoriz *= _InnerSphereMultiplier;
+					}
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

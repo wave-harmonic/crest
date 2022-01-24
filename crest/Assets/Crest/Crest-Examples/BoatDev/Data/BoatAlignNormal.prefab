@@ -270,7 +270,6 @@ Transform:
   - {fileID: 4274299234749796}
   - {fileID: 4675692173269740}
   - {fileID: 483489108023645903}
-  - {fileID: 1218630027982410017}
   - {fileID: 6571122149417955733}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -321,57 +320,6 @@ MonoBehaviour:
   _throttleBias: 0
   _steerBias: 0
   _debugDraw: 0
---- !u!1 &1845297103394163826
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1218630027982410017}
-  - component: {fileID: 947906352601583684}
-  m_Layer: 0
-  m_Name: InteractionSphere1R
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1218630027982410017
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1845297103394163826}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.9, y: 0, z: 2.57}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 4341219009766782}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &947906352601583684
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1845297103394163826}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _version: 0
-  _radius: 1
-  _weight: 1.5
-  _weightUpDownMul: 0.5
-  _teleportSpeed: 500
-  _warnOnTeleport: 0
-  _maxSpeed: 100
-  _warnOnSpeedClamp: 0
 --- !u!1 &2232859459982646888
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,7 +331,7 @@ GameObject:
   - component: {fileID: 6571122149417955733}
   - component: {fileID: 7560149910363692706}
   m_Layer: 0
-  m_Name: InteractionSphere2
+  m_Name: InteractionSphereBack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -397,11 +345,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2232859459982646888}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -3.28}
+  m_LocalPosition: {x: -0, y: 0, z: -1.94}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4341219009766782}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7560149910363692706
 MonoBehaviour:
@@ -416,13 +364,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 0.5
-  _weight: 2.5
-  _weightUpDownMul: 0.5
+  _radius: 2.4
+  _weight: 3
+  _weightUpDownMul: 0.1
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.75
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &5616775644819927798
 GameObject:
   m_ObjectHideFlags: 0
@@ -434,7 +387,7 @@ GameObject:
   - component: {fileID: 483489108023645903}
   - component: {fileID: 7165778020089324222}
   m_Layer: 0
-  m_Name: InteractionSphere1L
+  m_Name: InteractionSphereFront
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -448,7 +401,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5616775644819927798}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.9, y: 0, z: 2.57}
+  m_LocalPosition: {x: 0, y: 0, z: 2.39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4341219009766782}
@@ -467,10 +420,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _radius: 1
-  _weight: 1.5
-  _weightUpDownMul: 0.5
+  _radius: 2.4
+  _weight: 2
+  _weightUpDownMul: 0.1
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.75
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0

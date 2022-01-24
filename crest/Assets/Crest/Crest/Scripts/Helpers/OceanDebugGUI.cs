@@ -89,8 +89,14 @@ namespace Crest
             s_Instance = null;
         }
 
+        Vector3 _viewerPosLastFrame;
+        Vector3 _viewerVel;
+
         private void Update()
         {
+            _viewerVel = (OceanRenderer.Instance.Viewpoint.position - _viewerPosLastFrame) / Time.deltaTime;
+            _viewerPosLastFrame = OceanRenderer.Instance != null ? OceanRenderer.Instance.Viewpoint.position : Vector3.zero;
+
             // New input system works even when game view is not focused.
             if (!Application.isFocused)
             {
@@ -259,6 +265,12 @@ namespace Crest
             // Show viewer height above water in bottom panel
             bottomBar.x += 10;
             GUI.Label(bottomBar, "Viewer Height Above Water: " + OceanRenderer.Instance.ViewerHeightAboveWater);
+
+            // Viewer speed
+            {
+                bottomBar.x += 250;
+                GUI.Label(bottomBar, "Speed: " + (3.6f * _viewerVel.magnitude) + "km/h");
+            }
 
             // Draw sim data
             DrawSims();

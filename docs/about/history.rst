@@ -49,7 +49,7 @@ Changed
    -  Add option (enabled by default) to prewarm foam simulation on load and camera teleports.
    -  *Underwater Renderer* validates *Ocean Renderer* material.
    -  Add *Debug > Draw Queries* to *Boat Probes* to draw gizmos for queries.
-   -  *SphereWaterInteraction* component upgraded to produce crisp foam-generating waves without creating large displacements.
+   -  *SphereWaterInteraction* component upgraded to produce crisp foam-generating waves without creating large displacements. :pr:`979`
    -  Added new example scene *BoatWakes* to showcase improvements to *SphereWaterInteraction* component.
 
    .. only:: urp

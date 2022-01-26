@@ -60,6 +60,10 @@ namespace Crest
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         [Predicated(typeof(Renderer)), DecoratedField]
         bool _checkShaderName = true;
+
+        [SerializeField, Tooltip("Check that the shader applied to this object has only a single pass as only the first pass is executed for most inputs.")]
+        [Predicated(typeof(Renderer)), DecoratedField]
+        bool _checkShaderPasses = true;
 #endif
 
         public const string MENU_PREFIX = Internal.Constants.MENU_SCRIPTS + "LOD Inputs/Crest Register ";
@@ -96,6 +100,7 @@ namespace Crest
 
         // If this is true, then the renderer should not be there as input source is from something else.
         protected virtual bool RendererRequired => true;
+        protected virtual bool SupportsMultiPassShaders => false;
 
         void InitRendererAndMaterial(bool verifyShader)
         {
@@ -104,9 +109,9 @@ namespace Crest
             if (RendererRequired && _renderer != null)
             {
 #if UNITY_EDITOR
-                if (Application.isPlaying && _checkShaderName && verifyShader)
+                if (Application.isPlaying && verifyShader)
                 {
-                    ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, ShaderPrefix);
+                    ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, _checkShaderName ? ShaderPrefix : String.Empty);
                 }
 #endif
 
@@ -148,7 +153,17 @@ namespace Crest
                     buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
                 }
 
-                buf.DrawRenderer(_renderer, _material);
+                for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
+                {
+                    // Empty material slots is a user error. Unity complains about it so we should too.
+                    Debug.AssertFormat(_renderer.sharedMaterials[i] != null, _renderer,
+                        "Crest: {0} has empty material slots. Remove these slots or fill them with a material.", _renderer);
+
+                    // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
+                    // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
+                    // Submesh count generally must equal number of materials.
+                    buf.DrawRenderer(_renderer, _renderer.sharedMaterials[i], submeshIndex: i, shaderPass: 0);
+                }
             }
         }
 
@@ -427,7 +442,18 @@ namespace Crest
 
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            var isValid = ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, RendererRequired, RendererOptional, ShaderPrefix);
+            var isValid = ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, RendererRequired, RendererOptional, _checkShaderName ? ShaderPrefix : String.Empty);
+
+            if (_checkShaderPasses && _material != null && _material.passCount > 1 && !SupportsMultiPassShaders)
+            {
+                showMessage
+                (
+                    $"The shader <i>{_material.shader.name}</i> for material <i>{_material.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
+                    "See documentation for more information on what multi-pass shaders work or",
+                    "use a shader with a single pass.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+            }
 
             if (ocean != null && !FeatureEnabled(ocean))
             {

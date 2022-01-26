@@ -29,7 +29,7 @@ namespace Crest
 
         protected override Color GizmoColor => new Color(1f, 0f, 1f, 0.5f);
 
-        protected override string ShaderPrefix => string.Empty;
+        protected override string ShaderPrefix => "Crest/Inputs/Albedo";
 
         protected override bool FollowHorizontalMotion => false;
 

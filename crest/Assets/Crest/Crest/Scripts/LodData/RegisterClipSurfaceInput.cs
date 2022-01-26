@@ -78,6 +78,8 @@ namespace Crest
         // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
         protected override bool FollowHorizontalMotion => true;
 
+        protected override bool SupportsMultiPassShaders => _material != null && _material.shader.name == "Crest/Inputs/Clip Surface/Convex Hull";
+
         PropertyWrapperMPB _mpb;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
@@ -187,7 +189,16 @@ namespace Crest
             }
             else
             {
-                buf.DrawRenderer(_renderer, _material);
+                var shaderPass = SupportsMultiPassShaders ? -1 : 0;
+                for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
+                {
+                    // Empty material slots is a user error. Unity complains about it so we should too.
+                    Debug.AssertFormat(_renderer.sharedMaterials[i] != null, _renderer,
+                        "Crest: {0} has empty material slots. Remove these slots or fill them with a material.", _renderer);
+
+                    buf.DrawRenderer(_renderer, _renderer.sharedMaterials[i], submeshIndex: i, shaderPass);
+                }
+
             }
         }
 

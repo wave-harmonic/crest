@@ -13,6 +13,14 @@ Release Notes
 |version|
 ---------
 
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Ocean inputs will now only execute the first shader pass (pass zero).
+      Before all passes were executed in sequence which caused incompatibilities with `URP` unlit *Shader Graph*.
+      This is only a concern to those who are using custom shaders with multiple passes which we believe is very few.
+
 Preview
 ^^^^^^^
 .. bullet_list::
@@ -91,6 +99,10 @@ Fixed
    .. only:: birp or urp
 
       -  Fix *Underwater Renderer* high memory usage by reverting change of using temporary render textures. `[BIRP] [URP]`
+
+   .. only:: urp
+
+      -  Fix ocean input incompatibilities with unlit *Shader Graph*. `[URP]`
 
    .. only:: hdrp or urp
 

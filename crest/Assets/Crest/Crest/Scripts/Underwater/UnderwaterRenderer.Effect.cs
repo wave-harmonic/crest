@@ -128,7 +128,9 @@ namespace Crest
             if (RenderSettings.sun != null)
             {
                 // Unity does not set up lighting for us so we will get the last value which could incorrect.
-                _underwaterEffectCommandBuffer.SetGlobalVector(sp_LightColor0, RenderSettings.sun.color.linear * RenderSettings.sun.intensity);
+                // SetGlobalColor is just an alias for SetGlobalVector (no color space conversion like Material.SetColor):
+                // https://docs.unity3d.com/2017.4/Documentation/ScriptReference/Shader.SetGlobalColor.html
+                _underwaterEffectCommandBuffer.SetGlobalVector(sp_LightColor0, (RenderSettings.sun.color * RenderSettings.sun.intensity).linear);
                 _underwaterEffectCommandBuffer.SetGlobalVector(sp_WorldSpaceLightPos0, -RenderSettings.sun.transform.forward);
             }
 

@@ -1275,7 +1275,7 @@ namespace Crest
                 if (!isCulled && isUnderwaterActive && Application.isPlaying)
                 {
                     isCulled = definitelyUnderwater &&
-                        (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >=
+                        (ViewCamera.transform.position - tile.Rend.bounds.ClosestPoint(ViewCamera.transform.position)).magnitude >=
                         (dominantWaterBody == null ? volumeExtinctionLength : dominantWaterBody.VolumeExtinctionLength);
                 }
 

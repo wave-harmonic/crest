@@ -195,6 +195,7 @@ namespace Crest
                 _camDepthCache.backgroundColor = Color.white * LodDataMgrSeaFloorDepth.k_DepthBaseline;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
+                _camDepthCache.depthTextureMode = DepthTextureMode.Depth;
                 // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
                 // go bonkers with split windows.
                 _camDepthCache.cameraType = CameraType.Reflection;
@@ -292,8 +293,22 @@ namespace Crest
                 return;
             }
 
+            var oldShadowDistance = 0f;
+
+            // Built-in only.
+            {
+                // Stop shadow passes from executing.
+                oldShadowDistance = QualitySettings.shadowDistance;
+                QualitySettings.shadowDistance = 0f;
+            }
+
             // Render scene, saving depths in depth buffer.
             _camDepthCache.Render();
+
+            // Built-in only.
+            {
+                QualitySettings.shadowDistance = oldShadowDistance;
+            }
 
             if (_copyDepthMaterial == null)
             {

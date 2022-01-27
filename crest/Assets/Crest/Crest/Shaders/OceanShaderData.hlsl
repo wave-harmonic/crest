@@ -16,6 +16,7 @@ UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
 float4 _CameraDepthTexture_TexelSize;
 
 TEXTURE2D_X(_CrestScreenSpaceShadowTexture);
+float4 _CrestScreenSpaceShadowTexture_TexelSize;
 
 sampler2D _ReflectionTex;
 #if _OVERRIDEREFLECTIONCUBEMAP_ON

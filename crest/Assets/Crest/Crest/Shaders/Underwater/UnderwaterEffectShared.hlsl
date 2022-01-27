@@ -217,8 +217,8 @@ half3 ApplyUnderwaterEffect
 			sceneZ,
 			true,
 			sceneColour,
-			_CrestCascadeData[sliceIndex],
-			_CrestCascadeData[sliceIndex + 1]
+			sliceIndex,
+			_CrestCascadeData[sliceIndex]
 		);
 	}
 #endif // _CAUSTICS_ON

@@ -94,6 +94,7 @@ Fixed
    .. only:: birp
 
       -  Fix shadow simulation null exceptions if primary light becomes null. `[BIRP]`
+      -  Fix shadows flickering when *Sea Floor Depth* data is populated by preventing shadow passes from executing for *Ocean Depth Cache* camera. `[BIRP]`
       -  Fix *Underwater Renderer* using a non directional light when a transparent object is in range of light and in view of camera. `[BIRP]`
 
    .. only:: birp or urp

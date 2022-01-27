@@ -100,6 +100,7 @@ Fixed
    .. only:: birp or urp
 
       -  Fix *Underwater Renderer* high memory usage by reverting change of using temporary render textures. `[BIRP] [URP]`
+      -  Fix *Underwater Renderer* not using *Filter Ocean Data* for caustics. `[BIRP] [URP]`
 
    .. only:: urp
 

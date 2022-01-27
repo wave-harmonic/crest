@@ -64,13 +64,13 @@ void ApplyCaustics
 	in const float i_sceneZ,
 	in const bool i_underwater,
 	inout half3 io_sceneColour,
-	in const CascadeParams cascadeData0,
-	in const CascadeParams cascadeData1
+	in const int i_sliceIndex,
+	in const CascadeParams cascadeData
 )
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
-	const float3 scenePosUV = WorldToUV(i_scenePos.xz, cascadeData1, _LD_SliceIndex + 1);
+	const float3 scenePosUV = WorldToUV(i_scenePos.xz, cascadeData, i_sliceIndex);
 
 	float3 disp = 0.0;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
@@ -177,7 +177,7 @@ half3 OceanEmission
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
 		float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
-		ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, i_positionSS, scenePos, i_lightDir, i_sceneZ, i_underwater, sceneColour, cascadeData0, cascadeData1);
+		ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, i_positionSS, scenePos, i_lightDir, i_sceneZ, i_underwater, sceneColour, _LD_SliceIndex + 1, cascadeData1);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

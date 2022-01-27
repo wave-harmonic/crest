@@ -90,6 +90,7 @@ Fixed
       Simulation frequency can be increased to improve result further, at the cost of more simulation steps per frame.
    -  Fix *Sphere Water Interaction* component not working in standalone builds.
    -  Fix pop/discontinuity issue with dynamic waves.
+   -  Fix underwater culling when *Ocean Renderer > Viewpoint* is set and different from the camera.
 
    .. only:: birp
 

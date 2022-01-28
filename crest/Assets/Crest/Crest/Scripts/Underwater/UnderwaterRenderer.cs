@@ -102,6 +102,7 @@ namespace Crest
         [SerializeField]
         [Tooltip("Renders the underwater effect before the transparent pass (instead of after). So one can apply the underwater fog themselves to transparent objects. Cannot be changed at runtime.")]
         bool _enableShaderAPI = false;
+        public bool EnableShaderAPI { get => _enableShaderAPI; set => _enableShaderAPI = value; }
 
         [SerializeField]
         [Tooltip("Copying params each frame ensures underwater appearance stays consistent with ocean material params. Has a small overhead so should be disabled if not needed.")]

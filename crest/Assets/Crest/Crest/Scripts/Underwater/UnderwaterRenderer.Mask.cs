@@ -288,8 +288,9 @@ namespace Crest
             (
                 _fixMaskComputeShader,
                 _fixMaskKernel,
-                descriptor.width / (int)_fixMaskThreadGroupSizeX,
-                descriptor.height / (int)_fixMaskThreadGroupSizeY,
+                // Viewport sizes are not perfect so round up to cover.
+                Mathf.CeilToInt((float)descriptor.width / _fixMaskThreadGroupSizeX),
+                Mathf.CeilToInt((float)descriptor.height / _fixMaskThreadGroupSizeY),
                 descriptor.volumeDepth
             );
         }

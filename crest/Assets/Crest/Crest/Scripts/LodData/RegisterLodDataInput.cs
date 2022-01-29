@@ -155,9 +155,11 @@ namespace Crest
 
                 for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
                 {
-                    // Empty material slots is a user error. Unity complains about it so we should too.
-                    Debug.AssertFormat(_renderer.sharedMaterials[i] != null, _renderer,
-                        "Crest: {0} has empty material slots. Remove these slots or fill them with a material.", _renderer);
+                    // Empty material slots is a user error, but skip so we do not spam errors.
+                    if (_renderer.sharedMaterials[i] == null)
+                    {
+                        continue;
+                    }
 
                     // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
                     // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
@@ -453,6 +455,23 @@ namespace Crest
                     "use a shader with a single pass.",
                     ValidatedHelper.MessageType.Warning, this
                 );
+            }
+
+            if (_renderer != null)
+            {
+                for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
+                {
+                    // Empty material slots is a user error. Unity complains about it so we should too.
+                    if (_renderer.sharedMaterials[i] == null)
+                    {
+                        showMessage
+                        (
+                            $"<i>{_renderer.GetType().Name}</i> used by this input (<i>{GetType().Name}</i>) has empty material slots.",
+                            "Remove these slots or fill them with a material.",
+                            ValidatedHelper.MessageType.Warning, _renderer
+                        );
+                    }
+                }
             }
 
             if (ocean != null && !FeatureEnabled(ocean))

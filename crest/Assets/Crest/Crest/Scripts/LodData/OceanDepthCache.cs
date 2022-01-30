@@ -195,6 +195,7 @@ namespace Crest
                 _camDepthCache.backgroundColor = Color.white * LodDataMgrSeaFloorDepth.k_DepthBaseline;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
+                _camDepthCache.allowDynamicResolution = false;
                 _camDepthCache.depthTextureMode = DepthTextureMode.Depth;
                 // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
                 // go bonkers with split windows.

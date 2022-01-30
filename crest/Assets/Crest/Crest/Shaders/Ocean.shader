@@ -701,7 +701,7 @@ Shader "Crest/Ocean"
 
 				// Composite albedo input on top
 				#if _ALBEDO_ON
-				col = lerp(col, albedo.xyz, albedo.w);
+				col = lerp(col, albedo.xyz, albedo.w * reflAlpha);
 				#endif
 
 				// Fog

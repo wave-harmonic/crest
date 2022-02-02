@@ -100,6 +100,10 @@ namespace Crest
         [Header("Advanced")]
 
         [SerializeField]
+        [Tooltip("Renders the underwater effect before the transparent pass (instead of after). So one can apply the underwater fog themselves to transparent objects. Cannot be changed at runtime.")]
+        bool _enableShaderAPI = false;
+
+        [SerializeField]
         [Tooltip("Copying params each frame ensures underwater appearance stays consistent with ocean material params. Has a small overhead so should be disabled if not needed.")]
         internal bool _copyOceanMaterialParamsEachFrame = true;
 
@@ -136,6 +140,8 @@ namespace Crest
 #if UNITY_EDITOR
         List<Camera> _editorCameras = new List<Camera>();
 #endif
+
+        bool _currentEnableShaderAPI;
 
         // Use instance to denote whether this is active or not. Only one camera is supported.
         public static UnderwaterRenderer Instance { get; private set; }
@@ -206,7 +212,9 @@ namespace Crest
             OnEnableMask();
             SetupUnderwaterEffect();
             _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
-            _camera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+
+            _currentEnableShaderAPI = _enableShaderAPI;
 
 #if UNITY_EDITOR
             EnableEditMode();
@@ -222,6 +230,8 @@ namespace Crest
 
             if (_underwaterEffectCommandBuffer != null)
             {
+                // It could be either event registered at this point. Remove from both for safety.
+                _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _underwaterEffectCommandBuffer);
                 _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             }
 
@@ -230,6 +240,23 @@ namespace Crest
 #if UNITY_EDITOR
             DisableEditMode();
 #endif
+        }
+
+        void LateUpdate()
+        {
+            Helpers.SetGlobalKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT", _enableShaderAPI);
+
+            if (_enableShaderAPI != _currentEnableShaderAPI && _underwaterEffectCommandBuffer != null)
+            {
+                _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _underwaterEffectCommandBuffer);
+                _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+                _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+                _currentEnableShaderAPI = _enableShaderAPI;
+#if UNITY_EDITOR
+                DisableEditMode();
+                EnableEditMode();
+#endif
+            }
         }
 
         void OnPreRender()
@@ -291,12 +318,12 @@ namespace Crest
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function.
             if (XRHelpers.IsSinglePass)
             {
-                material.SetMatrix(sp_InvViewProjection, _gpuInverseViewProjectionMatrix);
-                material.SetMatrix(sp_InvViewProjectionRight, _gpuInverseViewProjectionMatrixRight);
+                material.SetMatrix(ShaderIDs.s_InvViewProjection, _gpuInverseViewProjectionMatrix);
+                material.SetMatrix(ShaderIDs.s_InvViewProjectionRight, _gpuInverseViewProjectionMatrixRight);
             }
             else
             {
-                material.SetMatrix(sp_InvViewProjection, _gpuInverseViewProjectionMatrix);
+                material.SetMatrix(ShaderIDs.s_InvViewProjection, _gpuInverseViewProjectionMatrix);
             }
         }
     }
@@ -328,6 +355,7 @@ namespace Crest
 
                 if (_underwaterEffectCommandBuffer != null)
                 {
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _underwaterEffectCommandBuffer);
                     camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
                 }
             }
@@ -387,7 +415,7 @@ namespace Crest
             {
                 _editorCameras.Add(camera);
                 camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
-                camera.AddCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+                camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             }
 
             var oldCamera = _camera;
@@ -445,6 +473,16 @@ namespace Crest
                         $"Set <i>Cull Mode</i> to <i>Off</i> (or <i>Front</i>) on <i>{material.name}</i>.",
                         ValidatedHelper.MessageType.Warning, material,
                         (material) => ValidatedHelper.FixSetMaterialIntProperty(material, "Cull Mode", "_CullMode", (int)CullMode.Off)
+                    );
+                }
+
+                if (_enableShaderAPI && ocean.OceanMaterial.IsKeywordEnabled("_SUBSURFACESHALLOWCOLOUR_ON"))
+                {
+                    showMessage
+                    (
+                        "<i>Enable Shader API</i> does not support the <i>Scatter Colour Shallow</i> option",
+                        $"Disable <i>Scatter Colour Shallow</i> on the ocean material <i>{material.name}</i>.",
+                        ValidatedHelper.MessageType.Error, material
                     );
                 }
             }

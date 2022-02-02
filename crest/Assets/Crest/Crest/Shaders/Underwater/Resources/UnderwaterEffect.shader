@@ -22,6 +22,8 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
 	#pragma multi_compile_local __ _DEBUG_VIEW_STENCIL
 
+	#pragma multi_compile _ CREST_UNDERWATER_BEFORE_TRANSPARENT
+
 	#include "UnityCG.cginc"
 	#include "Lighting.cginc"
 

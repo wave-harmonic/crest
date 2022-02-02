@@ -82,7 +82,7 @@ void ComputeFoam
 
 	// Additive underwater foam - use same foam texture but add mip bias to blur for free
 	half bubbleFoamTexValue = BubbleFoamTexture(i_texture, i_worldXZ, i_worldXZUndisplaced, i_n, i_view, lodVal, cascadeData0, cascadeData1);
-	o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage) * AmbientLight();
+	o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage) * WaveHarmonic::Crest::AmbientLight();
 
 	// White foam on top, with black-point fading
 	half whiteFoam = WhiteFoamTexture(i_texture, foamAmount, i_worldXZUndisplaced, lodVal, cascadeData0, cascadeData1);
@@ -98,11 +98,11 @@ void ComputeFoam
 	half3 fN = normalize(i_n + _WaveFoamNormalStrength * half3(-dfdx, 0., -dfdz));
 	// do simple NdL and phong lighting
 	half foamNdL = max(0., dot(fN, i_lightDir));
-	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL * i_shadow);
+	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (WaveHarmonic::Crest::AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL * i_shadow);
 	half3 refl = reflect(-i_view, fN);
 	o_whiteFoamCol.rgb += pow(max(0., dot(refl, i_lightDir)), _WaveFoamSpecularFallOff) * _WaveFoamSpecularBoost * _LightColor0 * i_shadow;
 #else // _FOAM3DLIGHTING_ON
-	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * i_shadow);
+	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (WaveHarmonic::Crest::AmbientLight() + _WaveFoamLightScale * _LightColor0 * i_shadow);
 #endif // _FOAM3DLIGHTING_ON
 
 	o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;

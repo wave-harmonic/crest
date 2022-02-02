@@ -213,7 +213,7 @@ Shader "Crest/Underwater Curtain"
 				}
 #endif // _SUBSURFACESHALLOWCOLOUR_ON
 
-				const half3 scatterCol = ScatterColour(seaFloorDepth, shadow, sss, view, AmbientLight(), lightDir, lightCol, true);
+				const half3 scatterCol = ScatterColour(seaFloorDepth, shadow, sss, view, WaveHarmonic::Crest::AmbientLight(), lightDir, lightCol, true);
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 

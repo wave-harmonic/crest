@@ -27,13 +27,18 @@
 #define CREST_SSS_MAXIMUM 0.6
 #define CREST_SSS_RANGE 0.12
 
-// Water rendered from below.
-#define UNDERWATER_MASK_BELOW_SURFACE -1.0
-// Water rendered from above.
-#define UNDERWATER_MASK_ABOVE_SURFACE  1.0
-
-// No mask.
-#define UNDERWATER_MASK_NONE 0.0
+// Note: Must match k_MaskBelowSurfaceCull in UnderwaterRenderer.Mask.cs.
+// Fog rendered from below and before transparents and ocean tile is culled.
+#define CREST_MASK_BELOW_SURFACE_CULLED -2.0
+// Note: Must match k_MaskBelowSurface in UnderwaterRenderer.Mask.cs.
+// Fog rendered from below.
+#define CREST_MASK_BELOW_SURFACE        -1.0
+// Fog rendered from above.
+#define CREST_MASK_ABOVE_SURFACE         1.0
+// No mask. Used by meniscus when using volumes.
+#define CREST_MASK_NONE                  0.0
+// No fog. Nicer wording for comparisons.
+#define CREST_MASK_NO_FOG                0.0
 
 // The maximum distance the meniscus will be rendered. Only valid when rendering underwater from geometry. The value is
 // used to scale the meniscus as it is calculate using a pixel offset which can make the meniscus large at a distance.

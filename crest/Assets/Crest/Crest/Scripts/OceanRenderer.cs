@@ -410,6 +410,19 @@ namespace Crest
         readonly static int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
         readonly static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
 
+        public static class ShaderIDs
+        {
+            // Shader properties.
+            public static readonly int s_DepthFogDensity = Shader.PropertyToID("_DepthFogDensity");
+            public static readonly int s_Diffuse = Shader.PropertyToID("_Diffuse");
+            public static readonly int s_DiffuseGrazing = Shader.PropertyToID("_DiffuseGrazing");
+            public static readonly int s_DiffuseShadow = Shader.PropertyToID("_DiffuseShadow");
+            public static readonly int s_SubSurfaceColour = Shader.PropertyToID("_SubSurfaceColour");
+            public static readonly int s_SubSurfaceSun = Shader.PropertyToID("_SubSurfaceSun");
+            public static readonly int s_SubSurfaceBase = Shader.PropertyToID("_SubSurfaceBase");
+            public static readonly int s_SubSurfaceSunFallOff = Shader.PropertyToID("_SubSurfaceSunFallOff");
+        }
+
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
         public static float LastUpdateEditorTime => _lastUpdateEditorTime;
@@ -1178,17 +1191,19 @@ namespace Crest
 
             var definitelyUnderwater = false;
             var volumeExtinctionLength = 0f;
+            var isUnderwaterCullingEnabled = false;
 
             if (isUnderwaterActive)
             {
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
-                var density = UnderwaterDepthFogDensity = _material.GetVector("_DepthFogDensity") * UnderwaterRenderer.DepthFogDensityFactor;
+                var density = UnderwaterDepthFogDensity = _material.GetVector(ShaderIDs.s_DepthFogDensity) * UnderwaterRenderer.DepthFogDensityFactor;
                 // Only run optimisation in play mode due to shared height above water.
                 if (Application.isPlaying)
                 {
                     var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
                     var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);
                     volumeExtinctionLength = -Mathf.Log(underwaterCullLimit) / minimumFogDensity;
+                    isUnderwaterCullingEnabled = true;
                 }
 
                 foreach (var body in WaterBody.WaterBodies)
@@ -1272,7 +1287,7 @@ namespace Crest
 
                 // Cull tiles the viewer cannot see through the underwater fog.
                 // Only run optimisation in play mode due to shared height above water.
-                if (!isCulled && isUnderwaterActive && Application.isPlaying)
+                if (!isCulled && isUnderwaterCullingEnabled)
                 {
                     isCulled = definitelyUnderwater &&
                         (ViewCamera.transform.position - tile.Rend.bounds.ClosestPoint(ViewCamera.transform.position)).magnitude >=

@@ -32,7 +32,7 @@ namespace Crest
         public Bounds _boundsLocal;
         Mesh _mesh;
         public Renderer Rend { get; private set; }
-        PropertyWrapperMPB _mpb;
+        internal PropertyWrapperMPB _mpb;
 
         public bool MaterialOverridden { get; set; }
 

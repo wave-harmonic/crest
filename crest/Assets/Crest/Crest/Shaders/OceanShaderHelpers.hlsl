@@ -64,6 +64,7 @@ float CrestLinearEyeDepth(const float i_rawDepth)
 #endif // _PROJECTION
 }
 
+#ifdef TEXTURE2D_X
 // Works for all pipelines.
 float CrestMultiSampleDepth
 (
@@ -105,5 +106,6 @@ float CrestMultiLoadDepth(TEXTURE2D_X(i_texture), const uint2 i_positionSS, cons
 
 	return rawDepth;
 }
+#endif
 
 #endif // CREST_OCEAN_SHADER_HELPERS_H

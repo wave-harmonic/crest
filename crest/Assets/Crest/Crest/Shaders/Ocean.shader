@@ -259,7 +259,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _DEBUGVISUALISE_NONE _DEBUGVISUALISE_SHAPESAMPLE _DEBUGVISUALISE_ANIMATEDWAVES \
 				_DEBUGVISUALISE_FLOW _DEBUGVISUALISE_SHADOWS _DEBUGVISUALISE_FOAM
 
-			#pragma multi_compile_local _ _OLD_UNDERWATER
+			#pragma multi_compile _ CREST_UNDERWATER_BEFORE_TRANSPARENT
 
 			// Clipping the ocean surface for underwater volumes.
 			#pragma multi_compile _ CREST_WATER_VOLUME_2D CREST_WATER_VOLUME_HAS_BACKFACE
@@ -521,7 +521,7 @@ Shader "Crest/Ocean"
 				float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepth);
 				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
-				float3 lightDir = WorldSpaceLightDir(input.worldPos);
+				float3 lightDir = WaveHarmonic::Crest::WorldSpaceLightDir(input.worldPos);
 				half3 lightCol = _LightColor0;
 				// Soft shadow, hard shadow
 				fixed2 shadow = (fixed2)1.0
@@ -643,10 +643,16 @@ Shader "Crest/Ocean"
 				half3 scatterCol = ScatterColour
 				(
 					input.lodAlpha_worldXZUndisplaced_oceanDepth.w,
+#if defined(CREST_UNDERWATER_BEFORE_TRANSPARENT) && defined(_SHADOWS_ON)
+					underwater ? UnderwaterShadowSSS(_WorldSpaceCameraPos.xz) :
+#endif
 					shadow.x,
 					sss,
 					view,
-					AmbientLight(),
+#if CREST_UNDERWATER_BEFORE_TRANSPARENT
+					underwater ? _CrestAmbientLighting :
+#endif
+					WaveHarmonic::Crest::AmbientLight(),
 					lightDir,
 					lightCol,
 					underwater
@@ -710,7 +716,7 @@ Shader "Crest/Ocean"
 					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
 					UNITY_APPLY_FOG(input.fogCoord, col);
 				}
-#if _OLD_UNDERWATER
+#if CREST_UNDERWATER_BEFORE_TRANSPARENT
 				else
 				{
 					// underwater - do depth fog

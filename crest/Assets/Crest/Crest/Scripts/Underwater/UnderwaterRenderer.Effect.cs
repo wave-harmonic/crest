@@ -326,13 +326,17 @@ namespace Crest
 
                 if (copyParamsFromOceanMaterial || material != currentOceanMaterial)
                 {
-                    // Measured this at approx 0.05ms on Dell laptop.
-                    underwaterPostProcessMaterial.CopyPropertiesFromMaterial(material);
                     currentOceanMaterial = material;
 
-                    if (setGlobalShaderData)
+                    if (material != null)
                     {
-                        UpdateGlobals(material);
+                        // Measured this at approx 0.05ms on Dell laptop.
+                        underwaterPostProcessMaterial.CopyPropertiesFromMaterial(material);
+
+                        if (setGlobalShaderData)
+                        {
+                            UpdateGlobals(material);
+                        }
                     }
                 }
 

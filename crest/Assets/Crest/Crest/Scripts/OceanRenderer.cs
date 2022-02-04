@@ -1193,10 +1193,10 @@ namespace Crest
             var volumeExtinctionLength = 0f;
             var isUnderwaterCullingEnabled = false;
 
-            if (isUnderwaterActive)
+            if (isUnderwaterActive && OceanMaterial != null)
             {
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
-                var density = UnderwaterDepthFogDensity = _material.GetVector(ShaderIDs.s_DepthFogDensity) * UnderwaterRenderer.DepthFogDensityFactor;
+                var density = UnderwaterDepthFogDensity = OceanMaterial.GetVector(ShaderIDs.s_DepthFogDensity) * UnderwaterRenderer.DepthFogDensityFactor;
                 // Only run optimisation in play mode due to shared height above water.
                 if (Application.isPlaying)
                 {

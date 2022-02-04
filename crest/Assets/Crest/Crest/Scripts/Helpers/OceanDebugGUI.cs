@@ -94,6 +94,11 @@ namespace Crest
 
         private void Update()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             _viewerVel = (OceanRenderer.Instance.Viewpoint.position - _viewerPosLastFrame) / Time.deltaTime;
             _viewerPosLastFrame = OceanRenderer.Instance != null ? OceanRenderer.Instance.Viewpoint.position : Vector3.zero;
 

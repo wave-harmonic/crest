@@ -71,6 +71,12 @@ namespace Crest
 #endif
             _rend = GetComponent<Renderer>();
 
+            if (_rend == null)
+            {
+                Debug.LogError($"Crest: No renderer attached to <i>{this}</i>. Please attach on or use the prefab.");
+                return;
+            }
+
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
@@ -118,9 +124,13 @@ namespace Crest
             }
 #endif
 
-            if (OceanRenderer.Instance == null || !ShowEffect())
+            if (OceanRenderer.Instance == null || _rend == null || !ShowEffect())
             {
-                _rend.enabled = false;
+                if (_rend != null)
+                {
+                    _rend.enabled = false;
+                }
+
                 return;
             }
 
@@ -285,7 +295,7 @@ namespace Crest
             // Check that underwater effect has correct material assigned.
             var shaderPrefix = "Crest/Underwater";
             var renderer = GetComponent<Renderer>();
-            if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
+            if (renderer != null && renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
             {
                 ValidatedHelper.ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix);
 

@@ -10,6 +10,8 @@ namespace Crest
     /// Helper script for alpha geometry rendering on top of ocean surface. This is required to select the best
     /// LOD and assign the shape texture to the material.
     /// </summary>
+    [RequireComponent(typeof(Renderer))]
+    [RequireComponent(typeof(MeshFilter))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Render Alpha On Surface")]
     public class RenderAlphaOnSurface : MonoBehaviour
     {

@@ -65,7 +65,7 @@ PrefabInstance:
     - target: {fileID: 8995490367667036179, guid: 9a77070bb65990f4885dc34e3e6de5fa,
         type: 3}
       propertyPath: m_Name
-      value: BoatWakesSceneCore
+      value: BoatWakesScene
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9a77070bb65990f4885dc34e3e6de5fa, type: 3}

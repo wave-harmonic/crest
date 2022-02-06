@@ -1774,6 +1774,21 @@ namespace Crest
                 }
             }
 
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrAlbedo.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateAlbedoData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrAlbedo.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateAlbedoData)
+                {
+                    showMessage(LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
+                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrAlbedo.MATERIAL_KEYWORD, LodDataMgrAlbedo.MATERIAL_KEYWORD_PROPERTY, true));
+                }
+                else
+                {
+                    showMessage(LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
+                        ValidatedHelper.MessageType.Info, ocean);
+                }
+            }
+
             return isValid;
         }
 

@@ -26,7 +26,7 @@ public class LerpCam : MonoBehaviour
 
     void Update()
     {
-        if (OceanRenderer.Instance == null)
+        if (OceanRenderer.Instance == null || _targetPos == null)
         {
             return;
         }

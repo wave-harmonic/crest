@@ -99,8 +99,11 @@ namespace Crest
                 return;
             }
 
-            _viewerVel = (OceanRenderer.Instance.Viewpoint.position - _viewerPosLastFrame) / Time.deltaTime;
-            _viewerPosLastFrame = OceanRenderer.Instance != null ? OceanRenderer.Instance.Viewpoint.position : Vector3.zero;
+            if (OceanRenderer.Instance.Viewpoint != null)
+            {
+                _viewerVel = (OceanRenderer.Instance.Viewpoint.position - _viewerPosLastFrame) / Time.deltaTime;
+                _viewerPosLastFrame = OceanRenderer.Instance != null ? OceanRenderer.Instance.Viewpoint.position : Vector3.zero;
+            }
 
             // New input system works even when game view is not focused.
             if (!Application.isFocused)

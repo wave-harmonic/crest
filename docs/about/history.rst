@@ -91,6 +91,7 @@ Fixed
    -  Fix *Sphere Water Interaction* component not working in standalone builds.
    -  Fix pop/discontinuity issue with dynamic waves.
    -  Fix underwater culling when *Ocean Renderer > Viewpoint* is set and different from the camera.
+   -  Fix several minor exceptions in cases where components were not set up correctly.
 
    .. only:: birp
 

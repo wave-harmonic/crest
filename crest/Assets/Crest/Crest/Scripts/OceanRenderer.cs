@@ -408,7 +408,7 @@ namespace Crest
         readonly static int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly static int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         readonly static int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
-        readonly static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        public static readonly int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
 
         public static class ShaderIDs
         {
@@ -1016,11 +1016,13 @@ namespace Crest
         {
             if (OceanMaterial != null)
             {
+                // Override isFrontFace when camera is far enough from the ocean surface to fix self intersecting waves.
                 // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
                 // add a param here that forces ocean to be in underwater state. I think the root
                 // cause here might be imprecision or numerical issues at ocean tile boundaries, although
                 // i'm not sure why cracks are not visible in this case.
-                OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+                var height = ViewerHeightAboveWater;
+                OceanMaterial.SetFloat(sp_ForceUnderwater, height < -2f ? 1f : height > 2f ? -1f : 0f);
             }
 
             _cascadeParams.Flip();

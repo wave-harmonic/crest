@@ -92,6 +92,7 @@ Fixed
    -  Fix pop/discontinuity issue with dynamic waves.
    -  Fix underwater culling when *Ocean Renderer > Viewpoint* is set and different from the camera.
    -  Fix several minor exceptions in cases where components were not set up correctly.
+   -  Fix possible cases of underwater effect being inverted on self-intersecting waves when further than 2m from ocean surface.
 
    .. only:: birp
 

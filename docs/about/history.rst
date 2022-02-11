@@ -34,6 +34,7 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add new example scene named *Examples* which contains many mini examples of different features of `Crest`.
    -  Add support for rendering in edit mode (camera preview and scene view) to *Underwater Renderer*.
       It can be enabled/disabled with the fog scene view toggle.
    -  Add *CREST_OCEAN* scripting defines symbol.

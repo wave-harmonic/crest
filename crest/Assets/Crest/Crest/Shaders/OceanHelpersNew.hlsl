@@ -257,7 +257,19 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 
 bool IsUnderwater(const bool i_isFrontFace, const float i_forceUnderwater)
 {
-	return !i_isFrontFace || i_forceUnderwater > 0.0;
+	// We are well below water.
+	if (i_forceUnderwater > 0.0)
+	{
+		return true;
+	}
+
+	// We are well above water.
+	if (i_forceUnderwater < 0.0)
+	{
+		return false;
+	}
+
+	return !i_isFrontFace;
 }
 
 half UnderwaterShadowSSS(const float2 i_positionXZ)

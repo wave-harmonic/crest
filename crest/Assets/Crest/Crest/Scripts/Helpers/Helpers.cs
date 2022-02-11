@@ -4,6 +4,7 @@
 
 namespace Crest
 {
+    using System.Reflection;
     using UnityEngine;
     using UnityEngine.Rendering;
 
@@ -12,6 +13,9 @@ namespace Crest
     /// </summary>
     public static class Helpers
     {
+        public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+            BindingFlags.Static;
+
         static Material s_UtilityMaterial;
         public static Material UtilityMaterial
         {
@@ -102,6 +106,14 @@ namespace Crest
                 depthSlice: -1 // Bind all XR slices.
             );
         }
+
+        public static RenderTargetIdentifier RenderTargetIdentifierXR(int id) => new RenderTargetIdentifier
+        (
+            id,
+            mipLevel: 0,
+            CubemapFace.Unknown,
+            depthSlice: -1  // Bind all XR slices.
+        );
 
         /// <summary>
         /// Creates an RT reference and adds it to the RTI. Native object behind RT is not created so you can change its

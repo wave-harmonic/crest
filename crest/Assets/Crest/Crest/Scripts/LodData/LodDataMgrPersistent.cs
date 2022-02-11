@@ -73,6 +73,13 @@ namespace Crest
             _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
         }
 
+        public override void ClearLodData()
+        {
+            base.ClearLodData();
+            _targets.RunLambda(x => TextureArrayHelpers.ClearToBlack(x));
+            TextureArrayHelpers.ClearToBlack(_sources);
+        }
+
         public void ValidateSourceData(bool usePrevTransform)
         {
             int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount : 0;

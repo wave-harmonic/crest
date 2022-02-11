@@ -236,6 +236,7 @@ namespace Crest
         public bool CreateDynamicWaveSim => _createDynamicWaveSim;
         [Predicated("_createDynamicWaveSim"), Embedded]
         public SimSettingsWave _simSettingsDynamicWaves;
+        public SimSettingsWave SimSettingsDynamicWaves { get => _simSettingsDynamicWaves; set => _simSettingsDynamicWaves = value; }
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
@@ -1401,6 +1402,18 @@ namespace Crest
             _bufCascadeDataTgt?.Dispose();
             _bufCascadeDataSrc?.Dispose();
             _bufPerCascadeInstanceDataSource?.Dispose();
+        }
+
+        /// <summary>
+        /// Clears persistent LOD data. Some simulations have persistent data which can linger for a little while after
+        /// being disabled. This will manually clear that data.
+        /// </summary>
+        public void ClearLodData()
+        {
+            foreach (var lodData in _lodDatas)
+            {
+                lodData.ClearLodData();
+            }
         }
 
 #if UNITY_EDITOR

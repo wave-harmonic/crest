@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Examples_Material_GradientBackground
+  m_Shader: {fileID: 4800000, guid: 8501e9357276bab4680b52430188c6be, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Floats:
+    - _Exponent: 3
+    m_Colors:
+    - _ColorAwayFromSun: {r: 0.11399999, g: 0.11399999, b: 0.11399999, a: 1}
+    - _ColorTowardsSun: {r: 0.31132078, g: 0.31132078, b: 0.31132078, a: 1}
+  m_BuildTextureStacks: []

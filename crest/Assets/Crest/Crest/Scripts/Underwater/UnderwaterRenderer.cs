@@ -102,6 +102,7 @@ namespace Crest
         [SerializeField]
         [Tooltip("Renders the underwater effect before the transparent pass (instead of after). So one can apply the underwater fog themselves to transparent objects. Cannot be changed at runtime.")]
         bool _enableShaderAPI = false;
+        public bool EnableShaderAPI { get => _enableShaderAPI; set => _enableShaderAPI = value; }
 
         [SerializeField]
         [Tooltip("Copying params each frame ensures underwater appearance stays consistent with ocean material params. Has a small overhead so should be disabled if not needed.")]
@@ -211,7 +212,7 @@ namespace Crest
             SetupOceanMask();
             OnEnableMask();
             SetupUnderwaterEffect();
-            _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+            _camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
             _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
 
             _currentEnableShaderAPI = _enableShaderAPI;
@@ -225,7 +226,7 @@ namespace Crest
         {
             if (_oceanMaskCommandBuffer != null)
             {
-                _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                _camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
             }
 
             if (_underwaterEffectCommandBuffer != null)
@@ -350,7 +351,7 @@ namespace Crest
 
                 if (_oceanMaskCommandBuffer != null)
                 {
-                    camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
                 }
 
                 if (_underwaterEffectCommandBuffer != null)
@@ -414,7 +415,7 @@ namespace Crest
             if (!_editorCameras.Contains(camera))
             {
                 _editorCameras.Add(camera);
-                camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _oceanMaskCommandBuffer);
+                camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
                 camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             }
 

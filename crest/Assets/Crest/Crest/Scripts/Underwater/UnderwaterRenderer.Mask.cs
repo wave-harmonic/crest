@@ -232,6 +232,7 @@ namespace Crest
                 _cameraFrustumPlanes,
                 _oceanMaskMaterial.material,
                 _farPlaneMultiplier,
+                _mode,
                 _debug._disableOceanMask
             );
 
@@ -318,6 +319,7 @@ namespace Crest
             Plane[] frustumPlanes,
             Material oceanMaskMaterial,
             float farPlaneMultiplier,
+            Mode mode,
             bool debugDisableOceanMask
         )
         {
@@ -350,9 +352,10 @@ namespace Crest
             {
                 // Override isFrontFace when camera is far enough from the ocean surface to fix self intersecting waves.
                 // Mostly used when mode is not full-screen as normally the UR is disabled above 2m or does not use the
-                // mask below -2m.
+                // mask below -2m. Disable if portal or volume and there are height inputs in play.
                 var height = OceanRenderer.Instance.ViewerHeightAboveWater;
-                oceanMaskMaterial.SetFloat(OceanRenderer.sp_ForceUnderwater, height < -2f ? 1f : height > 2f ? -1f : 0f);
+                oceanMaskMaterial.SetFloat(OceanRenderer.sp_ForceUnderwater, mode != Mode.FullScreen &&
+                    RegisterHeightInput.Count > 0 ? 0f : height < -2f ? 1f : height > 2f ? -1f : 0f);
             }
 
             // Get all ocean chunks and render them using cmd buffer, but with mask shader.

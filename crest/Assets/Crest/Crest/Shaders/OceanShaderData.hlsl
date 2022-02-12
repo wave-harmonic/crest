@@ -170,12 +170,6 @@ static const WaveHarmonic::Crest::TiledTexture _CausticsDistortionTiledTexture =
     WaveHarmonic::Crest::TiledTexture::Make(_Normals, sampler_Normals, _Normals_TexelSize, _CausticsDistortionScale);
 #endif
 
-// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-// add a param here that forces ocean to be in undrwater state. I think the root
-// cause here might be imprecision or numerical issues at ocean tile boundaries, although
-// i'm not sure why cracks are not visible in this case.
-float _ForceUnderwater;
-
 // TODO: This can be removed once we use the underwater post-process effect.
 float _HeightOffset;
 

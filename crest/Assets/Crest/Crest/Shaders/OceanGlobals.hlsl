@@ -22,6 +22,11 @@ float _CrestLodAlphaBlackPointWhitePointFade;
 int _CrestDepthTextureOffset;
 int _CrestDataSliceOffset;
 float3 _CrestFloatingOriginOffset;
+// Hack - due to SV_IsFrontFace occasionally coming through as true for
+// backfaces, add a param here that forces ocean to be in undrwater state. I
+// think the root cause here might be imprecision or numerical issues at ocean
+// tile boundaries, although I'm not sure why cracks are not visible in this case.
+float _CrestForceUnderwater;
 
 float3 _PrimaryLightDirection;
 float3 _PrimaryLightIntensity;

@@ -40,21 +40,6 @@ namespace Crest
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
 
-        static int s_Count;
-        internal static int Count => s_Count;
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            s_Count++;
-        }
-
-        protected override void OnDisable()
-        {
-            base.OnDisable();
-            s_Count--;
-        }
-
         protected override void Update()
         {
             base.Update();

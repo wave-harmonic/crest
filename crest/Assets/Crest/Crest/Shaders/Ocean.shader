@@ -457,10 +457,23 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-				// This is just hacks. It relies on view x-axis being aligned with world x axis, and view y-axis being aligned(ish)
-				// with world z axis. It should be possible to make this work in general with more thought.
-				if (ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) < 0.0) discard;
-				if (ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) < 0.0) discard;
+				// Closer to working. Doesnt work when camera looking up, need to think about why.
+				const float3 camX = unity_CameraToWorld._m00_m10_m20;
+				const float3 camY = unity_CameraToWorld._m01_m11_m21;
+				const float3 undispWorldX =
+					ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camX +
+					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY;
+				const float3 undispWorldZ =
+					ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camX +
+					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camY;
+				// Check if the direction of change of X or Z vector is flipped
+				if (undispWorldX.x < 0.0) discard;
+				if (undispWorldZ.z < 0.0) discard;
+
+				//if (ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz) * camX.x < 0.0) discard;
+				//if (ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY.x < 0.0) discard;
+				//if (ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camX.x < 0.0) discard;
+				//if (ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) < 0.0) discard;
 				//return float4(sign(ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z)) * (float3)1.0, 1.0);
 
 #if _CLIPSURFACE_ON

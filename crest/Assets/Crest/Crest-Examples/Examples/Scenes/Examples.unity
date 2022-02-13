@@ -134,7 +134,7 @@ PrefabInstance:
     - target: {fileID: 1134014799308883405, guid: 677ec6aff22c04c3a91282cff3144735,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1134014799445798234, guid: 677ec6aff22c04c3a91282cff3144735,
         type: 3}
@@ -195,6 +195,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: ExamplesScene
+      objectReference: {fileID: 0}
+    - target: {fileID: 1134014800021837015, guid: 677ec6aff22c04c3a91282cff3144735,
+        type: 3}
+      propertyPath: _weight
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8313224791327072906, guid: 677ec6aff22c04c3a91282cff3144735,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9180063891497219800, guid: 677ec6aff22c04c3a91282cff3144735,
         type: 3}

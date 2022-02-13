@@ -457,6 +457,12 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+				// This is just hacks. It relies on view x-axis being aligned with world x axis, and view y-axis being aligned(ish)
+				// with world z axis. It should be possible to make this work in general with more thought.
+				if (ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) < 0.0) discard;
+				if (ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) < 0.0) discard;
+				//return float4(sign(ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z)) * (float3)1.0, 1.0);
+
 #if _CLIPSURFACE_ON
 				{
 					// Clip surface

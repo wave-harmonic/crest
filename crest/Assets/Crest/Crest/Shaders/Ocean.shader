@@ -460,12 +460,14 @@ Shader "Crest/Ocean"
 				// Closer to working. Doesnt work when camera looking up, need to think about why.
 				const float3 camX = unity_CameraToWorld._m00_m10_m20;
 				const float3 camY = unity_CameraToWorld._m01_m11_m21;
+				const float3 camZ = unity_CameraToWorld._m02_m12_m22;
+				const float flip = -sign(camZ.y);
 				const float3 undispWorldX =
 					ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camX +
-					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY;
+					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY * flip;
 				const float3 undispWorldZ =
 					ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camX +
-					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camY;
+					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camY * flip;
 				// Check if the direction of change of X or Z vector is flipped
 				if (undispWorldX.x < 0.0) discard;
 				if (undispWorldZ.z < 0.0) discard;

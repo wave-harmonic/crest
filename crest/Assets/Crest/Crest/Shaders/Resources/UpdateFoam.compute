@@ -41,30 +41,33 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const CascadeParams cascadeData = _CrestCascadeData[sliceIndex];
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, cascadeData);
 	const float3 uv_slice = float3(input_uv, id.z);
-
-	half2 velocity = _LD_TexArray_Flow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0).xy;
-	const float2 worldPosXZ_flowed = worldPosXZ - _SimDeltaTime * velocity;
-
 	half foam = 0.0;
-	const half r_max = 0.5 - _CrestCascadeDataSource[sliceIndexSource]._oneOverTextureRes;
 
-	// Try to sample the source slice, if it the sample position lies within its footprint
-	const float3 uv_slice_source = WorldToUV(worldPosXZ_flowed, _CrestCascadeDataSource[sliceIndexSource], sliceIndexSource);
-	const half2 r = abs(uv_slice_source.xy - 0.5);
+	// Sample from previous frame.
+	{
+		const half2 velocity = _LD_TexArray_Flow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0).xy;
+		const float2 worldPosXZ_flowed = worldPosXZ - _SimDeltaTime * velocity;
 
-	if (max(r.x, r.y) <= r_max)
-	{
-		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0.0).x;
-	}
-	else if (sliceIndexSource + 1.0 < depth)
-	{
-		// Sample lies outside this cascade. Try to use the next cascade in the chain - better to get something rather lower res
-		// than nothing.
-		const float3 uv_slice_source_nextlod = WorldToUV(worldPosXZ_flowed, _CrestCascadeDataSource[sliceIndexSource + 1], sliceIndexSource + 1);
-		const half2 r2 = abs(uv_slice_source_nextlod.xy - 0.5);
-		if (max(r2.x, r2.y) <= r_max)
+		const half r_max = 0.5 - _CrestCascadeDataSource[sliceIndexSource]._oneOverTextureRes;
+
+		// Try to sample the source slice, if it the sample position lies within its footprint
+		const float3 uv_slice_source = WorldToUV(worldPosXZ_flowed, _CrestCascadeDataSource[sliceIndexSource], sliceIndexSource);
+		const half2 r = abs(uv_slice_source.xy - 0.5);
+
+		if (max(r.x, r.y) <= r_max)
 		{
-			foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source_nextlod, 0.0).x;
+			foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0.0).x;
+		}
+		else if (sliceIndexSource + 1.0 < depth)
+		{
+			// Sample lies outside this cascade. Try to use the next cascade in the chain - better to get something rather lower res
+			// than nothing.
+			const float3 uv_slice_source_nextlod = WorldToUV(worldPosXZ_flowed, _CrestCascadeDataSource[sliceIndexSource + 1], sliceIndexSource + 1);
+			const half2 r2 = abs(uv_slice_source_nextlod.xy - 0.5);
+			if (max(r2.x, r2.y) <= r_max)
+			{
+				foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source_nextlod, 0.0).x;
+			}
 		}
 	}
 

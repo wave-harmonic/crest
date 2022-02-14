@@ -17,7 +17,7 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha, in const Cascad
 	float lodAlpha = taxicab_norm / i_cascadeData0._scale - 1.0;
 
 	// LOD alpha is remapped to ensure patches weld together properly. Patches can vary significantly in shape (with
-	// strips added and removed), and this variance depends on the base vertex density of the mesh, as this defines the 
+	// strips added and removed), and this variance depends on the base vertex density of the mesh, as this defines the
 	// strip width.
 	lodAlpha = max((lodAlpha - _CrestLodAlphaBlackPointFade) / _CrestLodAlphaBlackPointWhitePointFade, 0.);
 

@@ -462,6 +462,7 @@ Shader "Crest/Ocean"
 				const float3 camY = unity_CameraToWorld._m01_m11_m21;
 				const float3 camZ = unity_CameraToWorld._m02_m12_m22;
 				const float flip = -sign(camZ.y);
+				// the following is correct for ddx and ddy..
 				const float3 undispWorldX =
 					ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camX +
 					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY * flip;

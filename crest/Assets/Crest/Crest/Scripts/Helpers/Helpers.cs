@@ -40,10 +40,13 @@ namespace Crest
             ClearStencil,
         }
 
+#if UNITY_EDITOR
         public static bool IsPreviewOfGameCamera(Camera camera)
         {
+            // StartsWith has GC allocations. It is only used in the editor.
             return camera.cameraType == CameraType.Game && camera.name.StartsWith("Preview");
         }
+#endif
 
         public static bool IsMSAAEnabled(Camera camera)
         {

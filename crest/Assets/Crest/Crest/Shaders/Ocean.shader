@@ -298,6 +298,7 @@ Shader "Crest/Ocean"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
+				float2 positionUndispCS : TEXCOORD11;
 				half4 flow_shadow : TEXCOORD1;
 				half3 screenPosXYW : TEXCOORD4;
 				float4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
@@ -350,6 +351,7 @@ Shader "Crest/Ocean"
 				}
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
+				const float3 undispWorldPos = o.worldPos;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
 				// sample shape textures - always lerp between 2 LOD scales, so sample two textures
@@ -440,8 +442,8 @@ Shader "Crest/Ocean"
 				#endif
 
 				// view-projection
-				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
-
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+				o.positionUndispCS = mul(UNITY_MATRIX_VP, float4(undispWorldPos, 1.0)).xy;
 				UNITY_TRANSFER_FOG(o, o.positionCS);
 
 				// unfortunate hoop jumping - this is inputs for refraction. depending on whether HDR is on or off, the grabbed scene
@@ -457,18 +459,30 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+				const float3 camZ = unity_CameraToWorld._m02_m12_m22;
+				float flip = sign(camZ.y);
+
 				// Closer to working. Doesnt work when camera looking up, need to think about why.
 				const float3 camX = unity_CameraToWorld._m00_m10_m20;
 				const float3 camY = unity_CameraToWorld._m01_m11_m21;
 				const float3 undispWorldX =
 					ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camX +
-					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY;
+					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY * -flip;
 				const float3 undispWorldZ =
 					ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camX +
-					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camY;
+					ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.z) * camY * -flip;
+
 				// Check if the direction of change of X or Z vector is flipped
-				if (undispWorldX.x < 0.0) discard;
-				if (undispWorldZ.z < 0.0) discard;
+				bool discardApproach1 = false;
+				if (undispWorldX.x < 0.0) discardApproach1 = true;
+				if (undispWorldZ.z < 0.0) discardApproach1 = true;
+
+				// 
+				bool discardApproach2 = false;
+				if (ddx(input.positionUndispCS.x) < 0.0) discardApproach2 = true;
+				if (ddy(input.positionUndispCS.y) * flip < 0.0) discardApproach2 = true;
+
+				if (/*discardApproach1 &&*/ discardApproach2) discard;
 
 				//if (ddx(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz) * camX.x < 0.0) discard;
 				//if (ddy(input.lodAlpha_worldXZUndisplaced_oceanDepth.y) * camY.x < 0.0) discard;

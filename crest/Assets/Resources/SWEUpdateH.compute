@@ -1,0 +1,12 @@
+
+#pragma kernel UpdateH
+
+RWTexture2D<float> _Result;
+float _Time;
+
+[numthreads(8,8,1)]
+void UpdateH(uint2 id : SV_DispatchThreadID)
+{
+	float2 worldPosXZ = ((id + 0.5) / 512.0 - 0.5) * 64.0;
+	_Result[id.xy] = 0.25 * sin(-_Time + dot(worldPosXZ, 1.0) / 0.5);
+}

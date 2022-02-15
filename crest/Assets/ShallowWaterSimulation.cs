@@ -72,7 +72,7 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         _matInjectSWSAnimWaves.SetFloat("_DomainWidth", _domainWidth);
     }
 
-    void Reset()
+    public void Reset()
     {
         InitData();
 
@@ -125,3 +125,19 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         buf.DrawProcedural(Matrix4x4.identity, _matInjectSWSAnimWaves, 0, MeshTopology.Triangles, 3);
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(ShallowWaterSimulation))]
+class ShallowWaterSimulationEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        if (GUILayout.Button("Reset"))
+        {
+            (target as ShallowWaterSimulation).Reset();
+        }
+    }
+}
+#endif

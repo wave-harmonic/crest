@@ -126,8 +126,22 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const uint ym = max(y - 1, 0);
 	const uint yp = min(y + 1, _Res - 1);
 
-	float h = _H0[id];
-	float lap = _H0[uint2(xm, y)] + _H0[uint2(xp, y)] + _H0[uint2(x, ym)] + _H0[uint2(x, yp)] - 4.0 * h;
+	float grid = _DomainWidth / _Res;
 
-	_H1[id.xy] = h + 0.01 * lap;
+	float dx = (_Vx1[uint2(xm, y)] - _Vx1[id]) / grid;
+	float dy = (_Vy1[uint2(x, ym)] - _Vy1[id]) / grid;
+	float divergence = dx + dy;
+
+	float h = _H0[id];
+
+	// Update height based on total flow in minus total flow out
+	float hvel = h * divergence;
+	//hvel = clamp(hvel, -32.0f, 32.0f);
+
+	h -= DT * hvel;
+
+	// Dry - force to 0
+	if (h < 0.001) h = 0.0;
+
+	_H1[id.xy] = h;
 }

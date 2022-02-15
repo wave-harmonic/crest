@@ -84,9 +84,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
             _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
             _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
             _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
             _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
             _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);

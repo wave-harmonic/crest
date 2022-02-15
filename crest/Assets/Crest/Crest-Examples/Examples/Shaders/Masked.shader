@@ -9,11 +9,11 @@ Shader "Crest/Examples/Masked"
 		_Color("Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		[Toggle] _Emission("Emission", Float) = 0.0
 		[HDR] _EmissionColor("Color", Color) = (0.0, 0.0, 0.0)
-		_MainTex("Albedo (RGB)", 2D) = "white" {}
+		_Albedo("Albedo (RGB)", 2D) = "white" {}
 		_Glossiness("Smoothness", Range(0.0, 1.0)) = 0.5
 		_Metallic("Metallic", Range(0.0, 1.0)) = 0.0
 		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-		[Toggle] _Masked("Masked", Float) = 1.0
+		[KeywordEnum(None, Masked, Fill)] _Mask("Masked", Float) = 1.0
 	}
 
 	SubShader
@@ -21,16 +21,21 @@ Shader "Crest/Examples/Masked"
 		Tags { "RenderType"="Opaque" }
 
 		CGINCLUDE
-		#pragma shader_feature_local _MASKED_ON
+		#pragma shader_feature_local _MASK_NONE _MASK_MASKED _MASK_FILL
 
+#if _MASK_MASKED
 		UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture)
 		UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture)
 		UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeBackFaceTexture)
+#elif _MASK_FILL
+		UNITY_DECLARE_SCREENSPACE_TEXTURE(_FillTexture)
+#endif
 
-		sampler2D _MainTex;
+		sampler2D _Albedo;
 		fixed4 _Color;
 		half _Cutoff;
 
+#if _MASK_MASKED
 		void Clip(float4 screenPos)
 		{
 			float2 positionNDC = screenPos.xy / screenPos.w;
@@ -54,6 +59,20 @@ Shader "Crest/Examples/Masked"
 				discard;
 			}
 		}
+#endif // _MASK_MASKED
+
+#if _MASK_FILL
+		void Clip(float4 screenPos)
+		{
+			float2 positionNDC = screenPos.xy / screenPos.w;
+			float deviceZ = screenPos.z / screenPos.w;
+
+			if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_FillTexture, positionNDC).r == 0.0)
+			{
+				discard;
+			}
+		}
+#endif // _MASK_FILL
 		ENDCG
 
 		Pass
@@ -91,13 +110,13 @@ Shader "Crest/Examples/Masked"
 
 			float4 frag(Varyings input) : SV_Target
 			{
-#ifdef _MASKED_ON
+#ifndef _MASK_NONE
 #ifndef _SHADOW_PASS
 				Clip(input.screenPos);
 #endif // !_SHADOWS
 #endif // _MASKED_ON
 
-				fixed4 c = tex2D(_MainTex, input.uv) * _Color;
+				fixed4 c = tex2D(_Albedo, input.uv) * _Color;
 				clip(c.a - _Cutoff);
 				SHADOW_CASTER_FRAGMENT(i)
 			}
@@ -112,7 +131,7 @@ Shader "Crest/Examples/Masked"
 
 		struct Input
 		{
-			float2 uv_MainTex;
+			float2 uv_Albedo;
 			float4 screenPos;
 		};
 
@@ -122,17 +141,17 @@ Shader "Crest/Examples/Masked"
 
 		void Surface(Input input, inout SurfaceOutputStandard output)
 		{
-#if _MASKED_ON
+#if !_MASK_NONE
 			Clip(input.screenPos);
 #endif
 
-			fixed4 c = tex2D (_MainTex, input.uv_MainTex) * _Color;
+			fixed4 c = tex2D(_Albedo, input.uv_Albedo) * _Color;
 			clip(c.a - _Cutoff);
 			output.Albedo = c.rgb;
 			output.Metallic = _Metallic;
 			output.Smoothness = _Glossiness;
 #if _EMISSION_ON
-			output.Emission = c.rgb * tex2D(_MainTex, input.uv_MainTex).a * _EmissionColor;
+			output.Emission = c.rgb * tex2D(_Albedo, input.uv_Albedo).a * _EmissionColor;
 #endif
 			output.Alpha = c.a;
 		}

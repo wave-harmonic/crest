@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Examples_Material_MaskedWhite
   m_Shader: {fileID: 4800000, guid: 61b1d103b30174032bae1300eeef1e5f, type: 3}
-  m_ShaderKeywords: _MASKED_ON
+  m_ShaderKeywords: _MASK_MASKED
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -64,6 +64,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _Mask: 1
     - _Masked: 1
     - _Metallic: 0
     - _Mode: 0

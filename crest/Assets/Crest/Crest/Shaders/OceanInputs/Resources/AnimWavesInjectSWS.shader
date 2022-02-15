@@ -71,8 +71,10 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				return g;
 			}
 
-			half4 Frag( Varyings input ) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
+				if (!all(input.uv == saturate(input.uv))) discard;
+
 				float wt = _Weight;
 
 				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;

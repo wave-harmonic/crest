@@ -16,6 +16,7 @@ RWTexture2D<float> _Vy1;
 float _Time;
 float _DomainWidth;
 float _Res;
+float _Drain;
 
 #define DT 0.01
 
@@ -136,7 +137,14 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const uint ym = max(y - 1, 0);
 
 	const float grid = _DomainWidth / _Res;
-	
+
+	float pump = _Drain;
+	if (length(IdToWorldXZ_H(id)) < 2.0)
+	{
+		float targetHeight = 1.0;
+		pump += 0.05 * (0.5 - h);
+	}
+
 	const float dx = (_Vx1[id] - _Vx1[uint2(xm, y)]) / grid;
 	const float dy = (_Vy1[id] - _Vy1[uint2(x, ym)]) / grid;
 	const float divergence = dx + dy;
@@ -145,7 +153,7 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const float hvel = -h * divergence;
 	//hvel = clamp(hvel, -32.0f, 32.0f);
 
-	h += DT * hvel;
+	h += DT * hvel + pump;
 
 	// Dry - force to 0
 	if (h < 0.001) h = 0.0;

@@ -66,6 +66,8 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 
 			half4 Frag( Varyings input ) : SV_Target
 			{
+				if (!all(input.uv == saturate(input.uv))) discard;
+
 				const float wt = _Weight;
 
 				const float vx = _swsVx.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;

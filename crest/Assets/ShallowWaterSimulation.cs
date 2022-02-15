@@ -9,6 +9,10 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     [SerializeField, UnityEngine.Range(16, 1024)] int _resolution = 512;
     [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
 
+    [SerializeField] bool _doAdvect = true;
+    [SerializeField] bool _doUpdateH = true;
+    [SerializeField] bool _doUpdateVels = true;
+
     RenderTexture _rtH0, _rtH1;
     RenderTexture _rtVx0, _rtVx1;
     RenderTexture _rtVy0, _rtVy1;
@@ -20,6 +24,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     int _krnlInit;
     int _krnlAdvect;
     int _krnlUpdateH;
+    int _krnlUpdateVels;
 
     void InitData()
     {
@@ -37,6 +42,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         }
 
         _matInjectSWSAnimWaves.SetFloat("_DomainWidth", _domainWidth);
+        _matInjectSWSFlow.SetFloat("_DomainWidth", _domainWidth);
     }
 
     void Swap<T>(ref T a, ref T b)
@@ -55,6 +61,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
 
         // Advect
+        if (_doAdvect)
         {
             Swap(ref _rtH0, ref _rtH1);
             Swap(ref _rtVx0, ref _rtVx1);
@@ -77,12 +84,10 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         }
 
         // Update H
+        if (_doUpdateH)
         {
-            Swap(ref _rtH0, ref _rtH1);
-
             _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateH);
 
-            _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
             _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
             _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
             _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
@@ -94,9 +99,27 @@ public partial class ShallowWaterSimulation : MonoBehaviour
             _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }
 
+        // Update vels
+        if (_doUpdateVels)
+        {
+            _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateVels);
+
+            _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+
+            _buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+        }
+
         Graphics.ExecuteCommandBuffer(_buf);
 
         Shader.SetGlobalTexture("_swsH", _rtH1);
+        Shader.SetGlobalTexture("_swsVx", _rtVx1);
+        Shader.SetGlobalTexture("_swsVy", _rtVy1);
     }
 }
 
@@ -107,6 +130,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
     [SerializeField] bool _updateInEditMode = false;
 
     Material _matInjectSWSAnimWaves;
+    Material _matInjectSWSFlow;
 
     // Draw to all LODs
     public float Wavelength => 0f;
@@ -122,6 +146,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _krnlInit = _csSWS.FindKernel("Init");
             _krnlAdvect = _csSWS.FindKernel("Advect");
             _krnlUpdateH = _csSWS.FindKernel("UpdateH");
+            _krnlUpdateVels = _csSWS.FindKernel("UpdateVels");
         }
 
         {
@@ -129,14 +154,27 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _matInjectSWSAnimWaves.hideFlags = HideFlags.HideAndDontSave;
             _matInjectSWSAnimWaves.SetFloat(RegisterLodDataInputBase.sp_Weight, 1f);
         }
+        {
+            _matInjectSWSFlow = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Inject SWS"));
+            _matInjectSWSFlow.hideFlags = HideFlags.HideAndDontSave;
+            _matInjectSWSFlow.SetFloat(RegisterLodDataInputBase.sp_Weight, 1f);
+        }
 
 #if UNITY_EDITOR
         EditorApplication.update -= EditorUpdate;
         EditorApplication.update += EditorUpdate;
 #endif
 
+        // Register shape
         {
             var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
+            registrar.Remove(this);
+            registrar.Add(0, this);
+        }
+
+        // Register flow
+        {
+            var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrFlow));
             registrar.Remove(this);
             registrar.Add(0, this);
         }
@@ -184,7 +222,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
     {
         buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-        buf.DrawProcedural(Matrix4x4.identity, _matInjectSWSAnimWaves, 0, MeshTopology.Triangles, 3);
+        var mat = (lodData is LodDataMgrAnimWaves) ? _matInjectSWSAnimWaves : _matInjectSWSFlow;
+
+        buf.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
     }
 
 #if UNITY_EDITOR

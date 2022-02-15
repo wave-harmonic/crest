@@ -2,6 +2,7 @@
 #pragma kernel Init
 #pragma kernel Advect
 #pragma kernel UpdateH
+#pragma kernel UpdateVels
 
 SamplerState linear_clamp_sampler;
 
@@ -15,35 +16,38 @@ RWTexture2D<float> _Vy1;
 float _Time;
 float _DomainWidth;
 float _Res;
+
 #define DT 0.01
 
-// H grid is centered
 float2 IdToWorldXZ_H(uint2 id)
 {
+	// H grid is centered
 	return ((id + 0.5) / _Res - 0.5) * _DomainWidth;
 }
-float2 WorldXZToUv_H(float2 worldXZ)
-{
-	return worldXZ / _DomainWidth + 0.5;
-}
-
-// Vx grid is offset right half a texel
 float2 IdToWorldXZ_Vx(uint2 id)
 {
-	return ((id + float2(1.0, 0.0)) / _Res - 0.5) * _DomainWidth;
+	// Vx grid is offset right half a texel
+	return ((id + float2(1.0, 0.5)) / _Res - 0.5) * _DomainWidth;
+}
+float2 IdToWorldXZ_Vy(uint2 id)
+{
+	// Vy grid is offset forward half a texel
+	return ((id + float2(0.5, 1.0)) / _Res - 0.5) * _DomainWidth;
+}
+
+float2 WorldXZToUv_H(float2 worldXZ)
+{
+	// H grid is centered
+	return worldXZ / _DomainWidth + 0.5;
 }
 float2 WorldXZToUv_Vx(float2 worldXZ)
 {
+	// Vx grid is offset right half a texel
 	return worldXZ / _DomainWidth + 0.5 - float2(0.5 / _Res, 0.0);
-}
-
-// Vy grid is offset forward half a texel
-float2 IdToWorldXZ_Vy(uint2 id)
-{
-	return ((id + float2(0.0, 1.0)) / _Res - 0.5) * _DomainWidth;
 }
 float2 WorldXZToUv_Vy(float2 worldXZ)
 {
+	// Vy grid is offset forward half a texel
 	return worldXZ / _DomainWidth + 0.5 - float2(0.0, 0.5 / _Res);
 }
 
@@ -51,11 +55,11 @@ float SampleH(float2 worldXZ)
 {
 	return _H0.SampleLevel(linear_clamp_sampler, WorldXZToUv_H(worldXZ), 0.0).x;
 }
-float SampleVx(float2 worldXZ)
+float SampleVx0(float2 worldXZ)
 {
 	return _Vx0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vx(worldXZ), 0.0).x;
 }
-float SampleVy(float2 worldXZ)
+float SampleVy0(float2 worldXZ)
 {
 	return _Vy0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vy(worldXZ), 0.0).x;
 }
@@ -63,13 +67,9 @@ float SampleVy(float2 worldXZ)
 [numthreads(8, 8, 1)]
 void Init(uint2 id : SV_DispatchThreadID)
 {
-	float h = 0.0;
-
 	const float2 worldXZ_H = IdToWorldXZ_H(id);
-	if (length(worldXZ_H) < 1.0)
-	{
-		h = 0.4;
-	}
+	float h = 0.5; // .4 + .06 * dot(worldXZ_H, 1);
+	h = 2. * smoothstep(5.0, 0.0, length(worldXZ_H));
 
 	_H1[id.xy] = h;
 	_Vx1[id.xy] = 0.0;
@@ -81,67 +81,143 @@ void Advect(uint2 id : SV_DispatchThreadID)
 {
 	// H
 	{
-		float2 worldXZ_H = IdToWorldXZ_H(id);
+		const float2 worldXZ_H = IdToWorldXZ_H(id);
 
-		float vx = SampleVx(worldXZ_H);
-		float vy = SampleVy(worldXZ_H);
+		const float vx = SampleVx0(worldXZ_H);
+		const float vy = SampleVy0(worldXZ_H);
 
-		float2 worldXZAdvected = worldXZ_H -DT * float2(vx, vy);
+		const float2 worldXZAdvected = worldXZ_H - DT * float2(vx, vy);
 
 		_H1[id] = SampleH(worldXZAdvected);
 	}
 
 	// Vx
 	{
-		float2 worldXZ_Vx = IdToWorldXZ_Vx(id);
+		const float2 worldXZ_Vx = IdToWorldXZ_Vx(id);
+		
+		const float vx = SampleVx0(worldXZ_Vx); // Can be load
+		const float vy = SampleVy0(worldXZ_Vx);
 
-		float vx = SampleVx(worldXZ_Vx); // Can be load
-		float vy = SampleVy(worldXZ_Vx);
+		const float2 worldXZAdvected = worldXZ_Vx - DT * float2(vx, vy);
 
-		float2 worldXZAdvected = worldXZ_Vx - DT * float2(vx, vy);
-
-		_Vx1[id] = SampleVx(worldXZAdvected);
+		_Vx1[id] = SampleVx0(worldXZAdvected);
 	}
 
 	// Vy
 	{
-		float2 worldXZ_Vy = IdToWorldXZ_Vy(id);
+		const float2 worldXZ_Vy = IdToWorldXZ_Vy(id);
+		
+		const float vx = SampleVx0(worldXZ_Vy);
+		const float vy = SampleVy0(worldXZ_Vy); // Can be load
+		
+		const float2 worldXZAdvected = worldXZ_Vy - DT * float2(vx, vy);
 
-		float vx = SampleVx(worldXZ_Vy);
-		float vy = SampleVy(worldXZ_Vy); // Can be load
-
-		float2 worldXZAdvected = worldXZ_Vy - DT * float2(vx, vy);
-
-		_Vy1[id] = SampleVy(worldXZAdvected);
+		_Vy1[id] = SampleVy0(worldXZAdvected);
 	}
 }
 
 [numthreads(8,8,1)]
 void UpdateH(uint2 id : SV_DispatchThreadID)
 {
+	float h = _H1[id];
+
 	const uint x = id.x;
 	const uint y = id.y;
 	const uint xm = max(x - 1, 0);
-	const uint xp = min(x + 1, _Res - 1);
 	const uint ym = max(y - 1, 0);
-	const uint yp = min(y + 1, _Res - 1);
 
-	float grid = _DomainWidth / _Res;
-
-	float dx = (_Vx1[uint2(xm, y)] - _Vx1[id]) / grid;
-	float dy = (_Vy1[uint2(x, ym)] - _Vy1[id]) / grid;
-	float divergence = dx + dy;
-
-	float h = _H0[id];
+	const float grid = _DomainWidth / _Res;
+	
+	const float dx = (_Vx1[id] - _Vx1[uint2(xm, y)]) / grid;
+	const float dy = (_Vy1[id] - _Vy1[uint2(x, ym)]) / grid;
+	const float divergence = dx + dy;
 
 	// Update height based on total flow in minus total flow out
-	float hvel = h * divergence;
+	const float hvel = -h * divergence;
 	//hvel = clamp(hvel, -32.0f, 32.0f);
 
-	h -= DT * hvel;
+	h += DT * hvel;
 
 	// Dry - force to 0
 	if (h < 0.001) h = 0.0;
 
-	_H1[id.xy] = h;
+	// Pull down height at boundaries
+	//if (id.x == 0 || id.y == 0 || id.x == _Res - 1 || id.y == _Res - 1) h = lerp(h, 120.5, 0.01);
+
+	_H1[id] = h;
+}
+
+[numthreads(8, 8, 1)]
+void UpdateVels(uint2 id : SV_DispatchThreadID)
+{
+	// Height before vel
+	const float h0 = _H1[id];
+
+	const uint x = id.x;
+	const uint y = id.y;
+	const uint xp = min(x + 1, _Res - 1);
+	const uint yp = min(y + 1, _Res - 1);
+
+	const float grid = _DomainWidth / _Res;
+	const float gravity = 9.81f;
+
+	// Vx
+	{
+		float vx = _Vx1[id];
+
+		const float h1 = _H1[uint2(xp, y)];
+
+		const float hdiff = h1 - h0;
+		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
+
+		float accel = -gravity * hdiff / grid;
+
+		vx += DT * accel;
+
+		if (accel < 0 && h1 < 0.001)
+		{
+			vx = 0.0;
+		}
+		else if (accel > 0 && h0 < 0.001)
+		{
+			vx = 0.0;
+		}
+
+		/*if (abs(vx) > maxVel)
+		{
+			vx = sign(vx) * maxVel;
+		}*/
+
+		_Vx1[id] = vx;
+	}
+
+	// Vy
+	{
+		float vy = _Vy1[id];
+
+		const float h1 = _H1[uint2(x, yp)];
+
+		const float hdiff = h1 - h0;
+		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
+
+		float accel = -gravity * hdiff / grid;
+
+		vy += DT * accel;
+
+		if (accel < 0 && h1 < 0.001)
+		{
+			vy = 0.0;
+		}
+		else if (accel > 0 && h0 < 0.001)
+		{
+			vy = 0.0;
+		}
+
+		/*if (abs(vx) > maxVel)
+		{
+			vx = sign(vx) * maxVel;
+		}*/
+
+		_Vy1[id] = vy;
+	}
 }

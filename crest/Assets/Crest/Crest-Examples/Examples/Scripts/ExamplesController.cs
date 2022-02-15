@@ -66,7 +66,9 @@ namespace Crest.Examples
                     {
                         current.gameObject.SetActive(false);
                         previous.gameObject.SetActive(true);
+#if UNITY_EDITOR
                         Selection.activeGameObject = previous.gameObject;
+#endif
                         hasActive = true;
                         break;
                     }
@@ -77,7 +79,9 @@ namespace Crest.Examples
                     {
                         previous.gameObject.SetActive(false);
                         current.gameObject.SetActive(true);
+#if UNITY_EDITOR
                         Selection.activeGameObject = current.gameObject;
+#endif
                         hasActive = true;
                         break;
                     }
@@ -93,6 +97,7 @@ namespace Crest.Examples
         }
     }
 
+#if UNITY_EDITOR
     [CustomEditor(typeof(ExamplesController))]
     public class ExamplesControllerEditor : Editor
     {
@@ -118,4 +123,5 @@ namespace Crest.Examples
             }
         }
     }
+#endif
 }

@@ -37,7 +37,7 @@ Shader "Crest/Examples/Mask Depth"
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
-            UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture)
+            UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
 
             v2f vert (appdata v)
             {

@@ -13,7 +13,7 @@ Shader "Hidden/Crest/Examples/Mask Fill"
 
             #include "UnityCG.cginc"
 
-            UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture)
+            UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture);
 
             struct Attributes
             {

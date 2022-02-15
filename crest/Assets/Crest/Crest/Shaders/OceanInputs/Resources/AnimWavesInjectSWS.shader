@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Adds Gestner waves to world
 
 Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 {

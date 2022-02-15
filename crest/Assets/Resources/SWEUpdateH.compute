@@ -1,12 +1,46 @@
 
+#pragma kernel InitH
 #pragma kernel UpdateH
 
-RWTexture2D<float> _Result;
+RWTexture2D<float> _H;
 float _Time;
+
+[numthreads(8, 8, 1)]
+void InitH(uint2 id : SV_DispatchThreadID)
+{
+	float width; float height;
+	{
+		_H.GetDimensions(width, height);
+	}
+
+	const float2 worldPosXZ = ((id + 0.5) / width - 0.5) * 64.0;
+
+	float h = 0.0;
+
+	if (length(worldPosXZ) < 2.0)
+	{
+		h = 1.0;
+	}
+
+	_H[id.xy] = h;
+}
 
 [numthreads(8,8,1)]
 void UpdateH(uint2 id : SV_DispatchThreadID)
 {
-	float2 worldPosXZ = ((id + 0.5) / 512.0 - 0.5) * 64.0;
-	_Result[id.xy] = 0.25 * sin(-_Time + dot(worldPosXZ, 1.0) / 0.5);
+	uint width; uint height;
+	{
+		_H.GetDimensions(width, height);
+	}
+
+	const uint x = id.x;
+	const uint y = id.y;
+	const uint xm = max(x - 1, 0);
+	const uint xp = min(x + 1, width - 1);
+	const uint ym = max(y - 1, 0);
+	const uint yp = min(y + 1, height - 1);
+
+	float lap = _H[uint2(xm, y)] + _H[uint2(xp, y)] + _H[uint2(x, ym)] + _H[uint2(x, yp)] - 4.0 * _H[id];
+
+	_H[id.xy] += 0.01 * lap;
 }

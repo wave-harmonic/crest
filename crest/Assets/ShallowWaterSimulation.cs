@@ -71,6 +71,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
             _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
             _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
 
             _buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }
@@ -90,6 +91,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
             _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
             _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
 
             _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }
@@ -172,6 +174,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
             _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
             _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
 
             _buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }

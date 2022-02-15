@@ -3,73 +3,128 @@
 #pragma kernel Advect
 #pragma kernel UpdateH
 
-RWTexture2D<float> _H0;
+SamplerState linear_clamp_sampler;
+
+Texture2D<float> _H0;
 RWTexture2D<float> _H1;
-RWTexture2D<float> _Vx0;
+Texture2D<float> _Vx0;
 RWTexture2D<float> _Vx1;
-RWTexture2D<float> _Vy0;
+Texture2D<float> _Vy0;
 RWTexture2D<float> _Vy1;
 
 float _Time;
 float _DomainWidth;
+float _Res;
+#define DT 0.01
+
+// H grid is centered
+float2 IdToWorldXZ_H(uint2 id)
+{
+	return ((id + 0.5) / _Res - 0.5) * _DomainWidth;
+}
+float2 WorldXZToUv_H(float2 worldXZ)
+{
+	return worldXZ / _DomainWidth + 0.5;
+}
+
+// Vx grid is offset right half a texel
+float2 IdToWorldXZ_Vx(uint2 id)
+{
+	return ((id + float2(1.0, 0.0)) / _Res - 0.5) * _DomainWidth;
+}
+float2 WorldXZToUv_Vx(float2 worldXZ)
+{
+	return worldXZ / _DomainWidth + 0.5 - float2(0.5 / _Res, 0.0);
+}
+
+// Vy grid is offset forward half a texel
+float2 IdToWorldXZ_Vy(uint2 id)
+{
+	return ((id + float2(0.0, 1.0)) / _Res - 0.5) * _DomainWidth;
+}
+float2 WorldXZToUv_Vy(float2 worldXZ)
+{
+	return worldXZ / _DomainWidth + 0.5 - float2(0.0, 0.5 / _Res);
+}
+
+float SampleH(float2 worldXZ)
+{
+	return _H0.SampleLevel(linear_clamp_sampler, WorldXZToUv_H(worldXZ), 0.0).x;
+}
+float SampleVx(float2 worldXZ)
+{
+	return _Vx0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vx(worldXZ), 0.0).x;
+}
+float SampleVy(float2 worldXZ)
+{
+	return _Vy0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vy(worldXZ), 0.0).x;
+}
 
 [numthreads(8, 8, 1)]
 void Init(uint2 id : SV_DispatchThreadID)
 {
-	float width; float height;
-	{
-		_H1.GetDimensions(width, height);
-	}
-
-	const float2 worldPosXZ = ((id + 0.5) / width - 0.5) * _DomainWidth;
-
 	float h = 0.0;
 
-	if (length(worldPosXZ) < 2.0)
+	const float2 worldXZ_H = IdToWorldXZ_H(id);
+	if (length(worldXZ_H) < 1.0)
 	{
-		h = 1.0;
+		h = 0.4;
 	}
 
-	_H0[id.xy] = _H1[id.xy] = h;
-	_Vx0[id.xy] = _Vx1[id.xy] = 0.0;
-	_Vy0[id.xy] = _Vy1[id.xy] = 0.0;
+	_H1[id.xy] = h;
+	_Vx1[id.xy] = 0.0;
+	_Vy1[id.xy] = 0.0;
 }
 
 [numthreads(8, 8, 1)]
 void Advect(uint2 id : SV_DispatchThreadID)
 {
-	uint width; uint height;
+	// H
 	{
-		_H1.GetDimensions(width, height);
+		float2 worldXZ_H = IdToWorldXZ_H(id);
+
+		float vx = SampleVx(worldXZ_H);
+		float vy = SampleVy(worldXZ_H);
+
+		float2 worldXZAdvected = worldXZ_H -DT * float2(vx, vy);
+
+		_H1[id] = SampleH(worldXZAdvected);
 	}
 
-	const uint x = id.x;
-	const uint y = id.y;
-	const uint xm = max(x - 1, 0);
-	const uint xp = min(x + 1, width - 1);
-	const uint ym = max(y - 1, 0);
-	const uint yp = min(y + 1, height - 1);
+	// Vx
+	{
+		float2 worldXZ_Vx = IdToWorldXZ_Vx(id);
 
-	float h = _H0[id];
-	float lap = _H0[uint2(xm, y)] + _H0[uint2(xp, y)] + _H0[uint2(x, ym)] + _H0[uint2(x, yp)] - 4.0 * h;
+		float vx = SampleVx(worldXZ_Vx); // Can be load
+		float vy = SampleVy(worldXZ_Vx);
 
-	_H1[id.xy] = h + 0.01 * lap;
+		float2 worldXZAdvected = worldXZ_Vx - DT * float2(vx, vy);
+
+		_Vx1[id] = SampleVx(worldXZAdvected);
+	}
+
+	// Vy
+	{
+		float2 worldXZ_Vy = IdToWorldXZ_Vy(id);
+
+		float vx = SampleVx(worldXZ_Vy);
+		float vy = SampleVy(worldXZ_Vy); // Can be load
+
+		float2 worldXZAdvected = worldXZ_Vy - DT * float2(vx, vy);
+
+		_Vy1[id] = SampleVy(worldXZAdvected);
+	}
 }
 
 [numthreads(8,8,1)]
 void UpdateH(uint2 id : SV_DispatchThreadID)
 {
-	uint width; uint height;
-	{
-		_H1.GetDimensions(width, height);
-	}
-
 	const uint x = id.x;
 	const uint y = id.y;
 	const uint xm = max(x - 1, 0);
-	const uint xp = min(x + 1, width - 1);
+	const uint xp = min(x + 1, _Res - 1);
 	const uint ym = max(y - 1, 0);
-	const uint yp = min(y + 1, height - 1);
+	const uint yp = min(y + 1, _Res - 1);
 
 	float h = _H0[id];
 	float lap = _H0[uint2(xm, y)] + _H0[uint2(xp, y)] + _H0[uint2(x, ym)] + _H0[uint2(x, yp)] - 4.0 * h;

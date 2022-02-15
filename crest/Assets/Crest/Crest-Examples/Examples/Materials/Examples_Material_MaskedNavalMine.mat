@@ -19,6 +19,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _Albedo:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -26,7 +30,7 @@ Material:
     m_Floats:
     - _Cutoff: 0.5
     - _Emission: 1
-    - _Glossiness: 0.3
+    - _Smoothness: 0.3
     - _Mask: 1
     - _Masked: 1
     - _Metallic: 0.169

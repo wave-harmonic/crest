@@ -10,7 +10,7 @@ Shader "Crest/Examples/Masked"
 		[Toggle] _Emission("Emission", Float) = 0.0
 		[HDR] _EmissionColor("Color", Color) = (0.0, 0.0, 0.0)
 		_Albedo("Albedo (RGB)", 2D) = "white" {}
-		_Glossiness("Smoothness", Range(0.0, 1.0)) = 0.5
+		_Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
 		_Metallic("Metallic", Range(0.0, 1.0)) = 0.0
 		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 		[KeywordEnum(None, Masked, Fill)] _Mask("Masked", Float) = 1.0
@@ -135,7 +135,7 @@ Shader "Crest/Examples/Masked"
 			float4 screenPos;
 		};
 
-		half _Glossiness;
+		half _Smoothness;
 		half _Metallic;
 		fixed4 _EmissionColor;
 
@@ -149,7 +149,7 @@ Shader "Crest/Examples/Masked"
 			clip(c.a - _Cutoff);
 			output.Albedo = c.rgb;
 			output.Metallic = _Metallic;
-			output.Smoothness = _Glossiness;
+			output.Smoothness = _Smoothness;
 #if _EMISSION_ON
 			output.Emission = c.rgb * tex2D(_Albedo, input.uv_Albedo).a * _EmissionColor;
 #endif

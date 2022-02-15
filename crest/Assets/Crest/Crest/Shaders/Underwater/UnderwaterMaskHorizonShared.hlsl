@@ -11,8 +11,6 @@
 #include "../OceanGlobals.hlsl"
 #include "../OceanShaderHelpers.hlsl"
 
-#include "../Helpers/WaterVolume.hlsl"
-
 // Driven by scripting. It is a non-linear converted from a linear 0-1 value.
 float _FarPlaneOffset;
 

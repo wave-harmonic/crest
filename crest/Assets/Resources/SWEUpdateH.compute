@@ -4,6 +4,7 @@
 
 RWTexture2D<float> _H;
 float _Time;
+float _DomainWidth;
 
 [numthreads(8, 8, 1)]
 void InitH(uint2 id : SV_DispatchThreadID)
@@ -13,7 +14,7 @@ void InitH(uint2 id : SV_DispatchThreadID)
 		_H.GetDimensions(width, height);
 	}
 
-	const float2 worldPosXZ = ((id + 0.5) / width - 0.5) * 64.0;
+	const float2 worldPosXZ = ((id + 0.5) / width - 0.5) * _DomainWidth;
 
 	float h = 0.0;
 

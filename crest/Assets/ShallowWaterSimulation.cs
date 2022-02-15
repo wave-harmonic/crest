@@ -6,6 +6,10 @@ using UnityEngine.Rendering;
 [ExecuteAlways]
 public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 {
+    [SerializeField, UnityEngine.Range(16, 1024)] int _resolution = 512;
+    [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
+
+    [Space, Header("Debug")]
     [SerializeField] bool _updateInEditMode = false;
 
     RenderTexture _rtH;
@@ -23,8 +27,6 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
     void OnEnable()
     {
-        InitData();
-
         if (_csUpdateH == null)
         {
             _csUpdateH = ComputeShaderHelpers.LoadShader("SWEUpdateH");
@@ -56,7 +58,7 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
     {
         if (_rtH == null)
         {
-            _rtH = new RenderTexture(512, 512, 0, RenderTextureFormat.RFloat);
+            _rtH = new RenderTexture(_resolution, _resolution, 0, RenderTextureFormat.RFloat);
             _rtH.enableRandomWrite = true;
             _rtH.Create();
         }
@@ -66,6 +68,8 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _buf = new CommandBuffer();
             _buf.name = "UpdateShallowWaterSim";
         }
+
+        _matInjectSWSAnimWaves.SetFloat("_DomainWidth", _domainWidth);
     }
 
     void Reset()
@@ -78,6 +82,7 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csUpdateHProps.Initialise(_buf, _csUpdateH, _krnlInitH);
             _csUpdateHProps.SetTexture(Shader.PropertyToID("_H"), _rtH);
             _csUpdateHProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+            _csUpdateHProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
 
             _buf.DispatchCompute(_csUpdateH, _krnlInitH, (_rtH.width + 7) / 8, (_rtH.height + 7) / 8, 1);
         }
@@ -95,6 +100,7 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csUpdateHProps.Initialise(_buf, _csUpdateH, _krnlUpdateH);
             _csUpdateHProps.SetTexture(Shader.PropertyToID("_H"), _rtH);
             _csUpdateHProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+            _csUpdateHProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
 
             _buf.DispatchCompute(_csUpdateH, _krnlUpdateH, (_rtH.width + 7) / 8, (_rtH.height + 7) / 8, 1);
         }
@@ -115,6 +121,7 @@ public class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
     public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
     {
         buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+        
         buf.DrawProcedural(Matrix4x4.identity, _matInjectSWSAnimWaves, 0, MeshTopology.Triangles, 3);
     }
 }

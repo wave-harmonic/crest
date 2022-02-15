@@ -116,7 +116,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
     {
         if (_csSWS == null)
         {
-            _csSWS = ComputeShaderHelpers.LoadShader("SWEUpdateH");
+            _csSWS = ComputeShaderHelpers.LoadShader("SWSUpdate");
             _csSWSProps = new PropertyWrapperCompute();
 
             _krnlInit = _csSWS.FindKernel("Init");

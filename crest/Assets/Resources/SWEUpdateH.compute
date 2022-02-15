@@ -1,5 +1,6 @@
 
-#pragma kernel InitH
+#pragma kernel Init
+#pragma kernel Advect
 #pragma kernel UpdateH
 
 RWTexture2D<float> _H0;
@@ -13,7 +14,7 @@ float _Time;
 float _DomainWidth;
 
 [numthreads(8, 8, 1)]
-void InitH(uint2 id : SV_DispatchThreadID)
+void Init(uint2 id : SV_DispatchThreadID)
 {
 	float width; float height;
 	{
@@ -32,6 +33,27 @@ void InitH(uint2 id : SV_DispatchThreadID)
 	_H0[id.xy] = _H1[id.xy] = h;
 	_Vx0[id.xy] = _Vx1[id.xy] = 0.0;
 	_Vy0[id.xy] = _Vy1[id.xy] = 0.0;
+}
+
+[numthreads(8, 8, 1)]
+void Advect(uint2 id : SV_DispatchThreadID)
+{
+	uint width; uint height;
+	{
+		_H1.GetDimensions(width, height);
+	}
+
+	const uint x = id.x;
+	const uint y = id.y;
+	const uint xm = max(x - 1, 0);
+	const uint xp = min(x + 1, width - 1);
+	const uint ym = max(y - 1, 0);
+	const uint yp = min(y + 1, height - 1);
+
+	float h = _H0[id];
+	float lap = _H0[uint2(xm, y)] + _H0[uint2(xp, y)] + _H0[uint2(x, ym)] + _H0[uint2(x, yp)] - 4.0 * h;
+
+	_H1[id.xy] = h + 0.01 * lap;
 }
 
 [numthreads(8,8,1)]

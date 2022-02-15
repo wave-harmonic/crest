@@ -13,11 +13,12 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     RenderTexture _rtVx0, _rtVx1;
     RenderTexture _rtVy0, _rtVy1;
 
-    PropertyWrapperCompute _csUpdateHProps;
+    PropertyWrapperCompute _csSWSProps;
     CommandBuffer _buf;
 
-    ComputeShader _csUpdateH;
-    int _krnlInitH;
+    ComputeShader _csSWS;
+    int _krnlInit;
+    int _krnlAdvect;
     int _krnlUpdateH;
 
     void InitData()
@@ -53,22 +54,44 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
         // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
 
+        // Advect
+        {
+            Swap(ref _rtH0, ref _rtH1);
+            Swap(ref _rtVx0, ref _rtVx1);
+            Swap(ref _rtVy0, ref _rtVy1);
+
+            _csSWSProps.Initialise(_buf, _csSWS, _krnlAdvect);
+
+            _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+
+            _buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+        }
+
+        // Update H
         {
             Swap(ref _rtH0, ref _rtH1);
 
-            _csUpdateHProps.Initialise(_buf, _csUpdateH, _krnlUpdateH);
+            _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateH);
 
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
-            _csUpdateHProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-            _csUpdateHProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
 
-            _buf.DispatchCompute(_csUpdateH, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+            _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }
 
         Graphics.ExecuteCommandBuffer(_buf);
@@ -91,13 +114,14 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
     void OnEnable()
     {
-        if (_csUpdateH == null)
+        if (_csSWS == null)
         {
-            _csUpdateH = ComputeShaderHelpers.LoadShader("SWEUpdateH");
-            _csUpdateHProps = new PropertyWrapperCompute();
+            _csSWS = ComputeShaderHelpers.LoadShader("SWEUpdateH");
+            _csSWSProps = new PropertyWrapperCompute();
 
-            _krnlInitH = _csUpdateH.FindKernel("InitH");
-            _krnlUpdateH = _csUpdateH.FindKernel("UpdateH");
+            _krnlInit = _csSWS.FindKernel("Init");
+            _krnlAdvect = _csSWS.FindKernel("Advect");
+            _krnlUpdateH = _csSWS.FindKernel("UpdateH");
         }
 
         {
@@ -137,19 +161,19 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         _buf.Clear();
 
         {
-            _csUpdateHProps.Initialise(_buf, _csUpdateH, _krnlInitH);
+            _csSWSProps.Initialise(_buf, _csSWS, _krnlInit);
 
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
-            _csUpdateHProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
-            _csUpdateHProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-            _csUpdateHProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
 
-            _buf.DispatchCompute(_csUpdateH, _krnlInitH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+            _buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }
 
         Graphics.ExecuteCommandBuffer(_buf);

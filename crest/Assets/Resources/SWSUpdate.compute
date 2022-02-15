@@ -64,12 +64,21 @@ float SampleVy0(float2 worldXZ)
 	return _Vy0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vy(worldXZ), 0.0).x;
 }
 
+float g(float2 worldXZ)
+{
+	float g = 0.0;
+	g += 1.5 * smoothstep(2.0, 0.0, length(worldXZ - 4.0));
+	return g;
+}
+
 [numthreads(8, 8, 1)]
 void Init(uint2 id : SV_DispatchThreadID)
 {
 	const float2 worldXZ_H = IdToWorldXZ_H(id);
 	float h = 0.5; // .4 + .06 * dot(worldXZ_H, 1);
-	h = 2. * smoothstep(5.0, 0.0, length(worldXZ_H));
+	h = 4. * smoothstep(5.0, 0.0, length(worldXZ_H));
+
+	h = max(0.0, h - g(worldXZ_H));
 
 	_H1[id.xy] = h;
 	_Vx1[id.xy] = 0.0;
@@ -151,6 +160,8 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 void UpdateVels(uint2 id : SV_DispatchThreadID)
 {
 	// Height before vel
+	const float2 worldXZ_H0 = IdToWorldXZ_H(id);
+	const float g0 = g(worldXZ_H0);
 	const float h0 = _H1[id];
 
 	const uint x = id.x;
@@ -165,9 +176,11 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 	{
 		float vx = _Vx1[id];
 
+		const float2 worldXZ_H1 = IdToWorldXZ_H(uint2(xp, y));
+		const float g1 = g(worldXZ_H1);
 		const float h1 = _H1[uint2(xp, y)];
 
-		const float hdiff = h1 - h0;
+		const float hdiff = (h1 + g1) - (h0 + g0);
 		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
 
 		float accel = -gravity * hdiff / grid;
@@ -195,9 +208,11 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 	{
 		float vy = _Vy1[id];
 
+		const float2 worldXZ_H1 = IdToWorldXZ_H(uint2(x, yp));
+		const float g1 = g(worldXZ_H1);
 		const float h1 = _H1[uint2(x, yp)];
 
-		const float hdiff = h1 - h0;
+		const float hdiff = (h1 + g1) - (h0 + g0);
 		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
 
 		float accel = -gravity * hdiff / grid;

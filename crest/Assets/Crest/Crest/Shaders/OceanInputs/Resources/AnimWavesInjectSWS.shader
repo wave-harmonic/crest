@@ -48,6 +48,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
+				float2 worldXZ : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)
@@ -57,10 +58,17 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				const float2 quadUV = GetFullScreenTriangleTexCoord(input.VertexID);
 
-				o.uv = UVToWorld(quadUV, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex]);
-				o.uv = o.uv / _DomainWidth + 0.5;
+				o.worldXZ = UVToWorld(quadUV, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex]);
+				o.uv = o.worldXZ / _DomainWidth + 0.5;
 
 				return o;
+			}
+
+			float g(float2 worldXZ)
+			{
+				float g = 0.0;
+				g += 1.5 * smoothstep(2.0, 0.0, length(worldXZ - 4.0));
+				return g;
 			}
 
 			half4 Frag( Varyings input ) : SV_Target
@@ -68,6 +76,10 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				float wt = _Weight;
 
 				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
+
+				if (h < 0.001) discard;
+
+				h += g(input.worldXZ);
 			
 				return half4(0.0, wt * h, 0.0, 0.0);
 			}

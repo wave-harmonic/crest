@@ -425,7 +425,7 @@ GameObject:
   - component: {fileID: 1095088193}
   - component: {fileID: 1095088192}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: FoamPatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

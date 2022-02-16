@@ -100,6 +100,10 @@ void ApplyReflectionSky
 	PlanarReflection(i_screenPos, i_n_pixel, skyColour);
 #endif
 
+	skyColour = dot(skyColour, 0.3);
+	skyColour = smoothstep(0.7, 0.8, skyColour);
+	skyColour.b *= 0.7;// = smoothstep(0.2, 1.3, skyColour);
+
 	// Add primary light
 #if _COMPUTEDIRECTIONALLIGHT_ON
 #if _DIRECTIONALLIGHTVARYROUGHNESS_ON

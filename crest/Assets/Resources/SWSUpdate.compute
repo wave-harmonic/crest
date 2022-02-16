@@ -17,6 +17,7 @@ float _Time;
 float _DomainWidth;
 float _Res;
 float _Drain;
+float _Friction;
 
 #define DT 0.01
 
@@ -76,8 +77,8 @@ float g(float2 worldXZ)
 void Init(uint2 id : SV_DispatchThreadID)
 {
 	const float2 worldXZ_H = IdToWorldXZ_H(id);
-	float h = 0.5; // .4 + .06 * dot(worldXZ_H, 1);
-	h = 4. * smoothstep(5.0, 0.0, length(worldXZ_H));
+	float h = 0.0; // .4 + .06 * dot(worldXZ_H, 1);
+	//h = 4. * smoothstep(5.0, 0.0, length(worldXZ_H));
 
 	h = max(0.0, h - g(worldXZ_H));
 
@@ -109,8 +110,13 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float vy = SampleVy0(worldXZ_Vx);
 
 		const float2 worldXZAdvected = worldXZ_Vx - DT * float2(vx, vy);
+		float vxAdvected = SampleVx0(worldXZAdvected);
 
-		_Vx1[id] = SampleVx0(worldXZAdvected);
+		const float h_vx = SampleH(worldXZAdvected);
+		const float friction = _Friction * DT / max(0.001f, pow(h_vx, 1.333333f));
+		vxAdvected -= abs(vxAdvected) * vxAdvected * friction;
+
+		_Vx1[id] = vxAdvected;
 	}
 
 	// Vy
@@ -121,8 +127,13 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float vy = SampleVy0(worldXZ_Vy); // Can be load
 		
 		const float2 worldXZAdvected = worldXZ_Vy - DT * float2(vx, vy);
+		float vyAdvected = SampleVy0(worldXZAdvected);
 
-		_Vy1[id] = SampleVy0(worldXZAdvected);
+		const float h_vy = SampleH(worldXZAdvected);
+		const float friction = _Friction * DT / max(0.001f, pow(h_vy, 1.333333f));
+		vyAdvected -= abs(vyAdvected) * vyAdvected * friction;
+
+		_Vy1[id] = vyAdvected;
 	}
 }
 
@@ -139,10 +150,13 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const float grid = _DomainWidth / _Res;
 
 	float pump = _Drain;
-	if (length(IdToWorldXZ_H(id)) < 2.0)
+	if (length(IdToWorldXZ_H(id) - float2(-14.0, 14.0)) < 1.0)
 	{
-		float targetHeight = 1.0;
-		pump += 0.05 * (0.5 - h);
+		float targetHeight = 4.0;
+		float pumpIn = 0.01 * (targetHeight - h);
+		float maxPump = 0.04;
+		if (abs(pumpIn) > maxPump) pumpIn *= maxPump / abs(pumpIn);
+		pump += pumpIn;
 	}
 
 	const float dx = (_Vx1[id] - _Vx1[uint2(xm, y)]) / grid;
@@ -160,6 +174,8 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 
 	// Pull down height at boundaries
 	//if (id.x == 0 || id.y == 0 || id.x == _Res - 1 || id.y == _Res - 1) h = lerp(h, 120.5, 0.01);
+
+	//if(length(IdToWorldXZ_H(id)) < 4.0) h = 0;
 
 	_H1[id] = h;
 }

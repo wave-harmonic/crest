@@ -6,11 +6,15 @@ using UnityEngine.Rendering;
 [ExecuteAlways]
 public partial class ShallowWaterSimulation : MonoBehaviour
 {
+    [Header("Sim Params")]
     [SerializeField, UnityEngine.Range(1, 2000)] int _stepsPerFrame = 1;
     [SerializeField, UnityEngine.Range(16, 1024)] int _resolution = 512;
     [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
     [SerializeField] float _drain = -0.0001f;
+    [SerializeField] float _friction = 0.001f;
 
+    [Header("Sim Controls")]
+    [SerializeField] bool _doUpdate = true;
     [SerializeField] bool _doAdvect = true;
     [SerializeField] bool _doUpdateH = true;
     [SerializeField] bool _doUpdateVels = true;
@@ -58,70 +62,74 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     {
         InitData();
 
-        _buf.Clear();
-
-        for (int i = 0; i < _stepsPerFrame; i++)
+        if (_doUpdate)
         {
-            // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
+            _buf.Clear();
 
-            // Advect
-            if (_doAdvect)
+            for (int i = 0; i < _stepsPerFrame; i++)
             {
-                Swap(ref _rtH0, ref _rtH1);
-                Swap(ref _rtVx0, ref _rtVx1);
-                Swap(ref _rtVy0, ref _rtVy1);
+                // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
 
-                _csSWSProps.Initialise(_buf, _csSWS, _krnlAdvect);
+                // Advect
+                if (_doAdvect)
+                {
+                    Swap(ref _rtH0, ref _rtH1);
+                    Swap(ref _rtVx0, ref _rtVx1);
+                    Swap(ref _rtVy0, ref _rtVy1);
 
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+                    _csSWSProps.Initialise(_buf, _csSWS, _krnlAdvect);
 
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
-                _buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+
+                    _buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                }
+
+                // Update H
+                if (_doUpdateH)
+                {
+                    _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateH);
+
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Drain"), _drain);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
+                    
+                    _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                }
+
+                // Update vels
+                if (_doUpdateVels)
+                {
+                    _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateVels);
+
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+
+                    _buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                }
             }
 
-            // Update H
-            if (_doUpdateH)
-            {
-                _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateH);
-
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Drain"), _drain);
-
-                _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
-            }
-
-            // Update vels
-            if (_doUpdateVels)
-            {
-                _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateVels);
-
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-
-                _buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
-            }
+            Graphics.ExecuteCommandBuffer(_buf);
         }
-
-        Graphics.ExecuteCommandBuffer(_buf);
 
         Shader.SetGlobalTexture("_swsH", _rtH1);
         Shader.SetGlobalTexture("_swsVx", _rtVx1);

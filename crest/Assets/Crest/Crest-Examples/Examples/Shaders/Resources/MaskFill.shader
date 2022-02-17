@@ -13,7 +13,9 @@ Shader "Hidden/Crest/Examples/Mask Fill"
 
             #include "UnityCG.cginc"
 
-            UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture);
+            #include "../../../../Crest/Shaders/Helpers/BIRP/Core.hlsl"
+
+            TEXTURE2D_X(_CrestWaterVolumeFrontFaceTexture);
 
             struct Attributes
             {
@@ -23,24 +25,18 @@ Shader "Hidden/Crest/Examples/Mask Fill"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float4 screenPos : TEXCOORD0;
             };
 
             Varyings Vertex(Attributes input)
             {
                 Varyings output;
                 output.positionCS = UnityObjectToClipPos(input.positionOS);
-                output.screenPos = ComputeScreenPos(output.positionCS);
                 return output;
             }
 
             float4 Fragment(Varyings input, bool isFrontFace : SV_IsFrontFace) : SV_Target
             {
-                float2 positionNDC = input.screenPos.xy / input.screenPos.w;
-                float deviceZ = input.screenPos.z / input.screenPos.w;
-
-                float frontFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture, positionNDC);
-                if (frontFaceZ == 0.0 || frontFaceZ < deviceZ)
+                if (LOAD_TEXTURE2D_X(_CrestWaterVolumeFrontFaceTexture, input.positionCS.xy).r < input.positionCS.z)
                 {
                     discard;
                 }

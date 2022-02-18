@@ -89,19 +89,6 @@ void ApplyCaustics
 	// result in stretched/dilated caustics in certain areas. This is especially noticeable on angled surfaces.
 	float2 lightProjection = i_lightDir.xz * sceneDepth / (4.0 * i_lightDir.y);
 
-	half2 causticN = 0.0;
-	{
-		float2 surfacePosXZ = i_scenePos.xz;
-
-#if CREST_FLOATING_ORIGIN
-		// Apply tiled floating origin offset. Always needed.
-		surfacePosXZ -= i_distortionTexture.FloatingOriginOffset();
-#endif
-
-		surfacePosXZ += lightProjection;
-		causticN = _CausticsDistortionStrength * UnpackNormal(i_distortionTexture.Sample(surfacePosXZ / i_distortionTexture._scale)).xy;
-	}
-
 	float3 cuv1 = 0.0; float3 cuv2 = 0.0;
 	{
 		float2 surfacePosXZ = i_scenePos.xz;
@@ -118,14 +105,30 @@ void ApplyCaustics
 
 		cuv1 = float3
 		(
-			surfacePosXZ / i_causticsTexture._scale + 1.3 * causticN + float2(0.044 * _CrestTime + 17.16, -0.169 * _CrestTime),
+			surfacePosXZ / i_causticsTexture._scale + float2(0.044 * _CrestTime + 17.16, -0.169 * _CrestTime),
 			mipLod
 		);
 		cuv2 = float3
 		(
-			surfacePosScale * surfacePosXZ / i_causticsTexture._scale + 1.77 * causticN + float2(0.248 * _CrestTime, 0.117 * _CrestTime),
+			surfacePosScale * surfacePosXZ / i_causticsTexture._scale + float2(0.248 * _CrestTime, 0.117 * _CrestTime),
 			mipLod
 		);
+	}
+
+	// Apply distortion.
+	{
+		float2 surfacePosXZ = i_scenePos.xz;
+
+#if CREST_FLOATING_ORIGIN
+		// Apply tiled floating origin offset. Always needed.
+		surfacePosXZ -= i_distortionTexture.FloatingOriginOffset();
+#endif
+
+		surfacePosXZ += lightProjection;
+
+		half2 causticN = _CausticsDistortionStrength * UnpackNormal(i_distortionTexture.Sample(surfacePosXZ / i_distortionTexture._scale)).xy;
+		cuv1.xy += 1.30 * causticN;
+		cuv2.xy += 1.77 * causticN;
 	}
 
 	half causticsStrength = _CausticsStrength;

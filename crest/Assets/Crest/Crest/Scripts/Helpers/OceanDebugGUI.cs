@@ -29,6 +29,9 @@ namespace Crest
 
         [SerializeField] bool _drawLodDatasActualSize = false;
 
+        [SerializeField, UnityEngine.Range(0f, 1f)]
+        float _pausedScroll;
+
         [Header("Lod Datas")]
         [SerializeField] bool _drawAnimWaves = true;
         [SerializeField] bool _drawDynWaves = false;
@@ -321,6 +324,15 @@ namespace Crest
             GUI.DrawTexture(rect, Texture2D.whiteTexture);
             GUI.color = Color.white;
 
+            var scrollSize = lodData.DataTexture.height * lodData.DataTexture.volumeDepth - height;
+
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPaused)
+            {
+                _scroll = _pausedScroll * scrollSize;
+            }
+#endif
+
             _scroll = GUI.VerticalScrollbar
             (
                 rect,
@@ -330,6 +342,13 @@ namespace Crest
                 bottomValue: lodData.DataTexture.height * lodData.DataTexture.volumeDepth,
                 style
             );
+
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPaused)
+            {
+                _pausedScroll = Mathf.Clamp01(_scroll / scrollSize);
+            }
+#endif
         }
 
         void DrawSim(LodDataMgr lodData, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f)

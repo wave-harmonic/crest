@@ -16,6 +16,9 @@ namespace Crest
         public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
             BindingFlags.Static;
 
+        static WaitForEndOfFrame s_WaitForEndOfFrame = new WaitForEndOfFrame();
+        public static WaitForEndOfFrame WaitForEndOfFrame => s_WaitForEndOfFrame;
+
         static Material s_UtilityMaterial;
         public static Material UtilityMaterial
         {

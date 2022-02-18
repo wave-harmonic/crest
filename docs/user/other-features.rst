@@ -7,29 +7,10 @@ Floating Origin
 *Crest* has support for 'floating origin' functionality, based on code from the *Unity Community Wiki*.
 See the :link:`original Floating Origin wiki page <https://wiki.unity3d.com/index.php/Floating_Origin>` for an overview and original code.
 
-It is tricky to get pop free results for world space texturing.
-To make it work the following is required:
-
--  Set the floating origin threshold to a power of 2 value (such as 4096).
--  Set the size/scale of any world space textures to be a smaller power of 2.
-   This way the texture tiles an integral number of times across the threshold, and when the origin moves no change in appearance is noticeable.
-   This includes the following textures:
-
-   -  Normals: set the Normal Mapping Scale on the ocean material
-   -  Foam texture: set the Foam Scale on the ocean material
-   -  Caustics: also should be a power of 2 scale, if caustics are visible when origin shifts happen
-
 By default the *FloatingOrigin* script will call *FindObjectsOfType()* for a few different component types, which is a notoriously expensive operation.
 It is possible to provide custom lists of components to the "override" fields, either by hand or programmatically, to avoid searching the entire scene(s) for the components.
 Managing these lists at run-time is left to the user.
 
-.. admonition:: Bug
-
-   Surface details like foam and normals can pop on teleports.
-
-.. sponsor::
-
-   Sponsoring us will help increase our development bandwidth which could work towards improving this feature.
 
 Buoyancy
 --------

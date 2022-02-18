@@ -264,6 +264,8 @@ Shader "Crest/Ocean"
 			// Clipping the ocean surface for underwater volumes.
 			#pragma multi_compile _ CREST_WATER_VOLUME_2D CREST_WATER_VOLUME_HAS_BACKFACE
 
+			#pragma multi_compile _ CREST_FLOATING_ORIGIN
+
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
@@ -579,7 +581,7 @@ Shader "Crest/Ocean"
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(_NormalsTiledTexture, positionXZWSUndisplaced, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += SampleNormalMaps(_NormalsTiledTexture, positionXZWSUndisplaced, lodAlpha, cascadeData0, instanceData);
+				n_pixel.xz += SampleNormalMaps(_NormalsTiledTexture, positionXZWSUndisplaced, 0.0, lodAlpha, cascadeData0, instanceData);
 				#endif
 				#endif
 
@@ -602,8 +604,9 @@ Shader "Crest/Ocean"
 				(
 					_FoamTiledTexture,
 					foam,
-					positionXZWSUndisplaced,
 					input.worldPos.xz,
+					positionXZWSUndisplaced,
+					0.0, // Flow
 					n_pixel,
 					pixelZ,
 					sceneZ,

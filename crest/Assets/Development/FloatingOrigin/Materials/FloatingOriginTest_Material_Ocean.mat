@@ -1,0 +1,115 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FloatingOriginTest_Material_Ocean
+  m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
+  m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _CLIPSURFACE_ON _COMPUTEDIRECTIONALLIGHT_ON
+    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _DEBUGVISUALISE_NONE _FLOW_ON _FOAM3DLIGHTING_ON
+    _FOAM_ON _PROJECTION_BOTH _SHADOWS_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON
+    _SUBSURFACESHALLOWCOLOUR_ON _TRANSPARENCY_ON _UNDERWATER_ON
+  m_LightmapFlags: 5
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _CausticsTexture:
+        m_Texture: {fileID: 2800000, guid: 1712f23cb5185144fa2614d2da21b39e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FoamTexture:
+        m_Texture: {fileID: 2800000, guid: e330b3b94b6bdfb42ab2a9e1ca3a5efc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normals:
+        m_Texture: {fileID: 2800000, guid: 800e061692ff7a84e887f439d3364410, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ReflectionCubemapOverride:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Albedo: 0
+    - _ApplyNormalMapping: 1
+    - _Caustics: 1
+    - _CausticsDepthOfField: 1000
+    - _CausticsDistortionScale: 10.3
+    - _CausticsDistortionStrength: 0.0523
+    - _CausticsFocalDepth: 0
+    - _CausticsStrength: 10
+    - _CausticsTextureAverage: 0.07
+    - _CausticsTextureScale: 5
+    - _ClipSurface: 1
+    - _ClipUnderTerrain: 0
+    - _ComputeDirectionalLight: 1
+    - _CullMode: 0
+    - _DebugDisableShapeTextures: 0
+    - _DebugDisableSmoothLOD: 0
+    - _DebugVisualise: 0
+    - _DirectionalLightBoost: 7
+    - _DirectionalLightFallOff: 275
+    - _DirectionalLightFallOffFar: 42
+    - _DirectionalLightFarDistance: 137
+    - _DirectionalLightVaryRoughness: 0
+    - _Flow: 1
+    - _Foam: 1
+    - _Foam3DLighting: 1
+    - _FoamBubbleParallax: 0.204
+    - _FoamScale: 11.1
+    - _FresnelPower: 5
+    - _NormalsScale: 40
+    - _NormalsStrength: 0.36
+    - _NormalsStrengthOverall: 1
+    - _OverrideReflectionCubemap: 0
+    - _PlanarReflectionIntensity: 1
+    - _PlanarReflectionNormalsStrength: 1
+    - _PlanarReflections: 0
+    - _ProceduralSky: 0
+    - _Projection: 0
+    - _RefractionStrength: 0.5
+    - _RefractiveIndexOfAir: 1
+    - _RefractiveIndexOfWater: 1.333
+    - _Roughness: 0
+    - _Shadows: 1
+    - _ShorelineFoamMinDepth: 0.27
+    - _SkyDirectionality: 1
+    - _Specular: 0.7
+    - _SubSurfaceBase: 0
+    - _SubSurfaceDepthMax: 10
+    - _SubSurfaceDepthPower: 2.5
+    - _SubSurfaceScattering: 1
+    - _SubSurfaceShallowColour: 1
+    - _SubSurfaceSun: 1.7
+    - _SubSurfaceSunFallOff: 5
+    - _Transparency: 1
+    - _Underwater: 1
+    - _WaveFoamBubblesCoverage: 5
+    - _WaveFoamFeather: 0.4
+    - _WaveFoamLightScale: 1.35
+    - _WaveFoamNormalStrength: 3.5
+    - _WaveFoamSpecularBoost: 0.15
+    - _WaveFoamSpecularFallOff: 293
+    m_Colors:
+    - _DepthFogDensity: {r: 0.01, g: 0.01, b: 0.01, a: 1}
+    - _Diffuse: {r: 0, g: 0.0026954073, b: 0.16981128, a: 1}
+    - _DiffuseGrazing: {r: 0, g: 0.003921569, b: 0.16862735, a: 1}
+    - _DiffuseShadow: {r: 1, g: 1, b: 0, a: 1}
+    - _FoamBubbleColor: {r: 0.6399999, g: 0.83, b: 0.82, a: 1}
+    - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 0}
+    - _SkyAwayFromSun: {r: 1, g: 1, b: 1, a: 1}
+    - _SkyBase: {r: 1, g: 1, b: 1, a: 1}
+    - _SkyTowardsSun: {r: 1, g: 1, b: 1, a: 1}
+    - _SubSurfaceColour: {r: 0.088506825, g: 0.49699998, b: 0.45615065, a: 1}
+    - _SubSurfaceShallowCol: {r: 0, g: 1, b: 1, a: 1}
+    - _SubSurfaceShallowColShadow: {r: 0, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []

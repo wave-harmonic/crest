@@ -27,12 +27,6 @@ struct Varyings
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
-// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-// add a param here that forces ocean to be in undrwater state. I think the root
-// cause here might be imprecision or numerical issues at ocean tile boundaries, although
-// i'm not sure why cracks are not visible in this case.
-float _ForceUnderwater;
-
 // Variable mask for when fog is applied before transparent pass and ocean tile might be culled.
 half _MaskBelowSurface;
 
@@ -136,7 +130,7 @@ half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV
 		discard;
 	}
 
-	if (IsUnderwater(i_isFrontFace, _ForceUnderwater))
+	if (IsUnderwater(i_isFrontFace, _CrestForceUnderwater))
 	{
 		return (half4)_MaskBelowSurface;
 	}

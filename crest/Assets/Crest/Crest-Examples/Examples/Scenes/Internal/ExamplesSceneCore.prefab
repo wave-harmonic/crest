@@ -11893,6 +11893,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 3750062383231319215}
+        m_TargetAssemblyTypeName: Crest.OceanRenderer, Crest
+        m_MethodName: SetSurfaceSelfIntersectionFixMode
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: On
+          m_BoolArgument: 0
+        m_CallState: 2
   _onDisable:
     m_PersistentCalls:
       m_Calls:
@@ -11930,6 +11942,18 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 3750062383231319215}
+        m_TargetAssemblyTypeName: Crest.OceanRenderer, Crest
+        m_MethodName: SetSurfaceSelfIntersectionFixMode
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: Automatic
           m_BoolArgument: 1
         m_CallState: 2
   _onUpdate:
@@ -17665,7 +17689,6 @@ MonoBehaviour:
   _lodDataResolution: 384
   _geometryDownSampleFactor: 2
   _lodCount: 7
-  _underwaterCullLimit: 0.001
   _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _simSettingsSeaFloorDepth: {fileID: 0}
@@ -17684,6 +17707,8 @@ MonoBehaviour:
   _defaultClippingState: 0
   _createAlbedoData: 1
   _settingsAlbedo: {fileID: 11400000, guid: 8ae488c67f7cd4a32a3eb3b96a8e5d2c, type: 2}
+  _surfaceSelfIntersectionFixMode: 2
+  _underwaterCullLimit: 0.001
   _showOceanProxyPlane: 0
   _editModeFPS: 30
   _followSceneCamera: 1
@@ -17905,6 +17930,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 3750062383231319215}
+        m_TargetAssemblyTypeName: Crest.OceanRenderer, Crest
+        m_MethodName: SetSurfaceSelfIntersectionFixMode
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: On
+          m_BoolArgument: 0
+        m_CallState: 2
   _onDisable:
     m_PersistentCalls:
       m_Calls:
@@ -17931,6 +17968,18 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 3750062383231319215}
+        m_TargetAssemblyTypeName: Crest.OceanRenderer, Crest
+        m_MethodName: SetSurfaceSelfIntersectionFixMode
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: Automatic
           m_BoolArgument: 0
         m_CallState: 2
   _onUpdate:
@@ -18264,6 +18313,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 3750062383231319215}
+        m_TargetAssemblyTypeName: Crest.OceanRenderer, Crest
+        m_MethodName: SetSurfaceSelfIntersectionFixMode
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: On
+          m_BoolArgument: 0
+        m_CallState: 2
   _onDisable:
     m_PersistentCalls:
       m_Calls:
@@ -18277,6 +18338,18 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 3750062383231319215}
+        m_TargetAssemblyTypeName: Crest.OceanRenderer, Crest
+        m_MethodName: SetSurfaceSelfIntersectionFixMode
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: Automatic
           m_BoolArgument: 0
         m_CallState: 2
   _onUpdate:
@@ -27337,24 +27410,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cada5253abff1481b98c0880eb065d8e, type: 3}
---- !u!20 &1586127664266122746 stripped
-Camera:
-  m_CorrespondingSourceObject: {fileID: 2452750316707852751, guid: cada5253abff1481b98c0880eb065d8e,
-    type: 3}
-  m_PrefabInstance: {fileID: 3750062381571089461}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1586127664266122745 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2452750316707852748, guid: cada5253abff1481b98c0880eb065d8e,
-    type: 3}
-  m_PrefabInstance: {fileID: 3750062381571089461}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1586127664266122750 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
-    type: 3}
-  m_PrefabInstance: {fileID: 3750062381571089461}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &7010484878322418153 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6143150704119670236, guid: cada5253abff1481b98c0880eb065d8e,
@@ -27367,6 +27422,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b0c0a69611596146aceb2f60532940c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &1586127664266122745 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2452750316707852748, guid: cada5253abff1481b98c0880eb065d8e,
+    type: 3}
+  m_PrefabInstance: {fileID: 3750062381571089461}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1586127664266122750 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
+    type: 3}
+  m_PrefabInstance: {fileID: 3750062381571089461}
+  m_PrefabAsset: {fileID: 0}
+--- !u!20 &1586127664266122746 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 2452750316707852751, guid: cada5253abff1481b98c0880eb065d8e,
+    type: 3}
+  m_PrefabInstance: {fileID: 3750062381571089461}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &3750062382080461192
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27476,15 +27549,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 37bbe23c17398419cbc8674f5c5dbccb, type: 3}
---- !u!4 &2837721497707921159 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,
-    type: 3}
-  m_PrefabInstance: {fileID: 3750062382080461192}
-  m_PrefabAsset: {fileID: 0}
 --- !u!108 &7003383481167439520 stripped
 Light:
   m_CorrespondingSourceObject: {fileID: 6141750961475219240, guid: 37bbe23c17398419cbc8674f5c5dbccb,
+    type: 3}
+  m_PrefabInstance: {fileID: 3750062382080461192}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2837721497707921159 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,
     type: 3}
   m_PrefabInstance: {fileID: 3750062382080461192}
   m_PrefabAsset: {fileID: 0}

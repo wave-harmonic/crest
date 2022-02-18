@@ -492,7 +492,7 @@ Shader "Crest/Ocean"
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
 				#if _UNDERWATER_ON
-				const bool underwater = IsUnderwater(i_isFrontFace, _ForceUnderwater);
+				const bool underwater = IsUnderwater(i_isFrontFace, _CrestForceUnderwater);
 				#else
 				const bool underwater = false;
 				#endif

@@ -41,6 +41,12 @@ float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const flo
 	;
 
 	float newMask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, uv).r;
+
+#if CREST_UNDERWATER_BEFORE_TRANSPARENT
+	// Normalize mask.
+	newMask = clamp(newMask, -1.0, 1.0);
+#endif
+
 #if CREST_WATER_VOLUME
 	// No mask means no underwater effect so ignore the value.
 	return (newMask == CREST_MASK_NONE ? mask : newMask);
@@ -48,11 +54,17 @@ float MeniscusSampleOceanMask(const float mask, const int2 positionSS, const flo
 	return newMask;
 }
 
-half ComputeMeniscusWeight(const int2 positionSS, const float mask, const float2 horizonNormal, const float meniscusDepth)
+half ComputeMeniscusWeight(const int2 positionSS, float mask, const float2 horizonNormal, const float meniscusDepth)
 {
 	float weight = 1.0;
 #if CREST_MENISCUS
 #if !_FULL_SCREEN_EFFECT
+
+#if CREST_UNDERWATER_BEFORE_TRANSPARENT
+	// Normalize mask.
+	mask = clamp(mask, -1.0, 1.0);
+#endif
+
 	// Render meniscus by checking the mask along the horizon normal which is flipped using the surface normal from
 	// mask. Adding the mask value will flip the UV when mask is below surface.
 	float2 offset = (float2)-mask * horizonNormal;

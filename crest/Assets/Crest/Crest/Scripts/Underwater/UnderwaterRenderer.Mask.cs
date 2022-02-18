@@ -233,6 +233,7 @@ namespace Crest
                 _oceanMaskMaterial.material,
                 _farPlaneMultiplier,
                 _mode,
+                _enableShaderAPI,
                 _debug._disableOceanMask
             );
 
@@ -320,6 +321,7 @@ namespace Crest
             Material oceanMaskMaterial,
             float farPlaneMultiplier,
             Mode mode,
+            bool enableShaderAPI,
             bool debugDisableOceanMask
         )
         {
@@ -376,7 +378,7 @@ namespace Crest
                         }
 
                         // Handle culled tiles for when underwater is rendered before the transparent pass.
-                        chunk._mpb.SetFloat(ShaderIDs.s_MaskBelowSurface, renderer.enabled ? k_MaskBelowSurface : k_MaskBelowSurfaceCull);
+                        chunk._mpb.SetFloat(ShaderIDs.s_MaskBelowSurface, !enableShaderAPI || renderer.enabled ? k_MaskBelowSurface : k_MaskBelowSurfaceCull);
                         renderer.SetPropertyBlock(chunk._mpb.materialPropertyBlock);
 
                         commandBuffer.DrawRenderer(renderer, oceanMaskMaterial, submeshIndex: 0, shaderPass: k_ShaderPassOceanSurfaceMask);

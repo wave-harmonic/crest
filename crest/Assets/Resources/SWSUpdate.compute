@@ -3,6 +3,7 @@
 #pragma kernel Advect
 #pragma kernel UpdateH
 #pragma kernel UpdateVels
+#pragma kernel BlurH
 
 SamplerState linear_clamp_sampler;
 
@@ -18,6 +19,7 @@ float _DomainWidth;
 float _Res;
 float _Drain;
 float _Friction;
+float _MaxVel;
 
 #define DT 0.01
 
@@ -116,6 +118,8 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float friction = _Friction * DT / max(0.001f, pow(h_vx, 1.333333f));
 		vxAdvected -= abs(vxAdvected) * vxAdvected * friction;
 
+		vxAdvected = clamp(vxAdvected, -_MaxVel, _MaxVel);
+
 		_Vx1[id] = vxAdvected;
 	}
 
@@ -132,6 +136,8 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float h_vy = SampleH(worldXZAdvected);
 		const float friction = _Friction * DT / max(0.001f, pow(h_vy, 1.333333f));
 		vyAdvected -= abs(vyAdvected) * vyAdvected * friction;
+
+		vyAdvected = clamp(vyAdvected, -_MaxVel, _MaxVel);
 
 		_Vy1[id] = vyAdvected;
 	}
@@ -259,4 +265,37 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 
 		_Vy1[id] = vy;
 	}
+}
+
+[numthreads(8, 8, 1)]
+void BlurH(int2 id : SV_DispatchThreadID)
+{
+	float result = 0.0;
+	float twt = 0.0;
+	const int rad = 2;
+
+	float hcenter = _H0[id];
+	if (hcenter < 0.001)
+	{
+		_H1[id] = 0.0;
+		return;
+	}
+
+	for (int y = -rad; y <= rad; y++)
+	{
+		for (int x = -rad; x <= rad; x++)
+		{
+			int2 idx;
+			idx.x = clamp(id.x + x, 0, _Res - 1);
+			idx.y = clamp(id.y + y, 0, _Res - 1);
+
+			float h = _H0[idx];
+			float wt = h >= 0.001 ? 1.0 : 0.0;
+			result += wt * h;
+			twt += wt;
+		}
+	}
+
+
+	_H1[id] = twt > 0.0 ? result / twt : hcenter;
 }

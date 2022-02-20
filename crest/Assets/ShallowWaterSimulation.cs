@@ -6,18 +6,22 @@ using UnityEngine.Rendering;
 [ExecuteAlways]
 public partial class ShallowWaterSimulation : MonoBehaviour
 {
-    [Header("Sim Params")]
-    [SerializeField, UnityEngine.Range(1, 2000)] int _stepsPerFrame = 1;
+    [Header("Settings")]
+    [SerializeField, UnityEngine.Range(1, 500)] int _stepsPerFrame = 1;
     [SerializeField, UnityEngine.Range(16, 1024)] int _resolution = 512;
     [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
     [SerializeField] float _drain = -0.0001f;
+
+    [Header("Sim Settings")]
     [SerializeField] float _friction = 0.001f;
+    [SerializeField] float _maxVel = 100.0f;
 
     [Header("Sim Controls")]
     [SerializeField] bool _doUpdate = true;
     [SerializeField] bool _doAdvect = true;
     [SerializeField] bool _doUpdateH = true;
     [SerializeField] bool _doUpdateVels = true;
+    [SerializeField] bool _doBlurH = true;
 
     RenderTexture _rtH0, _rtH1;
     RenderTexture _rtVx0, _rtVx1;
@@ -31,6 +35,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     int _krnlAdvect;
     int _krnlUpdateH;
     int _krnlUpdateVels;
+    int _krnlBlurH;
 
     void InitData()
     {
@@ -89,6 +94,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maxVel);
 
                     _buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
@@ -126,6 +132,21 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
                     _buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
+
+                // Blur H
+                if (_doBlurH)
+                {
+                    Swap(ref _rtH0, ref _rtH1);
+
+                    _csSWSProps.Initialise(_buf, _csSWS, _krnlBlurH);
+
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+
+                    _buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                }
             }
 
             Graphics.ExecuteCommandBuffer(_buf);
@@ -161,6 +182,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _krnlAdvect = _csSWS.FindKernel("Advect");
             _krnlUpdateH = _csSWS.FindKernel("UpdateH");
             _krnlUpdateVels = _csSWS.FindKernel("UpdateVels");
+            _krnlBlurH = _csSWS.FindKernel("BlurH");
         }
 
         {

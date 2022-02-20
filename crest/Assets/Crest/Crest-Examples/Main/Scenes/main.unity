@@ -326,11 +326,13 @@ MonoBehaviour:
   _resolution: 512
   _domainWidth: 32
   _drain: -0.000075
-  _friction: 0.0025
+  _friction: 0.02
+  _maxVel: 100
   _doUpdate: 1
   _doAdvect: 1
   _doUpdateH: 1
   _doUpdateVels: 1
+  _doBlurH: 1
   _updateInEditMode: 0
 --- !u!1 &823615143
 GameObject:
@@ -528,7 +530,7 @@ PrefabInstance:
         type: 3}
       propertyPath: _viewpoint
       value: 
-      objectReference: {fileID: 121156076}
+      objectReference: {fileID: 0}
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _primaryLight

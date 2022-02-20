@@ -66,7 +66,8 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 
 			half4 Frag( Varyings input ) : SV_Target
 			{
-				if (!all(input.uv == saturate(input.uv))) discard;
+				// Over scan to ensure signal continued off the edges which helps at low LODs
+				if (!all(input.uv == clamp(input.uv, -0.2, 1.2))) discard;
 
 				const float wt = _Weight;
 

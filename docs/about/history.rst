@@ -122,6 +122,8 @@ Fixed
    .. only:: hdrp
 
       -  Fix motion vectors not working by exposing motion vector toggle on ocean material. `[HDRP]`
+      -  Fix foam bubbles parallax effect using the incorrect normal space. `[HDRP]`
+      -  Fix foam bubbles texture scaling. `[HDRP]`
 
 Performance
 ^^^^^^^^^^^

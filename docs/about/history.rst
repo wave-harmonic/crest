@@ -62,6 +62,11 @@ Changed
    -  Added new example scene *BoatWakes* to showcase improvements to *SphereWaterInteraction* component.
    -  Add *Surface Self-Intersection Fix Mode* (advanced option) to control how self-intersections of the ocean surface caused by intense/choppy waves are handled.
 
+   .. only:: hdrp
+
+      -  Caustics and foam textures now use the sampler defined on the texure asset.
+         If using our caustics texture, it will now use trilinear sampling instead of linear. `[HDRP]`
+
    .. only:: urp
 
       -  Add support for secondary lights like point or spot to ocean shader.

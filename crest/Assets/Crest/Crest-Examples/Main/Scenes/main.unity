@@ -322,17 +322,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a87083040be2a947bf2d5f126a800e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stepsPerFrame: 1
+  _stepsPerFrame: 50
   _resolution: 512
   _domainWidth: 32
-  _drain: -0.000075
+  _drain: -0.000085
   _friction: 0.02
   _maxVel: 100
   _doUpdate: 1
   _doAdvect: 1
   _doUpdateH: 1
   _doUpdateVels: 1
-  _doBlurH: 1
+  _doBlurH: 0
+  _obstacleSphere1: {fileID: 1921720626}
   _updateInEditMode: 0
 --- !u!1 &823615143
 GameObject:
@@ -559,7 +560,7 @@ PrefabInstance:
     - target: {fileID: 8463273387121746140, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: linSpeed
-      value: 8
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8463273387121746141, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}

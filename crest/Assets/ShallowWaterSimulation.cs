@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[ExecuteAlways]
 public partial class ShallowWaterSimulation : MonoBehaviour
 {
     [Header("Settings")]
@@ -22,6 +21,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     [SerializeField] bool _doUpdateH = true;
     [SerializeField] bool _doUpdateVels = true;
     [SerializeField] bool _doBlurH = true;
+
+    [Header("Inputs")]
+    [SerializeField] Transform _obstacleSphere1 = null;
 
     RenderTexture _rtH0, _rtH1;
     RenderTexture _rtVx0, _rtVx1;
@@ -71,6 +73,11 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         {
             _buf.Clear();
 
+            _csSWS.SetVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
+            _csSWS.SetFloat("_ObstacleSphere1Radius", _obstacleSphere1.lossyScale.x / 2f);
+            Shader.SetGlobalVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
+            Shader.SetGlobalFloat("_ObstacleSphere1Radius", _obstacleSphere1.lossyScale.x / 2f);
+
             for (int i = 0; i < _stepsPerFrame; i++)
             {
                 // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
@@ -113,7 +120,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Drain"), _drain);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
-                    
+
                     _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
 

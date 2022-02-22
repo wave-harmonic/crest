@@ -31,7 +31,7 @@ Shader "Crest/Ocean"
 
 		[Header(Shallow Scattering)]
 		// Enable light scattering in shallow water
-		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
+		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 0
 		// Colour in shallow water
 		_SubSurfaceShallowCol("Scatter Colour Shallow", Color) = (0.0, 0.003921569, 0.24705884, 1.0)
 		// Max depth that is considered 'shallow'

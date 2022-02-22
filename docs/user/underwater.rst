@@ -128,6 +128,76 @@ This feature also clips the ocean surface to match.
 A common use case would be a window on a boat.
 
 
+.. _underwater-shader-api:
+
+Underwater Shader API
+^^^^^^^^^^^^^^^^^^^^^
+
+.. admonition:: Preview
+
+   This feature is in preview and may change in the future.
+
+The underwater effect uses opaque depth and thus will not render correctly for transparent objects.
+Too much fog will be applied as it is as if the transparent object does not exist.
+
+The most effective approach is to render the transparent objects after the underwater effect and apply the underwater effect as part of the shader for the transparent object (basically the same way Unity fog is applied).
+
+The *Shader API* needs to be enabled on the *Underwater Renderer* (located under the *Shader API* heading).
+
+
+.. only:: birp
+
+   .. tab:: `BIRP`
+
+      Once the *Shader API* is enabled, the underwater effect will be rendered before the transparent pass instead of after it, and the global shader properties will be populated.
+      This means that when a transparent object is rendered, it will already have underwater fog behind it.
+      It is then just a matter of applying the underwater fog to the transparent object.
+
+      .. tip::
+
+         |  We have an example *Surface Shader* which you can use as a reference:
+         |  *Crest/Crest-Examples/Shared/Shaders/ExampleUnderwaterTransparentSurfaceShader.shader*
+
+         Furthermore, you can view the shader in action in the *Transparent Object Underwater* example in the *Examples* scene.
+
+      Setting up a shader can be broken down to the following:
+
+      1. |  Including our includes file:
+         |  *Crest/Crest/Shaders/Underwater/UnderwaterEffectIncludes.hlsl*
+      2. Adding optional keywords (see example shader)
+      3. Use the *CrestApplyUnderwaterFog* function to apply the fog to the final color
+
+      Here is the important part from *ExampleUnderwaterTransparentSurfaceShader.shader*:
+
+      .. code-block:: hlsl
+
+         float2 positionNDC = IN.screenPos.xy / IN.screenPos.w;
+         float deviceDepth = IN.screenPos.z / IN.screenPos.w;
+
+         if (!CrestApplyUnderwaterFog(positionNDC, IN.worldPos, deviceDepth, _FogMultiplier, color.rgb))
+         {
+            UNITY_APPLY_FOG(IN.fogCoord, color);
+         }
+
+.. only:: hdrp
+
+   .. tab:: `HDRP`
+
+      .. include:: includes/_underwater-shader-graph.rst
+
+      For best results using the `HDRP_Lit_Shader` graph:
+
+      -  Keep *Preserve Specular Lighting* disabled as this will cause the object to be visible from any distance
+      -  Do not enable *Receive Fog* as this will write over the emission and thus underwater fog
+      -  Be mindful of what features on the *Shader Graph* you enable as it might affect the underwater fog
+
+.. only:: urp
+
+   .. tab:: `URP`
+
+      .. include:: includes/_underwater-shader-graph.rst
+
+
 .. only:: hdrp
 
    Underwater Post-Process `[HDRP]`

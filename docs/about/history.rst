@@ -28,6 +28,8 @@ Preview
    -  Add new CPU-based collision provider - *Baked FFT Data*.
    -  Add portals and volumes to *Underwater Renderer* (affects both underwater and ocean surface).
       See :ref:`portals-volumes` for more information.
+   -  Add *Shader API* to *Underwater Renderer* to facilate adding underwater fog to transparent objects.
+      See :ref:`underwater-shader-api` for more information.
    -  Add *Albedo Data* feature which allows layering colour onto the water surface similar to decals.
 
 Changed

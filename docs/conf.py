@@ -246,7 +246,7 @@ rst_prolog = rst_prolog + """
 .. set:: Time.time :link:`Time.time <{UnityDocScriptLink}/Time-time.html>`
 .. set:: Time.timeScale :link:`Time.timeScale <{UnityDocScriptLink}/Time-timeScale.html>`
 .. set:: Timeline :link:`Timeline <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/tl_about.html>`
-.. set:: Playable Director :link:`Playable Director <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/play_director.html>`
+.. set:: Playable_Director :link:`Playable Director <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/play_director.html>`
 """
 
 # -- Debugging ---------------------------------------------------------------

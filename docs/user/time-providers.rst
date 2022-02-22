@@ -40,5 +40,5 @@ Timelines and Cutscenes
 
 One use case for this is for cutscenes/timelines when the waves conditions must be known in advance and repeatable.
 For this case you may attach a *Cutscene Time Provider* component to a GameObject and assign it to the *Ocean Renderer* component.
-This component will take the time from a `Playable Director` component which plays a cutscene `Timeline`.
+This component will take the time from a `Playable_Director` component which plays a cutscene `Timeline`.
 Alternatively, a *Time Provider Custom* component can be used to feed any time into the system, and this time value can be keyframed, giving complete control over timing.

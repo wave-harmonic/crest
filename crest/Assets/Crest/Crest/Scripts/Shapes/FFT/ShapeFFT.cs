@@ -265,7 +265,8 @@ namespace Crest
 
         void ReportMaxDisplacement()
         {
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxHorizontalDisplacement, _maxVerticalDisplacement, _maxVerticalDisplacement);
+            // Apply weight or will cause popping due to scale change.
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxHorizontalDisplacement * _weight, _maxVerticalDisplacement * _weight, _maxVerticalDisplacement * _weight);
         }
 
         void InitBatches()

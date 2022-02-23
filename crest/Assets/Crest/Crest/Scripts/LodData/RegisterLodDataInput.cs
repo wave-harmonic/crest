@@ -529,8 +529,8 @@ namespace Crest
         {
             bool isValid = base.Validate(ocean, showMessage);
 
-            // Will be invalid if no renderer and no spline.
-            if (RendererRequired && !TryGetComponent<Renderer>(out _))
+            // Is there a renderer? Check spline explicitly as the renderer may not be created (eg GO is inactive).
+            if (RendererRequired && !TryGetComponent<Renderer>(out _) && !TryGetComponent<Spline.Spline>(out _))
             {
                 showMessage
                 (

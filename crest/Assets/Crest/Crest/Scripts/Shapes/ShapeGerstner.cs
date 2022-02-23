@@ -553,7 +553,7 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                var amp = _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _powers[i]);
+                var amp = _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, windSpeed, out _powers[i]);
                 _amplitudes[i] = Random.value * amp;
                 _amplitudes2[i] = Random.value * amp * _reverseWaveWeight;
             }
@@ -596,6 +596,10 @@ namespace Crest
             {
                 ampSum += _amplitudes[i] * _activeSpectrum._chopScales[i / _componentsPerOctave];
             }
+
+            // Apply weight or will cause popping due to scale change.
+            ampSum *= _weight;
+
             OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _activeSpectrum._chop, ampSum, ampSum);
         }
 

@@ -104,6 +104,7 @@ Fixed
    -  Fix possible cases of underwater effect being inverted on self-intersecting waves when further than 2m from ocean surface.
    -  Fix a per frame GC allocation.
    -  Fix ocean input validation incorrectly reporting that there is no spline attached when game object is disabled.
+   -  Fix *Shape FFT* with zero weight causing visible changes or pops to the ocean surface.
 
    .. only:: birp
 

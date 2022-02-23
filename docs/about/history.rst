@@ -103,6 +103,7 @@ Fixed
    -  Fix several minor exceptions in cases where components were not set up correctly.
    -  Fix possible cases of underwater effect being inverted on self-intersecting waves when further than 2m from ocean surface.
    -  Fix a per frame GC allocation.
+   -  Fix ocean input validation incorrectly reporting that there is no spline attached when game object is disabled.
 
    .. only:: birp
 

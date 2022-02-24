@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 public partial class ShallowWaterSimulation : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField, UnityEngine.Range(1, 500)] int _stepsPerFrame = 1;
+    [SerializeField, UnityEngine.Range(0f, 2f)] float _initialWaterHeight = 1f;
     [SerializeField, UnityEngine.Range(16, 1024)] int _resolution = 512;
     [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
     [SerializeField] float _drain = -0.0001f;
@@ -89,10 +89,10 @@ public partial class ShallowWaterSimulation : MonoBehaviour
             PopulateGroundHeight(_buf);
 
             float fixedDt = 0.01f;
-            _stepsPerFrame = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / fixedDt) : 0;
-            _timeToSimulate -= _stepsPerFrame * fixedDt;
+            int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / fixedDt) : 0;
+            _timeToSimulate -= steps * fixedDt;
 
-            for (int i = 0; i < _stepsPerFrame; i++)
+            for (int i = 0; i < steps; i++)
             {
                 // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
 
@@ -281,6 +281,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
             _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
             _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_InitialWaterHeight"), _initialWaterHeight);
 
             _buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }

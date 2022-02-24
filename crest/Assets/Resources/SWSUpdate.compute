@@ -23,6 +23,7 @@ float _Res;
 float _Drain;
 float _Friction;
 float _MaxVel;
+float _InitialWaterHeight;
 
 float3 _ObstacleSphere1Pos;
 float _ObstacleSphere1Radius;
@@ -113,9 +114,8 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 void Init(uint2 id : SV_DispatchThreadID)
 {
 	const float2 worldXZ = IdToWorldXZ_H(id);
-	float h = 0.0; // .4 + .06 * dot(worldXZ_H, 1);
-	//h = 4. * smoothstep(5.0, 0.0, length(worldXZ_H));
 
+	float h = _InitialWaterHeight;
 	h = max(0.0, h - SampleGroundHeight(worldXZ));
 
 	_H1[id.xy] = h;

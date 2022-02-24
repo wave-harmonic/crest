@@ -162,6 +162,13 @@ namespace Crest
                     Time.timeScale = freeze ? 0f : 1f;
                 }
 
+                // Time scale
+                if (OceanRenderer.Instance)
+                {
+                    GUI.Label(new Rect(x, y, w, h), $"Time Scale: {Time.timeScale}"); y += h;
+                    Time.timeScale = GUI.HorizontalSlider(new Rect(x, y, w, h), Time.timeScale, 1f, 30f); y += h;
+                }
+
                 // Global wind speed
                 if (OceanRenderer.Instance)
                 {

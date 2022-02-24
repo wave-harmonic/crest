@@ -43,6 +43,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     int _krnlUpdateVels;
     int _krnlBlurH;
 
+    float _timeToSimulate = 0f;
+
     void InitData()
     {
         if (_rtH0 == null) _rtH0 = CreateSWSRT();
@@ -76,6 +78,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
         if (_doUpdate)
         {
+            _timeToSimulate += Time.deltaTime;
+
             _buf.Clear();
 
             Shader.SetGlobalVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
@@ -83,6 +87,10 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
             // Populate ground height every frame to allow dynamic scene
             PopulateGroundHeight(_buf);
+
+            float fixedDt = 0.01f;
+            _stepsPerFrame = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / fixedDt) : 0;
+            _timeToSimulate -= _stepsPerFrame * fixedDt;
 
             for (int i = 0; i < _stepsPerFrame; i++)
             {
@@ -145,8 +153,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
 
                     // Turbines
-                    _turbine1?.SetShaderParams(_csSWSProps, 1);
-                    _turbine2?.SetShaderParams(_csSWSProps, 2);
+                    Turbine.SetShaderParams(_turbine1, _csSWSProps, 1);
+                    Turbine.SetShaderParams(_turbine2, _csSWSProps, 2);
 
                     _buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }

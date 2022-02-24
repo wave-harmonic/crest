@@ -32,12 +32,18 @@ public class Turbine : MonoBehaviour
         }
     }
 
-    public void SetShaderParams(Crest.PropertyWrapperCompute csSWSProps, int idx)
+    public static void SetShaderParams(Turbine turbine, Crest.PropertyWrapperCompute csSWSProps, int idx)
     {
-        csSWSProps.SetVector(Shader.PropertyToID($"_Turbine{idx}Position"), transform.position);
-        csSWSProps.SetVector(Shader.PropertyToID($"_Turbine{idx}Velocity"), Velocity);
-        csSWSProps.SetFloat(Shader.PropertyToID($"_Turbine{idx}Radius"), Radius);
-        csSWSProps.SetFloat(Shader.PropertyToID($"_Turbine{idx}Weight"),
-            (enabled && gameObject.activeInHierarchy) ? Weight : 0f);
+        if (turbine != null && turbine.enabled && turbine.gameObject.activeInHierarchy)
+        {
+            csSWSProps.SetVector(Shader.PropertyToID($"_Turbine{idx}Position"), turbine.transform.position);
+            csSWSProps.SetVector(Shader.PropertyToID($"_Turbine{idx}Velocity"), turbine.Velocity);
+            csSWSProps.SetFloat(Shader.PropertyToID($"_Turbine{idx}Radius"), turbine.Radius);
+            csSWSProps.SetFloat(Shader.PropertyToID($"_Turbine{idx}Weight"), turbine.Weight);
+        }
+        else
+        {
+            csSWSProps.SetFloat(Shader.PropertyToID($"_Turbine{idx}Weight"), 0f);
+        }
     }
 }

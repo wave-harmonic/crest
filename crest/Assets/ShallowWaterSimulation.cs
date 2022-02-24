@@ -24,6 +24,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
     [Header("Inputs")]
     [SerializeField] Transform _obstacleSphere1 = null;
+    [SerializeField] Turbine _turbine1 = null;
+    [SerializeField] Turbine _turbine2 = null;
 
     RenderTexture _rtH0, _rtH1;
     RenderTexture _rtVx0, _rtVx1;
@@ -141,6 +143,10 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+
+                    // Turbines
+                    _turbine1?.SetShaderParams(_csSWSProps, 1);
+                    _turbine2?.SetShaderParams(_csSWSProps, 2);
 
                     _buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }

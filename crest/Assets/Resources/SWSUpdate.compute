@@ -27,6 +27,9 @@ float _MaxVel;
 float3 _ObstacleSphere1Pos;
 float _ObstacleSphere1Radius;
 
+float3 _Turbine1Position; float3 _Turbine1Velocity; float _Turbine1Radius; float _Turbine1Weight;
+float3 _Turbine2Position; float3 _Turbine2Velocity; float _Turbine2Radius; float _Turbine2Weight;
+
 #define DT 0.01
 
 float2 IdToWorldXZ_H(uint2 id)
@@ -233,6 +236,9 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 	const float grid = _DomainWidth / _Res;
 	const float gravity = 9.81f;
 
+	float _turbine1Weight = _Turbine1Weight * smoothstep(_Turbine1Radius * 1.1, _Turbine1Radius * 0.7, length(worldXZ_H0 - _Turbine1Position.xz));
+	float _turbine2Weight = _Turbine2Weight * smoothstep(_Turbine2Radius * 1.1, _Turbine2Radius * 0.7, length(worldXZ_H0 - _Turbine2Position.xz));
+
 	// Vx
 	{
 		float vx = _Vx1[id];
@@ -261,6 +267,9 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		{
 			vx = sign(vx) * maxVel;
 		}*/
+
+		vx = lerp(vx, _Turbine1Velocity.x, _turbine1Weight * DT);
+		vx = lerp(vx, _Turbine2Velocity.x, _turbine2Weight * DT);
 
 		_Vx1[id] = vx;
 	}
@@ -293,6 +302,9 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		{
 			vx = sign(vx) * maxVel;
 		}*/
+
+		vy = lerp(vy, _Turbine1Velocity.z, _turbine1Weight * DT);
+		vy = lerp(vy, _Turbine2Velocity.z, _turbine2Weight * DT);
 
 		_Vy1[id] = vy;
 	}

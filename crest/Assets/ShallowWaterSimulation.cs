@@ -28,12 +28,14 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     RenderTexture _rtH0, _rtH1;
     RenderTexture _rtVx0, _rtVx1;
     RenderTexture _rtVy0, _rtVy1;
+    RenderTexture _rtGroundHeight;
 
     PropertyWrapperCompute _csSWSProps;
     CommandBuffer _buf;
 
     ComputeShader _csSWS;
     int _krnlInit;
+    int _krnlInitGroundHeight;
     int _krnlAdvect;
     int _krnlUpdateH;
     int _krnlUpdateVels;
@@ -47,6 +49,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         if (_rtVx1 == null) _rtVx1 = CreateSWSRT();
         if (_rtVy0 == null) _rtVy0 = CreateSWSRT();
         if (_rtVy1 == null) _rtVy1 = CreateSWSRT();
+        if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT();
 
         if (_buf == null)
         {
@@ -73,10 +76,11 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         {
             _buf.Clear();
 
-            _csSWS.SetVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
-            _csSWS.SetFloat("_ObstacleSphere1Radius", _obstacleSphere1.lossyScale.x / 2f);
             Shader.SetGlobalVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
             Shader.SetGlobalFloat("_ObstacleSphere1Radius", _obstacleSphere1.lossyScale.x / 2f);
+
+            // Populate ground height every frame to allow dynamic scene
+            PopulateGroundHeight(_buf);
 
             for (int i = 0; i < _stepsPerFrame; i++)
             {
@@ -132,6 +136,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
 
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
@@ -159,6 +164,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
             Graphics.ExecuteCommandBuffer(_buf);
         }
 
+        Shader.SetGlobalTexture("_swsGroundHeight", _rtGroundHeight);
         Shader.SetGlobalTexture("_swsH", _rtH1);
         Shader.SetGlobalTexture("_swsVx", _rtVx1);
         Shader.SetGlobalTexture("_swsVy", _rtVy1);
@@ -186,6 +192,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps = new PropertyWrapperCompute();
 
             _krnlInit = _csSWS.FindKernel("Init");
+            _krnlInitGroundHeight = _csSWS.FindKernel("InitGroundHeight");
             _krnlAdvect = _csSWS.FindKernel("Advect");
             _krnlUpdateH = _csSWS.FindKernel("UpdateH");
             _krnlUpdateVels = _csSWS.FindKernel("UpdateVels");
@@ -241,8 +248,14 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
         _buf.Clear();
 
+        // Populate ground height - used for initial water heigh calculation
+        PopulateGroundHeight(_buf);
+
+        // Init sim data - water heights and velocities
         {
             _csSWSProps.Initialise(_buf, _csSWS, _krnlInit);
+
+            _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
 
             _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
             _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
@@ -259,6 +272,15 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         }
 
         Graphics.ExecuteCommandBuffer(_buf);
+    }
+
+    void PopulateGroundHeight(CommandBuffer buf)
+    {
+        _csSWSProps.Initialise(_buf, _csSWS, _krnlInitGroundHeight);
+        _csSWSProps.SetVector(Shader.PropertyToID("_ObstacleSphere1Pos"), _obstacleSphere1.position);
+        _csSWSProps.SetFloat(Shader.PropertyToID("_ObstacleSphere1Radius"), _obstacleSphere1.lossyScale.x / 2f);
+        _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightRW"), _rtGroundHeight);
+        buf.DispatchCompute(_csSWS, _krnlInitGroundHeight, (_rtGroundHeight.width + 7) / 8, (_rtGroundHeight.height + 7) / 8, 1);
     }
 
     public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)

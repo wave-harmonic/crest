@@ -28,6 +28,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2D<float> _swsH;
+			Texture2D<float> _swsGroundHeight;
 
 			CBUFFER_START(CrestPerOceanInput)
 			int _WaveBufferSliceIndex;
@@ -37,8 +38,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 			float2 _AxisX;
 			float _RespectShallowWaterAttenuation;
 			half _DomainWidth;
-			float3 _ObstacleSphere1Pos;
-			float _ObstacleSphere1Radius;
 			CBUFFER_END
 
 			struct Attributes
@@ -66,21 +65,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				return o;
 			}
 
-			float g(float2 worldXZ)
-			{
-				float g = 0.0;
-
-				// Sphere obstacle
-				const float2 offset = worldXZ - _ObstacleSphere1Pos.xz;
-				const float len2 = dot(offset, offset) / (_ObstacleSphere1Radius * _ObstacleSphere1Radius);
-				if (len2 < 1.0)
-				{
-					g = max(0.0, _ObstacleSphere1Radius * sqrt(1.0 - len2) + _ObstacleSphere1Pos.y);
-				}
-
-				return g;
-			}
-
 			half4 Frag(Varyings input) : SV_Target
 			{
 				// Over scan to ensure signal continued off the edges which helps at low LODs
@@ -90,10 +74,10 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 
-				//if (h < 0.001) discard;
+				if (h < 0.001) h -= 0.01;// discard;
 
-				// draw into a texture, dont eval directly
-				h += g(input.worldXZ);
+				// Add ground height to water height to get world height of sruface
+				h += _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 			
 				return half4(0.0, wt * h, 0.0, 0.0);
 			}

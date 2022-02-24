@@ -1,0 +1,11 @@
+Filename: Examples_Audio_WaterPier
+License: Creative Commons
+https://creativecommons.org/licenses/by/3.0/
+Link:
+https://freesound.org/s/39901/
+
+Filename: Examples_Audio_UnderwaterWhiteNoise.wav
+License: Public Domain
+https://creativecommons.org/publicdomain/zero/1.0/
+Link:
+https://freesound.org/s/448460/

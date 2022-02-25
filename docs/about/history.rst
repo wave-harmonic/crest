@@ -106,6 +106,9 @@ Fixed
    -  Fix ocean input validation incorrectly reporting that there is no spline attached when game object is disabled.
    -  Fix *Shape FFT* with zero weight causing visible changes or pops to the ocean surface.
    -  Fix *Shape FFT* waves animating too quickly when two or more are in the scene with different resolutions.
+   -  Fix *Shape Gerstner* weight not updating correctly if less than one on game load.
+   -  Fix *Shape Gerstner* weight being applied twice instead of once.
+      You may need to adjust your weight if between zero and one.
 
    .. only:: birp
 

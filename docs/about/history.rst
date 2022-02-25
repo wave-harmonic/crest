@@ -105,6 +105,7 @@ Fixed
    -  Fix a per frame GC allocation.
    -  Fix ocean input validation incorrectly reporting that there is no spline attached when game object is disabled.
    -  Fix *Shape FFT* with zero weight causing visible changes or pops to the ocean surface.
+   -  Fix *Shape FFT* waves animating too quickly when two or more are in the scene with different resolutions.
 
    .. only:: birp
 

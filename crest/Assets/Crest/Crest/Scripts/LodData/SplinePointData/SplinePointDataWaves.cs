@@ -8,10 +8,10 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// Custom spline point data for Gerstner waves
+    /// Custom spline point data for waves
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataGerstner : MonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataWaves : MonoBehaviour, ISplinePointCustomData
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

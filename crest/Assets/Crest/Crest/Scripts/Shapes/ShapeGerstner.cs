@@ -620,7 +620,7 @@ namespace Crest
                 var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
 
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataGerstner>(splineForWaves, transform, subdivs, radius, Vector2.one,
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs, radius, Vector2.one,
                     ref _meshForDrawingWaves, out _, out _))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
@@ -762,13 +762,13 @@ namespace Crest
 
         public bool AttachDataToSplinePoint(GameObject splinePoint)
         {
-            if (splinePoint.TryGetComponent(out SplinePointDataGerstner _))
+            if (splinePoint.TryGetComponent(out SplinePointDataWaves _))
             {
                 // Already existing, nothing to do
                 return false;
             }
 
-            splinePoint.AddComponent<SplinePointDataGerstner>();
+            splinePoint.AddComponent<SplinePointDataWaves>();
             return true;
         }
     }

@@ -60,6 +60,7 @@ Changed
    -  Add *Debug > Draw Queries* to *Boat Probes* to draw gizmos for queries.
    -  *SphereWaterInteraction* component upgraded to produce crisp foam-generating waves without creating large displacements. :pr:`979`
    -  Add new example scene *BoatWakes* to showcase improvements to *SphereWaterInteraction* component.
+   -  Allow scaling FFT waves on spline (not supported previously). *SplinePointDataGerstner* has been renamed to *SplinePointDataWaves* which works for both *ShapeFFT* and *ShapeGerstner*.
    -  Add *Surface Self-Intersection Fix Mode* (advanced option) to control how self-intersections of the ocean surface caused by intense/choppy waves are handled.
 
    .. only:: hdrp

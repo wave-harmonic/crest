@@ -212,7 +212,9 @@ namespace Crest
             SetupOceanMask();
             OnEnableMask();
             SetupUnderwaterEffect();
+            // Handle both forward and deferred.
             _camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+            _camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
             _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
 
             _currentEnableShaderAPI = _enableShaderAPI;
@@ -226,7 +228,9 @@ namespace Crest
         {
             if (_oceanMaskCommandBuffer != null)
             {
+                // Handle both forward and deferred.
                 _camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                _camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
             }
 
             if (_underwaterEffectCommandBuffer != null)
@@ -351,7 +355,9 @@ namespace Crest
 
                 if (_oceanMaskCommandBuffer != null)
                 {
+                    // Handle both forward and deferred.
                     camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
                 }
 
                 if (_underwaterEffectCommandBuffer != null)
@@ -415,7 +421,9 @@ namespace Crest
             if (!_editorCameras.Contains(camera))
             {
                 _editorCameras.Add(camera);
+                // Handle both forward and deferred.
                 camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
                 camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             }
 

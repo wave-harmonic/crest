@@ -109,6 +109,7 @@ Fixed
    -  Fix *Shape Gerstner* weight not updating correctly if less than one on game load.
    -  Fix *Shape Gerstner* weight being applied twice instead of once.
       You may need to adjust your weight if between zero and one.
+   -  Fix Unity 2021.2 script upgrade requirement.
 
    .. only:: birp
 

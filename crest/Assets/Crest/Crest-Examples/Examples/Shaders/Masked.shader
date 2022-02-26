@@ -23,54 +23,62 @@ Shader "Crest/Examples/Masked"
 		CGINCLUDE
 		#pragma shader_feature_local _MASK_NONE _MASK_MASKED _MASK_FILL
 
+		// NOTE: SHADER_TARGET_SURFACE_ANALYSIS does not want the semicolon but compiler does for builds.
 #if _MASK_MASKED
 		UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture)
+#ifndef SHADER_TARGET_SURFACE_ANALYSIS
+		;
+#endif
 		UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture)
+#ifndef SHADER_TARGET_SURFACE_ANALYSIS
+		;
+#endif
 		UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeBackFaceTexture)
+#ifndef SHADER_TARGET_SURFACE_ANALYSIS
+		;
+#endif
 #elif _MASK_FILL
 		UNITY_DECLARE_SCREENSPACE_TEXTURE(_FillTexture)
+#ifndef SHADER_TARGET_SURFACE_ANALYSIS
+		;
 #endif
+#endif // _MASK
 
 		sampler2D _Albedo;
 		fixed4 _Color;
 		half _Cutoff;
 
+		// NOTE: Do not use discard in either of these methods or incur the following:
+		// > Program 'frag_Surface', internal error: argument pulled into unrelated predicate.
 #if _MASK_MASKED
-		void Clip(float4 screenPos)
+		bool Clip(float4 screenPos)
 		{
 			float2 positionNDC = screenPos.xy / screenPos.w;
 			float deviceDepth = screenPos.z / screenPos.w;
 
-			float rawFrontFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture, positionNDC);
-			if (rawFrontFaceZ > 0.0 && rawFrontFaceZ < deviceDepth)
+			float rawFrontFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture, positionNDC).r;
+			if (rawFrontFaceZ < deviceDepth && rawFrontFaceZ > 0.0)
 			{
-				discard;
+				return true;
 			}
 
-			float rawBackFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeBackFaceTexture, positionNDC);
-			if (rawBackFaceZ > 0.0 && rawBackFaceZ > deviceDepth)
+			float rawBackFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeBackFaceTexture, positionNDC).r;
+			if (rawBackFaceZ > deviceDepth && rawBackFaceZ > 0.0)
 			{
-				discard;
+				return true;
 			}
 
-			float mask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, positionNDC);
-			if (mask == 0.0)
-			{
-				discard;
-			}
+			return UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, positionNDC).r == 0.0;
 		}
 #endif // _MASK_MASKED
 
 #if _MASK_FILL
-		void Clip(float4 screenPos)
+		bool Clip(float4 screenPos)
 		{
 			float2 positionNDC = screenPos.xy / screenPos.w;
 			float deviceZ = screenPos.z / screenPos.w;
 
-			if (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_FillTexture, positionNDC).r == 0.0)
-			{
-				discard;
-			}
+			return UNITY_SAMPLE_SCREENSPACE_TEXTURE(_FillTexture, positionNDC).r == 0.0;
 		}
 #endif // _MASK_FILL
 		ENDCG
@@ -112,7 +120,10 @@ Shader "Crest/Examples/Masked"
 			{
 #ifndef _MASK_NONE
 #ifndef _SHADOW_PASS
-				Clip(input.screenPos);
+				if (Clip(input.screenPos))
+				{
+					discard;
+				}
 #endif // !_SHADOWS
 #endif // _MASKED_ON
 
@@ -141,19 +152,27 @@ Shader "Crest/Examples/Masked"
 
 		void Surface(Input input, inout SurfaceOutputStandard output)
 		{
+			// NOTE: The else is required to avoid the following error:
+			// > Program 'frag_Surface', internal error: argument pulled into unrelated predicate.
 #if !_MASK_NONE
-			Clip(input.screenPos);
+			if (Clip(input.screenPos))
+			{
+				discard;
+			}
+			else
 #endif
-
-			fixed4 c = tex2D(_Albedo, input.uv_Albedo) * _Color;
-			clip(c.a - _Cutoff);
-			output.Albedo = c.rgb;
-			output.Metallic = _Metallic;
-			output.Smoothness = _Smoothness;
+			{
+				fixed4 c = tex2D(_Albedo, input.uv_Albedo) * _Color;
+				clip(c.a - _Cutoff);
+				output.Albedo = c.rgb;
+				output.Metallic = _Metallic;
+				output.Smoothness = _Smoothness;
 #if _EMISSION_ON
-			output.Emission = c.rgb * tex2D(_Albedo, input.uv_Albedo).a * _EmissionColor;
+				output.Emission = c.rgb * tex2D(_Albedo, input.uv_Albedo).a * _EmissionColor;
 #endif
-			output.Alpha = c.a;
+				output.Alpha = c.a;
+			}
+
 		}
 		ENDCG
 	}

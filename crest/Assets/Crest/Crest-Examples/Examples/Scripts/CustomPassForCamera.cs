@@ -96,6 +96,8 @@ namespace Crest.Examples
 
     public class CustomPassForCamera : CustomPassForCameraBase
     {
+        // TODO: We need a separate event for deferred as it is very different from forward. But having an event per
+        // camera complicates things so will skip for now. Will probably need a dictionary.
         [SerializeField]
         CameraEvent _event;
 

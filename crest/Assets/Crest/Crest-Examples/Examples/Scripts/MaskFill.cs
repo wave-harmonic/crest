@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// TODO: This has some lag for deferred because the chosen event happens after opaque.
+
 namespace Crest.Examples
 {
     using System.Collections.Generic;

@@ -1251,7 +1251,7 @@ namespace Crest
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
                 var density = UnderwaterDepthFogDensity = OceanMaterial.GetVector(ShaderIDs.s_DepthFogDensity) * UnderwaterRenderer.DepthFogDensityFactor;
                 // Only run optimisation in play mode due to shared height above water.
-                if (Application.isPlaying)
+                if (Application.isPlaying && UnderwaterRenderer.IsCullable)
                 {
                     var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
                     var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);

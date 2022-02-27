@@ -56,6 +56,13 @@ namespace Crest
         [SerializeField]
         [Tooltip("Rendering mode of the underwater effect (and ocean). See the documentation for more details.")]
         internal Mode _mode;
+        public static bool IsCullable
+        {
+            get
+            {
+                return Instance != null && Instance._mode == Mode.FullScreen;
+            }
+        }
 
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades

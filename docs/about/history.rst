@@ -111,7 +111,7 @@ Fixed
    -  Fix *Shape Gerstner* weight being applied twice instead of once.
       You may need to adjust your weight if between zero and one.
    -  Fix Unity 2021.2 script upgrade requirement.
-   -  Fix *Underwater Renderer* looking washed out due to using incorrect colour space for Unity 2021.2.
+   -  Fix compilation error if both `HDRP` and `URP` packages are installed.
 
    .. only:: birp
 
@@ -119,6 +119,7 @@ Fixed
       -  Fix shadows flickering when *Sea Floor Depth* data is populated by preventing shadow passes from executing for *Ocean Depth Cache* camera. `[BIRP]`
       -  Fix *Underwater Renderer* using a non directional light when a transparent object is in range of light and in view of camera. `[BIRP]`
       -  Fix caustics not rendering if shadow data is disabled. `[BIRP]`
+      -  Fix *Underwater Renderer* looking washed out due to using incorrect colour space for Unity 2021.2. `[BIRP]`
 
    .. only:: birp or urp
 

@@ -202,6 +202,8 @@ rst_prolog = rst_prolog + """
 .. set:: WikiLink \{GitHubLink}/wiki
 .. set:: RoadmapLink \https://trello.com/b/L7iejCPI
 
+.. set:: SGDocLink {UPMDocLinkBase}/com.unity.shadergraph@{RPMinVersion}/manual
+
 .. set:: [BIRP] :guilabel:`BIRP`
 .. set:: BIRPNameLong Built-in
 .. set:: BIRPNameShort BIRP
@@ -247,6 +249,9 @@ rst_prolog = rst_prolog + """
 .. set:: Time.timeScale :link:`Time.timeScale <{UnityDocScriptLink}/Time-timeScale.html>`
 .. set:: Timeline :link:`Timeline <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/tl_about.html>`
 .. set:: Playable_Director :link:`Playable Director <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/play_director.html>`
+.. set:: Master_Stack :link:`Master Stack <{SGDocLink}/Master-Stack.html>`
+.. set:: HDRP_Lit_Shader :link:`Lit Shader <{HDRPDocLink}/Lit-Shader.html>`
+.. set:: URP_Lit_Shader :link:`Lit Shader <{URPDocLink}/lit-shader.html>`
 """
 
 # -- Debugging ---------------------------------------------------------------

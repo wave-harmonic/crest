@@ -86,7 +86,7 @@ bool CrestApplyUnderwaterFog(const float2 positionNDC, const float3 positionWS, 
 {
 #if CREST_WATER_VOLUME
 	// No fog before volume.
-	float rawFrontFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture, positionNDC);
+	float rawFrontFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture, positionNDC).r;
 	if (rawFrontFaceZ > 0.0 && rawFrontFaceZ < deviceDepth)
 	{
 		return false;
@@ -117,7 +117,7 @@ bool CrestApplyUnderwaterFog(const float2 positionNDC, const float3 positionWS, 
 	float rawFogDistance = deviceDepth;
 #if CREST_WATER_VOLUME_HAS_BACKFACE
 	// Use the closest of the two.
-	float rawBackFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeBackFaceTexture, positionNDC);
+	float rawBackFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeBackFaceTexture, positionNDC).r;
 	rawFogDistance = max(rawFogDistance, rawBackFaceZ);
 #endif
 

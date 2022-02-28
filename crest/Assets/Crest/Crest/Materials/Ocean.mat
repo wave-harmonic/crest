@@ -9,9 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
-  m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _CLIPSURFACE_ON _COMPILESHADERWITHDEBUGINFO_ON
-    _COMPUTEDIRECTIONALLIGHT_ON _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON
-    _FOAM_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
+  m_ShaderKeywords: _CAUSTICS_ON _CLIPSURFACE_ON _COMPILESHADERWITHDEBUGINFO_ON _COMPUTEDIRECTIONALLIGHT_ON
+    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACEHEIGHTLERP_ON
     _TRANSPARENCY_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 1
@@ -81,7 +80,7 @@ Material:
     m_Floats:
     - _Albedo: 0
     - _ApplyFlowToNormals: 0
-    - _ApplyNormalMapping: 1
+    - _ApplyNormalMapping: 0
     - _BumpAmt: 0.514
     - _Caustics: 1
     - _CausticsBase: 0.07
@@ -148,8 +147,8 @@ Material:
     - _SubSurfaceHeightLerp: 1
     - _SubSurfaceHeightMax: 24.9
     - _SubSurfaceHeightPower: 1.68
-    - _SubSurfaceScattering: 1
-    - _SubSurfaceShallowColour: 1
+    - _SubSurfaceScattering: 0
+    - _SubSurfaceShallowColour: 0
     - _SubSurfaceSun: 1.13
     - _SubSurfaceSunFallOff: 7.11
     - _TexelSize: 0.125

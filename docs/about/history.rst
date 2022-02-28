@@ -65,6 +65,7 @@ Changed
    -  Add new example scene *BoatWakes* to showcase improvements to *SphereWaterInteraction* component.
    -  Allow scaling FFT waves on spline (not supported previously). *SplinePointDataGerstner* has been renamed to *SplinePointDataWaves* which works for both *ShapeFFT* and *ShapeGerstner*.
    -  Add *Surface Self-Intersection Fix Mode* (advanced option) to control how self-intersections of the ocean surface caused by intense/choppy waves are handled.
+   -  Add *Maximum Buoyancy Force* for preventing objects from having too much force being applied when fully submerged.
    -  Updated all example scenes.
 
    .. only:: hdrp

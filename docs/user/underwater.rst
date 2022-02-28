@@ -153,7 +153,7 @@ The *Shader API* needs to be enabled on the *Underwater Renderer* (located under
       This means that when a transparent object is rendered, it will already have underwater fog behind it.
       It is then just a matter of applying the underwater fog to the transparent object.
 
-      .. tip::
+      .. admonition:: Example
 
          |  We have an example *Surface Shader* which you can use as a reference:
          |  *Crest/Crest-Examples/Shared/Shaders/ExampleUnderwaterTransparentSurfaceShader.shader*

@@ -311,7 +311,11 @@ Underwater
 Flow
 ^^^^
 
-|  **Enable** Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene.
+.. admonition:: Example
+
+    Flow is demonstrated in the *whirlpool* example scene.
+
+|  **Enable** Flow is horizontal motion in water.
    'Create Flow Sim' must be enabled on the OceanRenderer to generate flow data.
 
 .. _lighting:

@@ -372,7 +372,10 @@ The following input shaders are provided under *Crest/Inputs/Clip Surface*:
 
 -  **Convex Hull** - Renders geometry into clip surface data taking all dimensions into account.
    An example use case is rendering the convex hull of a vessel to remove the ocean surface from within it.
-   See the *RowBoat* object in the *main.unity* scene for an example usage.
+
+   .. admonition:: Example
+
+      See the *RowBoat* object in the *main.unity* scene for an example usage.
 
    .. note::
 
@@ -444,9 +447,13 @@ Overview
 ^^^^^^^^
 
 Flow is the horizontal motion of the water volumes.
-It is used in the *whirlpool.unity* example scene to rotate the waves and foam around the vortex.
 It does not affect wave directions, but transports the waves horizontally.
 This horizontal motion also affects physics.
+
+.. admonition:: Example
+
+   See the *whirlpool.unity* example scene where flow is used to rotate the waves and foam around the vortex.
+
 
 User Inputs
 ^^^^^^^^^^^

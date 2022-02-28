@@ -12,7 +12,7 @@ This node uses the *CrestNodeApplyUnderWaterFog* node and does a few things to g
 The end result is that the effect is inconsistent with the underwater pass.
 Despite that we believe it is a decent enough approximation until *Unity* improves this area.
 
-.. tip::
+.. admonition:: Example
 
     |  We have an example *Surface Shader* which you can use as a reference:
     |  *Crest/Crest-Examples/Shared/Shaders/LitTransparentWithUnderwaterFog.shadergraph*

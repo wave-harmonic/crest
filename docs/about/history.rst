@@ -150,11 +150,11 @@ Fixed
       -  Fix foam bubbles parallax effect using the incorrect normal space. `[HDRP]`
       -  Fix foam bubbles texture scaling. `[HDRP]`
 
-Performance
-^^^^^^^^^^^
-.. bullet_list::
+.. only:: hdrp
 
-   .. only:: hdrp
+   Performance
+   ^^^^^^^^^^^
+   .. bullet_list::
 
       -  Reduce cost of populating the ocean depth cache. `[HDRP]`
 

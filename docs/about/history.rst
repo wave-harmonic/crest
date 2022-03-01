@@ -65,9 +65,15 @@ Changed
    -  Add new example scene *BoatWakes* to showcase improvements to *SphereWaterInteraction* component.
    -  Allow scaling FFT waves on spline (not supported previously). *SplinePointDataGerstner* has been renamed to *SplinePointDataWaves* which works for both *ShapeFFT* and *ShapeGerstner*.
    -  Add *Surface Self-Intersection Fix Mode* (advanced option) to control how self-intersections of the ocean surface caused by intense/choppy waves are handled.
+   -  Updated all example scenes.
 
    .. only:: hdrp
 
+      -  Unity 2021.2 users can now use the Shader Graph version of the ocean shader.
+         The generated shader is deprecated and should not be used as it does not work correctly for 2021.2. `[HDRP]`
+      -  Add support for *Ray-Traced Reflections* for Unity 2021.2. `[HDRP]`
+      -  Revert to using Unity's material inspector which gives more control and is more reliable. `[HDRP]`
+      -  Improve ocean material inspector for Unity 2021.2. `[HDRP]`
       -  Caustics and foam textures now use the sampler defined on the texure asset.
          If using our caustics texture, it will now use trilinear sampling instead of linear. `[HDRP]`
 

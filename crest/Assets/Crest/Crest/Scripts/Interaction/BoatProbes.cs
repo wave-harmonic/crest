@@ -40,7 +40,7 @@ namespace Crest
         public float _minSpatialLength = 12f;
         [Range(0, 1)]
         public float _turningHeel = 0.35f;
-        [Tooltip("Clamps the buoyancy force to this value. Useful for handling fully submerged objects. Use Infinity to disable.")]
+        [Tooltip("Clamps the buoyancy force to this value. Useful for handling fully submerged objects. Enter 'Infinity' to disable.")]
         public float _maximumBuoyancyForce = Mathf.Infinity;
 
         [Header("Drag")]

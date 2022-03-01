@@ -33,7 +33,7 @@ namespace Crest
         public float _boyancyTorque = 8f;
         [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), Range(0, 1)]
         public float _accelerateDownhill = 0f;
-        [Tooltip("Clamps the buoyancy force to this value. Useful for handling fully submerged objects. Use Infinity to disable.")]
+        [Tooltip("Clamps the buoyancy force to this value. Useful for handling fully submerged objects. Enter 'Infinity' to disable.")]
         public float _maximumBuoyancyForce = Mathf.Infinity;
 
         [Header("Wave Response")]

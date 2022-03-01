@@ -40,6 +40,8 @@ namespace Crest
         public float _minSpatialLength = 12f;
         [Range(0, 1)]
         public float _turningHeel = 0.35f;
+        [Tooltip("Clamps the buoyancy force to this value. Useful for handling fully submerged objects. Use Infinity to disable.")]
+        public float _maximumBuoyancyForce = Mathf.Infinity;
 
         [Header("Drag")]
         public float _dragInWaterUp = 3f;
@@ -214,7 +216,12 @@ namespace Crest
                 var heightDiff = waterHeight - _queryPoints[i].y;
                 if (heightDiff > 0)
                 {
-                    _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPoints[i]);
+                    var force = archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight;
+                    if (_maximumBuoyancyForce < Mathf.Infinity)
+                    {
+                        force = Vector3.ClampMagnitude(force, _maximumBuoyancyForce);
+                    }
+                    _rb.AddForceAtPosition(force, _queryPoints[i]);
                 }
             }
         }

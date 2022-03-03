@@ -13,6 +13,16 @@ Release Notes
 |version|
 ---------
 
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix shader compiler error.
+
+
+4.15
+----
+
 Breaking
 ^^^^^^^^
 .. bullet_list::

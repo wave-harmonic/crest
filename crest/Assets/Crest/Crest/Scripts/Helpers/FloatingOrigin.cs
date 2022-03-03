@@ -213,11 +213,13 @@ namespace Crest
                 Debug.Log($"Crest.FloatingOrigin.MoveOrigin({newOrigin})");
             }
 
+#if CREST_DEBUG
             if (_debug._captureOnShift && ExternalGPUProfiler.IsAttached())
             {
                 ExternalGPUProfiler.BeginGPUCapture();
                 _debug._isCapturing = true;
             }
+#endif
 
             TeleportOriginThisFrame = newOrigin;
             HasTeleportedThisFrame = true;

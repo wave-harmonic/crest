@@ -36,8 +36,16 @@ namespace Crest
             "CREST_UNDERWATER_BEFORE_TRANSPARENT",
             "CREST_FLOATING_ORIGIN",
 
-            // Unity 2021.2 considers this UserDefined."
+            // XR keywords.
             "STEREO_ENABLED_ON",
+            "STEREO_INSTANCING_ON",
+            "UNITY_SINGLE_PASS_STEREO",
+            "STEREO_MULTIVIEW_ON",
+
+            // URP keywords.
+            "_MAIN_LIGHT_SHADOWS",
+            "_MAIN_LIGHT_SHADOWS_CASCADE",
+            "_SHADOWS_SOFT",
         };
 
         bool IsUnderwaterShader(string shaderName)

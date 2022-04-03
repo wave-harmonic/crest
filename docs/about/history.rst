@@ -13,6 +13,12 @@ Release Notes
 |version|
 ---------
 
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix *Underwater Renderer* stereo rendering not working in builds for Unity 2021.2.
+
 
 4.15.1
 ------

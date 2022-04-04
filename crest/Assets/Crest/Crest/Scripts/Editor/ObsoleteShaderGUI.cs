@@ -24,13 +24,21 @@ namespace Crest
             var styleRichText = GUI.skin.GetStyle("HelpBox").richText;
             GUI.skin.GetStyle("HelpBox").richText = true;
 
-            var message = "This shader is deprecated and will be removed in a future version.";
+            var message = "";
+
+            {
+                var property = FindProperty("_Message", properties, propertyIsMandatory: false);
+                if (property != null)
+                {
+                    message += property.displayName;
+                }
+            }
 
             {
                 var property = FindProperty("_ObsoleteMessage", properties, propertyIsMandatory: false);
                 if (property != null)
                 {
-                    message += " " + property.displayName;
+                    message += "This shader is deprecated and will be removed in a future version. " + property.displayName;
                 }
             }
 

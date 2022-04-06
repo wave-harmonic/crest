@@ -21,6 +21,8 @@ Fixed
    -  Fix *Underwater Renderer* stereo rendering not working in builds for Unity 2021.2.
    -  Fix *Underwater Renderer* stereo rendering issue where both eyes are same for color and/or depth with certain features enabled.
    -  Fix stereo rendering for *Examples* scene.
+   -  Fix several material and mesh memory leaks and reference leaks.
+   -  Fix several *Texture2D* and *RenderTexture* memory and reference leaks.
 
 .. only:: urp
 
@@ -35,7 +37,6 @@ Fixed
 .. bullet_list::
 
    -  Fix shader compiler error.
-   -  Fix several material and mesh memory leaks and reference leaks.
 
 
 4.15

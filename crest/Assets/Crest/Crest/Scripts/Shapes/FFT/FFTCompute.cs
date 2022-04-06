@@ -125,23 +125,31 @@ namespace Crest
             rtd.colorFormat = RenderTextureFormat.ARGBFloat;
             rtd.msaaSamples = 1;
 
-            _spectrumInit = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _spectrumInit, rtd);
+            _spectrumInit.name = "CrestFFTSpectrumInit";
             _spectrumInit.Create();
 
             rtd.colorFormat = RenderTextureFormat.RGFloat;
 
-            _spectrumHeight = new RenderTexture(rtd);
+
+            Helpers.SafeCreateRenderTexture(ref _spectrumHeight, rtd);
+            _spectrumHeight.name = "CrestFFTSpectrumHeight";
             _spectrumHeight.Create();
-            _spectrumDisplaceX = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _spectrumDisplaceX, rtd);
+            _spectrumDisplaceX.name = "CrestFFTSpectrumDisplaceX";
             _spectrumDisplaceX.Create();
-            _spectrumDisplaceZ = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _spectrumDisplaceZ, rtd);
+            _spectrumDisplaceZ.name = "CrestFFTSpectrumDisplaceZ";
             _spectrumDisplaceZ.Create();
 
-            _tempFFT1 = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _tempFFT1, rtd);
+            _tempFFT1.name = "CrestFFTOutput1";
             _tempFFT1.Create();
-            _tempFFT2 = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _tempFFT2, rtd);
+            _tempFFT2.name = "CrestFFTOutput2";
             _tempFFT2.Create();
-            _tempFFT3 = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _tempFFT3, rtd);
+            _tempFFT3.name = "CrestFFTOutput3";
             _tempFFT3.Create();
 
             // Raw wave data buffer

@@ -22,6 +22,7 @@ Fixed
 .. bullet_list::
 
    -  Fix shader compiler error.
+   -  Fix several material and mesh memory leaks and reference leaks.
 
 
 4.15

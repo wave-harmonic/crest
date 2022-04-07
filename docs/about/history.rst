@@ -20,6 +20,10 @@ Fixed
    -  Provide feedback on how to solve errors from *Sphere-Water Interaction* moving file locations.
    -  Fix *Underwater Renderer* stereo rendering not working in builds for Unity 2021.2.
 
+.. only:: urp
+
+   -  Disable `SSAO` for *Examples* scene and warn users of incompatibility with *Portals and Volumes* feature. `[URP]`
+
 
 4.15.1
 ------

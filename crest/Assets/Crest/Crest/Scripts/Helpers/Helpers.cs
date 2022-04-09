@@ -132,10 +132,7 @@ namespace Crest
             {
                 // Dummy values. We are only creating an RT reference, not an RT native object. RT should be configured
                 // properly before using or calling Create.
-                texture = new RenderTexture(0, 0, 0)
-                {
-                    hideFlags = HideFlags.HideAndDontSave,
-                };
+                texture = new RenderTexture(0, 0, 0);
             }
 
             // Always call this in case of recompilation as RTI will lose its reference to the RT.

@@ -142,7 +142,6 @@ namespace Crest
             if (_signedDistancedMaterial == null)
             {
                 _signedDistancedMaterial = new Material(Shader.Find(k_SignedDistanceShaderPath));
-                _signedDistancedMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
 
             // Could refactor using hashy.

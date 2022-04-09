@@ -321,7 +321,6 @@ namespace Crest
                 {
                     name = "__WaterReflection" + GetHashCode(),
                     isPowerOfTwo = true,
-                    hideFlags = HideFlags.DontSave
                 };
                 _reflectionTexture.Create();
                 PreparedReflections.Register(currentCamera.GetHashCode(), _reflectionTexture);

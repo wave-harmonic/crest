@@ -343,7 +343,6 @@ namespace Crest
             // create mesh
 
             Mesh mesh = new Mesh();
-            mesh.hideFlags = HideFlags.DontSave;
             if (verts != null && verts.Count > 0)
             {
                 Vector3[] arrV = new Vector3[verts.Count];
@@ -453,7 +452,6 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject($"Tile_L{lodIndex}_{patchTypes[i]}");
-                patch.hideFlags = HideFlags.DontSave;
                 patch.layer = oceanLayer;
                 patch.transform.parent = parent;
                 Vector2 pos = offsets[i];

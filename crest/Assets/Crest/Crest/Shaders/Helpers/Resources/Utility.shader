@@ -61,6 +61,8 @@ Shader "Hidden/Crest/Helpers/Utility"
 
 			float4 Fragment(Varyings input) : SV_Target
 			{
+				// We need this when sampling a screenspace texture.
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 				return LOAD_TEXTURE2D_X(_CameraColorTexture, input.positionCS.xy);
 			}
 			ENDHLSL
@@ -86,6 +88,8 @@ Shader "Hidden/Crest/Helpers/Utility"
 			TEXTURE2D_X(_CameraDepthTexture);
 			float Fragment(Varyings input) : SV_Depth
 			{
+				// We need this when sampling a screenspace texture.
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 				return LOAD_DEPTH_TEXTURE_X(_CameraDepthTexture, input.positionCS.xy);
 			}
 			ENDHLSL

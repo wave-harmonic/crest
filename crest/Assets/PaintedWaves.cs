@@ -1,27 +1,25 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
+using Crest;
+using UnityEngine.Rendering;
 
 [ExecuteAlways]
 public class PaintedWaves : MonoBehaviour
 {
-    [SerializeField] float _size = 256f;
-    [SerializeField] int _resolution = 256;
+    public float _size = 256f;
+    public int _resolution = 256;
 
-    RenderTexture _data;
+    public RenderTexture _data;
 
     private void Update()
     {
-        if (_data == null || _data.width != _resolution || _data.height != _resolution)
-        {
-            _data = new RenderTexture(_resolution, _resolution, 0);
-        }
     }
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
-        Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.Scale(_size * Vector3.one);
+        Gizmos.matrix = Matrix4x4.Translate(transform.position) * Matrix4x4.Scale(_size * Vector3.one);
         Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 0.5f) : new Color(1f, 1f, 1f, 0.5f);
         Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
     }
@@ -105,22 +103,74 @@ class WavePaintingEditorTool : EditorTool
     }
 }
 
+// Additively blend mouse motion vector onto RG16F. Vector size < 1 used as wave weight.
+// Weight could also ramp up when motion vector confidence is low. Motion vector could lerp towards
+// current delta each frame.
 [CustomEditor(typeof(PaintedWaves))]
 class PaintedWavesEditor : Editor
 {
+    Transform _preview;
+
     Transform _cursor;
+    ComputeShader _paintShader;
+    int _kernel = 0;
+
+    Material _previewMat;
+
+    CommandBuffer _cmdBuf;
+    CommandBuffer CommandBuffer
+    {
+        get
+        {
+            if (_cmdBuf == null)
+            {
+                _cmdBuf = new UnityEngine.Rendering.CommandBuffer();
+            }
+            _cmdBuf.name = "Paint Waves";
+            return _cmdBuf;
+        }
+    }
 
     private void OnEnable()
     {
-        //    SceneView.duringSceneGui += SceneView_duringSceneGui;
         _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
         _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
+
+        _preview = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
+        _preview.localScale = Vector3.one * 50f;
+        // Can't rotate??
+        _preview.eulerAngles = 0f * Vector3.right;
+        _preview.gameObject.hideFlags = HideFlags.HideAndDontSave;
+        _previewMat = new Material(Shader.Find("Unlit/Texture"));
+        _preview.GetComponent<Renderer>().material = _previewMat;
+
+        if (_paintShader == null)
+        {
+            _paintShader = ComputeShaderHelpers.LoadShader("PaintWaves");
+        }
+
+
+        var waves = target as PaintedWaves;
+        //if (waves._data == null || waves._data.width != waves._resolution || waves._data.height != waves._resolution)
+        {
+            //waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+            waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16_SFloat);
+            waves._data.enableRandomWrite = true;
+            waves._data.Create();
+
+            CommandBuffer.Clear();
+            CommandBuffer.SetRenderTarget(waves._data);
+            CommandBuffer.ClearRenderTarget(true, true, Color.black);
+            Graphics.ExecuteCommandBuffer(CommandBuffer);
+        }
+        _previewMat.mainTexture = waves._data;
+
     }
 
     private void OnDisable()
     {
-        //    SceneView.duringSceneGui -= SceneView_duringSceneGui;
-        GameObject.DestroyImmediate(_cursor.gameObject);
+        DestroyImmediate(_cursor.gameObject);
+        DestroyImmediate(_preview.gameObject);
     }
 
     private void OnSceneGUI()
@@ -163,6 +213,37 @@ class PaintedWavesEditor : Editor
         var dist = -heightOffset / diry;
         var pt = r.GetPoint(dist);
         _cursor.position = pt;
+
+        if (dragging)
+        {
+            var waves = target as PaintedWaves;
+            Vector2 uv;
+            uv.x = (pt.x - waves.transform.position.x) / waves._size + 0.5f;
+            uv.y = (pt.z - waves.transform.position.z) / waves._size + 0.5f;
+            Paint(waves, uv);
+        }
+    }
+
+    void Paint(PaintedWaves waves, Vector2 uv)
+    {
+        CommandBuffer.Clear();
+
+        //if (waves._data == null || waves._data.width != waves._resolution || waves._data.height != waves._resolution)
+        //{
+        //    //waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+        //    waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16_SFloat);
+        //    waves._data.enableRandomWrite = true;
+        //    waves._data.Create();
+
+        //    CommandBuffer.SetRenderTarget(waves._data);
+        //    CommandBuffer.ClearRenderTarget(true, true, Color.white);
+        //}
+
+        CommandBuffer.SetComputeFloatParam(_paintShader, "_RadiusUV", 0.05f);
+        CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintUV", uv);
+        CommandBuffer.SetComputeTextureParam(_paintShader, _kernel, "_Result", waves._data);
+        CommandBuffer.DispatchCompute(_paintShader, _kernel, (waves._data.width + 7) / 8, (waves._data.height + 7) / 8, 1);
+        Graphics.ExecuteCommandBuffer(CommandBuffer);
     }
 
     public override void OnInspectorGUI()

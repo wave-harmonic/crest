@@ -1,26 +1,29 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Rendering;
 
+[ExecuteAlways]
 public class PaintedWaves : MonoBehaviour
 {
-    [SerializeField] float size = 128f;
+    [SerializeField] float _size = 256f;
+    [SerializeField] int _resolution = 256;
+
+    RenderTexture _data;
+
+    private void Update()
+    {
+        if (_data == null || _data.width != _resolution || _data.height != _resolution)
+        {
+            _data = new RenderTexture(_resolution, _resolution, 0);
+        }
+    }
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
-        Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.Scale(size * Vector3.one);
-        Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
+        Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.Scale(_size * Vector3.one);
+        Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 0.5f) : new Color(1f, 1f, 1f, 0.5f);
         Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
-
-        //if (_type == OceanDepthCacheType.Realtime)
-        //{
-        //    Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
-        //    Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
-        //}
     }
 #endif
 }
@@ -33,6 +36,8 @@ class WavePaintingEditorTool : EditorTool
 
     public override GUIContent toolbarIcon => _toolbarIcon ??
         (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Wave Painting"));
+
+    public static bool CurrentlyPainting => ToolManager.activeToolType == typeof(WavePaintingEditorTool);
 
     GUIContent _toolbarIcon;
 
@@ -101,27 +106,83 @@ class WavePaintingEditorTool : EditorTool
 }
 
 [CustomEditor(typeof(PaintedWaves))]
-class PaintedWavesInspector : Editor
+class PaintedWavesEditor : Editor
 {
+    Transform _cursor;
+
+    private void OnEnable()
+    {
+        //    SceneView.duringSceneGui += SceneView_duringSceneGui;
+        _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
+        _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
+    }
+
+    private void OnDisable()
+    {
+        //    SceneView.duringSceneGui -= SceneView_duringSceneGui;
+        GameObject.DestroyImmediate(_cursor.gameObject);
+    }
+
     private void OnSceneGUI()
     {
-        if (ToolManager.activeToolType == typeof(WavePaintingEditorTool))
+        if (ToolManager.activeToolType != typeof(WavePaintingEditorTool))
         {
-            HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+            return;
+        }
+
+        switch (Event.current.type)
+        {
+            case EventType.MouseMove:
+                OnMouseDrag(false);
+                break;
+            case EventType.MouseDrag:
+                OnMouseDrag(true);
+                break;
+            case EventType.Layout:
+                HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                break;
         }
     }
 
-    //bool _painting = false;
+    void OnMouseDrag(bool dragging)
+    {
+        var ocean = Crest.OceanRenderer.Instance;
+        if (!ocean) return;
 
-    //public override void OnInspectorGUI()
-    //{
-    //    base.OnInspectorGUI();
+        var e = Event.current;
+        var r = HandleUtility.GUIPointToWorldRay(e.mousePosition);
 
-    //    var editTxt = _painting ? "Stop Painting" : "Start Painting";
-    //    if (GUILayout.Button(editTxt))
-    //    {
-    //        _painting = !_painting;
-    //    }
-    //}
+        var heightOffset = r.origin.y - ocean.transform.position.y;
+        var diry = r.direction.y;
+        if (heightOffset * diry >= 0f)
+        {
+            // Ray going away from ocean plane
+            return;
+        }
+
+        var dist = -heightOffset / diry;
+        var pt = r.GetPoint(dist);
+        _cursor.position = pt;
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        if (WavePaintingEditorTool.CurrentlyPainting)
+        {
+            if (GUILayout.Button("Stop Painting"))
+            {
+                ToolManager.RestorePreviousPersistentTool();
+            }
+        }
+        else
+        {
+            if (GUILayout.Button("Start Painting"))
+            {
+                ToolManager.SetActiveTool<WavePaintingEditorTool>();
+            }
+        }
+    }
 }
 #endif

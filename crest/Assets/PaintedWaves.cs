@@ -26,16 +26,10 @@ public class PaintedWaves : MonoBehaviour
 }
 
 #if UNITY_EDITOR
-[EditorTool("Crest Wave Painting", typeof(MeshFilter))]
-class PaintEditorTool : EditorTool
+[EditorTool("Crest Wave Painting", typeof(PaintedWaves))]
+class WavePaintingEditorTool : EditorTool
 {
-    struct TransformAndPositions
-    {
-        public Transform _transform;
-        public Vector3[] _positions;
-    }
-
-    IEnumerable<TransformAndPositions> _vertices;
+    PaintedWaves _waves;
 
     public override GUIContent toolbarIcon => _toolbarIcon ??
         (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Wave Painting"));
@@ -56,14 +50,7 @@ class PaintEditorTool : EditorTool
         if (!ToolManager.IsActiveTool(this))
             return;
 
-        _vertices = targets.Select(x =>
-        {
-            return new TransformAndPositions()
-            {
-                _transform = ((MeshFilter)x).transform,
-                _positions = ((MeshFilter)x).sharedMesh.vertices
-            };
-        }).ToArray();
+        _waves = target as PaintedWaves;
     }
 
     //public override void OnToolGUI(EditorWindow window)
@@ -92,41 +79,49 @@ class PaintEditorTool : EditorTool
 
     public override void OnToolGUI(EditorWindow window)
     {
-        var evt = Event.current;
+        //var evt = Event.current;
 
-        if (evt.type == EventType.Repaint)
-        {
-            var zTest = Handles.zTest;
-            Handles.zTest = CompareFunction.LessEqual;
+        //if (evt.type == EventType.Repaint)
+        //{
+        //    var zTest = Handles.zTest;
+        //    Handles.zTest = CompareFunction.LessEqual;
 
-            foreach (var entry in _vertices)
-            {
-                foreach (var vertex in entry._positions)
-                {
-                    var world = entry._transform.TransformPoint(vertex);
-                    Handles.DotHandleCap(0, world, Quaternion.identity, HandleUtility.GetHandleSize(world) * .05f, evt.type);
-                }
-            }
+        //    foreach (var entry in _vertices)
+        //    {
+        //        foreach (var vertex in entry._positions)
+        //        {
+        //            var world = entry._transform.TransformPoint(vertex);
+        //            Handles.DotHandleCap(0, world, Quaternion.identity, HandleUtility.GetHandleSize(world) * .05f, evt.type);
+        //        }
+        //    }
 
-            Handles.zTest = zTest;
-        }
+        //    Handles.zTest = zTest;
+        //}
     }
 }
 
 [CustomEditor(typeof(PaintedWaves))]
 class PaintedWavesInspector : Editor
 {
-    bool _painting = false;
-
-    public override void OnInspectorGUI()
+    private void OnSceneGUI()
     {
-        base.OnInspectorGUI();
-
-        var editTxt = _painting ? "Stop Painting" : "Start Painting";
-        if (GUILayout.Button(editTxt))
+        if (ToolManager.activeToolType == typeof(WavePaintingEditorTool))
         {
-            _painting = !_painting;
+            HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         }
     }
+
+    //bool _painting = false;
+
+    //public override void OnInspectorGUI()
+    //{
+    //    base.OnInspectorGUI();
+
+    //    var editTxt = _painting ? "Stop Painting" : "Start Painting";
+    //    if (GUILayout.Button(editTxt))
+    //    {
+    //        _painting = !_painting;
+    //    }
+    //}
 }
 #endif

@@ -24,6 +24,8 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
+        public PaintedWaves _paintedWaves;
+
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.
@@ -147,6 +149,7 @@ namespace Crest
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
                     {
@@ -214,6 +217,23 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+
+            if (_paintedWaves)
+            {
+                _matGenerateWaves.SetTexture("_PaintedWavesData", _paintedWaves._data);
+                _matGenerateWaves.SetFloat("_PaintedWavesSize", _paintedWaves._size);
+
+                Vector2 pos;
+                pos.x = _paintedWaves.transform.position.x;
+                pos.y = _paintedWaves.transform.position.z;
+                _matGenerateWaves.SetVector("_PaintedWavesPosition", pos);
+            }
+            else
+            {
+                _matGenerateWaves.SetTexture("_PaintedWavesData", Texture2D.blackTexture);
+                _matGenerateWaves.SetFloat("_PaintedWavesSize", 0f);
+            }
+
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.

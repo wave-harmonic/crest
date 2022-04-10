@@ -1,9 +1,11 @@
 #pragma kernel PaintWaves
 
-RWTexture2D<float4> _Result;
+RWTexture2D<float2> _Result;
 
 float2 _PaintUV;
 float _RadiusUV;
+float2 _PaintDirection;
+float _BrushHardness;
 
 [numthreads(8,8,1)]
 void PaintWaves(uint3 id : SV_DispatchThreadID)
@@ -16,5 +18,11 @@ void PaintWaves(uint3 id : SV_DispatchThreadID)
 	float2 uv = (id.xy + 0.5) / dim;
 
 	float paint = smoothstep(_RadiusUV, 0.0, length(uv - _PaintUV));
-	_Result[id.xy] += 0.01 * paint;
+	paint = 1.0 - pow(saturate(1.0 - paint), _BrushHardness);
+
+	float2 dir = _Result[id.xy];
+	dir += 0.1 * _PaintDirection * paint;
+	float len2 = dot(dir, dir);
+	if (len2 > 1.0) dir /= sqrt(len2);
+	_Result[id.xy] = dir;
 }

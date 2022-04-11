@@ -13,6 +13,8 @@ namespace Crest
 
     // TODO - maybe rename? UserDataPainted and UserDataSpline would have been a systematic naming. However not sure
     // if this is user friendly, and not sure if it makes sense if we dont rename the Spline.
+    // TODO - this component has no Enabled checkbox because enabling/disabling would need handling in terms of updating the
+    // material keywords, and I'm unsure how best for this communication to happen
     [ExecuteAlways]
     public class UserDataPainted : MonoBehaviour, IUserAuthoredInput
     {
@@ -32,15 +34,10 @@ namespace Crest
         [System.NonSerialized]
         public RenderTexture _data;
 
-        private void Update()
-        {
-        }
-
         public void PrepareMaterial(Material mat)
         {
-            // TODO - enable keywords to make material use the spline geo. Right now
-            // there is a completely separate shader for the spline/ge case which does not scale
-            // and requires specific treatment in the code.
+            mat.EnableKeyword("_PAINTED_ON");
+
             mat.SetTexture("_PaintedWavesData", _data);
             mat.SetFloat("_PaintedWavesSize", _size);
 

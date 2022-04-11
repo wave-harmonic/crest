@@ -4,6 +4,9 @@
 
 // Adds Gestner waves to world
 
+// TODO - rename this to Waves (prob can be used for both Gersties and FFT), and have keywords that select
+// different modes such as spline or painted input.
+
 Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 {
 	SubShader

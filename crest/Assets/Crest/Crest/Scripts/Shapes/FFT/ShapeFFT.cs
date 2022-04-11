@@ -24,8 +24,6 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
-        public PaintedWaves _paintedWaves;
-
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
         /// only be changed when the editor upgrades the version.
@@ -64,6 +62,11 @@ namespace Crest
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;
 
+        // NOTE - i think this is valid for wave geometry, not just splines. however custom geo is such a distant edge
+        // case at this point esp. with painting. therefore moving into spline settings
+        [SerializeField]
+        float _featherWaveStart = 0.1f;
+
         [HideInInspector]
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
         public int _componentsPerOctave = 8;
@@ -81,16 +84,35 @@ namespace Crest
         bool _debugDrawSlicesInEditor = false;
 #pragma warning restore 414
 
-        [Header("Spline Settings")]
-        [SerializeField]
-        bool _overrideSplineSettings = false;
-        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
-        float _radius = 50f;
-        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
-        int _subdivisions = 1;
+        // This is spline specific. I'm not sure if we'll have paint settings. If we do we may want to put them into a class so they're
+        // at least out of the way, and then only show the relevant ones in the inspector?
+        [System.Serializable]
+        class SplineSettings
+        {
+            // TODO - tooltips? can pull from RTD?
+            public bool _overrideSplineSettings = false;
+            [Predicated("_splineSettings._overrideSplineSettings"), DecoratedField]
+            public float _radius = 50f;
+            [Predicated("_splineSettings._overrideSplineSettings"), Delayed]
+            public int _subdivisions = 1;
+        }
 
+        [Header("Spline Settings")]
+        // TODO - perhaps migrate data for components that have the wave data enabled?
         [SerializeField]
-        float _featherWaveStart = 0.1f;
+        SplineSettings _splineSettings;
+
+        // TODO remove or rename?
+        bool _overrideSplineSettings => _splineSettings != null ? _splineSettings._overrideSplineSettings : false;
+        float _radius => _overrideSplineSettings ? _splineSettings._radius : 50f;
+        int _subdivisions => _overrideSplineSettings ? _splineSettings._subdivisions : 1;
+
+        //[SerializeField]
+        //bool _overrideSplineSettings = false;
+        //[SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
+        //float _radius = 50f;
+        //[SerializeField, Predicated("_overrideSplineSettings"), Delayed]
+        //int _subdivisions = 1;
 
         [Header("Culling")]
         [Tooltip("Maximum amount surface will be displaced vertically from sea level. Increase this if gaps appear at bottom of screen."), SerializeField]
@@ -174,6 +196,7 @@ namespace Crest
         Material _matGenerateWaves;
         // Cache material options.
         Material _matGenerateWavesGlobal;
+        // This is used both by spline and by user provided geo.. so left here
         Material _matGenerateWavesGeometry;
 
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
@@ -218,22 +241,17 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
-            if (_paintedWaves)
+            var input = GetComponent<IUserAuthoredInput>();
+            if (input != null)
             {
-                _matGenerateWaves.SetTexture("_PaintedWavesData", _paintedWaves._data);
-                _matGenerateWaves.SetFloat("_PaintedWavesSize", _paintedWaves._size);
-
-                Vector2 pos;
-                pos.x = _paintedWaves.transform.position.x;
-                pos.y = _paintedWaves.transform.position.z;
-                _matGenerateWaves.SetVector("_PaintedWavesPosition", pos);
+                input.UpdateMaterial(_matGenerateWaves);
             }
             else
             {
-                _matGenerateWaves.SetTexture("_PaintedWavesData", Texture2D.blackTexture);
+                // TODO - remove once we have keywords added to the material as no code containing _PaintedWavesSize will be compiled in
                 _matGenerateWaves.SetFloat("_PaintedWavesSize", 0f);
+                _matGenerateWaves.SetTexture("_PaintedWavesData", Texture2D.blackTexture);
             }
-
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
@@ -330,6 +348,16 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGeometry;
+            }
+
+            // TODO the above logic should, instead of picking individual shaders, should select one Waves material and then
+            // enable/disable keywords to achieve functionality.
+            // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
+            // validation
+            var input = GetComponent<IUserAuthoredInput>();
+            if (input != null)
+            {
+                input.PrepareMaterial(_matGenerateWaves);
             }
 
             // Submit draws to create the FFT waves

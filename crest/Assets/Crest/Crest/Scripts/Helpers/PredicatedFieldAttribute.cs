@@ -126,7 +126,11 @@ namespace Crest
             if (_propertyName != null)
             {
                 // Get the other property to be the predicate for the enabled/disabled state of this property.
-                var otherProperty = property.serializedObject.FindProperty(_propertyName);
+                var otherProperty = property.FindPropertyRelative(_propertyName);
+                if (otherProperty == null)
+                {
+                    otherProperty = property.serializedObject.FindProperty(_propertyName);
+                }
                 if (otherProperty != null)
                 {
                     enabled = GUIEnabled(otherProperty);
@@ -137,7 +141,7 @@ namespace Crest
             {
                 // Static is both abstract and sealed: https://stackoverflow.com/a/1175950
                 object @object = _type.IsAbstract && _type.IsSealed ? null : Convert.ChangeType(property.serializedObject.targetObject, _type);
-                enabled = (bool) _method.Invoke(@object, new object[] { property.serializedObject.targetObject });
+                enabled = (bool)_method.Invoke(@object, new object[] { property.serializedObject.targetObject });
                 if (_inverted) enabled = !enabled;
             }
 

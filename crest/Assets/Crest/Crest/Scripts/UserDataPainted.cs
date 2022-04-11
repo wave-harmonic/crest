@@ -5,8 +5,16 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    public interface IUserAuthoredInput
+    {
+        void PrepareMaterial(Material mat);
+        void UpdateMaterial(Material mat);
+    }
+
+    // TODO - maybe rename? UserDataPainted and UserDataSpline would have been a systematic naming. However not sure
+    // if this is user friendly, and not sure if it makes sense if we dont rename the Spline.
     [ExecuteAlways]
-    public class PaintedWaves : MonoBehaviour
+    public class UserDataPainted : MonoBehaviour, IUserAuthoredInput
     {
         public float _size = 256f;
         public int _resolution = 256;
@@ -17,10 +25,41 @@ namespace Crest
         [Range(1f, 100f, 5f)]
         public float _brushHardness = 1f;
 
+        // TODO - made nonserialised as behaviour is pretty buggy when on. Reloading a scene
+        // seems to kill the data. Perhaps needs to be Texture2D?
+        [System.NonSerialized]
         public RenderTexture _data;
 
         private void Update()
         {
+        }
+
+        public void PrepareMaterial(Material mat)
+        {
+            // TODO - enable keywords to make material use the spline geo. Right now
+            // there is a completely separate shader for the spline/ge case which does not scale
+            // and requires specific treatment in the code.
+            mat.SetTexture("_PaintedWavesData", _data);
+            mat.SetFloat("_PaintedWavesSize", _size);
+
+            Vector2 pos;
+            pos.x = transform.position.x;
+            pos.y = transform.position.z;
+            mat.SetVector("_PaintedWavesPosition", pos);
+        }
+
+        public void UpdateMaterial(Material mat)
+        {
+#if UNITY_EDITOR
+            // Any per-frame update. In editor keep it all fresh.
+            mat.SetTexture("_PaintedWavesData", _data);
+            mat.SetFloat("_PaintedWavesSize", _size);
+
+            Vector2 pos;
+            pos.x = transform.position.x;
+            pos.y = transform.position.z;
+            mat.SetVector("_PaintedWavesPosition", pos);
+#endif
         }
 
 #if UNITY_EDITOR
@@ -34,10 +73,10 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    [EditorTool("Crest Wave Painting", typeof(PaintedWaves))]
+    [EditorTool("Crest Wave Painting", typeof(UserDataPainted))]
     class WavePaintingEditorTool : EditorTool
     {
-        PaintedWaves _waves;
+        UserDataPainted _waves;
 
         public override GUIContent toolbarIcon => _toolbarIcon ??
             (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Wave Painting"));
@@ -60,7 +99,7 @@ namespace Crest
             if (!ToolManager.IsActiveTool(this))
                 return;
 
-            _waves = target as PaintedWaves;
+            _waves = target as UserDataPainted;
         }
 
         //public override void OnToolGUI(EditorWindow window)
@@ -113,7 +152,7 @@ namespace Crest
     // Additively blend mouse motion vector onto RG16F. Vector size < 1 used as wave weight.
     // Weight could also ramp up when motion vector confidence is low. Motion vector could lerp towards
     // current delta each frame.
-    [CustomEditor(typeof(PaintedWaves))]
+    [CustomEditor(typeof(UserDataPainted))]
     class PaintedWavesEditor : Editor
     {
         //Transform _preview;
@@ -146,6 +185,8 @@ namespace Crest
             _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
             _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
 
+            // This created a plane to try to draw a preview of the texture in the world. What is most likely needed
+            // is debug code in the ocean material to visualise it on the water itself as the plane was ugly.
             //_preview = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
             //_preview.localScale = Vector3.one * 50f;
             //// Can't rotate??
@@ -161,24 +202,24 @@ namespace Crest
             }
 
 
-            var waves = target as PaintedWaves;
-            //if (waves._data == null || waves._data.width != waves._resolution || waves._data.height != waves._resolution)
+            var waves = target as UserDataPainted;
+            if (waves._data == null || waves._data.width != waves._resolution || waves._data.height != waves._resolution)
             {
-                //waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+                // TODO 
                 waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16_SFloat);
                 waves._data.enableRandomWrite = true;
                 waves._data.Create();
 
-                Clear();
+                //ClearData();
             }
             //_previewMat.mainTexture = waves._data;
 
         }
 
-        void Clear()
+        void ClearData()
         {
             CommandBuffer.Clear();
-            CommandBuffer.SetRenderTarget((target as PaintedWaves)._data);
+            CommandBuffer.SetRenderTarget((target as UserDataPainted)._data);
             CommandBuffer.ClearRenderTarget(true, true, Color.black);
             Graphics.ExecuteCommandBuffer(CommandBuffer);
         }
@@ -232,7 +273,7 @@ namespace Crest
         {
             if (!OceanRenderer.Instance) return;
 
-            var waves = target as PaintedWaves;
+            var waves = target as UserDataPainted;
 
             if (!WorldPosFromMouse(Event.current.mousePosition, out Vector3 pt))
             {
@@ -255,7 +296,7 @@ namespace Crest
             }
         }
 
-        void Paint(PaintedWaves waves, Vector2 uv, Vector2 dir)
+        void Paint(UserDataPainted waves, Vector2 uv, Vector2 dir)
         {
             CommandBuffer.Clear();
 
@@ -300,7 +341,7 @@ namespace Crest
 
             if (GUILayout.Button("Clear"))
             {
-                Clear();
+                ClearData();
             }
         }
     }

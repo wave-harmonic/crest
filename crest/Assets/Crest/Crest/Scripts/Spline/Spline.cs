@@ -18,7 +18,7 @@ namespace Crest.Spline
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines")]
-    public partial class Spline : MonoBehaviour, ISplinePointCustomDataSetup
+    public partial class Spline : MonoBehaviour, ISplinePointCustomDataSetup, IUserAuthoredInput
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -59,6 +59,17 @@ namespace Crest.Spline
 
             splinePoint.AddComponent<SplinePointData>();
             return true;
+        }
+
+        void IUserAuthoredInput.PrepareMaterial(Material mat)
+        {
+            // TODO - enable keywords to make material use the spline geo. Right now
+            // there is a completely separate shader for the spline/ge case which does not scale
+            // and requires specific treatment in the code.
+        }
+        void IUserAuthoredInput.UpdateMaterial(Material mat)
+        {
+            // No per frame update required for Spline
         }
     }
 

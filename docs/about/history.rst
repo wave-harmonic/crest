@@ -20,6 +20,7 @@ Fixed
    -  Provide feedback on how to solve errors from *Sphere-Water Interaction* moving file locations.
    -  Fix *Underwater Renderer* stereo rendering not working in builds for Unity 2021.2.
    -  Fix *Underwater Renderer* stereo rendering issue where both eyes are same for color and/or depth with certain features enabled.
+   -  Fix stereo rendering for *Examples* scene.
 
 .. only:: urp
 

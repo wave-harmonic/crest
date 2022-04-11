@@ -223,7 +223,7 @@ namespace Crest
             }
 
             _cursor.position = pt;
-            _cursor.localScale = 2f * Vector3.one * waves._brushRadius;
+            _cursor.localScale = new Vector3(2f, 0.25f, 2f) * waves._brushRadius;
 
             if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
             {

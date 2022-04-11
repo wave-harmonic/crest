@@ -18,8 +18,14 @@ namespace Crest
     [ExecuteAlways]
     public class UserDataPainted : MonoBehaviour, IUserAuthoredInput
     {
+        [Header("Settings")]
         public float _size = 256f;
         public int _resolution = 256;
+
+        [Header("Painting")]
+
+        [Range(0f, 1f)]
+        public float _brushStrength = 0.75f;
 
         [Range(0.25f, 100f, 5f)]
         public float _brushRadius = 5f;
@@ -229,7 +235,7 @@ namespace Crest
                 uv.x = (pt.x - waves.transform.position.x) / waves._size + 0.5f;
                 uv.y = (pt.z - waves.transform.position.z) / waves._size + 0.5f;
 
-                var remove = Event.current.shift ? 0.025f : 0f;
+                var remove = Event.current.shift ? 0.06f : 0f;
 
                 Paint(waves, uv, dir, remove);
             }
@@ -251,6 +257,7 @@ namespace Crest
             //}
 
             CommandBuffer.SetComputeFloatParam(_paintShader, "_RadiusUV", waves._brushRadius / waves._size);
+            CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushStrength", waves._brushStrength);
             CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushHardness", waves._brushHardness);
             CommandBuffer.SetComputeFloatParam(_paintShader, "_Remove", remove);
             CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintUV", uv);

@@ -100,52 +100,6 @@ namespace Crest
 
             _waves = target as UserDataPainted;
         }
-
-        //public override void OnToolGUI(EditorWindow window)
-        //{
-        //    EditorGUI.BeginChangeCheck();
-
-        //    var pos = Tools.handlePosition;
-
-        //    using (new Handles.DrawingScope(Color.green))
-        //    {
-        //        pos = Handles.Slider(pos, Vector3.right);
-        //    }
-
-        //    if (EditorGUI.EndChangeCheck())
-        //    {
-        //        var delta = pos - Tools.handlePosition;
-
-        //        Undo.RecordObjects(Selection.transforms, "Crest Wave Painting");
-
-        //        foreach (var transform in Selection.transforms)
-        //        {
-        //            transform.position += delta;
-        //        }
-        //    }
-        //}
-
-        public override void OnToolGUI(EditorWindow window)
-        {
-            //var evt = Event.current;
-
-            //if (evt.type == EventType.Repaint)
-            //{
-            //    var zTest = Handles.zTest;
-            //    Handles.zTest = CompareFunction.LessEqual;
-
-            //    foreach (var entry in _vertices)
-            //    {
-            //        foreach (var vertex in entry._positions)
-            //        {
-            //            var world = entry._transform.TransformPoint(vertex);
-            //            Handles.DotHandleCap(0, world, Quaternion.identity, HandleUtility.GetHandleSize(world) * .05f, evt.type);
-            //        }
-            //    }
-
-            //    Handles.zTest = zTest;
-            //}
-        }
     }
 
     // Additively blend mouse motion vector onto RG16F. Vector size < 1 used as wave weight.
@@ -154,13 +108,9 @@ namespace Crest
     [CustomEditor(typeof(UserDataPainted))]
     class PaintedWavesEditor : Editor
     {
-        //Transform _preview;
-
         Transform _cursor;
         ComputeShader _paintShader;
         int _kernel = 0;
-
-        //Material _previewMat;
 
         Vector3 _motionVector;
 
@@ -184,17 +134,6 @@ namespace Crest
             _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
             _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
 
-            // This created a plane to try to draw a preview of the texture in the world. What is most likely needed
-            // is debug code in the ocean material to visualise it on the water itself as the plane was ugly.
-            //_preview = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
-            //_preview.localScale = Vector3.one * 50f;
-            //// Can't rotate??
-            //_preview.eulerAngles = 90f * Vector3.right;
-            //_preview.gameObject.hideFlags = HideFlags.HideAndDontSave;
-            //_preview.position = (target as PaintedWaves).transform.position + Vector3.up * 10f;
-            //_previewMat = new Material(Shader.Find("Unlit/Texture"));
-            //_preview.GetComponent<Renderer>().material = _previewMat;
-
             if (_paintShader == null)
             {
                 _paintShader = ComputeShaderHelpers.LoadShader("PaintWaves");
@@ -211,8 +150,6 @@ namespace Crest
 
                 //ClearData();
             }
-            //_previewMat.mainTexture = waves._data;
-
         }
 
         void ClearData()

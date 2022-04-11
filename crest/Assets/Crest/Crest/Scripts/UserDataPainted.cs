@@ -230,6 +230,7 @@ namespace Crest
                 Vector2 dir;
                 dir.x = pt.x - ptLast.x;
                 dir.y = pt.z - ptLast.z;
+                dir.Normalize();
 
                 Vector2 uv;
                 uv.x = (pt.x - waves.transform.position.x) / waves._size + 0.5f;

@@ -25,7 +25,7 @@ void PaintWaves(uint3 id : SV_DispatchThreadID)
 	if (_Remove == 0.0)
 	{
 		float2 dir = _Result[id.xy];
-		dir += 0.3 * _BrushStrength * _PaintDirection * paint;
+		dir += 0.01 * _BrushStrength * _PaintDirection * paint;
 		float len2 = dot(dir, dir);
 		if (len2 > 1.0) dir /= sqrt(len2);
 		_Result[id.xy] = dir;

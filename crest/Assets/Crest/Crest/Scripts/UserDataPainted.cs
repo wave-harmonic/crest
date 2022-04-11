@@ -121,7 +121,7 @@ namespace Crest
             {
                 if (_cmdBuf == null)
                 {
-                    _cmdBuf = new UnityEngine.Rendering.CommandBuffer();
+                    _cmdBuf = new CommandBuffer();
                 }
                 _cmdBuf.name = "Paint Waves";
                 return _cmdBuf;
@@ -228,11 +228,14 @@ namespace Crest
                 Vector2 uv;
                 uv.x = (pt.x - waves.transform.position.x) / waves._size + 0.5f;
                 uv.y = (pt.z - waves.transform.position.z) / waves._size + 0.5f;
-                Paint(waves, uv, dir);
+
+                var remove = Event.current.shift ? 0.025f : 0f;
+
+                Paint(waves, uv, dir, remove);
             }
         }
 
-        void Paint(UserDataPainted waves, Vector2 uv, Vector2 dir)
+        void Paint(UserDataPainted waves, Vector2 uv, Vector2 dir, float remove)
         {
             CommandBuffer.Clear();
 
@@ -249,6 +252,7 @@ namespace Crest
 
             CommandBuffer.SetComputeFloatParam(_paintShader, "_RadiusUV", waves._brushRadius / waves._size);
             CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushHardness", waves._brushHardness);
+            CommandBuffer.SetComputeFloatParam(_paintShader, "_Remove", remove);
             CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintUV", uv);
             CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintDirection", dir);
             CommandBuffer.SetComputeTextureParam(_paintShader, _kernel, "_Result", waves._data);

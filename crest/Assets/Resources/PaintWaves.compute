@@ -6,6 +6,7 @@ float2 _PaintUV;
 float _RadiusUV;
 float2 _PaintDirection;
 float _BrushHardness;
+float _Remove;
 
 [numthreads(8,8,1)]
 void PaintWaves(uint3 id : SV_DispatchThreadID)
@@ -20,9 +21,16 @@ void PaintWaves(uint3 id : SV_DispatchThreadID)
 	float paint = smoothstep(_RadiusUV, 0.0, length(uv - _PaintUV));
 	paint = 1.0 - pow(saturate(1.0 - paint), _BrushHardness);
 
-	float2 dir = _Result[id.xy];
-	dir += 0.1 * _PaintDirection * paint;
-	float len2 = dot(dir, dir);
-	if (len2 > 1.0) dir /= sqrt(len2);
-	_Result[id.xy] = dir;
+	if (_Remove == 0.0)
+	{
+		float2 dir = _Result[id.xy];
+		dir += 0.1 * _PaintDirection * paint;
+		float len2 = dot(dir, dir);
+		if (len2 > 1.0) dir /= sqrt(len2);
+		_Result[id.xy] = dir;
+	}
+	else
+	{
+		_Result[id.xy] = lerp(_Result[id.xy], 0.0f, _Remove * paint);
+	}
 }

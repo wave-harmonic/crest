@@ -80,6 +80,15 @@ namespace Crest
             Start();
         }
 
+        internal override void OnDisable()
+        {
+            base.OnDisable();
+            _waveBuffers.Release();
+            Helpers.Destroy(_waveBuffers);
+            _combineBuffer.Release();
+            Helpers.Destroy(_combineBuffer);
+        }
+
         protected override void InitData()
         {
             base.InitData();
@@ -138,7 +147,7 @@ namespace Crest
             result.filterMode = FilterMode.Bilinear;
             result.anisoLevel = 0;
             result.useMipMap = false;
-            result.name = "CombineBuffer";
+            result.name = "CrestCombineBuffer";
             result.dimension = TextureDimension.Tex2D;
             result.volumeDepth = 1;
             result.enableRandomWrite = false;

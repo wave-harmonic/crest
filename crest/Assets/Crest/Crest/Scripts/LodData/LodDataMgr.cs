@@ -278,6 +278,13 @@ namespace Crest
         {
             // Unbind from all graphics shaders (not compute)
             Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);
+
+            // Release resources and destroy object to avoid reference leak.
+            _targets.RunLambda(x =>
+            {
+                x.Release();
+                Helpers.Destroy(x);
+            });
         }
     }
 }

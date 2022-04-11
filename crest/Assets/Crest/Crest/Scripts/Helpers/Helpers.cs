@@ -139,6 +139,28 @@ namespace Crest
             RenderTargetIdentifierXR(ref texture, ref target);
         }
 
+        /// <summary>
+        /// Creates an RT with an RTD if it does not exist or assigns RTD to RT (RT should be released first). This
+        /// prevents reference leaks.
+        /// </summary>
+        /// <remarks>
+        /// Afterwards call <a href="https://docs.unity3d.com/ScriptReference/RenderTexture.Create.html">Create</a> if
+        /// necessary or <a href="https://docs.unity3d.com/ScriptReference/RenderTexture-active.html">let Unity handle
+        /// it</a>.
+        /// </remarks>
+        public static void SafeCreateRenderTexture(ref RenderTexture texture, RenderTextureDescriptor descriptor)
+        {
+            // Do not overwrite reference or it will create reference leak.
+            if (texture == null)
+            {
+                texture = new RenderTexture(descriptor);
+            }
+            else
+            {
+                texture.descriptor = descriptor;
+            }
+        }
+
         public static bool RenderTargetTextureNeedsUpdating(RenderTexture texture, RenderTextureDescriptor descriptor)
         {
             return

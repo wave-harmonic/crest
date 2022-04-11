@@ -120,7 +120,7 @@ namespace Crest
         static void CreateBlackTexArray()
         {
             _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
-            _blackTextureArray.name = "Black Texture2DArray";
+            _blackTextureArray.name = "Crest Black Texture2DArray";
         }
     }
 }

@@ -84,6 +84,8 @@ namespace Crest
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
 
+        protected virtual Shader PaintedInputShader => null;
+
         public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
             if (!s_registrar.TryGetValue(lodDataMgrType, out var registered))
@@ -95,7 +97,7 @@ namespace Crest
         }
 
         internal Renderer _renderer;
-        protected Material _material;
+        Material _paintedMaterial;
         // We pass this to GetSharedMaterials to avoid allocations.
         protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
@@ -103,6 +105,18 @@ namespace Crest
         // If this is true, then the renderer should not be there as input source is from something else.
         protected virtual bool RendererRequired => true;
         protected virtual bool SupportsMultiPassShaders => false;
+
+        UserDataPainted _paintedData;
+
+        protected virtual void OnEnable()
+        {
+            _paintedData = GetComponent<UserDataPainted>();
+        }
+
+        protected virtual void OnDisable()
+        {
+            _paintedData = null;
+        }
 
         void InitRendererAndMaterial(bool verifyShader)
         {
@@ -116,8 +130,16 @@ namespace Crest
                     ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, _checkShaderName ? ShaderPrefix : String.Empty);
                 }
 #endif
+            }
 
-                _material = _renderer.sharedMaterial;
+            if (_paintedData != null)
+            {
+                var paintedInputShader = PaintedInputShader;
+                if (paintedInputShader)
+                {
+                    _paintedMaterial = new Material(paintedInputShader);
+                    _paintedData.PrepareMaterial(_paintedMaterial);
+                }
             }
         }
 
@@ -133,28 +155,47 @@ namespace Crest
             {
                 InitRendererAndMaterial(true);
             }
+
+            if (_paintedData == null)
+            {
+                _paintedData = GetComponent<UserDataPainted>();
+            }
 #endif
+
+            if (_paintedMaterial != null)
+            {
+                _paintedData?.UpdateMaterial(_paintedMaterial);
+            }
         }
 
         public virtual void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
-            if (_renderer && _material && weight > 0f)
+            if (weight == 0f)
             {
-                buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                return;
+            }
 
-                if (!FollowHorizontalMotion)
-                {
-                    // This can be called multiple times per frame - one for each LOD potentially
-                    _sampleHelper.Init(transform.position, 0f, true, this);
-                    _sampleHelper.Sample(out Vector3 displacement, out _, out _);
-                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, displacement);
-                }
-                else
-                {
-                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                }
+            buf.SetGlobalFloat(sp_Weight, weight);
+            buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
+            if (!FollowHorizontalMotion)
+            {
+                // This can be called multiple times per frame - one for each LOD potentially
+                _sampleHelper.Init(transform.position, 0f, true, this);
+                _sampleHelper.Sample(out Vector3 displacement, out _, out _);
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, displacement);
+            }
+            else
+            {
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+            }
+
+            if (_paintedMaterial)
+            {
+                buf.DrawProcedural(Matrix4x4.identity, _paintedMaterial, 0, MeshTopology.Triangles, 3);
+            }
+            else if (_renderer)
+            {
                 _renderer.GetSharedMaterials(_sharedMaterials);
                 for (var i = 0; i < _sharedMaterials.Count; i++)
                 {
@@ -222,8 +263,10 @@ namespace Crest
             return false;
         }
 
-        protected virtual void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             if (_disableRenderer)
             {
                 var rend = GetComponent<Renderer>();
@@ -250,8 +293,10 @@ namespace Crest
             _registeredQueueValue = q;
         }
 
-        protected virtual void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             var registrar = GetRegistrar(typeof(LodDataType));
             if (registrar != null)
             {
@@ -322,7 +367,8 @@ namespace Crest
         protected abstract string SplineShaderName { get; }
         protected abstract Vector2 DefaultCustomData { get; }
 
-        protected override bool RendererRequired => _spline == null;
+        // TODO can we simply remove this property now that painted input is a good default option?
+        protected override bool RendererRequired => false;
 
         protected float _splinePointHeightMin;
         protected float _splinePointHeightMax;
@@ -449,11 +495,11 @@ namespace Crest
         {
             var isValid = ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, RendererRequired, RendererOptional, _checkShaderName ? ShaderPrefix : String.Empty);
 
-            if (_checkShaderPasses && _material != null && _material.passCount > 1 && !SupportsMultiPassShaders)
+            if (_checkShaderPasses && _paintedMaterial != null && _paintedMaterial.passCount > 1 && !SupportsMultiPassShaders)
             {
                 showMessage
                 (
-                    $"The shader <i>{_material.shader.name}</i> for material <i>{_material.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
+                    $"The shader <i>{_paintedMaterial.shader.name}</i> for material <i>{_paintedMaterial.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
                     "See documentation for more information on what multi-pass shaders work or",
                     "use a shader with a single pass.",
                     ValidatedHelper.MessageType.Warning, this

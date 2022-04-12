@@ -136,6 +136,8 @@ namespace Crest
 
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
 
+        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintWaves");
+
         Mesh _meshForDrawingWaves;
 
         float _windTurbulenceOld;

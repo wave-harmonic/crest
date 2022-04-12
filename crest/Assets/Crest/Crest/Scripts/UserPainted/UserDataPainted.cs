@@ -16,6 +16,7 @@ namespace Crest
     public interface IPaintedDataClient
     {
         UnityEngine.Experimental.Rendering.GraphicsFormat GraphicsFormat { get; }
+        ComputeShader PaintShader { get; }
     }
 
     // TODO - maybe rename? UserDataPainted and UserDataSpline would have been a systematic naming. However not sure
@@ -174,10 +175,8 @@ namespace Crest
             _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
             _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
 
-            if (_paintShader == null)
-            {
-                _paintShader = ComputeShaderHelpers.LoadShader("PaintWaves");
-            }
+            var client = (target as UserDataPainted).GetComponent<IPaintedDataClient>();
+            _paintShader = client.PaintShader;
 
             InitialiseData();
         }

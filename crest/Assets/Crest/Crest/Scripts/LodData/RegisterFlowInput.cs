@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -12,7 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#flow")]
-    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>
+    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>, IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -30,11 +31,15 @@ namespace Crest
         protected override Color GizmoColor => new Color(0f, 0f, 1f, 0.5f);
 
         protected override string ShaderPrefix => "Crest/Inputs/Flow";
+        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");
 
         protected override bool FollowHorizontalMotion => _followHorizontalMotion;
 
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Flow/Spline Geometry";
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
+
+        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
+        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintFlow");
 
         [Header("Other Settings")]
 

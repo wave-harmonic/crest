@@ -170,7 +170,7 @@ namespace Crest
                 return;
             }
 
-            if (_mode == Mode.Geometry && (_renderer == null || _material == null))
+            if (_mode == Mode.Geometry && (_renderer == null || _sharedMaterials.Count == 0))
             {
                 return;
             }
@@ -214,11 +214,11 @@ namespace Crest
                 return;
             }
 
-            if (_currentMaterial != _material)
+            if (_currentMaterial != _renderer.sharedMaterial)
             {
-                _currentMaterial = _material;
+                _currentMaterial = _renderer.sharedMaterial;
                 // GC allocation hence the caching.
-                _currentShaderName = _currentMaterial.shader.name;
+                _currentShaderName = _renderer.sharedMaterial.name;
             }
 
             // Prevents possible conflicts since overlapping doesn't work for every case for convex null.

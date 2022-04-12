@@ -34,7 +34,7 @@ namespace Crest
             base.OnPreviewGUI(r, background);
 
             var data = target as UserDataPainted;
-            if (data == null) return;
+            if (data == null || data._data == null) return;
 
             if (Mathf.Approximately(r.width, 1f)) return;
 

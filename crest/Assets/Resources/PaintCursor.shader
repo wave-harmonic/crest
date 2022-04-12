@@ -1,3 +1,5 @@
+// TODO can this be editor only?
+
 Shader "Crest/PaintCursor"
 {
     Properties

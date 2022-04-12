@@ -1,6 +1,6 @@
 #pragma kernel PaintHeight
 
-RWTexture2D<float2> _Result;
+RWTexture2D<float> _Result;
 
 float2 _PaintUV;
 float _RadiusUV;

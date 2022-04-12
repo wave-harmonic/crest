@@ -5,16 +5,26 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    // Interface that clients use to call into this component
     public interface IUserAuthoredInput
     {
         void PrepareMaterial(Material mat);
         void UpdateMaterial(Material mat);
     }
 
+    // Interface that this component uses to find clients and determine their data requirements
+    public interface IPaintedDataClient
+    {
+        UnityEngine.Experimental.Rendering.GraphicsFormat GraphicsFormat { get; }
+    }
+
     // TODO - maybe rename? UserDataPainted and UserDataSpline would have been a systematic naming. However not sure
     // if this is user friendly, and not sure if it makes sense if we dont rename the Spline.
     // TODO - this component has no Enabled checkbox because enabling/disabling would need handling in terms of updating the
     // material keywords, and I'm unsure how best for this communication to happen
+    // Made separate component as it matches the spline input (somewhat) and also it gives all the editor functionality below which may be painful
+    // to apply to all our component types? Assuming it stays this way, then we need a way for it to be query the required data type and any
+    // behaviour modifications.
     [ExecuteAlways]
     public class UserDataPainted : MonoBehaviour, IUserAuthoredInput
     {
@@ -78,6 +88,7 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
+    // This typeof means it gets activated for the above component
     [EditorTool("Crest Wave Painting", typeof(UserDataPainted))]
     class WavePaintingEditorTool : EditorTool
     {
@@ -134,6 +145,29 @@ namespace Crest
             }
         }
 
+        void InitialiseData()
+        {
+            var paintComp = target as UserDataPainted;
+
+            var client = paintComp.GetComponent<IPaintedDataClient>();
+            if (client == null)
+            {
+                return;
+            }
+
+            var fmt = client.GraphicsFormat;
+            if (paintComp._data == null || paintComp._data.width != paintComp._resolution || paintComp._data.height != paintComp._resolution || paintComp._data.graphicsFormat != fmt)
+            {
+                // This may be an awful pitfall if it automatically deletes data without warning. May want to make this a user action from a helpbox rather than automatic.
+                // Also a copy/resample of the existing data on resolution change would be nice!
+                paintComp._data = new RenderTexture(paintComp._resolution, paintComp._resolution, 0, fmt);
+                paintComp._data.enableRandomWrite = true;
+                paintComp._data.Create();
+            }
+        }
+
+        bool DataInitialised() => (target as UserDataPainted)._data != null && (target as UserDataPainted)._data.IsCreated();
+
         private void OnEnable()
         {
             _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
@@ -145,17 +179,7 @@ namespace Crest
                 _paintShader = ComputeShaderHelpers.LoadShader("PaintWaves");
             }
 
-
-            var waves = target as UserDataPainted;
-            if (waves._data == null || waves._data.width != waves._resolution || waves._data.height != waves._resolution)
-            {
-                // TODO 
-                waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16_SFloat);
-                waves._data.enableRandomWrite = true;
-                waves._data.Create();
-
-                //ClearData();
-            }
+            InitialiseData();
         }
 
         void ClearData()
@@ -169,7 +193,6 @@ namespace Crest
         private void OnDisable()
         {
             DestroyImmediate(_cursor.gameObject);
-            //DestroyImmediate(_preview.gameObject);
         }
 
         private void OnSceneGUI()
@@ -244,6 +267,14 @@ namespace Crest
 
         void Paint(UserDataPainted waves, Vector2 uv, Vector2 dir, float remove)
         {
+            InitialiseData();
+
+            if (!DataInitialised())
+            {
+                Debug.LogError("Crest: No component found that will use painted data. Attach a ShapeFFT component to paint waves, or one of the Register Ocean Input variants to input other types of data", this);
+                return;
+            }
+
             CommandBuffer.Clear();
 
             //if (waves._data == null || waves._data.width != waves._resolution || waves._data.height != waves._resolution)

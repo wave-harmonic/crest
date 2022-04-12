@@ -5,6 +5,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
+using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -19,6 +20,7 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
+        , IPaintedDataClient
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -131,6 +133,8 @@ namespace Crest
         public float _timeLoopLength = 32f;
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
+
+        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
 
         Mesh _meshForDrawingWaves;
 

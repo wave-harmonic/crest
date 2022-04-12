@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -11,7 +12,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
-    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>
+    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -35,6 +36,10 @@ namespace Crest
         protected override Vector2 DefaultCustomData => Vector2.zero;
 
         protected override bool FollowHorizontalMotion => true;
+
+        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Animated Waves/Painted Height");
+        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
+        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintHeight");
 
         [Header("Height Input Settings")]
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]

@@ -269,6 +269,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _size: 512
   _resolution: 256
-  _brushStrength: 0.429
-  _brushRadius: 11.2
+  _brushStrength: 0.476
+  _brushRadius: 49.7
   _brushHardness: 1

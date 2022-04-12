@@ -97,7 +97,7 @@ namespace Crest
         }
 
         internal Renderer _renderer;
-        Material _paintedMaterial;
+        protected Material _paintedMaterial;
         // We pass this to GetSharedMaterials to avoid allocations.
         protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();

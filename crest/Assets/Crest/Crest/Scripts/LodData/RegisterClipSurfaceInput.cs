@@ -4,6 +4,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,7 +15,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
-    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
+    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -77,6 +78,10 @@ namespace Crest
 
         // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
         protected override bool FollowHorizontalMotion => true;
+
+        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
+        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
+        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintClip");
 
         // Cache shader name to prevent allocations.
         protected override bool SupportsMultiPassShaders => _currentShaderName == "Crest/Inputs/Clip Surface/Convex Hull";
@@ -179,7 +184,12 @@ namespace Crest
             buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
             buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
 
-            if (_mode == Mode.Primitive)
+            // Prioritize painting if available. TODO is this right, rather than exposing a Mode for painted?
+            if (_paintedMaterial)
+            {
+                buf.DrawProcedural(Matrix4x4.identity, _paintedMaterial, 0, MeshTopology.Triangles, 3);
+            }
+            else if (_mode == Mode.Primitive)
             {
                 // Need this here or will see NullReferenceException on recompile.
                 if (_mpb == null)
@@ -214,7 +224,7 @@ namespace Crest
                 return;
             }
 
-            if (_currentMaterial != _renderer.sharedMaterial)
+            if (_renderer != null && _currentMaterial != _renderer.sharedMaterial)
             {
                 _currentMaterial = _renderer.sharedMaterial;
                 // GC allocation hence the caching.

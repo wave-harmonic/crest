@@ -206,6 +206,10 @@ namespace Crest
                 case EventType.MouseMove:
                     OnMouseDrag(false);
                     break;
+                case EventType.MouseDown:
+                    // Boost strength of mouse down, feels much better when clicking
+                    OnMouseDrag(Event.current.button == 0, 3f);
+                    break;
                 case EventType.MouseDrag:
                     OnMouseDrag(Event.current.button == 0);
                     break;
@@ -233,7 +237,7 @@ namespace Crest
             return true;
         }
 
-        void OnMouseDrag(bool dragging)
+        void OnMouseDrag(bool dragging, float weightMultiplier = 1f)
         {
             if (!OceanRenderer.Instance) return;
 
@@ -260,11 +264,11 @@ namespace Crest
 
                 var remove = Event.current.shift ? 0.06f : 0f;
 
-                Paint(waves, uv, dir, remove);
+                Paint(waves, uv, dir, remove, weightMultiplier);
             }
         }
 
-        void Paint(UserDataPainted waves, Vector2 uv, Vector2 dir, float remove)
+        void Paint(UserDataPainted waves, Vector2 uv, Vector2 dir, float remove, float weightMultiplier = 1f)
         {
             InitialiseData();
 
@@ -288,7 +292,7 @@ namespace Crest
             //}
 
             CommandBuffer.SetComputeFloatParam(_paintShader, "_RadiusUV", waves._brushRadius / waves._size);
-            CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushStrength", waves._brushStrength);
+            CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushStrength", waves._brushStrength * weightMultiplier);
             CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushHardness", waves._brushHardness);
             CommandBuffer.SetComputeFloatParam(_paintShader, "_Remove", remove);
             CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintUV", uv);

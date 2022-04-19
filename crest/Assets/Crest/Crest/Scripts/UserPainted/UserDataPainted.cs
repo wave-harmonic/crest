@@ -44,8 +44,6 @@ namespace Crest
         [Range(1f, 100f, 5f)]
         public float _brushHardness = 1f;
 
-        // TODO - structural question - how to support different data requirements? Perhaps make this
-        // a base class and have specific derived classes for R16, RG16, etc..
         // TODO - made nonserialised as behaviour is pretty buggy when on. Reloading a scene
         // seems to kill the data. Perhaps needs to be Texture2D?
         [System.NonSerialized]

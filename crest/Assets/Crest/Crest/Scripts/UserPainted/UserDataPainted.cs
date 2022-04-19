@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEngine.Rendering;
+using Unity.Mathematics;
 
 namespace Crest
 {
@@ -44,16 +45,30 @@ namespace Crest
         [Range(1f, 100f, 5f)]
         public float _brushHardness = 1f;
 
-        // TODO - made nonserialised as behaviour is pretty buggy when on. Reloading a scene
-        // seems to kill the data. Perhaps needs to be Texture2D?
+        // This is the data that is serialised/deserialised to make data persist
+        [HideInInspector]
+        public byte[] _dataBytes;
+
+        // The deserialised data is uploaded to this texture which is normally used for rendering
+        public Texture2D _dataTexture2D;
+
+        // While painting, the data is read/written to this RT (it takes priority over _dataTexture2D) so that
+        // compute shaders can operate on it.
         [System.NonSerialized]
-        public RenderTexture _data;
+        public RenderTexture _dataRT;
 
         public void PrepareMaterial(Material mat)
         {
             mat.EnableKeyword("_PAINTED_ON");
 
-            mat.SetTexture("_PaintedWavesData", _data);
+            if (_dataRT != null)
+            {
+                mat.SetTexture("_PaintedWavesData", _dataRT);
+            }
+            else
+            {
+                mat.SetTexture("_PaintedWavesData", _dataTexture2D);
+            }
             mat.SetFloat("_PaintedWavesSize", _size);
 
             Vector2 pos;
@@ -66,7 +81,14 @@ namespace Crest
         {
 #if UNITY_EDITOR
             // Any per-frame update. In editor keep it all fresh.
-            mat.SetTexture("_PaintedWavesData", _data);
+            if (_dataRT != null)
+            {
+                mat.SetTexture("_PaintedWavesData", _dataRT);
+            }
+            else
+            {
+                mat.SetTexture("_PaintedWavesData", _dataTexture2D);
+            }
             mat.SetFloat("_PaintedWavesSize", _size);
 
             Vector2 pos;
@@ -155,17 +177,19 @@ namespace Crest
             }
 
             var fmt = client.GraphicsFormat;
-            if (paintComp._data == null || paintComp._data.width != paintComp._resolution || paintComp._data.height != paintComp._resolution || paintComp._data.graphicsFormat != fmt)
+            if (paintComp._dataTexture2D == null || paintComp._dataTexture2D.width != paintComp._resolution || paintComp._dataTexture2D.height != paintComp._resolution || paintComp._dataTexture2D.graphicsFormat != fmt)
             {
                 // This may be an awful pitfall if it automatically deletes data without warning. May want to make this a user action from a helpbox rather than automatic.
                 // Also a copy/resample of the existing data on resolution change would be nice!
-                paintComp._data = new RenderTexture(paintComp._resolution, paintComp._resolution, 0, fmt);
-                paintComp._data.enableRandomWrite = true;
-                paintComp._data.Create();
+                paintComp._dataTexture2D = new Texture2D(paintComp._resolution, paintComp._resolution, UnityEngine.Experimental.Rendering.DefaultFormat.HDR, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+                if (paintComp._dataBytes != null && paintComp._dataBytes.Length > 0)
+                {
+                    paintComp._dataTexture2D.LoadImage(paintComp._dataBytes);
+                }
             }
         }
 
-        bool DataInitialised() => (target as UserDataPainted)._data != null && (target as UserDataPainted)._data.IsCreated();
+        bool DataInitialised() => (target as UserDataPainted)._dataRT != null && (target as UserDataPainted)._dataRT.IsCreated();
 
         private void OnEnable()
         {
@@ -182,7 +206,7 @@ namespace Crest
         void ClearData()
         {
             CommandBuffer.Clear();
-            CommandBuffer.SetRenderTarget((target as UserDataPainted)._data);
+            CommandBuffer.SetRenderTarget((target as UserDataPainted)._dataRT);
             CommandBuffer.ClearRenderTarget(true, true, Color.black);
             Graphics.ExecuteCommandBuffer(CommandBuffer);
         }
@@ -295,27 +319,72 @@ namespace Crest
             CommandBuffer.SetComputeFloatParam(_paintShader, "_Remove", remove);
             CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintUV", uv);
             CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintDirection", dir);
-            CommandBuffer.SetComputeTextureParam(_paintShader, _kernel, "_Result", waves._data);
-            CommandBuffer.DispatchCompute(_paintShader, _kernel, (waves._data.width + 7) / 8, (waves._data.height + 7) / 8, 1);
+            CommandBuffer.SetComputeTextureParam(_paintShader, _kernel, "_Result", waves._dataRT);
+            CommandBuffer.DispatchCompute(_paintShader, _kernel, (waves._dataRT.width + 7) / 8, (waves._dataRT.height + 7) / 8, 1);
             Graphics.ExecuteCommandBuffer(CommandBuffer);
+        }
+
+        private void StopPainting(UserDataPainted paintComp)
+        {
+            // When finishing painting, need to extract contents out of RT into a normal texture that can then be saved to bytes
+            // that can be serialised to disk.
+
+            // Read data from RT. Roughly follows FFTBaker.cs. Weirdly this already seems to get messed up - usually results in a cyan
+            // texture if you watch the Preview and click Stop Painting.
+            RenderTexture.active = paintComp._dataRT;
+            paintComp._dataTexture2D.ReadPixels(new Rect(0, 0, paintComp._dataRT.width, paintComp._dataRT.height), 0, 0);
+            paintComp._dataTexture2D.Apply();
+
+            // Save the data to bytes
+            paintComp._dataBytes = paintComp._dataTexture2D.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
+
+            // Clean up - destroy the RT
+            RenderTexture.active = null;
+            paintComp._dataRT.Release();
+            paintComp._dataRT = null;
         }
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            if (WavePaintingEditorTool.CurrentlyPainting)
+            var paintComp = target as UserDataPainted;
+
+            if (!paintComp.enabled || !paintComp.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (!WavePaintingEditorTool.CurrentlyPainting)
+            {
+                var client = paintComp.GetComponent<IPaintedDataClient>();
+
+                GUI.enabled = client != null;
+                if (GUILayout.Button("Start Painting"))
+                {
+                    ToolManager.SetActiveTool<WavePaintingEditorTool>();
+
+                    // To start painting we need to move over to a RenderTexture so that a Compute Shader can update it (alternatively
+                    // we could update it on the CPU I suppose..?). Allocate a rendertexture and copy the current texture data to it to initialise it.
+
+                    if (paintComp._dataRT == null || paintComp._dataRT.width != paintComp._resolution || paintComp._dataRT.height != paintComp._resolution || paintComp._dataRT.graphicsFormat != client.GraphicsFormat)
+                    {
+                        paintComp._dataRT = new RenderTexture(paintComp._resolution, paintComp._resolution, 0, client.GraphicsFormat);
+                        paintComp._dataRT.enableRandomWrite = true;
+                        paintComp._dataRT.Create();
+                    }
+
+                    Graphics.CopyTexture(paintComp._dataTexture2D, paintComp._dataRT);
+                }
+                GUI.enabled = true;
+            }
+            else
             {
                 if (GUILayout.Button("Stop Painting"))
                 {
                     ToolManager.RestorePreviousPersistentTool();
-                }
-            }
-            else
-            {
-                if (GUILayout.Button("Start Painting"))
-                {
-                    ToolManager.SetActiveTool<WavePaintingEditorTool>();
+
+                    StopPainting(paintComp);
                 }
             }
 

@@ -21,9 +21,18 @@ namespace Crest
         public override string GetInfoString()
         {
             var data = target as UserDataPainted;
-            if (data == null || data._data == null) return "";
-
-            return $"{data._data.width}x{data._data.height} {data._data.graphicsFormat}";
+            if (data != null)
+            {
+                if (data._dataRT != null)
+                {
+                    return $"{data._dataRT.width}x{data._dataRT.height} {data._dataRT.graphicsFormat}";
+                }
+                else if (data._dataTexture2D != null)
+                {
+                    return $"{data._dataTexture2D.width}x{data._dataTexture2D.height} {data._dataTexture2D.graphicsFormat}";
+                }
+            }
+            return "";
         }
 
         /// <summary>
@@ -33,12 +42,20 @@ namespace Crest
         {
             base.OnPreviewGUI(r, background);
 
-            var data = target as UserDataPainted;
-            if (data == null || data._data == null) return;
-
             if (Mathf.Approximately(r.width, 1f)) return;
 
-            GUI.DrawTexture(r, data._data, ScaleMode.ScaleToFit, false);
+            var data = target as UserDataPainted;
+            if (data != null)
+            {
+                if (data._dataRT != null)
+                {
+                    GUI.DrawTexture(r, data._dataRT, ScaleMode.ScaleToFit, false);
+                }
+                else if (data._dataTexture2D != null)
+                {
+                    GUI.DrawTexture(r, data._dataTexture2D, ScaleMode.ScaleToFit, false);
+                }
+            }
         }
     }
 }

@@ -181,6 +181,8 @@ namespace Crest
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
+        static int s_Count = 0;
+
         /// <summary>
         /// Min wavelength for a cascade in the wave buffer. Does not depend on viewpoint.
         /// </summary>
@@ -319,6 +321,20 @@ namespace Crest
                 if (i == -1) break;
                 _batches[i] = new FFTBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
                 registered.Add(0, _batches[i]);
+            }
+        }
+
+        void Awake()
+        {
+            s_Count++;
+        }
+
+        void OnDestroy()
+        {
+            // Since FFTCompute resources are shared we will clear after last ShapeFFT is destroyed.
+            if (--s_Count <= 0)
+            {
+                FFTCompute.CleanUpAll();
             }
         }
 

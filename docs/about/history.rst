@@ -26,6 +26,10 @@ Fixed
    -  Fix several *Texture2D* and *RenderTexture* memory and reference leaks.
    -  Fix excessively long build times when no *Underwater Renderer* is present in scene.
 
+.. only:: hdrp
+
+   -  Fix ocean not rendering in builds for Unity 2021.2 if no *Underwater Renderer* is present. `[HDRP]`
+
 .. only:: urp
 
    -  Disable `SSAO` for *Examples* scene and warn users of incompatibility with *Portals and Volumes* feature. `[URP]`

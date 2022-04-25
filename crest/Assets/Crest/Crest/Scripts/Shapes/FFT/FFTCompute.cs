@@ -172,6 +172,27 @@ namespace Crest
             _isInitialised = true;
         }
 
+        void CleanUp()
+        {
+            // Destroy to clear references.
+            Helpers.Destroy(_spectrumInit);
+            Helpers.Destroy(_spectrumHeight);
+            Helpers.Destroy(_spectrumDisplaceX);
+            Helpers.Destroy(_spectrumDisplaceZ);
+            Helpers.Destroy(_tempFFT1);
+            Helpers.Destroy(_tempFFT2);
+            Helpers.Destroy(_tempFFT3);
+        }
+
+        internal static void CleanUpAll()
+        {
+            foreach (var generator in _generators)
+            {
+                generator.Value.Release();
+                generator.Value.CleanUp();
+            }
+        }
+
         static Dictionary<int, FFTCompute> _generators = new Dictionary<int, FFTCompute>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

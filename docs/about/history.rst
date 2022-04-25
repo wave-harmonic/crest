@@ -24,6 +24,7 @@ Fixed
    -  Fix *ShapeFFT* memory leaks.
    -  Fix several material and mesh memory leaks and reference leaks.
    -  Fix several *Texture2D* and *RenderTexture* memory and reference leaks.
+   -  Fix excessively long build times when no *Underwater Renderer* is present in scene.
 
 .. only:: urp
 

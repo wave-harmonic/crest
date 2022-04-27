@@ -26,6 +26,10 @@ Fixed
    -  Fix several *Texture2D* and *RenderTexture* memory and reference leaks.
    -  Fix excessively long build times when no *Underwater Renderer* is present in scene.
 
+.. only:: birp
+
+   -  Fix color being incorrect for *Underwater Shader API*. `[BIRP]`
+
 .. only:: hdrp
 
    -  Fix ocean not rendering in builds for Unity 2021.2 if no *Underwater Renderer* is present. `[HDRP]`

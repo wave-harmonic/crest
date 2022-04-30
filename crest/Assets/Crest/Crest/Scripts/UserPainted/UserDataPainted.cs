@@ -49,6 +49,17 @@ namespace Crest
         [System.NonSerialized]
         public RenderTexture _data;
 
+        [System.NonSerialized]
+        public CPUTexture2D<float> _tex = new CPUTexture2D<float>();
+
+        private void OnEnable()
+        {
+            _tex.Resolution = new Vector2Int(_resolution, _resolution);
+            _tex.WorldSize = new Vector2(_size, _size);
+            _tex.CenterPosition = new Vector2(transform.position.x, transform.position.z);
+            _tex.InitialiseDataIfNeeded();
+        }
+
         public void PrepareMaterial(Material mat)
         {
             mat.EnableKeyword("_PAINTED_ON");
@@ -249,6 +260,8 @@ namespace Crest
             _cursor.position = pt;
             _cursor.localScale = new Vector3(2f, 0.25f, 2f) * waves._brushRadius;
 
+            Debug.DrawLine(_cursor.position, _cursor.position + Vector3.up * waves._tex.Sample(_cursor.position, CPUTexture2DHelpers.BilinearInterpolateFloat));
+
             if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
             {
                 Vector2 dir;
@@ -263,6 +276,8 @@ namespace Crest
                 var remove = Event.current.shift ? 0.06f : 0f;
 
                 Paint(waves, uv, dir, remove, weightMultiplier);
+
+                waves._tex.PaintSmoothstep(pt, waves._brushRadius, weightMultiplier * 0.01f, waves._brushStrength, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
             }
         }
 

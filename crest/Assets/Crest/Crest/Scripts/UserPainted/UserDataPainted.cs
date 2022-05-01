@@ -1,7 +1,10 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 namespace Crest
@@ -16,7 +19,7 @@ namespace Crest
     // Interface that this component uses to find clients and determine their data requirements
     public interface IPaintedDataClient
     {
-        UnityEngine.Experimental.Rendering.GraphicsFormat GraphicsFormat { get; }
+        GraphicsFormat GraphicsFormat { get; }
         ComputeShader PaintShader { get; }
     }
 
@@ -45,11 +48,15 @@ namespace Crest
         [Range(1f, 100f, 5f)]
         public float _brushHardness = 1f;
 
-        [System.NonSerialized]
-        public CPUTexture2D<float> _tex = new CPUTexture2D<float>();
+        public CPUTexture2D<float> _tex;
 
         private void OnEnable()
         {
+            if (_tex == null)
+            {
+                _tex = new CPUTexture2D<float>();
+            }
+
             _tex.Resolution = new Vector2Int(_resolution, _resolution);
             _tex.WorldSize = new Vector2(_size, _size);
             _tex.CenterPosition = new Vector2(transform.position.x, transform.position.z);
@@ -231,7 +238,10 @@ namespace Crest
                 // TODO
                 var remove = Event.current.shift ? 0.06f : 0f;
 
-                waves._tex.PaintSmoothstep(pt, waves._brushRadius, weightMultiplier * 0.1f, waves._brushStrength, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
+                if (waves._tex.PaintSmoothstep(pt, waves._brushRadius, weightMultiplier * 0.1f, waves._brushStrength, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
+                {
+                    EditorUtility.SetDirty(waves);
+                }
             }
         }
 

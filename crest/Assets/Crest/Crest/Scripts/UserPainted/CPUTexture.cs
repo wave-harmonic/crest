@@ -1,3 +1,7 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -64,7 +68,7 @@ namespace Crest
         [SerializeField]
         bool _dataChangeFlag = false;
 
-        [SerializeField, HideInInspector]
+        [SerializeField]
         Vector2 _worldSize = Vector2.one;
         public Vector2 WorldSize
         {
@@ -81,6 +85,7 @@ namespace Crest
         }
 
         // 2x2 minimum instead of 1x1 as latter would require painful special casing in sample function
+        [SerializeField]
         Vector2Int _resolution = Vector2Int.one * 2;
         public Vector2Int Resolution
         {
@@ -137,7 +142,7 @@ namespace Crest
         }
 
         // Paint func(Existing value, Paint value, Value weight) returns new value
-        public void PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, T paintValue, Func<T, T, float, T> paintFn)
+        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, T paintValue, Func<T, T, float, T> paintFn)
         {
             InitialiseDataIfNeeded();
 
@@ -156,6 +161,8 @@ namespace Crest
                 x = Mathf.CeilToInt(radiusUV.x * _resolution.x),
                 y = Mathf.CeilToInt(radiusUV.y * _resolution.y)
             };
+
+            var valuesWritten = false;
 
             for (int yy = -radiusTexel.y; yy <= radiusTexel.y; yy++)
             {
@@ -177,9 +184,16 @@ namespace Crest
                     var idx = y * _resolution.x + x;
                     _data[idx] = paintFn(_data[idx], paintValue, paintWeight * wt);
 
-                    _dataChangeFlag = true;
+                    valuesWritten = true;
                 }
             }
+
+            if (valuesWritten)
+            {
+                _dataChangeFlag = true;
+            }
+
+            return valuesWritten;
         }
 
         public void InitialiseDataIfNeeded()

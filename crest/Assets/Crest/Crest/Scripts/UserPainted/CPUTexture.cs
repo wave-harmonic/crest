@@ -7,6 +7,13 @@ namespace Crest
     {
         public static float BilinearInterpolateFloat(float[] data, int dataResolutionX, Vector2Int coordBottomLeft, Vector2 fractional)
         {
+#if UNITY_EDITOR
+            if ((coordBottomLeft.y + 1) * dataResolutionX + coordBottomLeft.x + 1 >= data.Length)
+            {
+                Debug.Assert(false, $"Out of bounds array access coords ({coordBottomLeft.x + 1}, {coordBottomLeft.y + 1}), resolution x = {dataResolutionX}.");
+            }
+#endif
+
             // Assumes data is bigger than 1x1, and assume coordBottomLeft is in valid range!
             var v00 = data[coordBottomLeft.y * dataResolutionX + coordBottomLeft.x];
             var v01 = data[coordBottomLeft.y * dataResolutionX + coordBottomLeft.x + 1];
@@ -97,7 +104,7 @@ namespace Crest
                 fractional.x = 0f;
                 clamped = true;
             }
-            else if (coordBottomLeft.x >= _resolution.x)
+            else if (coordBottomLeft.x >= _resolution.x - 1)
             {
                 coordBottomLeft.x = _resolution.x - 2;
                 fractional.x = 1f;
@@ -109,7 +116,7 @@ namespace Crest
                 fractional.y = 0f;
                 clamped = true;
             }
-            else if (coordBottomLeft.y >= _resolution.y)
+            else if (coordBottomLeft.y >= _resolution.y - 1)
             {
                 coordBottomLeft.y = _resolution.y - 2;
                 fractional.y = 1f;

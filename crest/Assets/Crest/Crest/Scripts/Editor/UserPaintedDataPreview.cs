@@ -20,10 +20,12 @@ namespace Crest
         /// </summary>
         public override string GetInfoString()
         {
-            var data = target as UserDataPainted;
-            if (data == null || data._tex == null) return "";
+            var paint = target as UserDataPainted;
+            var client = paint?.GetComponent<IPaintedDataClient>();
+            var data = client?.Texture;
+            if (data == null) return "";
 
-            return $"{data._tex.Resolution.x}x{data._tex.Resolution.y}"; // {data._data.graphicsFormat}";
+            return $"{data.Resolution.x}x{data.Resolution.y} {client.GraphicsFormat}";
         }
 
         /// <summary>
@@ -35,12 +37,12 @@ namespace Crest
 
             if (Mathf.Approximately(r.width, 1f)) return;
 
-            var data = target as UserDataPainted;
-            if (data == null || data._tex == null) return;
+            var paint = target as UserDataPainted;
+            var client = paint?.GetComponent<IPaintedDataClient>();
+            var data = client?.Texture;
+            if (data == null || data.Texture == null) return;
 
-            var tex = data._tex.GPUTexture(UnityEngine.Experimental.Rendering.GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
-
-            GUI.DrawTexture(r, tex, ScaleMode.ScaleToFit, false);
+            GUI.DrawTexture(r, data.Texture, ScaleMode.ScaleToFit, false);
         }
     }
 }

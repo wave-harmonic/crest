@@ -20,7 +20,6 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
-        , IPaintedDataClient
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -136,7 +135,7 @@ namespace Crest
 
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
 
-        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintWaves");
+        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintWaves");
 
         Mesh _meshForDrawingWaves;
 
@@ -247,12 +246,13 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
-            var input = GetComponent<IUserAuthoredInput>();
-            if (input != null)
-            {
-                input.UpdateMaterial(_matGenerateWaves);
-            }
-            else
+            // TODO - need to make a new member with the texture, like in RegisterHeightInput
+            //var input = GetComponent<IUserAuthoredInput>();
+            //if (input != null)
+            //{
+            //    input.UpdateMaterial(_matGenerateWaves);
+            //}
+            //else
             {
                 // TODO - remove once we have keywords added to the material as no code containing _PaintedWavesSize will be compiled in
                 _matGenerateWaves.SetFloat("_PaintedWavesSize", 0f);
@@ -360,11 +360,12 @@ namespace Crest
             // enable/disable keywords to achieve functionality.
             // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
             // validation
-            var input = GetComponent<IUserAuthoredInput>();
-            if (input != null)
-            {
-                input.PrepareMaterial(_matGenerateWaves);
-            }
+            // TODO - need to make a new member with the texture, like in RegisterHeightInput
+            //var input = GetComponent<IUserAuthoredInput>();
+            //if (input != null)
+            //{
+            //    input.PrepareMaterial(_matGenerateWaves);
+            //}
 
             // Submit draws to create the FFT waves
             _batches = new FFTBatch[CASCADE_COUNT];

@@ -106,16 +106,12 @@ namespace Crest
         protected virtual bool RendererRequired => true;
         protected virtual bool SupportsMultiPassShaders => false;
 
-        UserDataPainted _paintedData;
-
         protected virtual void OnEnable()
         {
-            _paintedData = GetComponent<UserDataPainted>();
         }
 
         protected virtual void OnDisable()
         {
-            _paintedData = null;
         }
 
         void InitRendererAndMaterial(bool verifyShader)
@@ -132,15 +128,23 @@ namespace Crest
 #endif
             }
 
-            if (_paintedData != null)
+            // TODO should this only be done under some conditions or is null check below fine?
             {
                 var paintedInputShader = PaintedInputShader;
                 if (paintedInputShader)
                 {
                     _paintedMaterial = new Material(paintedInputShader);
-                    _paintedData.PrepareMaterial(_paintedMaterial);
+                    PrepareMaterial(_paintedMaterial);
                 }
             }
+        }
+
+        protected virtual void PrepareMaterial(Material mat)
+        {
+        }
+
+        protected virtual void UpdateMaterial(Material mat)
+        {
         }
 
         protected virtual void Start()
@@ -156,15 +160,11 @@ namespace Crest
                 InitRendererAndMaterial(true);
             }
 
-            if (_paintedData == null)
-            {
-                _paintedData = GetComponent<UserDataPainted>();
-            }
 #endif
 
             if (_paintedMaterial != null)
             {
-                _paintedData?.UpdateMaterial(_paintedMaterial);
+                UpdateMaterial(_paintedMaterial);
             }
         }
 
@@ -564,6 +564,8 @@ namespace Crest
             }
 
             base.OnInspectorGUI();
+
+            GUILayout.Label("RegisterLodDataInputBaseEditor");
         }
     }
 

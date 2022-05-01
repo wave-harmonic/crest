@@ -15,7 +15,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
-    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintedDataClient
+    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -81,7 +81,7 @@ namespace Crest
 
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
-        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintClip");
+        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintClip");
 
         // Cache shader name to prevent allocations.
         protected override bool SupportsMultiPassShaders => _currentShaderName == "Crest/Inputs/Clip Surface/Convex Hull";

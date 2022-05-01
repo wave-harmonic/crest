@@ -9,19 +9,22 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
-    // Interface that clients use to call into this component
-    public interface IUserAuthoredInput
-    {
-        void PrepareMaterial(Material mat);
-        void UpdateMaterial(Material mat);
-    }
-
     // Interface that this component uses to find clients and determine their data requirements
     public interface IPaintedDataClient
     {
         GraphicsFormat GraphicsFormat { get; }
-        ComputeShader PaintShader { get; }
+
+        void ClearData();
+
+        void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight);
+
+        CPUTexture2DBase Texture { get; }
+
+        float WorldSize { get; }
+        float PaintRadius { get; }
     }
+
+    // TODO this is now merely just a paint support component. Perhaps it shoudl be added automatically. Maybe it shoudl not show in inspector.
 
     // TODO - maybe rename? UserDataPainted and UserDataSpline would have been a systematic naming. However not sure
     // if this is user friendly, and not sure if it makes sense if we dont rename the Spline.
@@ -31,69 +34,15 @@ namespace Crest
     // to apply to all our component types? Assuming it stays this way, then we need a way for it to be query the required data type and any
     // behaviour modifications.
     [ExecuteAlways]
-    public class UserDataPainted : MonoBehaviour, IUserAuthoredInput
+    public class UserDataPainted : MonoBehaviour
     {
-        [Header("Settings")]
-        public float _size = 256f;
-        public int _resolution = 256;
-
-        [Header("Painting")]
-
-        [Range(0f, 1f)]
-        public float _brushStrength = 0.75f;
-
-        [Range(0.25f, 100f, 5f)]
-        public float _brushRadius = 5f;
-
-        [Range(1f, 100f, 5f)]
-        public float _brushHardness = 1f;
-
-        public CPUTexture2D<float> _tex;
-
-        private void OnEnable()
-        {
-            if (_tex == null)
-            {
-                _tex = new CPUTexture2D<float>();
-            }
-
-            _tex.Resolution = new Vector2Int(_resolution, _resolution);
-            _tex.WorldSize = new Vector2(_size, _size);
-            _tex.CenterPosition = new Vector2(transform.position.x, transform.position.z);
-            _tex.InitialiseDataIfNeeded();
-        }
-
-        public void PrepareMaterial(Material mat)
-        {
-            mat.EnableKeyword("_PAINTED_ON");
-
-            mat.SetTexture("_PaintedWavesData", _tex.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
-            mat.SetFloat("_PaintedWavesSize", _size);
-
-            Vector2 pos;
-            pos.x = transform.position.x;
-            pos.y = transform.position.z;
-            mat.SetVector("_PaintedWavesPosition", pos);
-        }
-
-        public void UpdateMaterial(Material mat)
-        {
-#if UNITY_EDITOR
-            // Any per-frame update. In editor keep it all fresh.
-            mat.SetTexture("_PaintedWavesData", _tex.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
-            mat.SetFloat("_PaintedWavesSize", _size);
-
-            Vector2 pos;
-            pos.x = transform.position.x;
-            pos.y = transform.position.z;
-            mat.SetVector("_PaintedWavesPosition", pos);
-#endif
-        }
-
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()
         {
-            Gizmos.matrix = Matrix4x4.Translate(transform.position) * Matrix4x4.Scale(_size * Vector3.one);
+            var client = GetComponent<IPaintedDataClient>();
+            if (client == null) return;
+
+            Gizmos.matrix = Matrix4x4.Translate(transform.position) * Matrix4x4.Scale(client.WorldSize * Vector3.one);
             Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 0.5f) : new Color(1f, 1f, 1f, 0.5f);
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
         }
@@ -136,7 +85,7 @@ namespace Crest
     // Weight could also ramp up when motion vector confidence is low. Motion vector could lerp towards
     // current delta each frame.
     [CustomEditor(typeof(UserDataPainted))]
-    class PaintedWavesEditor : Editor
+    class PaintedInputEditor : Editor
     {
         Transform _cursor;
 
@@ -149,7 +98,7 @@ namespace Crest
 
         void ClearData()
         {
-            (target as UserDataPainted)._tex.Clear(0f);
+            (target as UserDataPainted)?.GetComponent<IPaintedDataClient>()?.ClearData();
         }
 
         private void OnDisable()
@@ -205,24 +154,20 @@ namespace Crest
             if (!OceanRenderer.Instance) return;
 
             var waves = target as UserDataPainted;
-            var wavesPos = waves.transform.position;
 
             if (!WorldPosFromMouse(Event.current.mousePosition, out Vector3 pt))
             {
                 return;
             }
 
-            _cursor.position = pt;
-            _cursor.localScale = new Vector3(2f, 0.25f, 2f) * waves._brushRadius;
-
-            // The tex could instead be given a transform to take the position from. Maybe that's better.
-            waves._tex.CenterPosition = new Vector2(wavesPos.x, wavesPos.z);
-
-            float result = 0f;
-            if (waves._tex.Sample(_cursor.position, CPUTexture2DHelpers.BilinearInterpolateFloat, ref result))
+            var client = waves.GetComponent<IPaintedDataClient>();
+            if (client == null)
             {
-                Debug.DrawLine(_cursor.position, _cursor.position + Vector3.up * result);
+                return;
             }
+
+            _cursor.position = pt;
+            _cursor.localScale = new Vector3(2f, 0.25f, 2f) * client.PaintRadius;
 
             if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
             {
@@ -231,17 +176,10 @@ namespace Crest
                 dir.y = pt.z - ptLast.z;
                 dir.Normalize();
 
-                Vector2 uv;
-                uv.x = (pt.x - waves.transform.position.x) / waves._size + 0.5f;
-                uv.y = (pt.z - waves.transform.position.z) / waves._size + 0.5f;
-
                 // TODO
                 var remove = Event.current.shift ? 0.06f : 0f;
 
-                if (waves._tex.PaintSmoothstep(pt, waves._brushRadius, weightMultiplier * 0.1f, waves._brushStrength, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
-                {
-                    EditorUtility.SetDirty(waves);
-                }
+                client.Paint(pt, dir, 1f);
             }
         }
 

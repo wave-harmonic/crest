@@ -13,7 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#foam")]
-    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>, IPaintedDataClient
+    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -39,7 +39,7 @@ namespace Crest
 
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
-        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintHeight");
+        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintHeight");
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = false;

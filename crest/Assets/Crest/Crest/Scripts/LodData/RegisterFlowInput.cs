@@ -13,7 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#flow")]
-    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>, IPaintedDataClient
+    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -39,7 +39,7 @@ namespace Crest
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
 
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
-        public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintFlow");
+        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintFlow");
 
         [Header("Other Settings")]
 

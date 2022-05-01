@@ -59,39 +59,72 @@ namespace Crest
         public static Color ColorConstructFnTwoChannel(Vector2 value) => new Color(value.x, value.y, 0f);
     }
 
-    [System.Serializable]
-    public class CPUTexture2D<T>
+    [Serializable]
+    public class CPUTexture2DPaintable_R16_AddBlend : CPUTexture2DPaintable<float>
     {
+        public bool Sample(Vector3 position3, ref float result)
+        {
+            return Sample(position3, CPUTexture2DHelpers.BilinearInterpolateFloat, ref result);
+        }
+
+        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, float paintValue)
+        {
+            return PaintSmoothstep(paintPosition3, paintRadius, paintWeight, paintValue, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
+        }
+    }
+
+    [Serializable]
+    public class CPUTexture2DPaintable<T> : CPUTexture2D<T>
+    {
+        [Header("Paint Settings")]
+        [Range(0f, 1f)]
+        public float _brushStrength = 0.75f;
+
+        [Range(0.25f, 100f, 5f)]
+        public float _brushRadius = 5f;
+
+        [Range(1f, 100f, 5f)]
+        public float _brushHardness = 1f;
+
+        public void PrepareMaterial(Material mat)
+        {
+            mat.EnableKeyword("_PAINTED_ON");
+
+            // Has to be done outside - this contains non-generic knowledge. TODO review how this is done.
+            //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
+            mat.SetFloat("_PaintedWavesSize", WorldSize.x);
+            mat.SetVector("_PaintedWavesPosition", CenterPosition);
+        }
+
+        public void UpdateMaterial(Material mat)
+        {
+#if UNITY_EDITOR
+            // Any per-frame update. In editor keep it all fresh.
+            // Has to be done outside - this contains non-generic knowledge. TODO review how this is done.
+            //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
+            mat.SetFloat("_PaintedWavesSize", WorldSize.x);
+            mat.SetVector("_PaintedWavesPosition", CenterPosition);
+#endif
+        }
+
+        public bool PaintSmoothstep(Vector3 paintPosition3, float paintWeight, T paintValue, Func<T, T, float, T> paintFn)
+        {
+            return PaintSmoothstep(paintPosition3, _brushRadius, paintWeight * _brushStrength, paintValue, paintFn);
+        }
+    }
+
+    [Serializable]
+    public class CPUTexture2D<T> : CPUTexture2DBase
+    {
+        // Perhaps this will be used instead of manually attaching UserDataPainted
+        //[SerializeField]
+        //bool _enable = false;
+
         [SerializeField, HideInInspector]
         T[] _data;
 
-        [SerializeField]
-        bool _dataChangeFlag = false;
-
-        [SerializeField]
-        Vector2 _worldSize = Vector2.one;
-        public Vector2 WorldSize
-        {
-            get => _worldSize;
-            set => SetWorldSize(value);
-        }
-
         [SerializeField, HideInInspector]
-        Vector2 _centerPosition = Vector2.zero;
-        public Vector2 CenterPosition
-        {
-            get => _centerPosition;
-            set => SetCenterPosition(value);
-        }
-
-        // 2x2 minimum instead of 1x1 as latter would require painful special casing in sample function
-        [SerializeField]
-        Vector2Int _resolution = Vector2Int.one * 2;
-        public Vector2Int Resolution
-        {
-            get => _resolution;
-            set => SetResolution(value);
-        }
+        bool _dataChangeFlag = false;
 
         Texture2D _textureGPU;
 
@@ -196,7 +229,7 @@ namespace Crest
             return valuesWritten;
         }
 
-        public void InitialiseDataIfNeeded()
+        public bool InitialiseDataIfNeeded()
         {
             // 2x2 minimum instead of 1x1 as latter would require painful special casing in sample function
             Debug.Assert(_resolution.x > 1 && _resolution.y > 1);
@@ -205,8 +238,13 @@ namespace Crest
             {
                 // Could copy data to be more graceful
                 _data = new T[_resolution.x * _resolution.y];
+                return true;
             }
+
+            return false;
         }
+
+        public override Texture2D Texture => _textureGPU;
 
         // This may allocate the texture and update it with data if needed.
         public Texture2D GPUTexture(GraphicsFormat format, Func<T, Color> colorConstructFn)
@@ -249,22 +287,57 @@ namespace Crest
             _dataChangeFlag = true;
         }
 
-        void SetWorldSize(Vector2 newWorldSize)
+        protected override void SetWorldSize(Vector2 newWorldSize)
         {
             // Could copy data to be more graceful
             _worldSize = newWorldSize;
         }
 
-        void SetCenterPosition(Vector2 newCenterPosition)
+        protected override void SetCenterPosition(Vector2 newCenterPosition)
         {
             // Could copy data to be more graceful..
             _centerPosition = newCenterPosition;
         }
 
-        private void SetResolution(Vector2Int newResolution)
+        protected override void SetResolution(Vector2Int newResolution)
         {
             // Could copy data to be more graceful..
             _resolution = newResolution;
         }
+    }
+
+    [Serializable]
+    public abstract class CPUTexture2DBase
+    {
+        [Header("Data Settings")]
+        [SerializeField]
+        protected Vector2 _worldSize = Vector2.one * 64f;
+        public Vector2 WorldSize
+        {
+            get => _worldSize;
+            set => SetWorldSize(value);
+        }
+
+        [SerializeField, HideInInspector]
+        protected Vector2 _centerPosition = Vector2.zero;
+        public Vector2 CenterPosition
+        {
+            get => _centerPosition;
+            set => SetCenterPosition(value);
+        }
+
+        [SerializeField]
+        protected Vector2Int _resolution = Vector2Int.one * 64;
+        public Vector2Int Resolution
+        {
+            get => _resolution;
+            set => SetResolution(value);
+        }
+
+        protected abstract void SetWorldSize(Vector2 newWorldSize);
+        protected abstract void SetCenterPosition(Vector2 newCenterPosition);
+        protected abstract void SetResolution(Vector2Int newResolution);
+
+        public abstract Texture2D Texture { get; }
     }
 }

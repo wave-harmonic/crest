@@ -130,9 +130,6 @@ namespace Crest
         // Paint func(Existing value, Paint value, Value weight) returns new value
         public void PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, T paintValue, Func<T, T, float, T> paintFn)
         {
-            // TODO - remove this later
-            paintWeight = Mathf.Clamp01(paintWeight);
-
             InitialiseDataIfNeeded();
 
             var paintPosition = new Vector2(paintPosition3.x, paintPosition3.z);
@@ -163,8 +160,8 @@ namespace Crest
                     if (x < 0) continue;
                     if (x >= _resolution.x) break;
 
-                    float xn = xx / radiusTexel.x;
-                    float yn = yy / radiusTexel.y;
+                    float xn = (x - paintTexel.x) / radiusTexel.x;
+                    float yn = (y - paintTexel.y) / radiusTexel.y;
                     var alpha = Mathf.Sqrt(xn * xn + yn * yn);
                     var wt = Mathf.SmoothStep(1f, 0f, alpha);
 

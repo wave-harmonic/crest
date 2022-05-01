@@ -75,7 +75,7 @@ namespace Crest
         }
 
         // Interpolation func(data[], dataResolutionX, bottomLeftCoord, fractional) return interpolated value
-        public T Sample(Vector3 position3, Func<T[], int, Vector2Int, Vector2, T> interpolationFn)
+        public bool Sample(Vector3 position3, Func<T[], int, Vector2Int, Vector2, T> interpolationFn, ref T result)
         {
             var position = new Vector2(position3.x, position3.z);
             var uv = (position - _centerPosition) / _worldSize + 0.5f * Vector2.one;
@@ -90,28 +90,34 @@ namespace Crest
             var fractional = texel - texelBottomLeft;
 
             // Clamp
+            var clamped = false;
             if (coordBottomLeft.x < 0)
             {
                 coordBottomLeft.x = 0;
                 fractional.x = 0f;
+                clamped = true;
+            }
+            else if (coordBottomLeft.x >= _resolution.x)
+            {
+                coordBottomLeft.x = _resolution.x - 2;
+                fractional.x = 1f;
+                clamped = true;
             }
             if (coordBottomLeft.y < 0)
             {
                 coordBottomLeft.y = 0;
                 fractional.y = 0f;
+                clamped = true;
             }
-            if (coordBottomLeft.x >= _resolution.x)
-            {
-                coordBottomLeft.x = _resolution.x - 2;
-                fractional.x = 1f;
-            }
-            if (coordBottomLeft.y >= _resolution.y)
+            else if (coordBottomLeft.y >= _resolution.y)
             {
                 coordBottomLeft.y = _resolution.y - 2;
                 fractional.y = 1f;
+                clamped = true;
             }
 
-            return interpolationFn(_data, _resolution.x, coordBottomLeft, fractional);
+            result = interpolationFn(_data, _resolution.x, coordBottomLeft, fractional);
+            return !clamped;
         }
 
         // Paint func(Existing value, Paint value, Value weight) returns new value

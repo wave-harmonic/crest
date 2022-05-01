@@ -261,9 +261,14 @@ namespace Crest
             _cursor.position = pt;
             _cursor.localScale = new Vector3(2f, 0.25f, 2f) * waves._brushRadius;
 
-            Debug.DrawLine(_cursor.position, _cursor.position + Vector3.up * waves._tex.Sample(_cursor.position, CPUTexture2DHelpers.BilinearInterpolateFloat));
             // The tex could instead be given a transform to take the position from. Maybe that's better.
             waves._tex.CenterPosition = new Vector2(wavesPos.x, wavesPos.z);
+
+            float result = 0f;
+            if (waves._tex.Sample(_cursor.position, CPUTexture2DHelpers.BilinearInterpolateFloat, ref result))
+            {
+                Debug.DrawLine(_cursor.position, _cursor.position + Vector3.up * result);
+            }
 
             if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
             {

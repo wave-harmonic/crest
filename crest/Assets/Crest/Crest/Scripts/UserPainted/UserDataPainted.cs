@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -44,11 +45,6 @@ namespace Crest
         [Range(1f, 100f, 5f)]
         public float _brushHardness = 1f;
 
-        // TODO - made nonserialised as behaviour is pretty buggy when on. Reloading a scene
-        // seems to kill the data. Perhaps needs to be Texture2D?
-        [System.NonSerialized]
-        public RenderTexture _data;
-
         [System.NonSerialized]
         public CPUTexture2D<float> _tex = new CPUTexture2D<float>();
 
@@ -64,7 +60,7 @@ namespace Crest
         {
             mat.EnableKeyword("_PAINTED_ON");
 
-            mat.SetTexture("_PaintedWavesData", _data);
+            mat.SetTexture("_PaintedWavesData", _tex.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             mat.SetFloat("_PaintedWavesSize", _size);
 
             Vector2 pos;
@@ -77,7 +73,7 @@ namespace Crest
         {
 #if UNITY_EDITOR
             // Any per-frame update. In editor keep it all fresh.
-            mat.SetTexture("_PaintedWavesData", _data);
+            mat.SetTexture("_PaintedWavesData", _tex.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             mat.SetFloat("_PaintedWavesSize", _size);
 
             Vector2 pos;
@@ -136,66 +132,17 @@ namespace Crest
     class PaintedWavesEditor : Editor
     {
         Transform _cursor;
-        ComputeShader _paintShader;
-        int _kernel = 0;
-
-        Vector3 _motionVector;
-
-        CommandBuffer _cmdBuf;
-        CommandBuffer CommandBuffer
-        {
-            get
-            {
-                if (_cmdBuf == null)
-                {
-                    _cmdBuf = new CommandBuffer();
-                }
-                _cmdBuf.name = "Paint Waves";
-                return _cmdBuf;
-            }
-        }
-
-        void InitialiseData()
-        {
-            var paintComp = target as UserDataPainted;
-
-            var client = paintComp.GetComponent<IPaintedDataClient>();
-            if (client == null)
-            {
-                return;
-            }
-
-            var fmt = client.GraphicsFormat;
-            if (paintComp._data == null || paintComp._data.width != paintComp._resolution || paintComp._data.height != paintComp._resolution || paintComp._data.graphicsFormat != fmt)
-            {
-                // This may be an awful pitfall if it automatically deletes data without warning. May want to make this a user action from a helpbox rather than automatic.
-                // Also a copy/resample of the existing data on resolution change would be nice!
-                paintComp._data = new RenderTexture(paintComp._resolution, paintComp._resolution, 0, fmt);
-                paintComp._data.enableRandomWrite = true;
-                paintComp._data.Create();
-            }
-        }
-
-        bool DataInitialised() => (target as UserDataPainted)._data != null && (target as UserDataPainted)._data.IsCreated();
 
         private void OnEnable()
         {
             _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
             _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
             _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
-
-            var client = (target as UserDataPainted).GetComponent<IPaintedDataClient>();
-            _paintShader = client.PaintShader;
-
-            InitialiseData();
         }
 
         void ClearData()
         {
-            CommandBuffer.Clear();
-            CommandBuffer.SetRenderTarget((target as UserDataPainted)._data);
-            CommandBuffer.ClearRenderTarget(true, true, Color.black);
-            Graphics.ExecuteCommandBuffer(CommandBuffer);
+            (target as UserDataPainted)._tex.Clear(0f);
         }
 
         private void OnDisable()
@@ -281,46 +228,11 @@ namespace Crest
                 uv.x = (pt.x - waves.transform.position.x) / waves._size + 0.5f;
                 uv.y = (pt.z - waves.transform.position.z) / waves._size + 0.5f;
 
+                // TODO
                 var remove = Event.current.shift ? 0.06f : 0f;
-
-                Paint(waves, uv, dir, remove, weightMultiplier);
 
                 waves._tex.PaintSmoothstep(pt, waves._brushRadius, weightMultiplier * 0.1f, waves._brushStrength, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
             }
-        }
-
-        void Paint(UserDataPainted waves, Vector2 uv, Vector2 dir, float remove, float weightMultiplier = 1f)
-        {
-            InitialiseData();
-
-            if (!DataInitialised())
-            {
-                Debug.LogError("Crest: No component found that will use painted data. Attach a ShapeFFT component to paint waves, or one of the Register Ocean Input variants to input other types of data", this);
-                return;
-            }
-
-            CommandBuffer.Clear();
-
-            //if (waves._data == null || waves._data.width != waves._resolution || waves._data.height != waves._resolution)
-            //{
-            //    //waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
-            //    waves._data = new RenderTexture(waves._resolution, waves._resolution, 0, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16_SFloat);
-            //    waves._data.enableRandomWrite = true;
-            //    waves._data.Create();
-
-            //    CommandBuffer.SetRenderTarget(waves._data);
-            //    CommandBuffer.ClearRenderTarget(true, true, Color.white);
-            //}
-
-            CommandBuffer.SetComputeFloatParam(_paintShader, "_RadiusUV", waves._brushRadius / waves._size);
-            CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushStrength", waves._brushStrength * weightMultiplier);
-            CommandBuffer.SetComputeFloatParam(_paintShader, "_BrushHardness", waves._brushHardness);
-            CommandBuffer.SetComputeFloatParam(_paintShader, "_Remove", remove);
-            CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintUV", uv);
-            CommandBuffer.SetComputeVectorParam(_paintShader, "_PaintDirection", dir);
-            CommandBuffer.SetComputeTextureParam(_paintShader, _kernel, "_Result", waves._data);
-            CommandBuffer.DispatchCompute(_paintShader, _kernel, (waves._data.width + 7) / 8, (waves._data.height + 7) / 8, 1);
-            Graphics.ExecuteCommandBuffer(CommandBuffer);
         }
 
         public override void OnInspectorGUI()

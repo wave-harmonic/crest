@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -49,6 +50,9 @@ namespace Crest
         {
             return existingValue + paintValue * weight;
         }
+
+        public static Color ColorConstructFnOneChannel(float value) => new Color(value, 0f, 0f);
+        public static Color ColorConstructFnTwoChannel(Vector2 value) => new Color(value.x, value.y, 0f);
     }
 
     [System.Serializable]
@@ -56,6 +60,9 @@ namespace Crest
     {
         [SerializeField, HideInInspector]
         T[] _data;
+
+        [SerializeField]
+        bool _dataChangeFlag = false;
 
         [SerializeField, HideInInspector]
         Vector2 _worldSize = Vector2.one;
@@ -80,6 +87,8 @@ namespace Crest
             get => _resolution;
             set => SetResolution(value);
         }
+
+        Texture2D _textureGPU;
 
         // Interpolation func(data[], dataResolutionX, bottomLeftCoord, fractional) return interpolated value
         public bool Sample(Vector3 position3, Func<T[], int, Vector2Int, Vector2, T> interpolationFn, ref T result)
@@ -167,6 +176,8 @@ namespace Crest
 
                     var idx = y * _resolution.x + x;
                     _data[idx] = paintFn(_data[idx], paintValue, paintWeight * wt);
+
+                    _dataChangeFlag = true;
                 }
             }
         }
@@ -181,6 +192,47 @@ namespace Crest
                 // Could copy data to be more graceful
                 _data = new T[_resolution.x * _resolution.y];
             }
+        }
+
+        // This may allocate the texture and update it with data if needed.
+        public Texture2D GPUTexture(GraphicsFormat format, Func<T, Color> colorConstructFn)
+        {
+            InitialiseDataIfNeeded();
+
+            if (_textureGPU == null || _textureGPU.width != _resolution.x || _textureGPU.height != _resolution.y || _textureGPU.graphicsFormat != format)
+            {
+                _textureGPU = new Texture2D(_resolution.x, _resolution.y, format, 0, TextureCreationFlags.None);
+
+                _dataChangeFlag = true;
+            }
+
+            if (_dataChangeFlag)
+            {
+                var colors = new Color[_data.Length];
+                for (int i = 0; i < _data.Length; i++)
+                {
+                    colors[i] = colorConstructFn(_data[i]);
+                }
+                _textureGPU.SetPixels(colors);
+
+                _textureGPU.Apply();
+            }
+
+            _dataChangeFlag = false;
+
+            return _textureGPU;
+        }
+
+        public void Clear(T value)
+        {
+            InitialiseDataIfNeeded();
+
+            for (int i = 0; i < _data.Length; i++)
+            {
+                _data[i] = value;
+            }
+
+            _dataChangeFlag = true;
         }
 
         void SetWorldSize(Vector2 newWorldSize)

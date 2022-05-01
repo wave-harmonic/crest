@@ -213,14 +213,14 @@ namespace Crest
             switch (Event.current.type)
             {
                 case EventType.MouseMove:
-                    OnMouseDrag(false);
+                    OnMouseMove(false);
                     break;
                 case EventType.MouseDown:
                     // Boost strength of mouse down, feels much better when clicking
-                    OnMouseDrag(Event.current.button == 0, 3f);
+                    OnMouseMove(Event.current.button == 0, 3f);
                     break;
                 case EventType.MouseDrag:
-                    OnMouseDrag(Event.current.button == 0);
+                    OnMouseMove(Event.current.button == 0);
                     break;
                 case EventType.Layout:
                     HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
@@ -246,7 +246,7 @@ namespace Crest
             return true;
         }
 
-        void OnMouseDrag(bool dragging, float weightMultiplier = 1f)
+        void OnMouseMove(bool dragging, float weightMultiplier = 1f)
         {
             if (!OceanRenderer.Instance) return;
 

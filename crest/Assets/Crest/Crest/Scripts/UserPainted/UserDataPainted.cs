@@ -251,6 +251,7 @@ namespace Crest
             if (!OceanRenderer.Instance) return;
 
             var waves = target as UserDataPainted;
+            var wavesPos = waves.transform.position;
 
             if (!WorldPosFromMouse(Event.current.mousePosition, out Vector3 pt))
             {
@@ -261,6 +262,8 @@ namespace Crest
             _cursor.localScale = new Vector3(2f, 0.25f, 2f) * waves._brushRadius;
 
             Debug.DrawLine(_cursor.position, _cursor.position + Vector3.up * waves._tex.Sample(_cursor.position, CPUTexture2DHelpers.BilinearInterpolateFloat));
+            // The tex could instead be given a transform to take the position from. Maybe that's better.
+            waves._tex.CenterPosition = new Vector2(wavesPos.x, wavesPos.z);
 
             if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
             {

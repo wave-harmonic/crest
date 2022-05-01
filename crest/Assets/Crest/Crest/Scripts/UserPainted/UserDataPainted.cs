@@ -285,7 +285,7 @@ namespace Crest
 
                 Paint(waves, uv, dir, remove, weightMultiplier);
 
-                waves._tex.PaintSmoothstep(pt, waves._brushRadius, weightMultiplier * 0.01f, waves._brushStrength, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
+                waves._tex.PaintSmoothstep(pt, waves._brushRadius, weightMultiplier * 0.1f, waves._brushStrength, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
             }
         }
 

@@ -91,11 +91,25 @@ namespace Crest
     {
         Transform _cursor;
 
+        bool _dirtyFlag = false;
+
         private void OnEnable()
         {
             _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
             _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
             _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
+        }
+
+        private void OnDestroy()
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnDestroy");
+
+            if (_dirtyFlag)
+            {
+                EditorUtility.SetDirty(target);
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         void ClearData()
@@ -178,7 +192,10 @@ namespace Crest
                 dir.y = pt.z - ptLast.z;
                 dir.Normalize();
 
-                client.Paint(pt, dir, weightMultiplier, Event.current.shift);
+                if (client.Paint(pt, dir, weightMultiplier, Event.current.shift))
+                {
+                    _dirtyFlag = true;
+                }
             }
         }
 
@@ -191,6 +208,23 @@ namespace Crest
                 if (GUILayout.Button("Stop Painting"))
                 {
                     ToolManager.RestorePreviousPersistentTool();
+
+                    if (_dirtyFlag)
+                    {
+                        var waves = target as UserDataPainted;
+                        var client = waves?.GetComponent<IPaintedDataClient>();
+                        if (client == null)
+                        {
+                            return;
+                        }
+
+                        // This causes a big hitch it seems, so only do it when stop painting. However do we also need to detect selection changes? And other events like quitting?
+                        UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnInspectorGUI.SetDirty");
+                        EditorUtility.SetDirty(client as Component);
+                        UnityEngine.Profiling.Profiler.EndSample();
+
+                        _dirtyFlag = false;
+                    }
                 }
             }
             else

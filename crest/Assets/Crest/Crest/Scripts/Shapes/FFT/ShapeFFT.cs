@@ -134,7 +134,6 @@ namespace Crest
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
 
-        // TODO - draw outline of texture area
         #region Painting
         public CPUTexture2DPaintable_RG16_AddBlend _paintedInput;
         void PreparePaintInputMaterial(Material mat)
@@ -158,21 +157,14 @@ namespace Crest
 
         public void ClearData()
         {
-            _paintedInput.Clear(Vector2.zero);
+            _paintedInput.Clear(this, Vector2.zero);
         }
 
-        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {
             _paintedInput.CenterPosition3 = transform.position;
 
-            if (_paintedInput.PaintSmoothstep(paintPosition3, 0.125f * paintWeight, paintDir, CPUTexture2DHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove))
-            {
-                EditorUtility.SetDirty(this);
-            }
-            else
-            {
-                SceneView.RepaintAll();
-            }
+            return _paintedInput.PaintSmoothstep(this, paintPosition3, 0.125f * paintWeight, paintDir, CPUTexture2DHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove);
         }
         #endregion
 

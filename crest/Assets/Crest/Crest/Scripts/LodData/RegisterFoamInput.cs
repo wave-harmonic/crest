@@ -66,21 +66,14 @@ namespace Crest
 
         public void ClearData()
         {
-            _paintedInput.Clear(0f);
+            _paintedInput.Clear(this, 0f);
         }
 
-        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {
             _paintedInput.CenterPosition3 = transform.position;
 
-            if (_paintedInput.PaintSmoothstep(paintPosition3, paintWeight, 0.03f, CPUTexture2DHelpers.PaintFnAdditiveBlendSaturateFloat, remove))
-            {
-                EditorUtility.SetDirty(this);
-            }
-            else
-            {
-                SceneView.RepaintAll();
-            }
+            return _paintedInput.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexture2DHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
         }
 
         protected override void OnEnable()

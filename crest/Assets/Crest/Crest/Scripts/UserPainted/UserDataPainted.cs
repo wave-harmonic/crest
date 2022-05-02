@@ -16,7 +16,7 @@ namespace Crest
 
         void ClearData();
 
-        void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove);
+        bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove);
 
         CPUTexture2DBase Texture { get; }
 

@@ -129,6 +129,14 @@ namespace Crest
         [SerializeField, HideInInspector]
         bool _dataChangeFlag = false;
 
+        [SerializeField]
+        GraphicsFormat _graphicsFormat;
+        public GraphicsFormat GraphicsFormat
+        {
+            get => _graphicsFormat;
+            set => SetGraphicsFormat(value);
+        }
+
         Texture2D _textureGPU;
 
         // Interpolation func(data[], dataResolutionX, bottomLeftCoord, fractional) return interpolated value
@@ -306,14 +314,6 @@ namespace Crest
         {
             // Could copy data to be more graceful..
             _resolution = newResolution;
-        }
-
-        [SerializeField]
-        GraphicsFormat _graphicsFormat;
-        public GraphicsFormat GraphicsFormat
-        {
-            get => _graphicsFormat;
-            set => SetGraphicsFormat(value);
         }
 
         protected void SetGraphicsFormat(GraphicsFormat fmt)

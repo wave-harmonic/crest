@@ -165,8 +165,7 @@ namespace Crest
         {
             _paintedInput.CenterPosition3 = transform.position;
 
-            // TODO pass 'remove' param through all the way into the paint kernel. For waves, probably want to erase when removing.
-            if (_paintedInput.PaintSmoothstep(paintPosition3, 0.125f * paintWeight, paintDir, CPUTexture2DHelpers.PaintFnAdditiveBlendVector2))
+            if (_paintedInput.PaintSmoothstep(paintPosition3, 0.125f * paintWeight, paintDir, CPUTexture2DHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove))
             {
                 EditorUtility.SetDirty(this);
             }

@@ -46,24 +46,31 @@ namespace Crest
             return v;
         }
 
-        public static float PaintFnAlphaBlendFloat(float existingValue, float paintValue, float weight)
+        public static float PaintFnAlphaBlendFloat(float existingValue, float paintValue, float weight, bool remove)
         {
             return Mathf.Lerp(existingValue, paintValue, weight);
         }
 
-        public static float PaintFnAdditiveBlendFloat(float existingValue, float paintValue, float weight)
+        public static float PaintFnAdditiveBlendFloat(float existingValue, float paintValue, float weight, bool remove)
         {
-            return existingValue + paintValue * weight;
+            return existingValue + (remove ? -1f : 1f) * paintValue * weight;
         }
 
-        public static float PaintFnAdditiveBlendSaturateFloat(float existingValue, float paintValue, float weight)
+        public static float PaintFnAdditiveBlendSaturateFloat(float existingValue, float paintValue, float weight, bool remove)
         {
-            return Mathf.Clamp01(existingValue + paintValue * weight);
+            return Mathf.Clamp01(existingValue + (remove ? -1f : 1f) * paintValue * weight);
         }
 
-        public static Vector2 PaintFnAdditiveBlendVector2(Vector2 existingValue, Vector2 paintValue, float weight)
+        public static Vector2 PaintFnAdditivePlusRemoveBlendVector2(Vector2 existingValue, Vector2 paintValue, float weight, bool remove)
         {
-            return existingValue + paintValue * weight;
+            if (remove)
+            {
+                return Vector2.MoveTowards(existingValue, Vector2.zero, weight);
+            }
+            else
+            {
+                return existingValue + paintValue * weight;
+            }
         }
 
         public static Color ColorConstructFnOneChannel(float value) => new Color(value, 0f, 0f);
@@ -78,9 +85,9 @@ namespace Crest
             return Sample(position3, CPUTexture2DHelpers.BilinearInterpolateFloat, ref result);
         }
 
-        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, float paintValue)
+        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, float paintValue, bool remove)
         {
-            return PaintSmoothstep(paintPosition3, paintRadius, paintWeight, paintValue, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
+            return PaintSmoothstep(paintPosition3, paintRadius, paintWeight, paintValue, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat, remove);
         }
     }
 
@@ -92,9 +99,9 @@ namespace Crest
             return Sample(position3, CPUTexture2DHelpers.BilinearInterpolateVector2, ref result);
         }
 
-        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, Vector2 paintValue)
+        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, Vector2 paintValue, bool remove)
         {
-            return PaintSmoothstep(paintPosition3, paintRadius, paintWeight, paintValue, CPUTexture2DHelpers.PaintFnAdditiveBlendVector2);
+            return PaintSmoothstep(paintPosition3, paintRadius, paintWeight, paintValue, CPUTexture2DHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove);
         }
     }
 
@@ -134,9 +141,9 @@ namespace Crest
 #endif
         }
 
-        public bool PaintSmoothstep(Vector3 paintPosition3, float paintWeight, T paintValue, Func<T, T, float, T> paintFn)
+        public bool PaintSmoothstep(Vector3 paintPosition3, float paintWeight, T paintValue, Func<T, T, float, bool, T> paintFn, bool remove)
         {
-            return PaintSmoothstep(paintPosition3, _brushRadius, paintWeight * _brushStrength, paintValue, paintFn);
+            return PaintSmoothstep(paintPosition3, _brushRadius, paintWeight * _brushStrength, paintValue, paintFn, remove);
         }
     }
 
@@ -210,7 +217,7 @@ namespace Crest
         }
 
         // Paint func(Existing value, Paint value, Value weight) returns new value
-        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, T paintValue, Func<T, T, float, T> paintFn)
+        protected bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, T paintValue, Func<T, T, float, bool, T> paintFn, bool remove)
         {
             InitialiseDataIfNeeded();
 
@@ -250,7 +257,7 @@ namespace Crest
                     var wt = Mathf.SmoothStep(1f, 0f, alpha);
 
                     var idx = y * _resolution.x + x;
-                    _data[idx] = paintFn(_data[idx], paintValue, paintWeight * wt);
+                    _data[idx] = paintFn(_data[idx], paintValue, paintWeight * wt, remove);
 
                     valuesWritten = true;
                 }

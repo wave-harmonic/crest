@@ -50,17 +50,17 @@ namespace Crest
         {
             base.PrepareMaterial(mat);
 
-            _paintInput.CenterPosition = transform.position;
             mat.SetTexture("_PaintedWavesData", _paintInput.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             _paintInput.PrepareMaterial(mat);
+            _paintInput.CenterPosition3 = transform.position;
         }
         protected override void UpdateMaterial(Material mat)
         {
             base.UpdateMaterial(mat);
 
-            _paintInput.CenterPosition = transform.position;
             mat.SetTexture("_PaintedWavesData", _paintInput.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             _paintInput.UpdateMaterial(mat);
+            _paintInput.CenterPosition3 = transform.position;
         }
         public CPUTexture2DBase Texture => _paintInput;
         public float WorldSize => _paintInput.WorldSize.x;
@@ -75,7 +75,7 @@ namespace Crest
                 _paintInput = new CPUTexture2DPaintable_R16_AddBlend();
             }
 
-            _paintInput.CenterPosition = new Vector2(transform.position.x, transform.position.z);
+            _paintInput.CenterPosition3 = transform.position;
 
             if (_paintInput.InitialiseDataIfNeeded())
             {
@@ -123,10 +123,7 @@ namespace Crest
 
         public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight)
         {
-            Vector2 pos;
-            pos.x = transform.position.x;
-            pos.y = transform.position.z;
-            _paintInput.CenterPosition = pos;
+            _paintInput.CenterPosition3 = transform.position;
 
             if (_paintInput.PaintSmoothstep(paintPosition3, paintWeight, 1f, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
             {

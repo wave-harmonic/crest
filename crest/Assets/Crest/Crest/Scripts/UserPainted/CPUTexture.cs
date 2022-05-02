@@ -325,6 +325,11 @@ namespace Crest
             get => _centerPosition;
             set => SetCenterPosition(value);
         }
+        public Vector3 CenterPosition3
+        {
+            get => new Vector3(_centerPosition.x, 0f, _centerPosition.y);
+            set => SetCenterPosition(new Vector2(value.x, value.z));
+        }
 
         [SerializeField]
         protected Vector2Int _resolution = Vector2Int.one * 64;

@@ -134,16 +134,16 @@ namespace Crest
                 if (paintedInputShader)
                 {
                     _paintedMaterial = new Material(paintedInputShader);
-                    PrepareMaterial(_paintedMaterial);
+                    PreparePaintInputMaterial(_paintedMaterial);
                 }
             }
         }
 
-        protected virtual void PrepareMaterial(Material mat)
+        protected virtual void PreparePaintInputMaterial(Material mat)
         {
         }
 
-        protected virtual void UpdateMaterial(Material mat)
+        protected virtual void UpdatePaintInputMaterial(Material mat)
         {
         }
 
@@ -164,7 +164,7 @@ namespace Crest
 
             if (_paintedMaterial != null)
             {
-                UpdateMaterial(_paintedMaterial);
+                UpdatePaintInputMaterial(_paintedMaterial);
             }
         }
 

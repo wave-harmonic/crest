@@ -46,16 +46,16 @@ namespace Crest
         float _maxDisplacementVertical = 0f;
 
         public CPUTexture2DPaintable_R16_AddBlend _paintInput;
-        protected override void PrepareMaterial(Material mat)
+        protected override void PreparePaintInputMaterial(Material mat)
         {
-            base.PrepareMaterial(mat);
+            base.PreparePaintInputMaterial(mat);
 
             _paintInput.CenterPosition3 = transform.position;
             _paintInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
-        protected override void UpdateMaterial(Material mat)
+        protected override void UpdatePaintInputMaterial(Material mat)
         {
-            base.UpdateMaterial(mat);
+            base.UpdatePaintInputMaterial(mat);
 
             _paintInput.CenterPosition3 = transform.position;
             _paintInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);

@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -323,6 +324,20 @@ namespace Crest
             }
 
             _graphicsFormat = fmt;
+        }
+
+        public void Initialise(IPaintedDataClient client)
+        {
+            CenterPosition3 = client.Transform.position;
+            GraphicsFormat = client.GraphicsFormat;
+
+            if (InitialiseDataIfNeeded())
+            {
+#if UNITY_EDITOR
+                Debug.Assert(client is UnityEngine.Object);
+#endif
+                EditorUtility.SetDirty(client as UnityEngine.Object);
+            }
         }
     }
 

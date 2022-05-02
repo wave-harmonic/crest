@@ -63,6 +63,7 @@ namespace Crest
         public CPUTexture2DBase Texture => _paintInput;
         public float WorldSize => _paintInput.WorldSize.x;
         public float PaintRadius => _paintInput._brushRadius;
+        public Transform Transform => transform;
 
         protected override void OnEnable()
         {
@@ -73,13 +74,7 @@ namespace Crest
                 _paintInput = new CPUTexture2DPaintable_R16_AddBlend();
             }
 
-            _paintInput.CenterPosition3 = transform.position;
-            _paintInput.GraphicsFormat = GraphicsFormat;
-
-            if (_paintInput.InitialiseDataIfNeeded())
-            {
-                EditorUtility.SetDirty(this);
-            }
+            _paintInput.Initialise(this);
         }
 
         protected override void Update()

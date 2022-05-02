@@ -22,6 +22,8 @@ namespace Crest
 
         float WorldSize { get; }
         float PaintRadius { get; }
+
+        Transform Transform { get; }
     }
 
     // TODO this is now merely just a paint support component. Perhaps it shoudl be added automatically. Maybe it shoudl not show in inspector.

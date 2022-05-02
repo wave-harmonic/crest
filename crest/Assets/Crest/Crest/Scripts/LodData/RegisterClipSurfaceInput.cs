@@ -15,7 +15,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
-    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
+    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -79,9 +79,64 @@ namespace Crest
         // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
         protected override bool FollowHorizontalMotion => true;
 
+        #region Painting
+        public CPUTexture2DPaintable_R16_AddBlend _paintedInput;
+        protected override void PreparePaintInputMaterial(Material mat)
+        {
+            base.PreparePaintInputMaterial(mat);
+
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.GraphicsFormat = GraphicsFormat;
+            _paintedInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
+        protected override void UpdatePaintInputMaterial(Material mat)
+        {
+            base.UpdatePaintInputMaterial(mat);
+
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.GraphicsFormat = GraphicsFormat;
+            _paintedInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
-        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintClip");
+
+        public CPUTexture2DBase Texture => _paintedInput;
+        public Vector2 WorldSize => _paintedInput.WorldSize;
+        public float PaintRadius => _paintedInput._brushRadius;
+        public Transform Transform => transform;
+
+        public void ClearData()
+        {
+            _paintedInput.Clear(0f);
+        }
+
+        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintedInput.CenterPosition3 = transform.position;
+
+            var value = remove ? -1f : 1f;
+            if (_paintedInput.PaintSmoothstep(paintPosition3, paintWeight, value, CPUTexture2DHelpers.PaintFnAdditiveBlendSaturateFloat))
+            {
+                EditorUtility.SetDirty(this);
+            }
+            else
+            {
+                SceneView.RepaintAll();
+            }
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (_paintedInput == null)
+            {
+                _paintedInput = new CPUTexture2DPaintable_R16_AddBlend();
+            }
+
+            _paintedInput.Initialise(this);
+        }
+        #endregion
 
         // Cache shader name to prevent allocations.
         protected override bool SupportsMultiPassShaders => _currentShaderName == "Crest/Inputs/Clip Surface/Convex Hull";

@@ -178,7 +178,7 @@ namespace Crest
                 dir.y = pt.z - ptLast.z;
                 dir.Normalize();
 
-                client.Paint(pt, dir, 1f, Event.current.shift);
+                client.Paint(pt, dir, weightMultiplier, Event.current.shift);
             }
         }
 

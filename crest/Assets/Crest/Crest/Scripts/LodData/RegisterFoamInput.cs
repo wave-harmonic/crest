@@ -38,53 +38,54 @@ namespace Crest
         protected override Vector2 DefaultCustomData => Vector2.right;
 
         #region Painting
-        public CPUTexture2DPaintable_R16_AddBlend _paintedInput;
+        [Header("Paint Settings")]
+        public CPUTexture2DPaintable_R16_AddBlend _paintData;
         protected override void PreparePaintInputMaterial(Material mat)
         {
             base.PreparePaintInputMaterial(mat);
 
-            _paintedInput.CenterPosition3 = transform.position;
-            _paintedInput.GraphicsFormat = GraphicsFormat;
-            _paintedInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.GraphicsFormat = GraphicsFormat;
+            _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override void UpdatePaintInputMaterial(Material mat)
         {
             base.UpdatePaintInputMaterial(mat);
 
-            _paintedInput.CenterPosition3 = transform.position;
-            _paintedInput.GraphicsFormat = GraphicsFormat;
-            _paintedInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.GraphicsFormat = GraphicsFormat;
+            _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
 
-        public CPUTexture2DBase Texture => _paintedInput;
-        public Vector2 WorldSize => _paintedInput.WorldSize;
+        public CPUTexture2DBase Texture => _paintData;
+        public Vector2 WorldSize => _paintData.WorldSize;
         public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
         public Transform Transform => transform;
 
         public void ClearData()
         {
-            _paintedInput.Clear(this, 0f);
+            _paintData.Clear(this, 0f);
         }
 
         public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {
-            _paintedInput.CenterPosition3 = transform.position;
+            _paintData.CenterPosition3 = transform.position;
 
-            return _paintedInput.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
         }
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
-            if (_paintedInput == null)
+            if (_paintData == null)
             {
-                _paintedInput = new CPUTexture2DPaintable_R16_AddBlend();
+                _paintData = new CPUTexture2DPaintable_R16_AddBlend();
             }
 
-            _paintedInput.Initialise(this);
+            _paintData.Initialise(this);
         }
         #endregion
 

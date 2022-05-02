@@ -185,9 +185,9 @@ namespace Crest
             buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
 
             // Prioritize painting if available. TODO is this right, rather than exposing a Mode for painted?
-            if (_paintedMaterial)
+            if (_paintInputMaterial)
             {
-                buf.DrawProcedural(Matrix4x4.identity, _paintedMaterial, 0, MeshTopology.Triangles, 3);
+                buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
             }
             else if (_mode == Mode.Primitive)
             {

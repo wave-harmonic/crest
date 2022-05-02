@@ -97,7 +97,7 @@ namespace Crest
         }
 
         internal Renderer _renderer;
-        protected Material _paintedMaterial;
+        protected Material _paintInputMaterial;
         // We pass this to GetSharedMaterials to avoid allocations.
         protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
@@ -133,8 +133,8 @@ namespace Crest
                 var paintedInputShader = PaintedInputShader;
                 if (paintedInputShader)
                 {
-                    _paintedMaterial = new Material(paintedInputShader);
-                    PreparePaintInputMaterial(_paintedMaterial);
+                    _paintInputMaterial = new Material(paintedInputShader);
+                    PreparePaintInputMaterial(_paintInputMaterial);
                 }
             }
         }
@@ -162,9 +162,9 @@ namespace Crest
 
 #endif
 
-            if (_paintedMaterial != null)
+            if (_paintInputMaterial != null)
             {
-                UpdatePaintInputMaterial(_paintedMaterial);
+                UpdatePaintInputMaterial(_paintInputMaterial);
             }
         }
 
@@ -190,9 +190,9 @@ namespace Crest
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
             }
 
-            if (_paintedMaterial)
+            if (_paintInputMaterial)
             {
-                buf.DrawProcedural(Matrix4x4.identity, _paintedMaterial, 0, MeshTopology.Triangles, 3);
+                buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
             }
             else if (_renderer)
             {
@@ -495,11 +495,11 @@ namespace Crest
         {
             var isValid = ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, RendererRequired, RendererOptional, _checkShaderName ? ShaderPrefix : String.Empty);
 
-            if (_checkShaderPasses && _paintedMaterial != null && _paintedMaterial.passCount > 1 && !SupportsMultiPassShaders)
+            if (_checkShaderPasses && _paintInputMaterial != null && _paintInputMaterial.passCount > 1 && !SupportsMultiPassShaders)
             {
                 showMessage
                 (
-                    $"The shader <i>{_paintedMaterial.shader.name}</i> for material <i>{_paintedMaterial.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
+                    $"The shader <i>{_paintInputMaterial.shader.name}</i> for material <i>{_paintInputMaterial.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
                     "See documentation for more information on what multi-pass shaders work or",
                     "use a shader with a single pass.",
                     ValidatedHelper.MessageType.Warning, this
@@ -564,8 +564,6 @@ namespace Crest
             }
 
             base.OnInspectorGUI();
-
-            GUILayout.Label("RegisterLodDataInputBaseEditor");
         }
     }
 

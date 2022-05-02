@@ -86,7 +86,7 @@ namespace Crest
         [Range(1f, 100f, 5f)]
         public float _brushHardness = 1f;
 
-        public void PrepareMaterial(Material mat)
+        public void PrepareMaterial(Material mat, Func<T, Color> colorConstructFn)
         {
             mat.EnableKeyword("_PAINTED_ON");
 
@@ -94,9 +94,10 @@ namespace Crest
             //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             mat.SetFloat("_PaintedWavesSize", WorldSize.x);
             mat.SetVector("_PaintedWavesPosition", CenterPosition);
+            mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
         }
 
-        public void UpdateMaterial(Material mat)
+        public void UpdateMaterial(Material mat, Func<T, Color> colorConstructFn)
         {
 #if UNITY_EDITOR
             // Any per-frame update. In editor keep it all fresh.
@@ -104,6 +105,7 @@ namespace Crest
             //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             mat.SetFloat("_PaintedWavesSize", WorldSize.x);
             mat.SetVector("_PaintedWavesPosition", CenterPosition);
+            mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
 #endif
         }
 
@@ -247,13 +249,13 @@ namespace Crest
         public override Texture2D Texture => _textureGPU;
 
         // This may allocate the texture and update it with data if needed.
-        public Texture2D GPUTexture(GraphicsFormat format, Func<T, Color> colorConstructFn)
+        public Texture2D GetGPUTexture(Func<T, Color> colorConstructFn)
         {
             InitialiseDataIfNeeded();
 
-            if (_textureGPU == null || _textureGPU.width != _resolution.x || _textureGPU.height != _resolution.y || _textureGPU.graphicsFormat != format)
+            if (_textureGPU == null || _textureGPU.width != _resolution.x || _textureGPU.height != _resolution.y || _textureGPU.graphicsFormat != GraphicsFormat)
             {
-                _textureGPU = new Texture2D(_resolution.x, _resolution.y, format, 0, TextureCreationFlags.None);
+                _textureGPU = new Texture2D(_resolution.x, _resolution.y, GraphicsFormat, 0, TextureCreationFlags.None);
 
                 _dataChangeFlag = true;
             }
@@ -303,6 +305,24 @@ namespace Crest
         {
             // Could copy data to be more graceful..
             _resolution = newResolution;
+        }
+
+        [SerializeField]
+        GraphicsFormat _graphicsFormat;
+        public GraphicsFormat GraphicsFormat
+        {
+            get => _graphicsFormat;
+            set => SetGraphicsFormat(value);
+        }
+
+        protected void SetGraphicsFormat(GraphicsFormat fmt)
+        {
+            if (_textureGPU != null && _textureGPU.graphicsFormat != fmt)
+            {
+                _textureGPU = null;
+            }
+
+            _graphicsFormat = fmt;
         }
     }
 

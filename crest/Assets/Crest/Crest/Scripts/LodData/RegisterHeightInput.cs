@@ -50,17 +50,15 @@ namespace Crest
         {
             base.PrepareMaterial(mat);
 
-            mat.SetTexture("_PaintedWavesData", _paintInput.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
-            _paintInput.PrepareMaterial(mat);
             _paintInput.CenterPosition3 = transform.position;
+            _paintInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override void UpdateMaterial(Material mat)
         {
             base.UpdateMaterial(mat);
 
-            mat.SetTexture("_PaintedWavesData", _paintInput.GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
-            _paintInput.UpdateMaterial(mat);
             _paintInput.CenterPosition3 = transform.position;
+            _paintInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         public CPUTexture2DBase Texture => _paintInput;
         public float WorldSize => _paintInput.WorldSize.x;
@@ -76,6 +74,7 @@ namespace Crest
             }
 
             _paintInput.CenterPosition3 = transform.position;
+            _paintInput.GraphicsFormat = GraphicsFormat;
 
             if (_paintInput.InitialiseDataIfNeeded())
             {

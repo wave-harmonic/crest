@@ -99,6 +99,44 @@ namespace Crest
             public int _subdivisions = 1;
         }
 
+        #region Painting
+        [Header("Painting Settings")]
+        public CPUTexture2DPaintable_RG16_AddBlend _paintData;
+        void PreparePaintInputMaterial(Material mat)
+        {
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.GraphicsFormat = GraphicsFormat;
+            _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+        void UpdatePaintInputMaterial(Material mat)
+        {
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.GraphicsFormat = GraphicsFormat;
+            _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
+
+        public CPUTexture2DBase Texture => _paintData;
+        public Vector2 WorldSize => _paintData.WorldSize;
+        public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
+        public Transform Transform => transform;
+
+        UserDataPainted _paintSupport = null;
+        protected UserDataPainted PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<UserDataPainted>());
+
+        public void ClearData()
+        {
+            _paintData.Clear(this, Vector2.zero);
+        }
+
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintData.CenterPosition3 = transform.position;
+
+            return _paintData.PaintSmoothstep(this, paintPosition3, 0.125f * paintWeight, paintDir, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove);
+        }
+        #endregion
+
         [Header("Spline Settings")]
         // TODO - perhaps migrate data for components that have the wave data enabled?
         [SerializeField]
@@ -133,40 +171,6 @@ namespace Crest
         public float _timeLoopLength = 32f;
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
-
-        #region Painting
-        public CPUTexture2DPaintable_RG16_AddBlend _paintedInput;
-        void PreparePaintInputMaterial(Material mat)
-        {
-            _paintedInput.CenterPosition3 = transform.position;
-            _paintedInput.GraphicsFormat = GraphicsFormat;
-            _paintedInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
-        }
-        void UpdatePaintInputMaterial(Material mat)
-        {
-            _paintedInput.CenterPosition3 = transform.position;
-            _paintedInput.GraphicsFormat = GraphicsFormat;
-            _paintedInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
-        }
-        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
-
-        public CPUTexture2DBase Texture => _paintedInput;
-        public Vector2 WorldSize => _paintedInput.WorldSize;
-        public float PaintRadius => _paintedInput._brushRadius;
-        public Transform Transform => transform;
-
-        public void ClearData()
-        {
-            _paintedInput.Clear(this, Vector2.zero);
-        }
-
-        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
-        {
-            _paintedInput.CenterPosition3 = transform.position;
-
-            return _paintedInput.PaintSmoothstep(this, paintPosition3, 0.125f * paintWeight, paintDir, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove);
-        }
-        #endregion
 
         Mesh _meshForDrawingWaves;
 
@@ -379,7 +383,7 @@ namespace Crest
             // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
             // validation
             // TODO - I guess this ALWAY makes the material use painted waves. Add enabled option to painted texture class?
-            _paintedInput.PrepareMaterial(_matGenerateWaves, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+            _paintData.PrepareMaterial(_matGenerateWaves, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
 
             // Submit draws to create the FFT waves
             _batches = new FFTBatch[CASCADE_COUNT];
@@ -415,11 +419,11 @@ namespace Crest
             }
 #endif
 
-            if (_paintedInput == null)
+            if (_paintData == null)
             {
-                _paintedInput = new CPUTexture2DPaintable_RG16_AddBlend();
+                _paintData = new CPUTexture2DPaintable_RG16_AddBlend();
             }
-            _paintedInput.Initialise(this);
+            _paintData.Initialise(this);
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
         }

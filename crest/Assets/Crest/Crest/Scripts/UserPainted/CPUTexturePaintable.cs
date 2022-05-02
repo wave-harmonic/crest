@@ -68,16 +68,6 @@ namespace Crest
     [Serializable]
     public class CPUTexture2DPaintable<T> : CPUTexture2D<T>
     {
-        [Header("Paint Settings")]
-        [Range(0f, 1f)]
-        public float _brushStrength = 0.75f;
-
-        [Range(0.25f, 100f, 5f)]
-        public float _brushRadius = 5f;
-
-        [Range(1f, 100f, 5f)]
-        public float _brushHardness = 1f;
-
         public void PrepareMaterial(Material mat, Func<T, Color> colorConstructFn)
         {
             mat.EnableKeyword("_PAINTED_ON");
@@ -103,7 +93,17 @@ namespace Crest
 
         public bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintWeight, T paintValue, Func<T, T, float, bool, T> paintFn, bool remove)
         {
-            return PaintSmoothstep(owner, paintPosition3, _brushRadius, paintWeight * _brushStrength, paintValue, paintFn, remove);
+            var brushRadius = 0f;
+            var brushStrength = 0f;
+
+            var paintSupport = owner.GetComponent<UserDataPainted>();
+            if (paintSupport != null)
+            {
+                brushRadius = paintSupport._brushRadius;
+                brushStrength = paintSupport._brushStrength;
+            }
+
+            return PaintSmoothstep(owner, paintPosition3, brushRadius, paintWeight * brushStrength, paintValue, paintFn, remove);
         }
     }
 }

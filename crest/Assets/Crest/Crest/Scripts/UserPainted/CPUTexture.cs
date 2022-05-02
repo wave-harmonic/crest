@@ -288,7 +288,6 @@ namespace Crest
     [Serializable]
     public abstract class CPUTexture2DBase
     {
-        [Header("Data Settings")]
         [SerializeField]
         protected Vector2 _worldSize = Vector2.one * 128f;
         public Vector2 WorldSize

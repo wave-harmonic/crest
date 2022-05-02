@@ -38,6 +38,16 @@ namespace Crest
     [ExecuteAlways]
     public class UserDataPainted : MonoBehaviour
     {
+        [Header("Paint Settings")]
+        [Range(0f, 1f)]
+        public float _brushStrength = 0.75f;
+
+        [Range(0.25f, 100f, 5f)]
+        public float _brushRadius = 5f;
+
+        [Range(1f, 100f, 5f)]
+        public float _brushHardness = 1f;
+
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()
         {

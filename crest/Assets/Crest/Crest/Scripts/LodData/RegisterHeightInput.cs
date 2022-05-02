@@ -63,7 +63,7 @@ namespace Crest
 
         public CPUTexture2DBase Texture => _paintedInput;
         public Vector2 WorldSize => _paintedInput.WorldSize;
-        public float PaintRadius => _paintedInput._brushRadius;
+        public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
         public Transform Transform => transform;
 
         public void ClearData()

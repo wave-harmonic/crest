@@ -251,6 +251,9 @@ namespace Crest
 
         int _registeredQueueValue = int.MinValue;
 
+        UserDataPainted _paintSupport = null;
+        protected UserDataPainted PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<UserDataPainted>());
+
         protected virtual bool GetQueue(out int queue)
         {
             var rend = GetComponent<Renderer>();

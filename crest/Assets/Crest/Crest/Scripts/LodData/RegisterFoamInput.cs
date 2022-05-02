@@ -73,7 +73,7 @@ namespace Crest
         {
             _paintedInput.CenterPosition3 = transform.position;
 
-            return _paintedInput.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexture2DHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
+            return _paintedInput.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
         }
 
         protected override void OnEnable()

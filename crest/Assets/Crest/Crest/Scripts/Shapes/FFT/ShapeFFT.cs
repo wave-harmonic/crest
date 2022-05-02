@@ -382,7 +382,7 @@ namespace Crest
 
             // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
             // validation
-            // TODO - I guess this ALWAY makes the material use painted waves. Add enabled option to painted texture class?
+            // TODO - I guess this ALWAYS makes the material use painted waves. Add enabled option to painted texture class?
             _paintData.PrepareMaterial(_matGenerateWaves, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
 
             // Submit draws to create the FFT waves

@@ -251,8 +251,8 @@ namespace Crest
 
         int _registeredQueueValue = int.MinValue;
 
-        UserDataPainted _paintSupport = null;
-        protected UserDataPainted PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<UserDataPainted>());
+        PaintingHelper _paintSupport = null;
+        protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
 
         protected virtual bool GetQueue(out int queue)
         {
@@ -567,6 +567,14 @@ namespace Crest
             }
 
             base.OnInspectorGUI();
+
+            if (!target.GetComponent<PaintingHelper>() && target is IPaintedDataClient)
+            {
+                if (GUILayout.Button("Paint Input"))
+                {
+                    target.gameObject.AddComponent<PaintingHelper>();
+                }
+            }
         }
     }
 

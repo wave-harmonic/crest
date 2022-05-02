@@ -9,34 +9,13 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
-    // Interface that this component uses to find clients and determine their data requirements
-    public interface IPaintedDataClient
-    {
-        GraphicsFormat GraphicsFormat { get; }
-
-        void ClearData();
-
-        bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove);
-
-        CPUTexture2DBase Texture { get; }
-
-        Vector2 WorldSize { get; }
-        float PaintRadius { get; }
-
-        Transform Transform { get; }
-    }
-
-    // TODO this is now merely just a paint support component. Perhaps it shoudl be added automatically. Maybe it shoudl not show in inspector.
-
-    // TODO - maybe rename? UserDataPainted and UserDataSpline would have been a systematic naming. However not sure
-    // if this is user friendly, and not sure if it makes sense if we dont rename the Spline.
     // TODO - this component has no Enabled checkbox because enabling/disabling would need handling in terms of updating the
     // material keywords, and I'm unsure how best for this communication to happen
     // Made separate component as it matches the spline input (somewhat) and also it gives all the editor functionality below which may be painful
     // to apply to all our component types? Assuming it stays this way, then we need a way for it to be query the required data type and any
     // behaviour modifications.
     [ExecuteAlways]
-    public class UserDataPainted : MonoBehaviour
+    public class PaintingHelper : MonoBehaviour
     {
         [Header("Paint Settings")]
         [Range(0f, 1f)]
@@ -63,10 +42,10 @@ namespace Crest
 
 #if UNITY_EDITOR
     // This typeof means it gets activated for the above component
-    [EditorTool("Crest Wave Painting", typeof(UserDataPainted))]
+    [EditorTool("Crest Wave Painting", typeof(PaintingHelper))]
     class WavePaintingEditorTool : EditorTool
     {
-        UserDataPainted _waves;
+        PaintingHelper _waves;
 
         public override GUIContent toolbarIcon => _toolbarIcon ??
             (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Wave Painting"));
@@ -89,14 +68,14 @@ namespace Crest
             if (!ToolManager.IsActiveTool(this))
                 return;
 
-            _waves = target as UserDataPainted;
+            _waves = target as PaintingHelper;
         }
     }
 
     // Additively blend mouse motion vector onto RG16F. Vector size < 1 used as wave weight.
     // Weight could also ramp up when motion vector confidence is low. Motion vector could lerp towards
     // current delta each frame.
-    [CustomEditor(typeof(UserDataPainted))]
+    [CustomEditor(typeof(PaintingHelper))]
     class PaintedInputEditor : Editor
     {
         Transform _cursor;
@@ -124,7 +103,7 @@ namespace Crest
 
         void ClearData()
         {
-            (target as UserDataPainted)?.GetComponent<IPaintedDataClient>()?.ClearData();
+            (target as PaintingHelper)?.GetComponent<IPaintedDataClient>()?.ClearData();
         }
 
         private void OnDisable()
@@ -179,7 +158,7 @@ namespace Crest
         {
             if (!OceanRenderer.Instance) return;
 
-            var waves = target as UserDataPainted;
+            var waves = target as PaintingHelper;
 
             if (!WorldPosFromMouse(Event.current.mousePosition, out Vector3 pt))
             {
@@ -221,7 +200,7 @@ namespace Crest
 
                     if (_dirtyFlag)
                     {
-                        var waves = target as UserDataPainted;
+                        var waves = target as PaintingHelper;
                         var client = waves?.GetComponent<IPaintedDataClient>();
                         if (client == null)
                         {

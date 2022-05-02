@@ -96,7 +96,7 @@ namespace Crest
             var brushRadius = 0f;
             var brushStrength = 0f;
 
-            var paintSupport = owner.GetComponent<UserDataPainted>();
+            var paintSupport = owner.GetComponent<PaintingHelper>();
             if (paintSupport != null)
             {
                 brushRadius = paintSupport._brushRadius;

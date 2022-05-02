@@ -10,7 +10,7 @@ namespace Crest
     /// <summary>
     /// Previews painted input.
     /// </summary>
-    [CustomPreview(typeof(UserDataPainted))]
+    [CustomPreview(typeof(PaintingHelper))]
     public class UserPaintedDataPreview : ObjectPreview
     {
         public override bool HasPreviewGUI() => true;
@@ -20,7 +20,7 @@ namespace Crest
         /// </summary>
         public override string GetInfoString()
         {
-            var paint = target as UserDataPainted;
+            var paint = target as PaintingHelper;
             var client = paint?.GetComponent<IPaintedDataClient>();
             var data = client?.Texture;
             if (data == null) return "";
@@ -37,7 +37,7 @@ namespace Crest
 
             if (Mathf.Approximately(r.width, 1f)) return;
 
-            var paint = target as UserDataPainted;
+            var paint = target as PaintingHelper;
             var client = paint?.GetComponent<IPaintedDataClient>();
             var data = client?.Texture;
             var tex = data?.Texture;

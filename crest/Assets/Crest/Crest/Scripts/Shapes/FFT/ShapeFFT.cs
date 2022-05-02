@@ -121,8 +121,8 @@ namespace Crest
         public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
         public Transform Transform => transform;
 
-        UserDataPainted _paintSupport = null;
-        protected UserDataPainted PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<UserDataPainted>());
+        PaintingHelper _paintSupport = null;
+        protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
 
         public void ClearData()
         {

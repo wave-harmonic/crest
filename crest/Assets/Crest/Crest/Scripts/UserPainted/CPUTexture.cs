@@ -61,6 +61,11 @@ namespace Crest
             return Mathf.Clamp01(existingValue + paintValue * weight);
         }
 
+        public static Vector2 PaintFnAdditiveBlendVector2(Vector2 existingValue, Vector2 paintValue, float weight)
+        {
+            return existingValue + paintValue * weight;
+        }
+
         public static Color ColorConstructFnOneChannel(float value) => new Color(value, 0f, 0f);
         public static Color ColorConstructFnTwoChannel(Vector2 value) => new Color(value.x, value.y, 0f);
     }
@@ -76,6 +81,20 @@ namespace Crest
         public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, float paintValue)
         {
             return PaintSmoothstep(paintPosition3, paintRadius, paintWeight, paintValue, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat);
+        }
+    }
+
+    [Serializable]
+    public class CPUTexture2DPaintable_RG16_AddBlend : CPUTexture2DPaintable<Vector2>
+    {
+        public bool Sample(Vector3 position3, ref Vector2 result)
+        {
+            return Sample(position3, CPUTexture2DHelpers.BilinearInterpolateVector2, ref result);
+        }
+
+        public bool PaintSmoothstep(Vector3 paintPosition3, float paintRadius, float paintWeight, Vector2 paintValue)
+        {
+            return PaintSmoothstep(paintPosition3, paintRadius, paintWeight, paintValue, CPUTexture2DHelpers.PaintFnAdditiveBlendVector2);
         }
     }
 

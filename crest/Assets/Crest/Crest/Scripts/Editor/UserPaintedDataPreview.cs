@@ -40,9 +40,10 @@ namespace Crest
             var paint = target as UserDataPainted;
             var client = paint?.GetComponent<IPaintedDataClient>();
             var data = client?.Texture;
-            if (data == null || data.Texture == null) return;
+            var tex = data?.Texture;
+            if (tex == null) return;
 
-            GUI.DrawTexture(r, data.Texture, ScaleMode.ScaleToFit, false);
+            GUI.DrawTexture(r, tex, ScaleMode.ScaleToFit, false);
         }
     }
 }

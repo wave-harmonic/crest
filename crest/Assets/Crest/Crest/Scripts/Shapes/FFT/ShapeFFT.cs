@@ -24,6 +24,7 @@ namespace Crest
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
+        , IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -133,9 +134,47 @@ namespace Crest
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
 
+        // TODO - draw outline of texture area
+        #region Painting
+        public CPUTexture2DPaintable_RG16_AddBlend _paintedInput;
+        void PreparePaintInputMaterial(Material mat)
+        {
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.GraphicsFormat = GraphicsFormat;
+            _paintedInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+        void UpdatePaintInputMaterial(Material mat)
+        {
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.GraphicsFormat = GraphicsFormat;
+            _paintedInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
 
-        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintWaves");
+        public CPUTexture2DBase Texture => _paintedInput;
+        public Vector2 WorldSize => _paintedInput.WorldSize;
+        public float PaintRadius => _paintedInput._brushRadius;
+        public Transform Transform => transform;
+
+        public void ClearData()
+        {
+            _paintedInput.Clear(Vector2.zero);
+        }
+
+        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintedInput.CenterPosition3 = transform.position;
+
+            if (_paintedInput.PaintSmoothstep(paintPosition3, 0.125f * paintWeight, paintDir, CPUTexture2DHelpers.PaintFnAdditiveBlendVector2))
+            {
+                EditorUtility.SetDirty(this);
+            }
+            else
+            {
+                SceneView.RepaintAll();
+            }
+        }
+        #endregion
 
         Mesh _meshForDrawingWaves;
 
@@ -246,18 +285,7 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
-            // TODO - need to make a new member with the texture, like in RegisterHeightInput
-            //var input = GetComponent<IUserAuthoredInput>();
-            //if (input != null)
-            //{
-            //    input.UpdateMaterial(_matGenerateWaves);
-            //}
-            //else
-            {
-                // TODO - remove once we have keywords added to the material as no code containing _PaintedWavesSize will be compiled in
-                _matGenerateWaves.SetFloat("_PaintedWavesSize", 0f);
-                _matGenerateWaves.SetTexture("_PaintedWavesData", Texture2D.blackTexture);
-            }
+            UpdatePaintInputMaterial(_matGenerateWaves);
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
@@ -356,16 +384,10 @@ namespace Crest
                 _matGenerateWaves = _matGenerateWavesGeometry;
             }
 
-            // TODO the above logic should, instead of picking individual shaders, should select one Waves material and then
-            // enable/disable keywords to achieve functionality.
             // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
             // validation
-            // TODO - need to make a new member with the texture, like in RegisterHeightInput
-            //var input = GetComponent<IUserAuthoredInput>();
-            //if (input != null)
-            //{
-            //    input.PrepareMaterial(_matGenerateWaves);
-            //}
+            // TODO - I guess this ALWAY makes the material use painted waves. Add enabled option to painted texture class?
+            _paintedInput.PrepareMaterial(_matGenerateWaves, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
 
             // Submit draws to create the FFT waves
             _batches = new FFTBatch[CASCADE_COUNT];
@@ -400,6 +422,12 @@ namespace Crest
                 return;
             }
 #endif
+
+            if (_paintedInput == null)
+            {
+                _paintedInput = new CPUTexture2DPaintable_RG16_AddBlend();
+            }
+            _paintedInput.Initialise(this);
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
         }

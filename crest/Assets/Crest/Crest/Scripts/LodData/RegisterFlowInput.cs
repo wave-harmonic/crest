@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -13,7 +14,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#flow")]
-    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>
+    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>, IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -31,15 +32,69 @@ namespace Crest
         protected override Color GizmoColor => new Color(0f, 0f, 1f, 0.5f);
 
         protected override string ShaderPrefix => "Crest/Inputs/Flow";
-        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");
 
         protected override bool FollowHorizontalMotion => _followHorizontalMotion;
 
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Flow/Spline Geometry";
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
 
+        #region Painting
+        public CPUTexture2DPaintable_RG16_AddBlend _paintedInput;
+        protected override void PreparePaintInputMaterial(Material mat)
+        {
+            base.PreparePaintInputMaterial(mat);
+
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.GraphicsFormat = GraphicsFormat;
+            _paintedInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+        protected override void UpdatePaintInputMaterial(Material mat)
+        {
+            base.UpdatePaintInputMaterial(mat);
+
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.GraphicsFormat = GraphicsFormat;
+            _paintedInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
-        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintFlow");
+
+        public CPUTexture2DBase Texture => _paintedInput;
+        public Vector2 WorldSize => _paintedInput.WorldSize;
+        public float PaintRadius => _paintedInput._brushRadius;
+        public Transform Transform => transform;
+
+        public void ClearData()
+        {
+            _paintedInput.Clear(Vector2.zero);
+        }
+
+        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintedInput.CenterPosition3 = transform.position;
+
+            if (_paintedInput.PaintSmoothstep(paintPosition3, 0.25f * paintWeight, paintDir, CPUTexture2DHelpers.PaintFnAdditiveBlendVector2))
+            {
+                EditorUtility.SetDirty(this);
+            }
+            else
+            {
+                SceneView.RepaintAll();
+            }
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (_paintedInput == null)
+            {
+                _paintedInput = new CPUTexture2DPaintable_RG16_AddBlend();
+            }
+
+            _paintedInput.Initialise(this);
+        }
+        #endregion
 
         [Header("Other Settings")]
 

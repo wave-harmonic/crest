@@ -20,7 +20,7 @@ namespace Crest
 
         CPUTexture2DBase Texture { get; }
 
-        float WorldSize { get; }
+        Vector2 WorldSize { get; }
         float PaintRadius { get; }
 
         Transform Transform { get; }
@@ -44,7 +44,7 @@ namespace Crest
             var client = GetComponent<IPaintedDataClient>();
             if (client == null) return;
 
-            Gizmos.matrix = Matrix4x4.Translate(transform.position) * Matrix4x4.Scale(client.WorldSize * Vector3.one);
+            Gizmos.matrix = Matrix4x4.Translate(transform.position) * Matrix4x4.Scale(new Vector3(client.WorldSize.x, 1f, client.WorldSize.y));
             Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 0.5f) : new Color(1f, 1f, 1f, 0.5f);
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
         }

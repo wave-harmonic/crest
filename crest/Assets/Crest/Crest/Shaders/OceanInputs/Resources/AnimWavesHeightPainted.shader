@@ -39,7 +39,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Painted Height"
 			CBUFFER_END
 
 			CBUFFER_START(CrestPerMaterial)
-			float _PaintedWavesSize;
+			float2 _PaintedWavesSize;
 			float2 _PaintedWavesPosition;
 			CBUFFER_END
 
@@ -70,7 +70,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Painted Height"
 			{
 				half result = 0.0;
 
-				if (_PaintedWavesSize > 0.0)
+				if (all(_PaintedWavesSize > 0.0))
 				{
 					float2 paintUV = (input.worldPosXZ - _PaintedWavesPosition) / _PaintedWavesSize + 0.5;
 					// Check if in bounds

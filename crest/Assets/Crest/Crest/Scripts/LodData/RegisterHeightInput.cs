@@ -43,40 +43,40 @@ namespace Crest
         float _maxDisplacementVertical = 0f;
 
         #region Painting
-        public CPUTexture2DPaintable_R16_AddBlend _paintInput;
+        public CPUTexture2DPaintable_R16_AddBlend _paintedInput;
         protected override void PreparePaintInputMaterial(Material mat)
         {
             base.PreparePaintInputMaterial(mat);
 
-            _paintInput.CenterPosition3 = transform.position;
-            _paintInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override void UpdatePaintInputMaterial(Material mat)
         {
             base.UpdatePaintInputMaterial(mat);
 
-            _paintInput.CenterPosition3 = transform.position;
-            _paintInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+            _paintedInput.CenterPosition3 = transform.position;
+            _paintedInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Animated Waves/Painted Height");
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
 
-        public CPUTexture2DBase Texture => _paintInput;
-        public float WorldSize => _paintInput.WorldSize.x;
-        public float PaintRadius => _paintInput._brushRadius;
+        public CPUTexture2DBase Texture => _paintedInput;
+        public Vector2 WorldSize => _paintedInput.WorldSize;
+        public float PaintRadius => _paintedInput._brushRadius;
         public Transform Transform => transform;
 
         public void ClearData()
         {
-            _paintInput.Clear(0f);
+            _paintedInput.Clear(0f);
         }
 
         public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {
-            _paintInput.CenterPosition3 = transform.position;
+            _paintedInput.CenterPosition3 = transform.position;
 
             var value = remove ? -0.06f : 0.1f;
-            if (_paintInput.PaintSmoothstep(paintPosition3, paintWeight, value, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
+            if (_paintedInput.PaintSmoothstep(paintPosition3, paintWeight, value, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
             {
                 EditorUtility.SetDirty(this);
             }
@@ -86,12 +86,12 @@ namespace Crest
         {
             base.OnEnable();
 
-            if (_paintInput == null)
+            if (_paintedInput == null)
             {
-                _paintInput = new CPUTexture2DPaintable_R16_AddBlend();
+                _paintedInput = new CPUTexture2DPaintable_R16_AddBlend();
             }
 
-            _paintInput.Initialise(this);
+            _paintedInput.Initialise(this);
         }
         #endregion
 

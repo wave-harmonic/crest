@@ -98,7 +98,7 @@ namespace Crest
 
             // Has to be done outside - this contains non-generic knowledge. TODO review how this is done.
             //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
-            mat.SetFloat("_PaintedWavesSize", WorldSize.x);
+            mat.SetVector("_PaintedWavesSize", WorldSize);
             mat.SetVector("_PaintedWavesPosition", CenterPosition);
             mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
         }
@@ -109,7 +109,7 @@ namespace Crest
             // Any per-frame update. In editor keep it all fresh.
             // Has to be done outside - this contains non-generic knowledge. TODO review how this is done.
             //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
-            mat.SetFloat("_PaintedWavesSize", WorldSize.x);
+            mat.SetVector("_PaintedWavesSize", WorldSize);
             mat.SetVector("_PaintedWavesPosition", CenterPosition);
             mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
 #endif

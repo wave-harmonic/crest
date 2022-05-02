@@ -353,7 +353,7 @@ namespace Crest
     {
         [Header("Data Settings")]
         [SerializeField]
-        protected Vector2 _worldSize = Vector2.one * 64f;
+        protected Vector2 _worldSize = Vector2.one * 128f;
         public Vector2 WorldSize
         {
             get => _worldSize;

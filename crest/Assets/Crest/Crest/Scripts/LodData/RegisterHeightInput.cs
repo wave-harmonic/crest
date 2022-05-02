@@ -124,7 +124,7 @@ namespace Crest
         {
             _paintInput.CenterPosition3 = transform.position;
 
-            if (_paintInput.PaintSmoothstep(paintPosition3, paintWeight, 1f, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
+            if (_paintInput.PaintSmoothstep(paintPosition3, paintWeight, 0.1f, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
             {
                 EditorUtility.SetDirty(this);
             }

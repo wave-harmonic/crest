@@ -56,6 +56,11 @@ namespace Crest
             return existingValue + paintValue * weight;
         }
 
+        public static float PaintFnAdditiveBlendSaturateFloat(float existingValue, float paintValue, float weight)
+        {
+            return Mathf.Clamp01(existingValue + paintValue * weight);
+        }
+
         public static Color ColorConstructFnOneChannel(float value) => new Color(value, 0f, 0f);
         public static Color ColorConstructFnTwoChannel(Vector2 value) => new Color(value.x, value.y, 0f);
     }
@@ -264,6 +269,8 @@ namespace Crest
 
             if (_textureGPU == null || _textureGPU.width != _resolution.x || _textureGPU.height != _resolution.y || _textureGPU.graphicsFormat != GraphicsFormat)
             {
+                Debug.Assert(GraphicsFormat != GraphicsFormat.None);
+
                 _textureGPU = new Texture2D(_resolution.x, _resolution.y, GraphicsFormat, 0, TextureCreationFlags.None);
 
                 _dataChangeFlag = true;

@@ -38,13 +38,11 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => true;
 
-        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Animated Waves/Painted Height");
-        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
-
         [Header("Height Input Settings")]
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
 
+        #region Painting
         public CPUTexture2DPaintable_R16_AddBlend _paintInput;
         protected override void PreparePaintInputMaterial(Material mat)
         {
@@ -60,10 +58,29 @@ namespace Crest
             _paintInput.CenterPosition3 = transform.position;
             _paintInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
+        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Animated Waves/Painted Height");
+        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
+
         public CPUTexture2DBase Texture => _paintInput;
         public float WorldSize => _paintInput.WorldSize.x;
         public float PaintRadius => _paintInput._brushRadius;
         public Transform Transform => transform;
+
+        public void ClearData()
+        {
+            _paintInput.Clear(0f);
+        }
+
+        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintInput.CenterPosition3 = transform.position;
+
+            var value = remove ? -0.06f : 0.1f;
+            if (_paintInput.PaintSmoothstep(paintPosition3, paintWeight, value, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
+            {
+                EditorUtility.SetDirty(this);
+            }
+        }
 
         protected override void OnEnable()
         {
@@ -76,6 +93,8 @@ namespace Crest
 
             _paintInput.Initialise(this);
         }
+        #endregion
+
 
         protected override void Update()
         {
@@ -107,21 +126,6 @@ namespace Crest
             if (maxDispVert > 0f)
             {
                 OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, maxDispVert, 0f);
-            }
-        }
-
-        public void ClearData()
-        {
-            _paintInput.Clear(0f);
-        }
-
-        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight)
-        {
-            _paintInput.CenterPosition3 = transform.position;
-
-            if (_paintInput.PaintSmoothstep(paintPosition3, paintWeight, 0.1f, CPUTexture2DHelpers.PaintFnAdditiveBlendFloat))
-            {
-                EditorUtility.SetDirty(this);
             }
         }
 

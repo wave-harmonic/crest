@@ -16,7 +16,7 @@ namespace Crest
 
         void ClearData();
 
-        void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight);
+        void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove);
 
         CPUTexture2DBase Texture { get; }
 
@@ -178,10 +178,7 @@ namespace Crest
                 dir.y = pt.z - ptLast.z;
                 dir.Normalize();
 
-                // TODO
-                var remove = Event.current.shift ? 0.06f : 0f;
-
-                client.Paint(pt, dir, 1f);
+                client.Paint(pt, dir, 1f, Event.current.shift);
             }
         }
 

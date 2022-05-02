@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -13,7 +14,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#foam")]
-    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>
+    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>, IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -37,9 +38,64 @@ namespace Crest
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Foam/Spline Geometry";
         protected override Vector2 DefaultCustomData => Vector2.right;
 
+        #region Painting
+        public CPUTexture2DPaintable_R16_AddBlend _paintInput;
+        protected override void PreparePaintInputMaterial(Material mat)
+        {
+            base.PreparePaintInputMaterial(mat);
+
+            _paintInput.CenterPosition3 = transform.position;
+            _paintInput.GraphicsFormat = GraphicsFormat;
+            _paintInput.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
+        protected override void UpdatePaintInputMaterial(Material mat)
+        {
+            base.UpdatePaintInputMaterial(mat);
+
+            _paintInput.CenterPosition3 = transform.position;
+            _paintInput.GraphicsFormat = GraphicsFormat;
+            _paintInput.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");
         public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
-        //public ComputeShader PaintShader => ComputeShaderHelpers.LoadShader("PaintHeight");
+
+        public CPUTexture2DBase Texture => _paintInput;
+        public float WorldSize => _paintInput.WorldSize.x;
+        public float PaintRadius => _paintInput._brushRadius;
+        public Transform Transform => transform;
+
+        public void ClearData()
+        {
+            _paintInput.Clear(0f);
+        }
+
+        public void Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintInput.CenterPosition3 = transform.position;
+
+            var value = 0.03f * (remove ? -1f : 1f);
+            if (_paintInput.PaintSmoothstep(paintPosition3, paintWeight, value, CPUTexture2DHelpers.PaintFnAdditiveBlendSaturateFloat))
+            {
+                EditorUtility.SetDirty(this);
+            }
+            else
+            {
+                SceneView.RepaintAll();
+            }
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (_paintInput == null)
+            {
+                _paintInput = new CPUTexture2DPaintable_R16_AddBlend();
+            }
+
+            _paintInput.Initialise(this);
+        }
+        #endregion
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = false;

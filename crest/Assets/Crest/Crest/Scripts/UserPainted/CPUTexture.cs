@@ -219,6 +219,8 @@ namespace Crest
         // Paint func(Existing value, Paint value, Value weight) returns new value
         protected bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintRadius, float paintWeight, T paintValue, Func<T, T, float, bool, T> paintFn, bool remove)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("Crest:CPUTexture2D.PaintSmoothstep");
+
             InitialiseDataIfNeeded(owner);
 
             var paintPosition = new Vector2(paintPosition3.x, paintPosition3.z);
@@ -268,6 +270,8 @@ namespace Crest
                 _dataChangeFlag = true;
             }
 
+            UnityEngine.Profiling.Profiler.EndSample();
+
             return valuesWritten;
         }
 
@@ -292,6 +296,8 @@ namespace Crest
         // This may allocate the texture and update it with data if needed.
         public Texture2D GetGPUTexture(Func<T, Color> colorConstructFn)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("Crest:CPUTexture2D.GetGPUTexture");
+
             InitialiseDataIfNeeded(null);
 
             if (_textureGPU == null || _textureGPU.width != _resolution.x || _textureGPU.height != _resolution.y || _textureGPU.graphicsFormat != GraphicsFormat)
@@ -305,6 +311,7 @@ namespace Crest
 
             if (_dataChangeFlag)
             {
+                // TODO do this with a coroutine at 30fps? (measure frequency?)
                 var colors = new Color[_data.Length];
                 for (int i = 0; i < _data.Length; i++)
                 {
@@ -317,11 +324,15 @@ namespace Crest
 
             _dataChangeFlag = false;
 
+            UnityEngine.Profiling.Profiler.EndSample();
+
             return _textureGPU;
         }
 
         public void Clear(Component owner, T value)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("Crest:CPUTexture2D.Clear");
+
             InitialiseDataIfNeeded(owner);
 
             for (int i = 0; i < _data.Length; i++)
@@ -330,6 +341,8 @@ namespace Crest
             }
 
             _dataChangeFlag = true;
+
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         protected override void SetWorldSize(Vector2 newWorldSize)

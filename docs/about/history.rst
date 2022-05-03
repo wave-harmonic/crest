@@ -13,6 +13,14 @@ Release Notes
 |version|
 ---------
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Re-enable height queries in edit-mode which allows several height based components to work in edit-mode.
+      They can still be disabled with the new *Height Queries* toggle on the *Ocean Renderer*.
+
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -25,6 +33,7 @@ Fixed
    -  Fix several material and mesh memory leaks and reference leaks.
    -  Fix several *Texture2D* and *RenderTexture* memory and reference leaks.
    -  Fix excessively long build times when no *Underwater Renderer* is present in scene.
+   -  Fix *Underwater Renderer* not working with varying water level.
 
 .. only:: birp
 

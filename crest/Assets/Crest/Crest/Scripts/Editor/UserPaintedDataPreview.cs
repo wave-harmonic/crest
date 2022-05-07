@@ -25,7 +25,7 @@ namespace Crest
             var data = client?.Texture;
             if (data == null) return "";
 
-            return $"{data.Resolution.x}x{data.Resolution.y} {client.GraphicsFormat}";
+            return $"{data.Resolution.x}x{data.Resolution.y} {data.GraphicsFormat}";
         }
 
         /// <summary>

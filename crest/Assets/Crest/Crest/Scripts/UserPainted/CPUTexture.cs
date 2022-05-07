@@ -51,7 +51,7 @@ namespace Crest
     }
 
     [Serializable]
-    public class CPUTexture2D<T> : CPUTexture2DBase
+    public abstract class CPUTexture2D<T> : CPUTexture2DBase
     {
         // Perhaps this will be used instead of manually attaching UserDataPainted
         //[SerializeField]
@@ -62,14 +62,6 @@ namespace Crest
 
         [SerializeField, HideInInspector]
         bool _dataChangeFlag = false;
-
-        [SerializeField]
-        GraphicsFormat _graphicsFormat;
-        public GraphicsFormat GraphicsFormat
-        {
-            get => _graphicsFormat;
-            set => SetGraphicsFormat(value);
-        }
 
         Texture2D _textureGPU;
 
@@ -266,20 +258,9 @@ namespace Crest
             _resolution = newResolution;
         }
 
-        protected void SetGraphicsFormat(GraphicsFormat fmt)
-        {
-            if (_textureGPU != null && _textureGPU.graphicsFormat != fmt)
-            {
-                _textureGPU = null;
-            }
-
-            _graphicsFormat = fmt;
-        }
-
         public void Initialise(IPaintedDataClient client)
         {
             CenterPosition3 = client.Transform.position;
-            GraphicsFormat = client.GraphicsFormat;
 
             InitialiseDataIfNeeded(client as Component);
         }
@@ -322,5 +303,7 @@ namespace Crest
         protected abstract void SetResolution(Vector2Int newResolution);
 
         public abstract Texture2D Texture { get; }
+
+        public abstract GraphicsFormat GraphicsFormat { get; }
     }
 }

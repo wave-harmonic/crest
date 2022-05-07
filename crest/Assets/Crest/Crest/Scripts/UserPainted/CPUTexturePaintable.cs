@@ -4,6 +4,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -61,6 +62,8 @@ namespace Crest
     [Serializable]
     public class CPUTexture2DPaintable_R16_AddBlend : CPUTexture2DPaintable<float>
     {
+        public override GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
+
         public bool Sample(Vector3 position3, ref float result)
         {
             return Sample(position3, CPUTexture2DHelpers.BilinearInterpolateFloat, ref result);
@@ -75,6 +78,8 @@ namespace Crest
     [Serializable]
     public class CPUTexture2DPaintable_RG16_AddBlend : CPUTexture2DPaintable<Vector2>
     {
+        public override GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
+
         public bool Sample(Vector3 position3, ref Vector2 result)
         {
             return Sample(position3, CPUTexture2DHelpers.BilinearInterpolateVector2, ref result);
@@ -87,7 +92,7 @@ namespace Crest
     }
 
     [Serializable]
-    public class CPUTexture2DPaintable<T> : CPUTexture2D<T>
+    public abstract class CPUTexture2DPaintable<T> : CPUTexture2D<T>
     {
         public void PrepareMaterial(Material mat, Func<T, Color> colorConstructFn)
         {

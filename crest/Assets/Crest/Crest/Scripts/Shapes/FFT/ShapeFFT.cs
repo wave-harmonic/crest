@@ -105,16 +105,13 @@ namespace Crest
         void PreparePaintInputMaterial(Material mat)
         {
             _paintData.CenterPosition3 = transform.position;
-            _paintData.GraphicsFormat = GraphicsFormat;
             _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
         }
         void UpdatePaintInputMaterial(Material mat)
         {
             _paintData.CenterPosition3 = transform.position;
-            _paintData.GraphicsFormat = GraphicsFormat;
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
         }
-        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16G16_SFloat;
 
         public CPUTexture2DBase Texture => _paintData;
         public Vector2 WorldSize => _paintData.WorldSize;

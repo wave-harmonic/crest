@@ -3,7 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -86,7 +85,6 @@ namespace Crest
             base.PreparePaintInputMaterial(mat);
 
             _paintData.CenterPosition3 = transform.position;
-            _paintData.GraphicsFormat = GraphicsFormat;
             _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override void UpdatePaintInputMaterial(Material mat)
@@ -94,11 +92,9 @@ namespace Crest
             base.UpdatePaintInputMaterial(mat);
 
             _paintData.CenterPosition3 = transform.position;
-            _paintData.GraphicsFormat = GraphicsFormat;
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
-        public GraphicsFormat GraphicsFormat => GraphicsFormat.R16_SFloat;
 
         public CPUTexture2DBase Texture => _paintData;
         public Vector2 WorldSize => _paintData.WorldSize;

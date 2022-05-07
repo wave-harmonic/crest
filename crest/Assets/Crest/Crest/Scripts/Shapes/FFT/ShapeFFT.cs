@@ -448,7 +448,6 @@ namespace Crest
         private void OnDrawGizmosSelected()
         {
             DrawMesh();
-            DrawPaintBounds();
         }
 
         void DrawMesh()
@@ -458,16 +457,6 @@ namespace Crest
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
                 Gizmos.DrawWireMesh(_meshForDrawingWaves, 0, transform.position, transform.rotation, transform.lossyScale);
             }
-        }
-
-        void DrawPaintBounds()
-        {
-            var client = GetComponent<IPaintedDataClient>();
-            if (client == null) return;
-
-            Gizmos.matrix = Matrix4x4.Translate(transform.position) * Matrix4x4.Scale(new Vector3(client.WorldSize.x, 1f, client.WorldSize.y));
-            Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 0.5f) : new Color(1f, 1f, 1f, 0.5f);
-            Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
         }
 
         void OnGUI()

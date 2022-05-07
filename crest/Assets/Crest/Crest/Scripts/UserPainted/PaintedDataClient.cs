@@ -16,7 +16,7 @@ namespace Crest
         CPUTexture2DBase Texture { get; }
 
         Vector2 WorldSize { get; }
-        float PaintRadius { get; }
+        //float PaintRadius { get; }
 
         Transform Transform { get; }
     }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
+using UnityEditor.EditorTools;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -113,6 +114,10 @@ namespace Crest
         protected virtual void OnDisable()
         {
         }
+
+        public virtual void ClearData() { }
+        public virtual bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove) { return false; }
+        public virtual Texture2D PaintedTexture => null;
 
         void InitRendererAndMaterial(bool verifyShader)
         {
@@ -251,8 +256,8 @@ namespace Crest
 
         int _registeredQueueValue = int.MinValue;
 
-        PaintingHelper _paintSupport = null;
-        protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
+        //PaintingHelper _paintSupport = null;
+        //protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
 
         protected virtual bool GetQueue(out int queue)
         {
@@ -568,14 +573,182 @@ namespace Crest
 
             base.OnInspectorGUI();
 
-            if (!target.GetComponent<PaintingHelper>() && target is IPaintedDataClient)
+            if (target is IPaintedDataClient)
             {
-                if (GUILayout.Button("Paint Input"))
+                //if (!target.GetComponent<PaintingHelper>())
+                //{
+                //    if (GUILayout.Button("Paint Input"))
+                //    {
+                //        target.gameObject.AddComponent<PaintingHelper>();
+                //    }
+                //}
+
+
+                if (WavePaintingEditorTool.CurrentlyPainting)
                 {
-                    target.gameObject.AddComponent<PaintingHelper>();
+                    if (GUILayout.Button("Stop Painting"))
+                    {
+                        ToolManager.RestorePreviousPersistentTool();
+
+                        if (_dirtyFlag)
+                        {
+                            //var waves = target as PaintingHelper;
+                            //var client = target.GetComponent<IPaintedDataClient>();
+                            //if (client == null)
+                            //{
+                            //    return;
+                            //}
+
+                            // This causes a big hitch it seems, so only do it when stop painting. However do we also need to detect selection changes? And other events like quitting?
+                            UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnInspectorGUI.SetDirty");
+                            EditorUtility.SetDirty(target);
+                            UnityEngine.Profiling.Profiler.EndSample();
+
+                            _dirtyFlag = false;
+                        }
+                    }
+                }
+                else
+                {
+                    if (GUILayout.Button("Start Painting"))
+                    {
+                        ToolManager.SetActiveTool<WavePaintingEditorTool>();
+                    }
+                }
+
+                if (GUILayout.Button("Clear"))
+                {
+                    target.ClearData();
+                }
+            }
+
+        }
+
+
+
+
+
+
+
+        Transform _cursor;
+
+        bool _dirtyFlag = false;
+
+        private void OnEnable()
+        {
+            _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
+            _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
+        }
+
+        private void OnDestroy()
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnDestroy");
+
+            if (_dirtyFlag)
+            {
+                EditorUtility.SetDirty(target);
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        private void OnDisable()
+        {
+            DestroyImmediate(_cursor.gameObject);
+        }
+
+        private void OnSceneGUI()
+        {
+            if (ToolManager.activeToolType != typeof(WavePaintingEditorTool))
+            {
+                return;
+            }
+
+            switch (Event.current.type)
+            {
+                case EventType.MouseMove:
+                    OnMouseMove(false);
+                    break;
+                case EventType.MouseDown:
+                    // Boost strength of mouse down, feels much better when clicking
+                    OnMouseMove(Event.current.button == 0, 3f);
+                    break;
+                case EventType.MouseDrag:
+                    OnMouseMove(Event.current.button == 0);
+                    break;
+                case EventType.Layout:
+                    HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                    break;
+            }
+        }
+
+        bool WorldPosFromMouse(Vector2 mousePos, out Vector3 pos)
+        {
+            var r = HandleUtility.GUIPointToWorldRay(mousePos);
+
+            var heightOffset = r.origin.y - OceanRenderer.Instance.transform.position.y;
+            var diry = r.direction.y;
+            if (heightOffset * diry >= 0f)
+            {
+                // Ray going away from ocean plane
+                pos = Vector3.zero;
+                return false;
+            }
+
+            var dist = -heightOffset / diry;
+            pos = r.GetPoint(dist);
+            return true;
+        }
+
+        public static float s_paintRadius = 5f;
+        public static float s_paintStrength = 1f;
+        
+        void OnMouseMove(bool dragging, float weightMultiplier = 1f)
+        {
+            if (!OceanRenderer.Instance) return;
+
+            //var waves = target as PaintingHelper;
+            var target = this.target as RegisterLodDataInputBase;
+            if (!target) return;
+
+            if (!WorldPosFromMouse(Event.current.mousePosition, out Vector3 pt))
+            {
+                return;
+            }
+
+            //var client = waves.GetComponent<IPaintedDataClient>();
+            //if (client == null)
+            //{
+            //    return;
+            //}
+
+            _cursor.position = pt;
+            _cursor.localScale = new Vector3(2f, 0.25f, 2f) * s_paintRadius;
+
+            if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
+            {
+                Vector2 dir;
+                dir.x = pt.x - ptLast.x;
+                dir.y = pt.z - ptLast.z;
+                dir.Normalize();
+
+                if (target.Paint(pt, dir, weightMultiplier, Event.current.shift))
+                {
+                    _dirtyFlag = true;
                 }
             }
         }
+
+
+
+
+
+
+
+
+
+
     }
 
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>

@@ -57,20 +57,19 @@ namespace Crest
 
         public CPUTexture2DBase Texture => _paintData;
         public Vector2 WorldSize => _paintData.WorldSize;
-        public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
         public Transform Transform => transform;
 
-        public void ClearData()
-        {
-            _paintData.Clear(this, 0f);
-        }
+        //public void ClearData()
+        //{
+        //    _paintData.Clear(this, 0f);
+        //}
 
-        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
-        {
-            _paintData.CenterPosition3 = transform.position;
+        //public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        //{
+        //    _paintData.CenterPosition3 = transform.position;
 
-            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
-        }
+        //    return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
+        //}
 
         protected override void OnEnable()
         {

@@ -61,20 +61,20 @@ namespace Crest
 
         public CPUTexture2DBase Texture => _paintData;
         public Vector2 WorldSize => _paintData.WorldSize;
-        public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
+        //public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
         public Transform Transform => transform;
 
-        public void ClearData()
+        public override void ClearData()
         {
             _paintData.Clear(this, 0f);
         }
-
-        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        public override bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {
             _paintData.CenterPosition3 = transform.position;
 
-            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.06f : 0.1f, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.06f : 0.1f, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
         }
+        public override Texture2D PaintedTexture => _paintData?.Texture;
 
         protected override void OnEnable()
         {

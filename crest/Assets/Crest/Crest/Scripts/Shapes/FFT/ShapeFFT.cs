@@ -115,11 +115,10 @@ namespace Crest
 
         public CPUTexture2DBase Texture => _paintData;
         public Vector2 WorldSize => _paintData.WorldSize;
-        public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
         public Transform Transform => transform;
 
-        PaintingHelper _paintSupport = null;
-        protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
+        //PaintingHelper _paintSupport = null;
+        //protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
 
         public void ClearData()
         {
@@ -130,7 +129,7 @@ namespace Crest
         {
             _paintData.CenterPosition3 = transform.position;
 
-            return _paintData.PaintSmoothstep(this, paintPosition3, 0.125f * paintWeight, paintDir, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendSaturateVector2, remove);
+            return _paintData.PaintSmoothstep(this, paintPosition3, 0.125f * paintWeight, paintDir, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendSaturateVector2, remove);
         }
         #endregion
 

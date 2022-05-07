@@ -117,18 +117,8 @@ namespace Crest
 #endif
         }
 
-        public bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintWeight, T paintValue, Func<T, T, float, bool, T> paintFn, bool remove)
+        public bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintWeight, T paintValue, float brushRadius, float brushStrength, Func<T, T, float, bool, T> paintFn, bool remove)
         {
-            var brushRadius = 0f;
-            var brushStrength = 0f;
-
-            var paintSupport = owner.GetComponent<PaintingHelper>();
-            if (paintSupport != null)
-            {
-                brushRadius = paintSupport._brushRadius;
-                brushStrength = paintSupport._brushStrength;
-            }
-
             return PaintSmoothstep(owner, paintPosition3, brushRadius, paintWeight * brushStrength, paintValue, paintFn, remove);
         }
     }

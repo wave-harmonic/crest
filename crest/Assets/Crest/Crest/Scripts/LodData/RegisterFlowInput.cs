@@ -43,6 +43,8 @@ namespace Crest
         #region Painting
         [Header("Paint Settings")]
         public CPUTexture2DPaintable_RG16_AddBlend _paintData;
+        public override IPaintedData PaintedData => _paintData;
+
         protected override void PreparePaintInputMaterial(Material mat)
         {
             base.PreparePaintInputMaterial(mat);
@@ -58,7 +60,6 @@ namespace Crest
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");
-        public override Vector2 PaintWorldSize => _paintData.WorldSize;
 
         public override void ClearData()
         {

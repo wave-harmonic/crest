@@ -131,7 +131,7 @@ namespace Crest
                 if (OceanRenderer.Instance) pos.y = OceanRenderer.Instance.transform.position.y;
 
                 var oldMatrix = Gizmos.matrix;
-                Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(PaintWorldSize.x, 1f, PaintWorldSize.y));
+                Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(PaintedData.WorldSize.x, 1f, PaintedData.WorldSize.y));
                 Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 1f) : GizmoColor;
 
                 Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
@@ -143,12 +143,11 @@ namespace Crest
         }
 
         #region Painting
-        public bool SupportsPainting => PaintedInputShader != null;
+        public bool SupportsPainting => PaintedData != null;
         protected virtual Shader PaintedInputShader => null;
         public virtual void ClearData() { }
         public virtual bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove) { return false; }
-        public virtual Texture2D PaintedTexture => null;
-        public virtual Vector2 PaintWorldSize => Vector2.zero;
+        public virtual IPaintedData PaintedData => null;
         #endregion
 
         void InitRendererAndMaterial(bool verifyShader)

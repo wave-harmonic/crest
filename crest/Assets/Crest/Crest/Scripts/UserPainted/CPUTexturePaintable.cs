@@ -8,6 +8,12 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
+    public interface IPaintedData
+    {
+        Texture2D Texture { get; }
+        Vector2 WorldSize { get; }
+    }
+
     public static class CPUTexturePaintHelpers
     {
         public static float PaintFnAlphaBlendFloat(float existingValue, float paintValue, float weight, bool remove)
@@ -92,7 +98,7 @@ namespace Crest
     }
 
     [Serializable]
-    public abstract class CPUTexture2DPaintable<T> : CPUTexture2D<T>
+    public abstract class CPUTexture2DPaintable<T> : CPUTexture2D<T>, IPaintedData
     {
         public void PrepareMaterial(Material mat, Func<T, Color> colorConstructFn)
         {

@@ -44,6 +44,8 @@ namespace Crest
         #region Painting
         [Header("Paint Settings")]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
+        public override IPaintedData PaintedData => _paintData;
+
         protected override void PreparePaintInputMaterial(Material mat)
         {
             base.PreparePaintInputMaterial(mat);
@@ -59,19 +61,18 @@ namespace Crest
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Animated Waves/Painted Height");
-        public override Vector2 PaintWorldSize => _paintData.WorldSize;
 
         public override void ClearData()
         {
             _paintData.Clear(this, 0f);
         }
+
         public override bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {
             _paintData.CenterPosition3 = transform.position;
 
             return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.06f : 0.1f, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
         }
-        public override Texture2D PaintedTexture => _paintData?.Texture;
         #endregion
 
         protected override void Update()

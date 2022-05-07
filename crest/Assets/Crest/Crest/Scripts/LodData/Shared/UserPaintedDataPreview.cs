@@ -10,7 +10,6 @@ namespace Crest
     /// <summary>
     /// Previews painted input.
     /// </summary>
-    [CustomPreview(typeof(RegisterLodDataInputBase))]
     public class UserPaintedDataPreview : ObjectPreview
     {
         public override bool HasPreviewGUI() => true;
@@ -20,13 +19,11 @@ namespace Crest
         /// </summary>
         public override string GetInfoString()
         {
-            return "";
-            //var target = this.target as RegisterLodDataInputBase;
-            //if (!target || !(target is IPaintedDataClient)) return "";
-            //var data = target.;
-            //if (data == null) return "";
-
-            //return $"{data.Resolution.x}x{data.Resolution.y} {data.GraphicsFormat}";
+            var target = this.target as RegisterLodDataInputBase;
+            if (!target /*|| !(target is IPaintedDataClient)*/) return "";
+            var tex = target.PaintedTexture;
+            if (tex == null) return "";
+            return $"{tex.width}x{tex.height} {tex.graphicsFormat}";
         }
 
         /// <summary>
@@ -39,11 +36,7 @@ namespace Crest
             if (Mathf.Approximately(r.width, 1f)) return;
 
             var target = this.target as RegisterLodDataInputBase;
-            if (!target || !(target is IPaintedDataClient)) return;
-
-            //var paint = target as PaintingHelper;
-            //var client = paint?.GetComponent<IPaintedDataClient>();
-            //var data = client?.Texture;
+            if (!target /*|| !(target is IPaintedDataClient)*/) return;
             var tex = target.PaintedTexture;
             if (tex == null) return;
 

@@ -24,7 +24,6 @@ namespace Crest
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
-        , IPaintedDataClient
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -414,12 +413,6 @@ namespace Crest
                 return;
             }
 #endif
-
-            if (_paintData == null)
-            {
-                _paintData = new CPUTexture2DPaintable_RG16_AddBlend();
-            }
-            _paintData.Initialise(this);
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
         }

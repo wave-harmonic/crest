@@ -257,13 +257,6 @@ namespace Crest
             // Could copy data to be more graceful..
             _resolution = newResolution;
         }
-
-        public void Initialise(IPaintedDataClient client)
-        {
-            CenterPosition3 = client.Transform.position;
-
-            InitialiseDataIfNeeded(client as Component);
-        }
     }
 
     [Serializable]

@@ -5,6 +5,10 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
+
 namespace Crest
 {
     /// <summary>
@@ -13,7 +17,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
-    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintedDataClient
+    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -96,32 +100,16 @@ namespace Crest
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
 
-        public CPUTexture2DBase Texture => _paintData;
-        public Vector2 WorldSize => _paintData.WorldSize;
-        public Transform Transform => transform;
-
-        //public void ClearData()
-        //{
-        //    _paintData.Clear(this, 0f);
-        //}
-
-        //public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
-        //{
-        //    _paintData.CenterPosition3 = transform.position;
-
-        //    return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? -1f : 1f, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
-        //}
-
-        protected override void OnEnable()
+        public override void ClearData()
         {
-            base.OnEnable();
+            _paintData.Clear(this, 0f);
+        }
 
-            if (_paintData == null)
-            {
-                _paintData = new CPUTexture2DPaintable_R16_AddBlend();
-            }
+        public override bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintData.CenterPosition3 = transform.position;
 
-            _paintData.Initialise(this);
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? -1f : 1f, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
         }
         #endregion
 
@@ -407,4 +395,12 @@ namespace Crest
             }
         }
     }
+
+#if UNITY_EDITOR
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(RegisterClipSurfaceInput))]
+    public class RegisterClipSurfaceInputPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

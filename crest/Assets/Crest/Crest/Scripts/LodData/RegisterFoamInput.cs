@@ -4,6 +4,10 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
+
 namespace Crest
 {
     /// <summary>
@@ -12,7 +16,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#foam")]
-    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>, IPaintedDataClient
+    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -55,32 +59,13 @@ namespace Crest
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");
 
-        public CPUTexture2DBase Texture => _paintData;
-        public Vector2 WorldSize => _paintData.WorldSize;
-        public Transform Transform => transform;
-
-        //public void ClearData()
-        //{
-        //    _paintData.Clear(this, 0f);
-        //}
-
-        //public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
-        //{
-        //    _paintData.CenterPosition3 = transform.position;
-
-        //    return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
-        //}
-
-        protected override void OnEnable()
+        public override void ClearData()
         {
-            base.OnEnable();
-
-            if (_paintData == null)
-            {
-                _paintData = new CPUTexture2DPaintable_R16_AddBlend();
-            }
-
-            _paintData.Initialise(this);
+            _paintData.Clear(this, 0f);
+        }
+        public override bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
         }
         #endregion
 
@@ -99,4 +84,12 @@ namespace Crest
         protected override string MaterialFeatureDisabledFix => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
+
+#if UNITY_EDITOR
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(RegisterFoamInput))]
+    public class RegisterFoamInputPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

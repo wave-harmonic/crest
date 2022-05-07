@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -11,7 +12,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
-    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, IPaintedDataClient
+    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -59,11 +60,6 @@ namespace Crest
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Animated Waves/Painted Height");
 
-        public CPUTexture2DBase Texture => _paintData;
-        public Vector2 WorldSize => _paintData.WorldSize;
-        //public float PaintRadius => (PaintSupport != null) ? PaintSupport._brushRadius : 0f;
-        public Transform Transform => transform;
-
         public override void ClearData()
         {
             _paintData.Clear(this, 0f);
@@ -75,20 +71,7 @@ namespace Crest
             return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.06f : 0.1f, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
         }
         public override Texture2D PaintedTexture => _paintData?.Texture;
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-
-            if (_paintData == null)
-            {
-                _paintData = new CPUTexture2DPaintable_R16_AddBlend();
-            }
-
-            _paintData.Initialise(this);
-        }
         #endregion
-
 
         protected override void Update()
         {
@@ -128,4 +111,12 @@ namespace Crest
         protected override bool FeatureEnabled(OceanRenderer ocean) => true;
 #endif // UNITY_EDITOR
     }
+
+#if UNITY_EDITOR
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(RegisterHeightInput))]
+    public class RegisterHeightInputPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

@@ -4,6 +4,10 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
+
 namespace Crest
 {
     /// <summary>
@@ -12,7 +16,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#flow")]
-    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>, IPaintedDataClient
+    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -55,32 +59,16 @@ namespace Crest
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");
 
-        public CPUTexture2DBase Texture => _paintData;
-        public Vector2 WorldSize => _paintData.WorldSize;
-        public Transform Transform => transform;
-
-        //public void ClearData()
-        //{
-        //    _paintData.Clear(this, Vector2.zero);
-        //}
-
-        //public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
-        //{
-        //    _paintData.CenterPosition3 = transform.position;
-
-        //    return _paintData.PaintSmoothstep(this, paintPosition3, 0.25f * paintWeight, paintDir, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove);
-        //}
-
-        protected override void OnEnable()
+        public override void ClearData()
         {
-            base.OnEnable();
+            _paintData.Clear(this, Vector2.zero);
+        }
 
-            if (_paintData == null)
-            {
-                _paintData = new CPUTexture2DPaintable_RG16_AddBlend();
-            }
+        public override bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintData.CenterPosition3 = transform.position;
 
-            _paintData.Initialise(this);
+            return _paintData.PaintSmoothstep(this, paintPosition3, 0.25f * paintWeight, paintDir, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove);
         }
         #endregion
 
@@ -101,4 +89,12 @@ namespace Crest
         protected override string MaterialFeatureDisabledFix => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
+
+#if UNITY_EDITOR
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(RegisterFlowInput))]
+    public class RegisterFlowInputPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

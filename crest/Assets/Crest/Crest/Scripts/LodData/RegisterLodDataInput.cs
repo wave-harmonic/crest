@@ -85,8 +85,6 @@ namespace Crest
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
 
-        protected virtual Shader PaintedInputShader => null;
-
         public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
             if (!s_registrar.TryGetValue(lodDataMgrType, out var registered))
@@ -115,9 +113,13 @@ namespace Crest
         {
         }
 
+        #region Painting
+        public bool SupportsPainting => PaintedInputShader != null;
+        protected virtual Shader PaintedInputShader => null;
         public virtual void ClearData() { }
         public virtual bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove) { return false; }
         public virtual Texture2D PaintedTexture => null;
+        #endregion
 
         void InitRendererAndMaterial(bool verifyShader)
         {
@@ -133,14 +135,11 @@ namespace Crest
 #endif
             }
 
-            // TODO should this only be done under some conditions or is null check below fine?
+            var paintedInputShader = PaintedInputShader;
+            if (paintedInputShader)
             {
-                var paintedInputShader = PaintedInputShader;
-                if (paintedInputShader)
-                {
-                    _paintInputMaterial = new Material(paintedInputShader);
-                    PreparePaintInputMaterial(_paintInputMaterial);
-                }
+                _paintInputMaterial = new Material(paintedInputShader);
+                PreparePaintInputMaterial(_paintInputMaterial);
             }
         }
 
@@ -573,62 +572,46 @@ namespace Crest
 
             base.OnInspectorGUI();
 
-            if (target is IPaintedDataClient)
+            OnInspectorGUIPainting(target);
+        }
+
+        void OnInspectorGUIPainting(RegisterLodDataInputBase target)
+        {
+            if (!target.SupportsPainting) return;
+
+            if (WavePaintingEditorTool.CurrentlyPainting)
             {
-                //if (!target.GetComponent<PaintingHelper>())
-                //{
-                //    if (GUILayout.Button("Paint Input"))
-                //    {
-                //        target.gameObject.AddComponent<PaintingHelper>();
-                //    }
-                //}
-
-
-                if (WavePaintingEditorTool.CurrentlyPainting)
+                if (GUILayout.Button("Stop Painting"))
                 {
-                    if (GUILayout.Button("Stop Painting"))
+                    ToolManager.RestorePreviousPersistentTool();
+
+                    if (_dirtyFlag)
                     {
-                        ToolManager.RestorePreviousPersistentTool();
+                        // This causes a big hitch it seems, so only do it when stop painting. However do we also need to detect selection changes? And other events like quitting?
+                        UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnInspectorGUI.SetDirty");
+                        EditorUtility.SetDirty(target);
+                        UnityEngine.Profiling.Profiler.EndSample();
 
-                        if (_dirtyFlag)
-                        {
-                            //var waves = target as PaintingHelper;
-                            //var client = target.GetComponent<IPaintedDataClient>();
-                            //if (client == null)
-                            //{
-                            //    return;
-                            //}
-
-                            // This causes a big hitch it seems, so only do it when stop painting. However do we also need to detect selection changes? And other events like quitting?
-                            UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnInspectorGUI.SetDirty");
-                            EditorUtility.SetDirty(target);
-                            UnityEngine.Profiling.Profiler.EndSample();
-
-                            _dirtyFlag = false;
-                        }
-                    }
-                }
-                else
-                {
-                    if (GUILayout.Button("Start Painting"))
-                    {
-                        ToolManager.SetActiveTool<WavePaintingEditorTool>();
+                        _dirtyFlag = false;
                     }
                 }
 
-                if (GUILayout.Button("Clear"))
+                s_paintRadius = EditorGUILayout.Slider("Brush Radius", s_paintRadius, 0f, 100f);
+                s_paintStrength = EditorGUILayout.Slider("Brush Strength", s_paintStrength, 0f, 3f);
+            }
+            else
+            {
+                if (GUILayout.Button("Start Painting"))
                 {
-                    target.ClearData();
+                    ToolManager.SetActiveTool<WavePaintingEditorTool>();
                 }
             }
 
+            if (GUILayout.Button("Clear"))
+            {
+                target.ClearData();
+            }
         }
-
-
-
-
-
-
 
         Transform _cursor;
 
@@ -703,12 +686,11 @@ namespace Crest
 
         public static float s_paintRadius = 5f;
         public static float s_paintStrength = 1f;
-        
+
         void OnMouseMove(bool dragging, float weightMultiplier = 1f)
         {
             if (!OceanRenderer.Instance) return;
 
-            //var waves = target as PaintingHelper;
             var target = this.target as RegisterLodDataInputBase;
             if (!target) return;
 
@@ -716,12 +698,6 @@ namespace Crest
             {
                 return;
             }
-
-            //var client = waves.GetComponent<IPaintedDataClient>();
-            //if (client == null)
-            //{
-            //    return;
-            //}
 
             _cursor.position = pt;
             _cursor.localScale = new Vector3(2f, 0.25f, 2f) * s_paintRadius;
@@ -739,16 +715,6 @@ namespace Crest
                 }
             }
         }
-
-
-
-
-
-
-
-
-
-
     }
 
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>

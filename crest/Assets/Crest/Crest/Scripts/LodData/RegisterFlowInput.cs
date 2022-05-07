@@ -58,6 +58,7 @@ namespace Crest
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");
+        public override Vector2 PaintWorldSize => _paintData.WorldSize;
 
         public override void ClearData()
         {

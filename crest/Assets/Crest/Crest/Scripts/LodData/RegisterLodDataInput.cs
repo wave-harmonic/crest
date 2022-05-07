@@ -82,6 +82,8 @@ namespace Crest
 
         protected abstract string ShaderPrefix { get; }
 
+        protected abstract Color GizmoColor { get; }
+
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
 
@@ -113,12 +115,40 @@ namespace Crest
         {
         }
 
+        protected virtual void OnDrawGizmosSelected()
+        {
+            var mf = GetComponent<MeshFilter>();
+            if (mf)
+            {
+                Gizmos.color = GizmoColor;
+                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+            }
+
+            if (SupportsPainting)
+            {
+#if UNITY_EDITOR
+                Vector3 pos = transform.position;
+                if (OceanRenderer.Instance) pos.y = OceanRenderer.Instance.transform.position.y;
+
+                var oldMatrix = Gizmos.matrix;
+                Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(PaintWorldSize.x, 1f, PaintWorldSize.y));
+                Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 1f) : GizmoColor;
+
+                Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
+                Gizmos.DrawWireCube(Vector3.up * 0.5f, new Vector3(1f, 0f, 1f));
+                Gizmos.DrawWireCube(Vector3.up * -0.5f, new Vector3(1f, 0f, 1f));
+                Gizmos.matrix = oldMatrix;
+#endif
+            }
+        }
+
         #region Painting
         public bool SupportsPainting => PaintedInputShader != null;
         protected virtual Shader PaintedInputShader => null;
         public virtual void ClearData() { }
         public virtual bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove) { return false; }
         public virtual Texture2D PaintedTexture => null;
+        public virtual Vector2 PaintWorldSize => Vector2.zero;
         #endregion
 
         void InitRendererAndMaterial(bool verifyShader)
@@ -251,12 +281,7 @@ namespace Crest
         [SerializeField, Predicated(typeof(Renderer)), DecoratedField]
         bool _disableRenderer = true;
 
-        protected abstract Color GizmoColor { get; }
-
         int _registeredQueueValue = int.MinValue;
-
-        //PaintingHelper _paintSupport = null;
-        //protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
 
         protected virtual bool GetQueue(out int queue)
         {
@@ -330,16 +355,6 @@ namespace Crest
                 }
             }
 #endif
-        }
-
-        protected void OnDrawGizmosSelected()
-        {
-            var mf = GetComponent<MeshFilter>();
-            if (mf)
-            {
-                Gizmos.color = GizmoColor;
-                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
-            }
         }
     }
 
@@ -468,10 +483,17 @@ namespace Crest
             }
         }
 
-        protected new void OnDrawGizmosSelected()
+        protected override void OnDrawGizmosSelected()
         {
-            Gizmos.color = GizmoColor;
-            Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+            if (_splineMesh != null)
+            {
+                Gizmos.color = GizmoColor;
+                Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+            }
+            else
+            {
+                base.OnDrawGizmosSelected();
+            }
         }
 
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)

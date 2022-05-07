@@ -58,6 +58,7 @@ namespace Crest
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");
+        public override Vector2 PaintWorldSize => _paintData.WorldSize;
 
         public override void ClearData()
         {

@@ -34,6 +34,7 @@ namespace Crest
         {
             Geometry,
             Primitive,
+            Painted
         }
 
         // Have this match UnityEngine.PrimitiveType.
@@ -50,7 +51,7 @@ namespace Crest
 
         [Tooltip("Where the source of the clipping will come from.")]
         [SerializeField]
-        internal Mode _mode = Mode.Primitive;
+        internal Mode _mode = Mode.Painted;
 
         [Tooltip("The primitive to render (signed distance) into the simulation.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
@@ -99,6 +100,7 @@ namespace Crest
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
         protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
+        public override Vector2 PaintWorldSize => _paintData.WorldSize;
 
         public override void ClearData()
         {
@@ -214,8 +216,7 @@ namespace Crest
             buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
             buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
 
-            // Prioritize painting if available. TODO is this right, rather than exposing a Mode for painted?
-            if (_paintInputMaterial)
+            if (_mode == Mode.Painted)
             {
                 buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
             }
@@ -332,6 +333,12 @@ namespace Crest
         protected new void OnDrawGizmosSelected()
         {
             Gizmos.color = GizmoColor;
+
+            if(_mode == Mode.Painted)
+            {
+                base.OnDrawGizmosSelected();
+                return;
+            }
 
             if (_mode == Mode.Geometry)
             {

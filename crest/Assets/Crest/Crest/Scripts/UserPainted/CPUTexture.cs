@@ -181,7 +181,10 @@ namespace Crest
                 _data = new T[_resolution.x * _resolution.y];
 
 #if UNITY_EDITOR
-                EditorUtility.SetDirty(owner);
+                if (owner != null)
+                {
+                    EditorUtility.SetDirty(owner);
+                }
 #endif
             }
         }

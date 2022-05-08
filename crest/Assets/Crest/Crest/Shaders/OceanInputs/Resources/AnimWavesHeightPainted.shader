@@ -4,6 +4,8 @@
 
 // Adds height from the Painting feature
 
+// TODO this is actually writing into the depth cache - setting the water level! By luck y is the correct channel.
+
 Shader "Hidden/Crest/Inputs/Animated Waves/Painted Height"
 {
 	SubShader

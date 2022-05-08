@@ -72,9 +72,21 @@ namespace Crest
         {
             _paintData.CenterPosition3 = transform.position;
 
-            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.06f : 0.1f, PaintableEditorBase.s_paintRadius, PaintableEditorBase.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.01f : 0.02f, PaintableEditorBase.s_paintRadius, PaintableEditorBase.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
         }
         #endregion
+
+        protected override bool GetQueue(out int queue)
+        {
+            // TODO another symptom of murky input situation. What should happen here? Goal - make this apply strictly after
+            // 
+            if (!GetComponent<Spline.Spline>())
+            {
+                queue = -1000;
+                return true;
+            }
+            return base.GetQueue(out queue);
+        }
 
         protected override void Update()
         {

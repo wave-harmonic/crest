@@ -28,6 +28,8 @@ float _Turbulence;
 float _Gravity;
 float _Period;
 
+#include "../../Sampling.hlsl"
+
 uint WangHash(uint seed)
 {
 	seed = (seed ^ 61) ^ (seed >> 16);
@@ -166,7 +168,13 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 	const float wavelength = PI2 / kMag;
 	const float octaveIndex = log2( wavelength ) - SPECTRUM_SMALLEST_WL_POW_2;
 	const float2 spectrumUV = float2((octaveIndex + 0.5) / SPECTRUM_OCTAVE_COUNT, 0.5);
-	const float spectrum = _SpectrumControls.SampleLevel( linear_clamp_sampler, spectrumUV, 0.0 ) *
+
+	uint scTextureResolution;
+	{
+		uint depth, height;
+		_SpectrumControls.GetDimensions(scTextureResolution, height);
+	}
+	const float spectrum = SampleFloatManualLerp2(_SpectrumControls, spectrumUV, scTextureResolution) *
 		PiersonMoskowitzWindTerm( w );
 
 	float deltaSPos = spectrum;

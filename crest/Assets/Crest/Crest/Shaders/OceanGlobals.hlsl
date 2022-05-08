@@ -10,6 +10,7 @@
 SamplerState LODData_linear_clamp_sampler;
 SamplerState LODData_point_clamp_sampler;
 SamplerState sampler_Crest_linear_repeat;
+SamplerState sampler_Crest_point_repeat;
 
 CBUFFER_START(CrestPerFrame)
 float3 _OceanCenterPosWorld;

@@ -10,6 +10,140 @@
 #define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
 #define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 
+// Hardware
+float4 SampleManualLerp0(in Texture2DArray i_texture, in float3 i_uv_slice, in float i_textureResolution)
+{
+	return i_texture.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
+}
+
+// Manual Linear: https://iquilezles.org/articles/texture/
+float4 SampleManualLerp1(in Texture2DArray i_texture, float3 i_uv_slice, in float i_textureResolution)
+{
+	float2 p = i_uv_slice.xy;
+    p = p * i_textureResolution + 0.5;
+
+    float2 i = floor(p);
+    float2 f = p - i;
+    f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+    p = i + f;
+
+    p = (p - 0.5 ) / i_textureResolution;
+    return i_texture.SampleLevel(LODData_linear_clamp_sampler, float3(p, i_uv_slice.z), 0.0);
+}
+
+// Manual Bilinear: https://iquilezles.org/articles/hwinterpolation/
+float4 SampleManualLerp2(in Texture2DArray i_texture, in float3 i_uv_slice, in float i_textureResolution)
+{
+	float2 resolution = float2(i_textureResolution, i_textureResolution);
+
+    float2 st = i_uv_slice.xy * resolution - 0.5;
+
+    float2 iuv = floor(st);
+    float2 fuv = frac(st);
+
+    float4 a = i_texture.SampleLevel(LODData_linear_clamp_sampler, float3((iuv + float2(0.5, 0.5)) / resolution, i_uv_slice.z), 0.0);
+    float4 b = i_texture.SampleLevel(LODData_linear_clamp_sampler, float3((iuv + float2(1.5, 0.5)) / resolution, i_uv_slice.z), 0.0);
+    float4 c = i_texture.SampleLevel(LODData_linear_clamp_sampler, float3((iuv + float2(0.5, 1.5)) / resolution, i_uv_slice.z), 0.0);
+    float4 d = i_texture.SampleLevel(LODData_linear_clamp_sampler, float3((iuv + float2(1.5, 1.5)) / resolution, i_uv_slice.z), 0.0);
+
+    return lerp(lerp(a, b, fuv.x), lerp(c, d, fuv.x), fuv.y);
+}
+
+// Hardware
+float4 SampleRepeatManualLerp0(in Texture2DArray i_texture, in float3 i_uv_slice, in float i_textureResolution)
+{
+	return i_texture.SampleLevel(sampler_Crest_linear_repeat, i_uv_slice, 0.0);
+}
+
+// Manual Linear: https://iquilezles.org/articles/texture/
+float4 SampleRepeatManualLerp1(in Texture2DArray i_texture, float3 i_uv_slice, in float i_textureResolution)
+{
+	float2 p = i_uv_slice.xy;
+    p = p * i_textureResolution + 0.5;
+
+    float2 i = floor(p);
+    float2 f = p - i;
+    f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+    p = i + f;
+
+    p = (p - 0.5 ) / i_textureResolution;
+    return i_texture.SampleLevel(sampler_Crest_linear_repeat, float3(p, i_uv_slice.z), 0.0);
+}
+
+// Manual Bilinear: https://iquilezles.org/articles/hwinterpolation/
+float4 SampleRepeatManualLerp2(in Texture2DArray i_texture, in float3 i_uv_slice, in float i_textureResolution)
+{
+	float2 resolution = float2(i_textureResolution, i_textureResolution);
+
+    float2 st = i_uv_slice.xy * resolution - 0.5;
+
+    float2 iuv = floor(st);
+    float2 fuv = frac(st);
+
+    float4 a = i_texture.SampleLevel(sampler_Crest_linear_repeat, float3((iuv + float2(0.5, 0.5)) / resolution, i_uv_slice.z), 0.0);
+    float4 b = i_texture.SampleLevel(sampler_Crest_linear_repeat, float3((iuv + float2(1.5, 0.5)) / resolution, i_uv_slice.z), 0.0);
+    float4 c = i_texture.SampleLevel(sampler_Crest_linear_repeat, float3((iuv + float2(0.5, 1.5)) / resolution, i_uv_slice.z), 0.0);
+    float4 d = i_texture.SampleLevel(sampler_Crest_linear_repeat, float3((iuv + float2(1.5, 1.5)) / resolution, i_uv_slice.z), 0.0);
+
+    return lerp(lerp(a, b, fuv.x), lerp(c, d, fuv.x), fuv.y);
+}
+
+// The following code is licensed under the MIT license: https://gist.github.com/TheRealMJP/bc503b0b87b643d3505d41eab8b332ae
+// Samples a texture with Catmull-Rom filtering, using 9 texture fetches instead of 16.
+// See http://vec3.ca/bicubic-filtering-in-fewer-taps/ for more details
+float4 SampleManualLerp3(in Texture2DArray tex, in float3 uv3, in float i_texSize)
+{
+	float2 texSize = float2(i_texSize, i_texSize);
+	float2 uv = uv3.xy;
+	SamplerState linearSampler = sampler_Crest_linear_repeat;
+    // We're going to sample a a 4x4 grid of texels surrounding the target UV coordinate. We'll do this by rounding
+    // down the sample location to get the exact center of our "starting" texel. The starting texel will be at
+    // location [1, 1] in the grid, where [0, 0] is the top left corner.
+    float2 samplePos = uv * texSize;
+    float2 texPos1 = floor(samplePos - 0.5f) + 0.5f;
+
+    // Compute the fractional offset from our starting texel to our original sample location, which we'll
+    // feed into the Catmull-Rom spline function to get our filter weights.
+    float2 f = samplePos - texPos1;
+
+    // Compute the Catmull-Rom weights using the fractional offset that we calculated earlier.
+    // These equations are pre-expanded based on our knowledge of where the texels will be located,
+    // which lets us avoid having to evaluate a piece-wise function.
+    float2 w0 = f * (-0.5f + f * (1.0f - 0.5f * f));
+    float2 w1 = 1.0f + f * f * (-2.5f + 1.5f * f);
+    float2 w2 = f * (0.5f + f * (2.0f - 1.5f * f));
+    float2 w3 = f * f * (-0.5f + 0.5f * f);
+
+    // Work out weighting factors and sampling offsets that will let us use bilinear filtering to
+    // simultaneously evaluate the middle 2 samples from the 4x4 grid.
+    float2 w12 = w1 + w2;
+    float2 offset12 = w2 / (w1 + w2);
+
+    // Compute the final UV coordinates we'll use for sampling the texture
+    float2 texPos0 = texPos1 - 1;
+    float2 texPos3 = texPos1 + 2;
+    float2 texPos12 = texPos1 + offset12;
+
+    texPos0 /= texSize;
+    texPos3 /= texSize;
+    texPos12 /= texSize;
+
+    float4 result = 0.0f;
+    result += tex.SampleLevel(linearSampler, float3(texPos0.x, texPos0.y, uv3.z), 0.0f) * w0.x * w0.y;
+    result += tex.SampleLevel(linearSampler, float3(texPos12.x, texPos0.y, uv3.z), 0.0f) * w12.x * w0.y;
+    result += tex.SampleLevel(linearSampler, float3(texPos3.x, texPos0.y, uv3.z), 0.0f) * w3.x * w0.y;
+
+    result += tex.SampleLevel(linearSampler, float3(texPos0.x, texPos12.y, uv3.z), 0.0f) * w0.x * w12.y;
+    result += tex.SampleLevel(linearSampler, float3(texPos12.x, texPos12.y, uv3.z), 0.0f) * w12.x * w12.y;
+    result += tex.SampleLevel(linearSampler, float3(texPos3.x, texPos12.y, uv3.z), 0.0f) * w3.x * w12.y;
+
+    result += tex.SampleLevel(linearSampler, float3(texPos0.x, texPos3.y, uv3.z), 0.0f) * w0.x * w3.y;
+    result += tex.SampleLevel(linearSampler, float3(texPos12.x, texPos3.y, uv3.z), 0.0f) * w12.x * w3.y;
+    result += tex.SampleLevel(linearSampler, float3(texPos3.x, texPos3.y, uv3.z), 0.0f) * w3.x * w3.y;
+
+    return result;
+}
+
 float2 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams)
 {
 	return (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;

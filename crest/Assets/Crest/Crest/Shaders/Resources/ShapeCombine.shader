@@ -80,22 +80,22 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float variance = 0.0;
 
 				// Sample in waves for this cascade.
-#if CREST_FLOW_ON_INTERNAL
-				half2 flow = 0.0;
-				SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
+// #if CREST_FLOW_ON_INTERNAL
+// 				half2 flow = 0.0;
+// 				SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
 
-				float2 offsets, weights;
-				Flow(offsets, weights);
+// 				float2 offsets, weights;
+// 				Flow(offsets, weights);
 
-				const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
-				const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);
-				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, variance);
-				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, variance);
-#else
-				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
+// 				const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
+// 				const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);
+// 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, variance);
+// 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, variance);
+// #else
+				float4 data = SampleRepeatManualLerp2(_LD_TexArray_WaveBuffer, uv_thisLod, cascadeData0._textureRes);
 				result = data.xyz;
 				variance = data.w;
-#endif // CREST_FLOW_ON_INTERNAL
+// #endif // CREST_FLOW_ON_INTERNAL
 
 				float arrayDepth;
 				{
@@ -106,37 +106,37 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				// Waves to combine down from the next lod up the chain.
 				if ((float)_LD_SliceIndex < arrayDepth - 1.0)
 				{
-					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
+					float4 dataNextLod = SampleRepeatManualLerp2(_LD_TexArray_AnimatedWaves, uv_nextLod, cascadeData0._textureRes);
 					result += dataNextLod.xyz;
 					// Do not combine variance. Variance is already cumulative - from low cascades up
 				}
 
-#if CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
-				{
-					// convert dynamic wave sim to displacements
+// #if CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
+// 				{
+// 					// convert dynamic wave sim to displacements
 
-					half waveSimY = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod).x;
-					result.y += waveSimY;
+// 					half waveSimY = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod).x;
+// 					result.y += waveSimY;
 
-					const float2 invRes = float2(cascadeData0._oneOverTextureRes, 0.0);
-					const half waveSimY_px = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.xy, 0)).x;
-					const half waveSimY_nx = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.xy, 0)).x;
-					const half waveSimY_pz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.yx, 0)).x;
-					const half waveSimY_nz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.yx, 0)).x;
-					// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
+// 					const float2 invRes = float2(cascadeData0._oneOverTextureRes, 0.0);
+// 					const half waveSimY_px = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.xy, 0)).x;
+// 					const half waveSimY_nx = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.xy, 0)).x;
+// 					const half waveSimY_pz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.yx, 0)).x;
+// 					const half waveSimY_nz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.yx, 0)).x;
+// 					// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
 
-					// For gerstner waves, horiz displacement is proportional to derivative of vertical displacement multiplied by the wavelength
-					const float wavelength_mid = 2.0 * cascadeData0._texelWidth * 1.5;
-					const float wavevector = 2.0 * 3.14159 / wavelength_mid;
-					const float2 dydx = (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2.0 * cascadeData0._texelWidth);
-					float2 dispXZ = _HorizDisplace * dydx / wavevector;
+// 					// For gerstner waves, horiz displacement is proportional to derivative of vertical displacement multiplied by the wavelength
+// 					const float wavelength_mid = 2.0 * cascadeData0._texelWidth * 1.5;
+// 					const float wavevector = 2.0 * 3.14159 / wavelength_mid;
+// 					const float2 dydx = (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2.0 * cascadeData0._texelWidth);
+// 					float2 dispXZ = _HorizDisplace * dydx / wavevector;
 
-					const float maxDisp = cascadeData0._texelWidth * _DisplaceClamp;
-					dispXZ = clamp(dispXZ, -maxDisp, maxDisp);
+// 					const float maxDisp = cascadeData0._texelWidth * _DisplaceClamp;
+// 					dispXZ = clamp(dispXZ, -maxDisp, maxDisp);
 
-					result.xz += dispXZ;
-				}
-#endif // CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
+// 					result.xz += dispXZ;
+// 				}
+// #endif // CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
 
 				return half4(result, variance);
 			}

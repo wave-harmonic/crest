@@ -45,7 +45,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 
 	// Sample from previous frame.
 	{
-		const half2 velocity = _LD_TexArray_Flow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0).xy;
+		const half2 velocity = SampleManualLerp2(_LD_TexArray_Flow, uv_slice, cascadeData._textureRes).xy;
 		const float2 worldPosXZ_flowed = worldPosXZ - _SimDeltaTime * velocity;
 
 		const half r_max = 0.5 - _CrestCascadeDataSource[sliceIndexSource]._oneOverTextureRes;
@@ -56,7 +56,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 
 		if (max(r.x, r.y) <= r_max)
 		{
-			foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0.0).x;
+			foam = SampleManualLerp2(_LD_TexArray_Foam_Source, uv_slice_source, _CrestCascadeDataSource[sliceIndexSource]._textureRes).x;
 		}
 		else if (sliceIndexSource + 1.0 < depth)
 		{
@@ -66,7 +66,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 			const half2 r2 = abs(uv_slice_source_nextlod.xy - 0.5);
 			if (max(r2.x, r2.y) <= r_max)
 			{
-				foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source_nextlod, 0.0).x;
+				foam = SampleManualLerp2(_LD_TexArray_Foam_Source, uv_slice_source_nextlod, _CrestCascadeDataSource[sliceIndexSource + 1]._textureRes).x;
 			}
 		}
 	}
@@ -80,11 +80,11 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 
 	// Sample displacement texture and generate foam from it
 	const float3 dd = float3(cascadeData._oneOverTextureRes, 0.0, cascadeData._texelWidth);
-	half4 data = SampleLod( _LD_TexArray_AnimatedWaves, uv_slice );
-	half3 s = data.xyz;
+	float4 data = SampleManualLerp2(_LD_TexArray_AnimatedWaves, uv_slice, cascadeData._textureRes);
+	float3 s = data.xyz;
 	float foamBase = data.w;
-	half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
-	half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
+	float3 sx = SampleManualLerp2(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.xy, 0.0), cascadeData._textureRes).xyz;
+	float3 sz = SampleManualLerp2(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.yx, 0.0), cascadeData._textureRes).xyz;
 	float3 disp = s.xyz;
 	float3 disp_x = dd.zyy + sx.xyz;
 	float3 disp_z = dd.yyz + sz.xyz;
@@ -97,15 +97,18 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float det = determinant( jacobian );
 	foam += 5.0 * simDeltaTime * _WaveFoamStrength * saturate( _WaveFoamCoverage - det + foamBase * 0.7 );
 
+	// Expose determinant.
+	foam = saturate(det);
+
 	// Prewarm shoreline foam. 1.0 / _FoamFadeRate perfectly matches a paused ocean in edit mode which is fine for
 	// shoreline foam.
 	simDeltaTime = _NeedsPrewarming ? (1.0 / _FoamFadeRate) : _SimDeltaTime;
 
 	// Add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
-	const float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, cascadeData, sliceIndex);
-	const half2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice_displaced, 0.0).xy;
-	const half signedOceanDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y + disp.y;
-	foam += _ShorelineFoamStrength * simDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
+	// const float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, cascadeData, sliceIndex);
+	// const half2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice_displaced, 0.0).xy;
+	// const half signedOceanDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y + disp.y;
+	// foam += _ShorelineFoamStrength * simDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 	_LD_TexArray_Target[id] = saturate(foam);
 }

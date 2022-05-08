@@ -12,13 +12,7 @@ using UnityEditor.EditorTools;
 namespace Crest
 {
 #if UNITY_EDITOR
-    public class PaintableEditorBase : ValidatedEditor
-    {
-        public static float s_paintRadius = 5f;
-        public static float s_paintStrength = 1f;
-    }
-
-    public class PaintableEditor : PaintableEditorBase
+    public class PaintableEditor : ValidatedEditor
     {
         public override void OnInspectorGUI()
         {
@@ -54,9 +48,6 @@ namespace Crest
                         _dirtyFlag = false;
                     }
                 }
-
-                s_paintRadius = EditorGUILayout.Slider("Brush Radius", s_paintRadius, 0f, 100f);
-                s_paintStrength = EditorGUILayout.Slider("Brush Strength", s_paintStrength, 0f, 3f);
             }
             else
             {
@@ -165,7 +156,7 @@ namespace Crest
             }
 
             _cursor.position = pt;
-            _cursor.localScale = new Vector3(2f, 0.25f, 2f) * s_paintRadius;
+            _cursor.localScale = new Vector3(2f, 0.25f, 2f) * target.PaintedData.BrushRadius;
 
             if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
             {

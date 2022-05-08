@@ -133,7 +133,7 @@ namespace Crest
 
                 var oldMatrix = Gizmos.matrix;
                 Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(paintable.PaintedData.WorldSize.x, 1f, paintable.PaintedData.WorldSize.y));
-                Gizmos.color = WavePaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 1f) : GizmoColor;
+                Gizmos.color = InputPaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 1f) : GizmoColor;
 
                 Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
                 Gizmos.DrawWireCube(Vector3.up * 0.5f, new Vector3(1f, 0f, 1f));

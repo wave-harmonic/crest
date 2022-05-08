@@ -5,7 +5,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
-using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -19,7 +18,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
-    public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
+    public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable, IPaintable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -116,9 +115,6 @@ namespace Crest
         public Vector2 WorldSize => _paintData.WorldSize;
         public Transform Transform => transform;
 
-        //PaintingHelper _paintSupport = null;
-        //protected PaintingHelper PaintSupport => _paintSupport ?? (_paintSupport = GetComponent<PaintingHelper>());
-
         public void ClearData()
         {
             _paintData.Clear(this, Vector2.zero);
@@ -128,7 +124,7 @@ namespace Crest
         {
             _paintData.CenterPosition3 = transform.position;
 
-            return _paintData.PaintSmoothstep(this, paintPosition3, 0.125f * paintWeight, paintDir, PaintableEditor.s_paintRadius, PaintableEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendSaturateVector2, remove);
+            return _paintData.PaintSmoothstep(this, paintPosition3, 0.125f * paintWeight, paintDir, PaintableEditorBase.s_paintRadius, PaintableEditorBase.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendSaturateVector2, remove);
         }
         #endregion
 
@@ -166,6 +162,9 @@ namespace Crest
         public float _timeLoopLength = 32f;
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
+
+        public IPaintedData PaintedData => _paintData;
+        public Shader PaintedInputShader => null;
 
         Mesh _meshForDrawingWaves;
 
@@ -511,7 +510,7 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeFFT))]
-    public class ShapeFFTEditor : ValidatedEditor
+    public class ShapeFFTEditor : PaintableEditor
     {
 #if CREST_UNITY_MATHEMATICS
         /// <summary>
@@ -621,5 +620,11 @@ namespace Crest
         }
 #endif // CREST_UNITY_MATHEMATICS
     }
-#endif
+
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(ShapeFFT))]
+    public class ShapeFFTPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

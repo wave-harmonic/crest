@@ -72,7 +72,7 @@ namespace Crest
         {
             _paintData.CenterPosition3 = transform.position;
 
-            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.06f : 0.1f, PaintableEditor.s_paintRadius, PaintableEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.06f : 0.1f, PaintableEditorBase.s_paintRadius, PaintableEditorBase.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
         }
         #endregion
 

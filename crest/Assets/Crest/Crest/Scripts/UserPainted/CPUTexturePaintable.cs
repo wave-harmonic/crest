@@ -141,11 +141,14 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    public class PaintableEditor : ValidatedEditor
+    public class PaintableEditorBase : ValidatedEditor
     {
         public static float s_paintRadius = 5f;
         public static float s_paintStrength = 1f;
+    }
 
+    public class PaintableEditor : PaintableEditorBase
+    {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -158,7 +161,7 @@ namespace Crest
 
         void OnInspectorGUIPainting(IPaintable target)
         {
-            if (WavePaintingEditorTool.CurrentlyPainting)
+            if (InputPaintingEditorTool.CurrentlyPainting)
             {
                 if (GUILayout.Button("Stop Painting"))
                 {
@@ -186,7 +189,7 @@ namespace Crest
             {
                 if (GUILayout.Button("Start Painting"))
                 {
-                    ToolManager.SetActiveTool<WavePaintingEditorTool>();
+                    ToolManager.SetActiveTool<InputPaintingEditorTool>();
                 }
             }
 
@@ -226,7 +229,7 @@ namespace Crest
 
         protected virtual void OnSceneGUI()
         {
-            if (ToolManager.activeToolType != typeof(WavePaintingEditorTool))
+            if (ToolManager.activeToolType != typeof(InputPaintingEditorTool))
             {
                 return;
             }

@@ -11,16 +11,15 @@ using UnityEditor.EditorTools;
 namespace Crest
 {
 #if UNITY_EDITOR
-    // This typeof means it gets activated for the above component
-    [EditorTool("Crest Wave Painting", typeof(RegisterLodDataInputBase))]
-    class WavePaintingEditorTool : EditorTool
+    [EditorTool("Crest Input Painting", typeof(IPaintable))]
+    public class InputPaintingEditorTool : EditorTool
     {
         public override GUIContent toolbarIcon => _toolbarIcon ??
-            (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Wave Painting"));
-
-        public static bool CurrentlyPainting => ToolManager.activeToolType == typeof(WavePaintingEditorTool);
+            (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Input Painting"));
 
         GUIContent _toolbarIcon;
+
+        public static bool CurrentlyPainting => ToolManager.activeToolType == typeof(InputPaintingEditorTool);
     }
 #endif
 }

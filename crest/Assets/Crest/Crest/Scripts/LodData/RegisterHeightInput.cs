@@ -79,7 +79,7 @@ namespace Crest
         protected override bool GetQueue(out int queue)
         {
             // TODO another symptom of murky input situation. What should happen here? Goal - make this apply strictly after
-            // 
+            // spline height, because spline height stomps (necessarily i think - needs to write its height not add it).
             if (!GetComponent<Spline.Spline>())
             {
                 queue = -1000;

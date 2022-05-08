@@ -161,6 +161,8 @@ namespace Crest
 
         void OnInspectorGUIPainting(IPaintable target)
         {
+            EditorGUILayout.Space();
+
             if (InputPaintingEditorTool.CurrentlyPainting)
             {
                 if (GUILayout.Button("Stop Painting"))
@@ -298,6 +300,17 @@ namespace Crest
                 }
             }
         }
+    }
+
+    [EditorTool("Crest Input Painting", typeof(IPaintable))]
+    public class InputPaintingEditorTool : EditorTool
+    {
+        public override GUIContent toolbarIcon => _toolbarIcon ??
+            (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Input Painting"));
+
+        GUIContent _toolbarIcon;
+
+        public static bool CurrentlyPainting => ToolManager.activeToolType == typeof(InputPaintingEditorTool);
     }
 #endif // UNITY_EDITOR
 }

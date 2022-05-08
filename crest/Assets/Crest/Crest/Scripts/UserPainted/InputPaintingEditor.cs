@@ -129,7 +129,18 @@ namespace Crest
         {
             var r = HandleUtility.GUIPointToWorldRay(mousePos);
 
-            var heightOffset = r.origin.y - OceanRenderer.Instance.transform.position.y;
+            float planeY;
+            var comp = target as Component;
+            if (comp)
+            {
+                planeY = comp.transform.position.y;
+            }
+            else
+            {
+                planeY = OceanRenderer.Instance.transform.position.y;
+            }
+
+            var heightOffset = r.origin.y - planeY;
             var diry = r.direction.y;
             if (heightOffset * diry >= 0f)
             {
@@ -145,8 +156,6 @@ namespace Crest
 
         void OnMouseMove(bool dragging, float weightMultiplier = 1f)
         {
-            if (!OceanRenderer.Instance) return;
-
             var target = this.target as IPaintable;
             if (target == null) return;
 

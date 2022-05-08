@@ -436,6 +436,8 @@ namespace Crest
         private void OnDrawGizmosSelected()
         {
             DrawMesh();
+
+            PaintableEditor.DrawPaintAreaGizmo(this, Color.green);
         }
 
         void DrawMesh()

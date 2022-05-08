@@ -127,19 +127,7 @@ namespace Crest
             var paintable = this as IPaintable;
             if (paintable != null)
             {
-#if UNITY_EDITOR
-                Vector3 pos = transform.position;
-                if (OceanRenderer.Instance) pos.y = OceanRenderer.Instance.transform.position.y;
-
-                var oldMatrix = Gizmos.matrix;
-                Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(paintable.PaintedData.WorldSize.x, 1f, paintable.PaintedData.WorldSize.y));
-                Gizmos.color = InputPaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 1f) : GizmoColor;
-
-                Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
-                Gizmos.DrawWireCube(Vector3.up * 0.5f, new Vector3(1f, 0f, 1f));
-                Gizmos.DrawWireCube(Vector3.up * -0.5f, new Vector3(1f, 0f, 1f));
-                Gizmos.matrix = oldMatrix;
-#endif
+                PaintableEditor.DrawPaintAreaGizmo(paintable, GizmoColor);
             }
         }
 

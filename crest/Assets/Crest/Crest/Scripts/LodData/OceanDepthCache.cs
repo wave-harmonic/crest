@@ -433,6 +433,8 @@ namespace Crest
                 ti.wrapMode = TextureWrapMode.Clamp;
                 // Values are slightly different with NPOT Scale applied.
                 ti.npotScale = TextureImporterNPOTScale.None;
+                // Round up so it encompasses desired resolution.
+                ti.maxTextureSize = Mathf.RoundToInt(Mathf.Pow(2f, Mathf.Ceil(Mathf.Log(dc._resolution, 2f))));
                 ti.SaveAndReimport();
 
                 Debug.Log("Crest: Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));

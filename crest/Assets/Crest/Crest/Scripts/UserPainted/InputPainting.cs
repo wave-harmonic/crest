@@ -65,11 +65,12 @@ namespace Crest
 
                 // 'Saturate' - clamp length to 1. Oddly, this seems less predictable/more prone to warping, and perhaps more difficult to manage.
                 // It may be wise to apply some kind of downward pressure to size though.
-                //var len2 = result.sqrMagnitude;
-                //if (len2 > 1f)
-                //{
-                //    result /= Mathf.Sqrt(len2);
-                //}
+                var len2 = result.sqrMagnitude;
+                if (len2 > 1f)
+                {
+                    result /= Mathf.Sqrt(len2);
+                }
+
                 return result;
             }
         }

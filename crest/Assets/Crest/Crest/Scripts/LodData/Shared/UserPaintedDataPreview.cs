@@ -19,7 +19,7 @@ namespace Crest
         /// </summary>
         public override string GetInfoString()
         {
-            var tex = (target as RegisterLodDataInputBase)?.PaintedData?.Texture;
+            var tex = (target as IPaintable)?.PaintedData?.Texture;
             if (tex == null) return "";
             return $"{tex.width}x{tex.height} {tex.graphicsFormat}";
         }
@@ -33,7 +33,7 @@ namespace Crest
 
             if (Mathf.Approximately(r.width, 1f)) return;
 
-            var tex = (target as RegisterLodDataInputBase)?.PaintedData?.Texture;
+            var tex = (target as IPaintable)?.PaintedData?.Texture;
             if (tex == null) return;
 
             GUI.DrawTexture(r, tex, ScaleMode.ScaleToFit, false);

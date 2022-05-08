@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
-    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
+    public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintable
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -85,7 +85,8 @@ namespace Crest
         #region Painting
         [Header("Paint Settings")]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
-        public override IPaintedData PaintedData => _paintData;
+        public IPaintedData PaintedData => _paintData;
+        public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
 
         protected override void PreparePaintInputMaterial(Material mat)
         {
@@ -94,6 +95,7 @@ namespace Crest
             _paintData.CenterPosition3 = transform.position;
             _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
+
         protected override void UpdatePaintInputMaterial(Material mat)
         {
             base.UpdatePaintInputMaterial(mat);
@@ -101,18 +103,17 @@ namespace Crest
             _paintData.CenterPosition3 = transform.position;
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
         }
-        protected override Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
 
-        public override void ClearData()
+        public void ClearData()
         {
             _paintData.Clear(this, 0f);
         }
 
-        public override bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {
             _paintData.CenterPosition3 = transform.position;
 
-            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? -1f : 1f, RegisterLodDataInputBaseEditor.s_paintRadius, RegisterLodDataInputBaseEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? -1f : 1f, PaintableEditor.s_paintRadius, PaintableEditor.s_paintStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
         }
         #endregion
 

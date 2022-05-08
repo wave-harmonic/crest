@@ -6,12 +6,27 @@ using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.EditorTools;
+#endif
+
 namespace Crest
 {
     public interface IPaintedData
     {
         Texture2D Texture { get; }
         Vector2 WorldSize { get; }
+    }
+
+    public interface IPaintable
+    {
+        IPaintedData PaintedData { get; }
+        Shader PaintedInputShader { get; }
+
+        void ClearData();
+
+        bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove);
     }
 
     public static class CPUTexturePaintHelpers
@@ -104,8 +119,6 @@ namespace Crest
         {
             mat.EnableKeyword("_PAINTED_ON");
 
-            // Has to be done outside - this contains non-generic knowledge. TODO review how this is done.
-            //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             mat.SetVector("_PaintedWavesSize", WorldSize);
             mat.SetVector("_PaintedWavesPosition", CenterPosition);
             mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
@@ -115,8 +128,6 @@ namespace Crest
         {
 #if UNITY_EDITOR
             // Any per-frame update. In editor keep it all fresh.
-            // Has to be done outside - this contains non-generic knowledge. TODO review how this is done.
-            //mat.SetTexture("_PaintedWavesData", GPUTexture(GraphicsFormat.R16_SFloat, CPUTexture2DHelpers.ColorConstructFnOneChannel));
             mat.SetVector("_PaintedWavesSize", WorldSize);
             mat.SetVector("_PaintedWavesPosition", CenterPosition);
             mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
@@ -128,4 +139,162 @@ namespace Crest
             return PaintSmoothstep(owner, paintPosition3, brushRadius, paintWeight * brushStrength, paintValue, paintFn, remove);
         }
     }
+
+#if UNITY_EDITOR
+    public class PaintableEditor : ValidatedEditor
+    {
+        public static float s_paintRadius = 5f;
+        public static float s_paintStrength = 1f;
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            if (target is IPaintable)
+            {
+                OnInspectorGUIPainting(target as IPaintable);
+            }
+        }
+
+        void OnInspectorGUIPainting(IPaintable target)
+        {
+            if (WavePaintingEditorTool.CurrentlyPainting)
+            {
+                if (GUILayout.Button("Stop Painting"))
+                {
+                    ToolManager.RestorePreviousPersistentTool();
+
+                    if (_dirtyFlag)
+                    {
+                        // This causes a big hitch it seems, so only do it when stop painting. However do we also need to detect selection changes? And other events like quitting?
+                        UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnInspectorGUI.SetDirty");
+                        var obj = target as UnityEngine.Object;
+                        if (obj)
+                        {
+                            EditorUtility.SetDirty(obj);
+                        }
+                        UnityEngine.Profiling.Profiler.EndSample();
+
+                        _dirtyFlag = false;
+                    }
+                }
+
+                s_paintRadius = EditorGUILayout.Slider("Brush Radius", s_paintRadius, 0f, 100f);
+                s_paintStrength = EditorGUILayout.Slider("Brush Strength", s_paintStrength, 0f, 3f);
+            }
+            else
+            {
+                if (GUILayout.Button("Start Painting"))
+                {
+                    ToolManager.SetActiveTool<WavePaintingEditorTool>();
+                }
+            }
+
+            if (GUILayout.Button("Clear"))
+            {
+                target.ClearData();
+            }
+        }
+
+        Transform _cursor;
+
+        bool _dirtyFlag = false;
+
+        protected virtual void OnEnable()
+        {
+            _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
+            _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
+        }
+
+        protected virtual void OnDestroy()
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnDestroy");
+
+            if (_dirtyFlag)
+            {
+                EditorUtility.SetDirty(target);
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        protected virtual void OnDisable()
+        {
+            DestroyImmediate(_cursor.gameObject);
+        }
+
+        protected virtual void OnSceneGUI()
+        {
+            if (ToolManager.activeToolType != typeof(WavePaintingEditorTool))
+            {
+                return;
+            }
+
+            switch (Event.current.type)
+            {
+                case EventType.MouseMove:
+                    OnMouseMove(false);
+                    break;
+                case EventType.MouseDown:
+                    // Boost strength of mouse down, feels much better when clicking
+                    OnMouseMove(Event.current.button == 0, 3f);
+                    break;
+                case EventType.MouseDrag:
+                    OnMouseMove(Event.current.button == 0);
+                    break;
+                case EventType.Layout:
+                    HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                    break;
+            }
+        }
+
+        bool WorldPosFromMouse(Vector2 mousePos, out Vector3 pos)
+        {
+            var r = HandleUtility.GUIPointToWorldRay(mousePos);
+
+            var heightOffset = r.origin.y - OceanRenderer.Instance.transform.position.y;
+            var diry = r.direction.y;
+            if (heightOffset * diry >= 0f)
+            {
+                // Ray going away from ocean plane
+                pos = Vector3.zero;
+                return false;
+            }
+
+            var dist = -heightOffset / diry;
+            pos = r.GetPoint(dist);
+            return true;
+        }
+
+        void OnMouseMove(bool dragging, float weightMultiplier = 1f)
+        {
+            if (!OceanRenderer.Instance) return;
+
+            var target = this.target as IPaintable;
+            if (target == null) return;
+
+            if (!WorldPosFromMouse(Event.current.mousePosition, out Vector3 pt))
+            {
+                return;
+            }
+
+            _cursor.position = pt;
+            _cursor.localScale = new Vector3(2f, 0.25f, 2f) * s_paintRadius;
+
+            if (dragging && WorldPosFromMouse(Event.current.mousePosition - Event.current.delta, out Vector3 ptLast))
+            {
+                Vector2 dir;
+                dir.x = pt.x - ptLast.x;
+                dir.y = pt.z - ptLast.z;
+                dir.Normalize();
+
+                if (target.Paint(pt, dir, weightMultiplier, Event.current.shift))
+                {
+                    _dirtyFlag = true;
+                }
+            }
+        }
+    }
+#endif // UNITY_EDITOR
 }

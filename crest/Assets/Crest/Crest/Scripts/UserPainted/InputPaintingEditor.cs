@@ -171,6 +171,27 @@ namespace Crest
                 }
             }
         }
+
+        public static void DrawPaintAreaGizmo(IPaintable paintable, Color color)
+        {
+            if (paintable != null)
+            {
+                Vector3 pos = (paintable as Component).transform.position;
+
+                // Draw gizmo at sea level. Right now its pretty hard to paint and having the gizmo at
+                // object level helps. However we could bring this back once cursor is better.
+                //if (OceanRenderer.Instance) pos.y = OceanRenderer.Instance.transform.position.y;
+
+                var oldMatrix = Gizmos.matrix;
+                Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(paintable.PaintedData.WorldSize.x, 1f, paintable.PaintedData.WorldSize.y));
+                Gizmos.color = InputPaintingEditorTool.CurrentlyPainting ? new Color(1f, 0f, 0f, 1f) : color;
+
+                Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
+                Gizmos.DrawWireCube(Vector3.up * 0.5f, new Vector3(1f, 0f, 1f));
+                Gizmos.DrawWireCube(Vector3.up * -0.5f, new Vector3(1f, 0f, 1f));
+                Gizmos.matrix = oldMatrix;
+            }
+        }
     }
 
     [EditorTool("Crest Input Painting", typeof(IPaintable))]

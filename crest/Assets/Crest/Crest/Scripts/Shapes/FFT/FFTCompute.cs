@@ -182,6 +182,7 @@ namespace Crest
             Helpers.Destroy(_tempFFT1);
             Helpers.Destroy(_tempFFT2);
             Helpers.Destroy(_tempFFT3);
+            _spectrumInitialised = false;
         }
 
         internal static void CleanUpAll()

@@ -312,7 +312,9 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Whether height queries are enabled in edit mode."), SerializeField]
+#pragma warning disable 414
         bool _heightQueries = true;
+#pragma warning restore 414
 
 
         [Header("Server Settings")]

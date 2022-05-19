@@ -34,6 +34,7 @@ Fixed
    -  Fix several *Texture2D* and *RenderTexture* memory and reference leaks.
    -  Fix excessively long build times when no *Underwater Renderer* is present in scene.
    -  Fix *Underwater Renderer* not working with varying water level.
+   -  Fix *Ocean Depth Cache* baked texture size being restricted by texture import settings.
 
 .. only:: birp
 

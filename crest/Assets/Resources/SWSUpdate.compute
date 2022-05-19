@@ -127,7 +127,8 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 	float g = groundHeight_seaLevelOffset.x;
 
 	// Mask is directly based off depth at the moment
-	float depth = _OceanCenterPosWorld.y + groundHeight_seaLevelOffset.y - g;
+	// TODO sea level does not seem to work - have no idea why as it should be 0 in my test scene!
+	float depth = _OceanCenterPosWorld.y /* + groundHeight_seaLevelOffset.y*/ - g;
 	_SimulationMaskRW[id] = 1.0 - saturate(depth/2.0);
 
 	// Sphere obstacle

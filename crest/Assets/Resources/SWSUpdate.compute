@@ -9,6 +9,12 @@
 #pragma kernel UpdateVels
 #pragma kernel BlurH
 
+#include "HLSLSupport.cginc"
+
+#include "../Crest/Crest/Shaders/OceanGlobals.hlsl"
+#include "../Crest/Crest/Shaders/OceanInputsDriven.hlsl"
+#include "../Crest/Crest/Shaders/OceanHelpersNew.hlsl"
+
 SamplerState linear_clamp_sampler;
 
 Texture2D<float> _H0;
@@ -104,13 +110,29 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 
 	float g = 0.0;
 
+	uint slice0, slice1;
+	float lodAlpha;
+	PosToSliceIndices(worldXZ, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha);
+
+	const float3 uv0 = WorldToUV(worldXZ, _CrestCascadeData[slice0], slice0);
+	const float3 uv1 = WorldToUV(worldXZ, _CrestCascadeData[slice1], slice1);
+
+	const float wt_0 = (1.0 - lodAlpha) * _CrestCascadeData[slice0]._weight;
+	const float wt_1 = (1.0 - wt_0) * _CrestCascadeData[slice1]._weight;
+
+	g =
+		wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).x +
+		wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).x;
+
 	// Sphere obstacle
 	const float2 offset = worldXZ - _ObstacleSphere1Pos.xz;
 	const float len2 = dot(offset, offset) / (_ObstacleSphere1Radius * _ObstacleSphere1Radius);
 	if (len2 < 1.0)
 	{
-		g = max(0.0, _ObstacleSphere1Radius * sqrt(1.0 - len2) + _ObstacleSphere1Pos.y);
+		g = max(g, max(0.0, _ObstacleSphere1Radius * sqrt(1.0 - len2) + _ObstacleSphere1Pos.y));
 	}
+
+	g = max(0.0, g - _SimOrigin.y);
 
 	_GroundHeightRW[id] = g;
 }

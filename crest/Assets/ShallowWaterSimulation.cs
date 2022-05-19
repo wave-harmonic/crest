@@ -89,6 +89,11 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     {
         InitData();
 
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         if (_doUpdate)
         {
             _timeToSimulate += Time.deltaTime;
@@ -298,10 +303,20 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
     void PopulateGroundHeight(CommandBuffer buf)
     {
+        // TODO - when this gets called through Reset, ocean is not resident. Should this lifecycle thing
+        // be driven by the ocean renderer?
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         _csSWSProps.Initialise(_buf, _csSWS, _krnlInitGroundHeight);
         _csSWSProps.SetVector(Shader.PropertyToID("_ObstacleSphere1Pos"), _obstacleSphere1.position);
         _csSWSProps.SetFloat(Shader.PropertyToID("_ObstacleSphere1Radius"), _obstacleSphere1.lossyScale.x / 2f);
         _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightRW"), _rtGroundHeight);
+
+        LodDataMgrSeaFloorDepth.Bind(_csSWSProps);
+
         buf.DispatchCompute(_csSWS, _krnlInitGroundHeight, (_rtGroundHeight.width + 7) / 8, (_rtGroundHeight.height + 7) / 8, 1);
     }
 

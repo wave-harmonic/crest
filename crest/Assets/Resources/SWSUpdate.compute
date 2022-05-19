@@ -214,8 +214,6 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 
 	const uint x = id.x;
 	const uint y = id.y;
-	const uint xm = max(x - 1, 0);
-	const uint ym = max(y - 1, 0);
 
 	float pump = _Drain;
 	if (length(IdToWorldXZ_H(id) - float2(-14.0, 14.0)) < 1.0)
@@ -227,8 +225,13 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 		pump += pumpIn;
 	}
 
-	const float dx = (_Vx1[id] - _Vx1[uint2(xm, y)]) / _TexelSize;
-	const float dy = (_Vy1[id] - _Vy1[uint2(x, ym)]) / _TexelSize;
+	float outPump = 30.0;
+	float vxp = (x == _Res - 1) ? outPump : _Vx1[id];
+	float vyp = (y == _Res - 1) ? outPump : _Vy1[id];
+	float vxm = (x == 0) ? -outPump : _Vx1[uint2(x - 1, y)];
+	float vym = (y == 0) ? -outPump : _Vy1[uint2(x, y - 1)];
+	const float dx = (vxp - vxm) / _TexelSize;
+	const float dy = (vyp - vym) / _TexelSize;
 	const float divergence = dx + dy;
 
 	// Update height based on total flow in minus total flow out

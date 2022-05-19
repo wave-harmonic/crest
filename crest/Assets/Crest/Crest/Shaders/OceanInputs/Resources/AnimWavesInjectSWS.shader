@@ -68,7 +68,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				// Over scan to ensure signal continued off the edges which helps at low LODs
-				if (!all(input.uv == clamp(input.uv, -0.2, 1.2))) discard;
+				const float overscan = 0.0; // 0.2
+				if (!all(input.uv == clamp(input.uv, -overscan, 1.0 + overscan))) discard;
 
 				float wt = _Weight;
 

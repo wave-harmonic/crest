@@ -235,11 +235,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
         LodDataMgrAnimWaves.RegisterUpdatable(this);
 
-        //#if UNITY_EDITOR
-        //        EditorApplication.update -= EditorUpdate;
-        //        EditorApplication.update += EditorUpdate;
-        //#endif
-
         // Register shape
         {
             var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
@@ -253,8 +248,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             registrar.Remove(this);
             registrar.Add(0, this);
         }
-
-        //Reset();
     }
 
     void OnDisable()
@@ -324,16 +317,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
         buf.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
     }
-
-//#if UNITY_EDITOR
-//    void EditorUpdate()
-//    {
-//        if (_updateInEditMode && !EditorApplication.isPlaying)
-//        {
-//            Update();
-//        }
-//    }
-//#endif
 }
 
 #if UNITY_EDITOR

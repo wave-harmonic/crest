@@ -779,6 +779,7 @@ MonoBehaviour:
   _obstacleSphere1: {fileID: 1921720626}
   _turbine1: {fileID: 2145333257}
   _turbine2: {fileID: 1996298458}
+  _showTextures: 1
 --- !u!4 &146652081
 Transform:
   m_ObjectHideFlags: 0
@@ -1569,7 +1570,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  linSpeed: 10
+  linSpeed: 2
   rotSpeed: 70
   simForwardInput: 0
   _requireLMBToMove: 0

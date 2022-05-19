@@ -28,6 +28,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 			Texture2D<float> _swsH;
 			Texture2D<float> _swsGroundHeight;
+			Texture2D<float> _swsSimulationMask;
 
 			CBUFFER_START(CrestPerOceanInput)
 			int _WaveBufferSliceIndex;
@@ -86,8 +87,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				// Make relative to sea level
 				h -= _OceanCenterPosWorld.y;
 
-				float alpha = 0.7 * smoothstep(0.35, 0.25, length(input.uv - 0.5));
-				//alpha = 1.0;
+				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
+				
 				return half4(0.0, wt * h, 0.0, alpha);
 			}
 			ENDCG

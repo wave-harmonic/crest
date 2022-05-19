@@ -25,6 +25,8 @@ Texture2D<float> _Vy0;
 RWTexture2D<float> _Vy1;
 Texture2D<float> _GroundHeight;
 RWTexture2D<float> _GroundHeightRW;
+Texture2D<float> _SimulationMask;
+RWTexture2D<float> _SimulationMaskRW;
 
 float _Time;
 float _DomainWidth;
@@ -109,8 +111,6 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 {
 	const float2 worldXZ = IdToWorldXZ_GroundHeight(id);
 
-	float g = 0.0;
-
 	uint slice0, slice1;
 	float lodAlpha;
 	PosToSliceIndices(worldXZ, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha);
@@ -121,9 +121,14 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 	const float wt_0 = (1.0 - lodAlpha) * _CrestCascadeData[slice0]._weight;
 	const float wt_1 = (1.0 - wt_0) * _CrestCascadeData[slice1]._weight;
 
-	g =
+	float2 groundHeight_seaLevelOffset =
 		wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).x +
 		wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).x;
+	float g = groundHeight_seaLevelOffset.x;
+
+	// Mask is directly based off depth at the moment
+	float depth = _OceanCenterPosWorld.y + groundHeight_seaLevelOffset.y - g;
+	_SimulationMaskRW[id] = 1.0 - saturate(depth/2.0);
 
 	// Sphere obstacle
 	//const float2 offset = worldXZ - _ObstacleSphere1Pos.xz;
@@ -245,7 +250,7 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 			wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
 			wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
 
-		pump += .01 * dispy; // lerp(h, dispy, 0.02);
+		pump += _SimulationMask[id] * .01 * dispy;
 	}
 
 

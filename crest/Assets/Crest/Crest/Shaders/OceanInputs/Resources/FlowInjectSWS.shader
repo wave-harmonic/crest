@@ -28,6 +28,7 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 
 			Texture2D<float> _swsVx;
 			Texture2D<float> _swsVy;
+			Texture2D<float> _swsSimulationMask;
 
 			CBUFFER_START(CrestPerOceanInput)
 			int _WaveBufferSliceIndex;
@@ -76,8 +77,8 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 				const float vy = _swsVy.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 
 				//return float3(normalize(input.uv - 0.5), 0.0).xyzz;
-				float alpha = smoothstep(0.35, 0.25, length(input.uv - 0.5));
-				//alpha = 1;
+				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
+				
 				return half4(wt * vx, wt * vy, 0.0, alpha);
 			}
 			ENDCG

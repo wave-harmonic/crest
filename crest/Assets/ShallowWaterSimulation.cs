@@ -40,6 +40,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
     RenderTexture _rtVx0, _rtVx1;
     RenderTexture _rtVy0, _rtVy1;
     RenderTexture _rtGroundHeight;
+    RenderTexture _rtSimulationMask;
 
     PropertyWrapperCompute _csSWSProps;
 
@@ -70,6 +71,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
         if (_rtVy0 == null) _rtVy0 = CreateSWSRT();
         if (_rtVy1 == null) _rtVy1 = CreateSWSRT();
         if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT();
+        if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT();
 
         _matInjectSWSAnimWaves.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
         _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
@@ -156,7 +158,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMask"), _rtSimulationMask);
                     LodDataMgrAnimWaves.Bind(_csSWSProps);
 
                     buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
@@ -195,6 +197,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
         }
 
         Shader.SetGlobalTexture("_swsGroundHeight", _rtGroundHeight);
+        Shader.SetGlobalTexture("_swsSimulationMask", _rtSimulationMask);
         Shader.SetGlobalTexture("_swsH", _rtH1);
         Shader.SetGlobalTexture("_swsVx", _rtVx1);
         Shader.SetGlobalTexture("_swsVy", _rtVy1);
@@ -284,7 +287,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.Initialise(buf, _csSWS, _krnlInit);
 
             _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
-
+            _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
             _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
             _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
             _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
@@ -310,6 +313,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         _csSWSProps.SetVector(Shader.PropertyToID("_ObstacleSphere1Pos"), _obstacleSphere1.position);
         _csSWSProps.SetFloat(Shader.PropertyToID("_ObstacleSphere1Radius"), _obstacleSphere1.lossyScale.x / 2f);
         _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightRW"), _rtGroundHeight);
+        _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
 
         LodDataMgrSeaFloorDepth.Bind(_csSWSProps);
 
@@ -336,6 +340,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             GUI.DrawTexture(new Rect(200, y, s, s), _rtH1); y += s;
             GUI.DrawTexture(new Rect(200, y, s, s), _rtVx1); y += s;
             GUI.DrawTexture(new Rect(200, y, s, s), _rtVy1); y += s;
+            GUI.DrawTexture(new Rect(200, y, s, s), _rtSimulationMask); y += s;
         }
     }
 #endif

@@ -22,6 +22,7 @@ RWTexture2D<float> _GroundHeightRW;
 
 float _Time;
 float _DomainWidth;
+float3 _SimOrigin;
 float _Res;
 float _Drain;
 float _Friction;
@@ -40,7 +41,7 @@ float3 _Turbine2Position; float3 _Turbine2Velocity; float _Turbine2Radius; float
 float2 IdToWorldXZ_H(uint2 id)
 {
 	// H grid is centered
-	return ((id + 0.5) / _Res - 0.5) * _DomainWidth;
+	return ((id + 0.5) / _Res - 0.5) * _DomainWidth + _SimOrigin.xz;
 }
 float2 IdToWorldXZ_GroundHeight(uint2 id)
 {
@@ -50,18 +51,18 @@ float2 IdToWorldXZ_GroundHeight(uint2 id)
 float2 IdToWorldXZ_Vx(uint2 id)
 {
 	// Vx grid is offset right half a texel
-	return ((id + float2(1.0, 0.5)) / _Res - 0.5) * _DomainWidth;
+	return ((id + float2(1.0, 0.5)) / _Res - 0.5) * _DomainWidth + _SimOrigin.xz;
 }
 float2 IdToWorldXZ_Vy(uint2 id)
 {
 	// Vy grid is offset forward half a texel
-	return ((id + float2(0.5, 1.0)) / _Res - 0.5) * _DomainWidth;
+	return ((id + float2(0.5, 1.0)) / _Res - 0.5) * _DomainWidth + _SimOrigin.xz;
 }
 
 float2 WorldXZToUv_H(float2 worldXZ)
 {
 	// H grid is centered
-	return worldXZ / _DomainWidth + 0.5;
+	return (worldXZ - _SimOrigin.xz) / _DomainWidth + 0.5;
 }
 float2 WorldXZToUv_GroundHeight(float2 worldXZ)
 {
@@ -71,12 +72,12 @@ float2 WorldXZToUv_GroundHeight(float2 worldXZ)
 float2 WorldXZToUv_Vx(float2 worldXZ)
 {
 	// Vx grid is offset right half a texel
-	return worldXZ / _DomainWidth + 0.5 - float2(0.5 / _Res, 0.0);
+	return (worldXZ - _SimOrigin.xz) / _DomainWidth + 0.5 - float2(0.5 / _Res, 0.0);
 }
 float2 WorldXZToUv_Vy(float2 worldXZ)
 {
 	// Vy grid is offset forward half a texel
-	return worldXZ / _DomainWidth + 0.5 - float2(0.0, 0.5 / _Res);
+	return (worldXZ - _SimOrigin.xz) / _DomainWidth + 0.5 - float2(0.0, 0.5 / _Res);
 }
 
 float SampleH(float2 worldXZ)

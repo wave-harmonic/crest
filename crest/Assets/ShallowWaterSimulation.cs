@@ -71,8 +71,11 @@ public partial class ShallowWaterSimulation : MonoBehaviour
             _buf.name = "UpdateShallowWaterSim";
         }
 
-        _matInjectSWSAnimWaves.SetFloat("_DomainWidth", _domainWidth);
-        _matInjectSWSFlow.SetFloat("_DomainWidth", _domainWidth);
+        _matInjectSWSAnimWaves.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+        _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+
+        _matInjectSWSFlow.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+        _matInjectSWSFlow.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
     }
 
     void Swap<T>(ref T a, ref T b)
@@ -113,7 +116,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                 _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maxVel);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
-                
+                _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+
                 // Advect
                 if (_doAdvect)
                 {
@@ -282,7 +286,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
             _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
             _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
             _csSWSProps.SetFloat(Shader.PropertyToID("_InitialWaterHeight"), _initialWaterHeight);
+            _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
 
             _buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }

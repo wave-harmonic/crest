@@ -37,6 +37,7 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 			float2 _AxisX;
 			float _RespectShallowWaterAttenuation;
 			half _DomainWidth;
+			float3 _SimOrigin;
 			CBUFFER_END
 
 			struct Attributes
@@ -58,7 +59,7 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 				const float2 quadUV = GetFullScreenTriangleTexCoord(input.VertexID);
 
 				o.uv = UVToWorld(quadUV, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex]);
-				o.uv = o.uv / _DomainWidth + 0.5;
+				o.uv = (o.uv - _SimOrigin.xz) / _DomainWidth + 0.5;
 
 				return o;
 			}

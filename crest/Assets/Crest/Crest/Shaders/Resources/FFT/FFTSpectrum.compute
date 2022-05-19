@@ -19,9 +19,6 @@
 #define SPECTRUM_OCTAVE_COUNT		14.0
 #define SPECTRUM_SMALLEST_WL_POW_2	-4.0
 
-// Matches variable with same name in ShapeFFT.cs
-#define SAMPLES_PER_WAVE 4
-
 uint _Size;
 float _WindSpeed;
 float _Turbulence;
@@ -135,13 +132,20 @@ void SpectrumInitalize(uint3 id : SV_DispatchThreadID)
 
 	uint maxCoord = int( max( abs( coord.x ), abs( coord.y ) ) );
 
+	// Matches variable with same name in ShapeFFT.cs
+	uint WAVE_SAMPLE_FACTOR = 8;
+
 	// If not largest cascade which will get all wavelengths, then limit
-	// so we split range of frequencies with no overlaps
+	// so we split range of frequencies with no overlaps.
+	// The check on maxCoord below looks pretty magic. It is optimised version of:
+	// uint samplesPerWave = _Size / WAVE_SAMPLE_FACTOR;
+	// Too low wavelength (maxCoord < _Size / (2 * samplesPerWave) ||
+	// Too high wavelength maxCoord >= _Size / samplesPerWave)
 	if ( id.z < (depth - 1) &&
 		// Too low wavelength
-		( maxCoord < _Size / (2 * SAMPLES_PER_WAVE) ||
+		maxCoord < WAVE_SAMPLE_FACTOR / 2 ||
 		// Too high wavelength
-		maxCoord >= _Size / SAMPLES_PER_WAVE )
+		maxCoord >= WAVE_SAMPLE_FACTOR
 		)
 	{
 		_ResultInit[id] = 0.0;

@@ -17,6 +17,8 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Default FFT resolution increased to match quality standards.
+   -  FFT samples-per-wave now scales proportionally to FFT resolution, meaning overall quality scales gracefully with the resolution setting.
    -  Re-enable height queries in edit-mode which allows several height based components to work in edit-mode.
       They can still be disabled with the new *Height Queries* toggle on the *Ocean Renderer*.
 

@@ -72,7 +72,7 @@ namespace Crest
 
         [Header("Generation Settings")]
         [Tooltip("Resolution to use for wave generation buffers. Low resolutions are more efficient but can result in noticeable patterns in the shape."), Delayed]
-        public int _resolution = 32;
+        public int _resolution = 128;
 
         [Tooltip("In Editor, shows the wave generation buffers on screen."), SerializeField]
 #pragma warning disable 414
@@ -189,10 +189,14 @@ namespace Crest
         public float MinWavelength(int cascadeIdx)
         {
             var diameter = 0.5f * (1 << cascadeIdx);
-            var texelSize = diameter / _resolution;
             // Matches constant with same name in FFTSpectrum.compute
-            float SAMPLES_PER_WAVE = 4f;
-            return texelSize * SAMPLES_PER_WAVE;
+            var WAVE_SAMPLE_FACTOR = 8f;
+            return diameter / WAVE_SAMPLE_FACTOR;
+
+            // This used to be:
+            //var texelSize = diameter / _resolution;
+            //float samplesPerWave = _resolution / 8;
+            //return texelSize * samplesPerWave;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -382,6 +386,12 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            _resolution = Mathf.ClosestPowerOfTwo(_resolution);
+            _resolution = Mathf.Max(_resolution, 16);
+        }
+
         private void OnDrawGizmosSelected()
         {
             DrawMesh();

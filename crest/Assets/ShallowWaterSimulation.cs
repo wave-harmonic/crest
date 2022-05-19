@@ -11,6 +11,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
 {
     [Header("Settings")]
     [SerializeField] float _initialWaterHeight = 1f;
+    [SerializeField] float _addAdditionalWater = 0f;
     [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
     [SerializeField, UnityEngine.Range(16, 1024)] int _maxResolution = 1024;
     [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
@@ -85,7 +86,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
     {
         if(_firstUpdate)
         {
-            Reset();
+            Reset(buf);
 
             _firstUpdate = false;
         }
@@ -269,15 +270,13 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         return result;
     }
 
-    public void Reset()
+    public void Reset(CommandBuffer buf)
     {
         _rtH0 = _rtH1 = _rtVx0 = _rtVx1 = _rtVy0 = _rtVy1 = null;
 
         InitData();
 
-        var buf = new CommandBuffer();
-
-        // Populate ground height - used for initial water heigh calculation
+        // Populate ground height - used for initial water height calculation
         PopulateGroundHeight(buf);
 
         // Init sim data - water heights and velocities
@@ -298,12 +297,11 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
             _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
             _csSWSProps.SetFloat(Shader.PropertyToID("_InitialWaterHeight"), _initialWaterHeight);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), _addAdditionalWater);
             _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
 
             buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }
-
-        Graphics.ExecuteCommandBuffer(buf);
     }
 
     void PopulateGroundHeight(CommandBuffer buf)
@@ -352,7 +350,11 @@ class ShallowWaterSimulationEditor : Editor
 
         if (GUILayout.Button("Reset"))
         {
-            target.Reset();
+            var buf = new CommandBuffer();
+
+            target.Reset(buf);
+
+            Graphics.ExecuteCommandBuffer(buf);
         }
     }
 }

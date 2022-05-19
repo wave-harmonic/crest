@@ -34,6 +34,7 @@ float _Drain;
 float _Friction;
 float _MaxVel;
 float _InitialWaterHeight;
+float _AddAdditionalWater;
 float _TexelSize;
 
 float3 _ObstacleSphere1Pos;
@@ -144,6 +145,8 @@ void Init(uint2 id : SV_DispatchThreadID)
 
 	float h = _InitialWaterHeight - _SimOrigin.y;
 	h = max(0.0, h - SampleGroundHeight(worldXZ));
+
+	h += _AddAdditionalWater;
 
 	_H1[id.xy] = h;
 	_Vx1[id.xy] = 0.0;

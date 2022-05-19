@@ -763,7 +763,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a87083040be2a947bf2d5f126a800e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _initialWaterHeight: 1
+  _initialWaterHeight: 5
+  _addAdditionalWater: 0
   _texelSize: 0.125
   _maxResolution: 1024
   _domainWidth: 64
@@ -786,7 +787,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 146652079}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 43.9, y: 0, z: 32}
+  m_LocalPosition: {x: 43.9, y: 3, z: 32}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

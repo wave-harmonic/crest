@@ -33,6 +33,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
     [SerializeField] Turbine _turbine1 = null;
     [SerializeField] Turbine _turbine2 = null;
 
+    [Header("Debug")]
+    [SerializeField] bool _showTextures = false;
+
     RenderTexture _rtH0, _rtH1;
     RenderTexture _rtVx0, _rtVx1;
     RenderTexture _rtVy0, _rtVy1;
@@ -323,12 +326,19 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         buf.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
     }
 
+#if UNITY_EDITOR
     private void OnGUI()
     {
-        GUI.DrawTexture(new Rect(200, 0, 200, 200), _rtH1);
-        GUI.DrawTexture(new Rect(200, 200, 200, 200), _rtVx1);
-        GUI.DrawTexture(new Rect(200, 400, 200, 200), _rtVy1);
+        if(_showTextures)
+        {
+            var s = 200f;
+            var y = 0f;
+            GUI.DrawTexture(new Rect(200, y, s, s), _rtH1); y += s;
+            GUI.DrawTexture(new Rect(200, y, s, s), _rtVx1); y += s;
+            GUI.DrawTexture(new Rect(200, y, s, s), _rtVy1); y += s;
+        }
     }
+#endif
 }
 
 #if UNITY_EDITOR

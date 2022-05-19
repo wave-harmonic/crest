@@ -21,8 +21,8 @@ sys.path.insert(0, os.path.abspath('./extensions'))
 project = "Crest"
 organization = "Wave Harmonic"
 author = f"{organization} & Contributors"
-copyright = f"2021, {author}"
-version = "4.15.2"
+copyright = f"2022, {author}"
+version = "2022.0.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
 sponsor_link = "https://github.com/sponsors/wave-harmonic"

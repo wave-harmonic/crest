@@ -7,7 +7,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 {
     [Header("Settings")]
     [SerializeField, UnityEngine.Range(0f, 2f)] float _initialWaterHeight = 1f;
-    [SerializeField, UnityEngine.Range(16, 1024)] int _resolution = 512;
+    [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
+    [SerializeField, UnityEngine.Range(16, 1024)] int _maxResolution = 1024;
     [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
     [SerializeField] float _drain = -0.0001f;
 
@@ -45,8 +46,13 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
     float _timeToSimulate = 0f;
 
+    public int Resolution => _resolution;
+    int _resolution = -1;
+
     void InitData()
     {
+        _resolution = Mathf.CeilToInt(_domainWidth / _texelSize);
+
         if (_rtH0 == null) _rtH0 = CreateSWSRT();
         if (_rtH1 == null) _rtH1 = CreateSWSRT();
         if (_rtVx0 == null) _rtVx0 = CreateSWSRT();
@@ -96,6 +102,14 @@ public partial class ShallowWaterSimulation : MonoBehaviour
             {
                 // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
 
+                _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_Drain"), _drain);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maxVel);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
+                
                 // Advect
                 if (_doAdvect)
                 {
@@ -111,12 +125,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maxVel);
-
+                    
                     _buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
 
@@ -128,12 +137,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Drain"), _drain);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
 
                     _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
@@ -147,10 +150,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
-
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
 
                     // Turbines
                     Turbine.SetShaderParams(_turbine1, _csSWSProps, 1);
@@ -168,8 +167,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
 
                     _buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
@@ -326,9 +323,13 @@ class ShallowWaterSimulationEditor : Editor
     {
         base.OnInspectorGUI();
 
+        var target = this.target as ShallowWaterSimulation;
+
+        GUILayout.Label($"Resolution: {target.Resolution}");
+
         if (GUILayout.Button("Reset"))
         {
-            (target as ShallowWaterSimulation).Reset();
+            target.Reset();
         }
     }
 }

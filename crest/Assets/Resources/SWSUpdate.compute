@@ -24,6 +24,7 @@ float _Drain;
 float _Friction;
 float _MaxVel;
 float _InitialWaterHeight;
+float _TexelSize;
 
 float3 _ObstacleSphere1Pos;
 float _ObstacleSphere1Radius;
@@ -187,8 +188,6 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const uint xm = max(x - 1, 0);
 	const uint ym = max(y - 1, 0);
 
-	const float grid = _DomainWidth / _Res;
-
 	float pump = _Drain;
 	if (length(IdToWorldXZ_H(id) - float2(-14.0, 14.0)) < 1.0)
 	{
@@ -199,8 +198,8 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 		pump += pumpIn;
 	}
 
-	const float dx = (_Vx1[id] - _Vx1[uint2(xm, y)]) / grid;
-	const float dy = (_Vy1[id] - _Vy1[uint2(x, ym)]) / grid;
+	const float dx = (_Vx1[id] - _Vx1[uint2(xm, y)]) / _TexelSize;
+	const float dy = (_Vy1[id] - _Vy1[uint2(x, ym)]) / _TexelSize;
 	const float divergence = dx + dy;
 
 	// Update height based on total flow in minus total flow out
@@ -233,7 +232,6 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 	const uint xp = min(x + 1, _Res - 1);
 	const uint yp = min(y + 1, _Res - 1);
 
-	const float grid = _DomainWidth / _Res;
 	const float gravity = 9.81f;
 
 	float _turbine1Weight = _Turbine1Weight * smoothstep(_Turbine1Radius * 1.1, _Turbine1Radius * 0.7, length(worldXZ_H0 - _Turbine1Position.xz));
@@ -250,7 +248,7 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		const float hdiff = (h1 + g1) - (h0 + g0);
 		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
 
-		float accel = -gravity * hdiff / grid;
+		float accel = -gravity * hdiff / _TexelSize;
 
 		vx += DT * accel;
 
@@ -285,7 +283,7 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		const float hdiff = (h1 + g1) - (h0 + g0);
 		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
 
-		float accel = -gravity * hdiff / grid;
+		float accel = -gravity * hdiff / _TexelSize;
 
 		vy += DT * accel;
 

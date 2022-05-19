@@ -84,6 +84,10 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
 
     public void CrestUpdate(CommandBuffer buf)
     {
+    }
+
+    public void CrestUpdatePostCombine(CommandBuffer buf)
+    {
         if(_firstUpdate)
         {
             Reset(buf);
@@ -150,6 +154,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
+                    LodDataMgrAnimWaves.Bind(_csSWSProps);
+
                     buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
 
@@ -183,8 +189,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                     buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
             }
-
-            //Graphics.ExecuteCommandBuffer(_buf);
         }
 
         Shader.SetGlobalTexture("_swsGroundHeight", _rtGroundHeight);
@@ -311,11 +315,19 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
     public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
     {
+        //if (!gameObject || !gameObject.activeInHierarchy || !enabled) return;
         buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
         var mat = (lodData is LodDataMgrAnimWaves) ? _matInjectSWSAnimWaves : _matInjectSWSFlow;
 
         buf.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
+    }
+
+    private void OnGUI()
+    {
+        GUI.DrawTexture(new Rect(200, 0, 200, 200), _rtH1);
+        GUI.DrawTexture(new Rect(200, 200, 200, 200), _rtVx1);
+        GUI.DrawTexture(new Rect(200, 400, 200, 200), _rtVy1);
     }
 }
 

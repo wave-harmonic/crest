@@ -7,7 +7,7 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 	SubShader
 	{
 		// Additive blend everywhere
-		Blend One One
+		Blend SrcAlpha OneMinusSrcAlpha
 		ZWrite Off
 		ZTest Always
 		Cull Off
@@ -76,7 +76,9 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 				const float vy = _swsVy.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 
 				//return float3(normalize(input.uv - 0.5), 0.0).xyzz;
-				return half4(wt * vx, wt * vy, 0.0, 0.0);
+				float alpha = smoothstep(0.35, 0.25, length(input.uv - 0.5));
+				//alpha = 1;
+				return half4(wt * vx, wt * vy, 0.0, alpha);
 			}
 			ENDCG
 		}

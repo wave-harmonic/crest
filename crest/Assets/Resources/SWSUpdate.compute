@@ -215,17 +215,41 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const uint x = id.x;
 	const uint y = id.y;
 
-	float pump = _Drain;
-	if (length(IdToWorldXZ_H(id) - float2(-14.0, 14.0)) < 1.0)
+	const float2 worldXZ = IdToWorldXZ_H(id);
+
+	float pump = 0.0;
+	//if (length(worldXZ - float2(-14.0, 14.0)) < 1.0)
+	//{
+	//	float targetHeight = 4.0;
+	//	float pumpIn = 0.01 * (targetHeight - h);
+	//	float maxPump = 0.04;
+	//	if (abs(pumpIn) > maxPump) pumpIn *= maxPump / abs(pumpIn);
+	//	pump += pumpIn;
+	//}
+
+	if (h > 0.01)
 	{
-		float targetHeight = 4.0;
-		float pumpIn = 0.01 * (targetHeight - h);
-		float maxPump = 0.04;
-		if (abs(pumpIn) > maxPump) pumpIn *= maxPump / abs(pumpIn);
-		pump += pumpIn;
+		pump += _Drain;
+
+		uint slice0, slice1;
+		float lodAlpha;
+		PosToSliceIndices(worldXZ, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha);
+
+		const float3 uv0 = WorldToUV(worldXZ, _CrestCascadeData[slice0], slice0);
+		const float3 uv1 = WorldToUV(worldXZ, _CrestCascadeData[slice1], slice1);
+
+		const float wt_0 = (1.0 - lodAlpha) * _CrestCascadeData[slice0]._weight;
+		const float wt_1 = (1.0 - wt_0) * _CrestCascadeData[slice1]._weight;
+
+		float dispy =
+			wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
+			wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
+
+		pump += .01 * dispy; // lerp(h, dispy, 0.02);
 	}
 
-	float outPump = 30.0;
+
+	float outPump = 0.0;// 30.0;
 	float vxp = (x == _Res - 1) ? outPump : _Vx1[id];
 	float vyp = (y == _Res - 1) ? outPump : _Vy1[id];
 	float vxm = (x == 0) ? -outPump : _Vx1[uint2(x - 1, y)];
@@ -239,9 +263,10 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	//hvel = clamp(hvel, -32.0f, 32.0f);
 
 	h += DT * hvel + pump;
+	h = max(h, 0.0);
 
 	// Dry - force to 0
-	if (h < 0.001) h = 0.0;
+	//if (h < 0.001) h = 0.0;
 
 	// Pull down height at boundaries
 	//if (id.x == 0 || id.y == 0 || id.x == _Res - 1 || id.y == _Res - 1) h = lerp(h, 120.5, 0.01);

@@ -63,7 +63,12 @@ namespace Crest
         public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
-        public interface IShapeUpdatable { void CrestUpdate(CommandBuffer buf); }
+        public interface IShapeUpdatable
+        {
+            void CrestUpdate(CommandBuffer buf);
+            void CrestUpdatePostCombine(CommandBuffer buf);
+        }
+
         static List<IShapeUpdatable> _updatables = new List<IShapeUpdatable>();
         public static void RegisterUpdatable(IShapeUpdatable updatable) => _updatables.Add(updatable);
         public static void DeregisterUpdatable(IShapeUpdatable updatable) => _updatables.RemoveAll(candidate => candidate == updatable);
@@ -221,9 +226,9 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Current.Validate(0, SimName);
             }
 
-            foreach (var gerstner in _updatables)
+            foreach (var u in _updatables)
             {
-                gerstner.CrestUpdate(buf);
+                u.CrestUpdate(buf);
             }
 
             // lod-dependent data
@@ -249,6 +254,11 @@ namespace Crest
             else
             {
                 CombinePassCompute(buf);
+            }
+
+            foreach (var u in _updatables)
+            {
+                u.CrestUpdatePostCombine(buf);
             }
 
             // lod-independent data

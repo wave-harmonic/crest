@@ -7,7 +7,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 	SubShader
 	{
 		// Additive blend everywhere
-		Blend One One
+		Blend SrcAlpha OneMinusSrcAlpha
 		ZWrite Off
 		ZTest Always
 		Cull Off
@@ -75,7 +75,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 
-				if (h < 0.001) h -= 0.1;
+				if (h < 0.001) h = 0.0;// -= 0.1;
 
 				// Add ground height to water height to get world height of surface
 				h += _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
@@ -85,8 +85,10 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				// Make relative to sea level
 				h -= _OceanCenterPosWorld.y;
-			
-				return half4(0.0, wt * h, 0.0, 0.0);
+
+				float alpha = 0.7 * smoothstep(0.35, 0.25, length(input.uv - 0.5));
+				//alpha = 1.0;
+				return half4(0.0, wt * h, 0.0, alpha);
 			}
 			ENDCG
 		}

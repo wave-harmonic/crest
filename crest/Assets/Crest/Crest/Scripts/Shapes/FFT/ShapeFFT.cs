@@ -241,6 +241,10 @@ namespace Crest
             ReportMaxDisplacement();
         }
 
+        public void CrestUpdatePostCombine(CommandBuffer buf)
+        {
+        }
+
 #if UNITY_EDITOR
         void UpdateEditorOnly()
         {

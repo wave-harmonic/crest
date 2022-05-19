@@ -303,6 +303,10 @@ namespace Crest
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }
 
+        public void CrestUpdatePostCombine(CommandBuffer buf)
+        {
+        }
+
 #if UNITY_EDITOR
         void UpdateEditorOnly()
         {

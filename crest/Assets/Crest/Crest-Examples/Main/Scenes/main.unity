@@ -764,10 +764,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initialWaterHeight: 5
-  _addAdditionalWater: 0
+  _addAdditionalWater: 0.25
   _texelSize: 0.125
   _maxResolution: 1024
-  _domainWidth: 64
+  _domainWidth: 128
   _drain: -0.000085
   _friction: 0.02
   _maxVel: 100
@@ -787,7 +787,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 146652079}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 43.9, y: 3, z: 32}
+  m_LocalPosition: {x: 43.9, y: 5, z: 32}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -3123,7 +3123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _weight: 5
-  _velocity: 3
+  _velocity: 7
   _debugRender: 1
 --- !u!23 &1996298459
 MeshRenderer:
@@ -3181,7 +3181,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1996298457}
-  m_LocalRotation: {x: 0.51492614, y: -0.48461437, z: 0.48461437, w: 0.51492614}
+  m_LocalRotation: {x: 0.5114145, y: 0.4883187, z: -0.4883187, w: 0.5114145}
   m_LocalPosition: {x: 47.19, y: 5, z: 22.75}
   m_LocalScale: {x: 2.2188, y: 1, z: 2.2188}
   m_Children:
@@ -3189,7 +3189,7 @@ Transform:
   - {fileID: 98850154}
   m_Father: {fileID: 0}
   m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 86.526}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: -87.353}
 --- !u!1001 &2046243278
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3301,7 +3301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _weight: 1
-  _velocity: 3
+  _velocity: 10
   _debugRender: 1
 --- !u!23 &2145333258
 MeshRenderer:

@@ -6,7 +6,7 @@ public class Turbine : MonoBehaviour
     float _weight = 0.05f;
     public float Weight => _weight;
 
-    [SerializeField, Range(0f, 3f)] float _velocity = 1f;
+    [SerializeField, Range(0f, 10f)] float _velocity = 1f;
     public Vector3 Velocity => transform.up * _velocity;
 
     public float Radius => transform.localScale.x / 2f;

@@ -36,17 +36,17 @@ Fixed
    -  Fix *Underwater Renderer* not working with varying water level.
    -  Fix jagged shoreline foam when using baked *Sea Floor Depth* cache.
 
-.. only:: birp
+   .. only:: birp
 
-   -  Fix color being incorrect for *Underwater Shader API*. `[BIRP]`
+      -  Fix color being incorrect for *Underwater Shader API*. `[BIRP]`
 
-.. only:: hdrp
+   .. only:: hdrp
 
-   -  Fix ocean not rendering in builds for Unity 2021.2 if no *Underwater Renderer* is present. `[HDRP]`
+      -  Fix ocean not rendering in builds for Unity 2021.2 if no *Underwater Renderer* is present. `[HDRP]`
 
-.. only:: urp
+   .. only:: urp
 
-   -  Disable `SSAO` for *Examples* scene and warn users of incompatibility with *Portals and Volumes* feature. `[URP]`
+      -  Disable `SSAO` for *Examples* scene and warn users of incompatibility with *Portals and Volumes* feature. `[URP]`
 
 
 4.15.1

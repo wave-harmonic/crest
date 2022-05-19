@@ -255,8 +255,8 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 
 
 	float outPump = 0.0;// 30.0;
-	float vxp = (x == _Res - 1) ? outPump : _Vx1[id];
-	float vyp = (y == _Res - 1) ? outPump : _Vy1[id];
+	float vxp = (x == uint(_Res - 1)) ? outPump : _Vx1[id];
+	float vyp = (y == uint(_Res - 1)) ? outPump : _Vy1[id];
 	float vxm = (x == 0) ? -outPump : _Vx1[uint2(x - 1, y)];
 	float vym = (y == 0) ? -outPump : _Vy1[uint2(x, y - 1)];
 	const float dx = (vxp - vxm) / _TexelSize;

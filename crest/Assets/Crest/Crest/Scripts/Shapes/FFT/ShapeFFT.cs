@@ -115,6 +115,21 @@ namespace Crest
         float _windDirRadOld;
         OceanWaveSpectrum _spectrumOld;
 
+        static OceanWaveSpectrum s_DefaultSpectrum;
+        protected static OceanWaveSpectrum DefaultSpectrum
+        {
+            get
+            {
+                if (s_DefaultSpectrum == null)
+                {
+                    s_DefaultSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                    s_DefaultSpectrum.name = "Default Waves (auto)";
+                }
+
+                return s_DefaultSpectrum;
+            }
+        }
+
         public class FFTBatch : ILodDataInput
         {
             ShapeFFT _shapeFFT;
@@ -258,8 +273,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
             // Unassign mesh
@@ -339,6 +353,11 @@ namespace Crest
             if (--s_Count <= 0)
             {
                 FFTCompute.CleanUpAll();
+
+                if (s_DefaultSpectrum != null)
+                {
+                    Helpers.Destroy(s_DefaultSpectrum);
+                }
             }
         }
 
@@ -354,8 +373,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
 #if UNITY_EDITOR

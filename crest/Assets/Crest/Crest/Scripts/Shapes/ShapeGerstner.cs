@@ -90,6 +90,22 @@ namespace Crest
 
         float _windSpeedWhenGenerated = -1f;
 
+        static int s_InstanceCount = 0;
+        static OceanWaveSpectrum s_DefaultSpectrum;
+        protected static OceanWaveSpectrum DefaultSpectrum
+        {
+            get
+            {
+                if (s_DefaultSpectrum == null)
+                {
+                    s_DefaultSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                    s_DefaultSpectrum.name = "Default Waves (auto)";
+                }
+
+                return s_DefaultSpectrum;
+            }
+        }
+
         public class GerstnerBatch : ILodDataInput
         {
             ShapeGerstner _gerstner;
@@ -222,8 +238,17 @@ namespace Crest
 
         void InitData()
         {
+            if (_waveBuffers == null)
             {
                 _waveBuffers = new RenderTexture(_resolution, _resolution, 0, GraphicsFormat.R16G16B16A16_SFloat);
+            }
+            else
+            {
+                _waveBuffers.Release();
+            }
+
+            {
+                _waveBuffers.width = _waveBuffers.height = _resolution;
                 _waveBuffers.wrapMode = TextureWrapMode.Clamp;
                 _waveBuffers.antiAliasing = 1;
                 _waveBuffers.filterMode = FilterMode.Bilinear;
@@ -235,6 +260,9 @@ namespace Crest
                 _waveBuffers.enableRandomWrite = true;
                 _waveBuffers.Create();
             }
+
+            _bufCascadeParams?.Release();
+            _bufWaveData?.Release();
 
             _bufCascadeParams = new ComputeBuffer(CASCADE_COUNT + 1, UnsafeUtility.SizeOf<GerstnerCascadeParams>());
             _bufWaveData = new ComputeBuffer(MAX_WAVE_COMPONENTS / 4, UnsafeUtility.SizeOf<GerstnerWaveComponent4>());
@@ -313,8 +341,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
             // Unassign mesh
@@ -670,8 +697,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
 #if UNITY_EDITOR
@@ -726,6 +752,22 @@ namespace Crest
                     Destroy(_waveBuffers);
                 }
                 _waveBuffers = null;
+            }
+        }
+
+        void Awake()
+        {
+            s_InstanceCount++;
+        }
+
+        void OnDestroy()
+        {
+            if (--s_InstanceCount <= 0)
+            {
+                if (s_DefaultSpectrum != null)
+                {
+                    Helpers.Destroy(s_DefaultSpectrum);
+                }
             }
         }
 

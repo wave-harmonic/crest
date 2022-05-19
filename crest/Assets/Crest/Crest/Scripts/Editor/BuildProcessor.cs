@@ -125,6 +125,12 @@ namespace Crest
                 return;
             }
 
+            // Since shader is in Resources folder, Unity will not strip it when not used so we have to.
+            if (_underwaterRenderers.Count == 0)
+            {
+                data.Clear();
+            }
+
 #if CREST_DEBUG
             var shaderVariantCount = data.Count;
             var shaderVarientStrippedCount = 0;

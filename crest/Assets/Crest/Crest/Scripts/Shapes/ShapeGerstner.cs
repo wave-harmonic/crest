@@ -746,9 +746,9 @@ namespace Crest
 
         void OnGUI()
         {
-            if (_debugDrawSlicesInEditor)
+            if (_debugDrawSlicesInEditor && _waveBuffers != null && _waveBuffers.IsCreated())
             {
-                OceanDebugGUI.DrawTextureArray(_waveBuffers, 8);
+                OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f);
             }
         }
 

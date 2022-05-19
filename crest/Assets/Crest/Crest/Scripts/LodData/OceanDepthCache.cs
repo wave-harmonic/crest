@@ -429,7 +429,7 @@ namespace Crest
                 ti.alphaIsTransparency = false;
                 // Compression will clamp negative values.
                 ti.textureCompression = TextureImporterCompression.Uncompressed;
-                ti.filterMode = FilterMode.Point;
+                ti.filterMode = FilterMode.Bilinear;
                 ti.wrapMode = TextureWrapMode.Clamp;
                 // Values are slightly different with NPOT Scale applied.
                 ti.npotScale = TextureImporterNPOTScale.None;

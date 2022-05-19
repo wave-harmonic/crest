@@ -13,6 +13,14 @@ Release Notes
 |version|
 ---------
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Re-enable height queries in edit-mode which allows several height based components to work in edit-mode.
+      They can still be disabled with the new *Height Queries* toggle on the *Ocean Renderer*.
+
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -21,8 +29,20 @@ Fixed
    -  Fix *Underwater Renderer* stereo rendering not working in builds for Unity 2021.2.
    -  Fix *Underwater Renderer* stereo rendering issue where both eyes are same for color and/or depth with certain features enabled.
    -  Fix stereo rendering for *Examples* scene.
+   -  Fix *ShapeFFT* memory leaks.
    -  Fix several material and mesh memory leaks and reference leaks.
    -  Fix several *Texture2D* and *RenderTexture* memory and reference leaks.
+   -  Fix excessively long build times when no *Underwater Renderer* is present in scene.
+   -  Fix *Underwater Renderer* not working with varying water level.
+   -  Fix jagged shoreline foam when using baked *Sea Floor Depth* cache.
+
+.. only:: birp
+
+   -  Fix color being incorrect for *Underwater Shader API*. `[BIRP]`
+
+.. only:: hdrp
+
+   -  Fix ocean not rendering in builds for Unity 2021.2 if no *Underwater Renderer* is present. `[HDRP]`
 
 .. only:: urp
 

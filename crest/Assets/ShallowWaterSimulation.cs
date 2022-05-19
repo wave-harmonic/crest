@@ -7,10 +7,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public partial class ShallowWaterSimulation : MonoBehaviour
+public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
 {
     [Header("Settings")]
-    [SerializeField, UnityEngine.Range(0f, 2f)] float _initialWaterHeight = 1f;
+    [SerializeField] float _initialWaterHeight = 1f;
     [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
     [SerializeField, UnityEngine.Range(16, 1024)] int _maxResolution = 1024;
     [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
@@ -38,7 +38,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour
     RenderTexture _rtGroundHeight;
 
     PropertyWrapperCompute _csSWSProps;
-    CommandBuffer _buf;
 
     ComputeShader _csSWS;
     int _krnlInit;
@@ -50,12 +49,15 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 
     float _timeToSimulate = 0f;
 
+    bool _firstUpdate = true;
+
     public int Resolution => _resolution;
     int _resolution = -1;
 
     void InitData()
     {
         _resolution = Mathf.CeilToInt(_domainWidth / _texelSize);
+        _resolution = Mathf.Min(_resolution, _maxResolution);
 
         if (_rtH0 == null) _rtH0 = CreateSWSRT();
         if (_rtH1 == null) _rtH1 = CreateSWSRT();
@@ -64,12 +66,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         if (_rtVy0 == null) _rtVy0 = CreateSWSRT();
         if (_rtVy1 == null) _rtVy1 = CreateSWSRT();
         if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT();
-
-        if (_buf == null)
-        {
-            _buf = new CommandBuffer();
-            _buf.name = "UpdateShallowWaterSim";
-        }
 
         _matInjectSWSAnimWaves.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
         _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
@@ -85,26 +81,28 @@ public partial class ShallowWaterSimulation : MonoBehaviour
         b = temp;
     }
 
-    void Update()
+    public void CrestUpdate(CommandBuffer buf)
     {
-        InitData();
-
-        if (OceanRenderer.Instance == null)
+        if(_firstUpdate)
         {
-            return;
+            Reset();
+
+            _firstUpdate = false;
         }
+
+        InitData();
 
         if (_doUpdate)
         {
             _timeToSimulate += Time.deltaTime;
 
-            _buf.Clear();
+            //_buf.Clear();
 
             Shader.SetGlobalVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
             Shader.SetGlobalFloat("_ObstacleSphere1Radius", _obstacleSphere1.lossyScale.x / 2f);
 
             // Populate ground height every frame to allow dynamic scene
-            PopulateGroundHeight(_buf);
+            PopulateGroundHeight(buf);
 
             float fixedDt = 0.01f;
             int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / fixedDt) : 0;
@@ -130,7 +128,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     Swap(ref _rtVx0, ref _rtVx1);
                     Swap(ref _rtVy0, ref _rtVy1);
 
-                    _csSWSProps.Initialise(_buf, _csSWS, _krnlAdvect);
+                    _csSWSProps.Initialise(buf, _csSWS, _krnlAdvect);
 
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
@@ -139,25 +137,25 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
                     
-                    _buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                    buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
 
                 // Update H
                 if (_doUpdateH)
                 {
-                    _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateH);
+                    _csSWSProps.Initialise(buf, _csSWS, _krnlUpdateH);
 
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
-                    _buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                    buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
 
                 // Update vels
                 if (_doUpdateVels)
                 {
-                    _csSWSProps.Initialise(_buf, _csSWS, _krnlUpdateVels);
+                    _csSWSProps.Initialise(buf, _csSWS, _krnlUpdateVels);
 
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
@@ -168,7 +166,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                     Turbine.SetShaderParams(_turbine1, _csSWSProps, 1);
                     Turbine.SetShaderParams(_turbine2, _csSWSProps, 2);
 
-                    _buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                    buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
 
                 // Blur H
@@ -176,16 +174,16 @@ public partial class ShallowWaterSimulation : MonoBehaviour
                 {
                     Swap(ref _rtH0, ref _rtH1);
 
-                    _csSWSProps.Initialise(_buf, _csSWS, _krnlBlurH);
+                    _csSWSProps.Initialise(buf, _csSWS, _krnlBlurH);
 
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
 
-                    _buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                    buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
             }
 
-            Graphics.ExecuteCommandBuffer(_buf);
+            //Graphics.ExecuteCommandBuffer(_buf);
         }
 
         Shader.SetGlobalTexture("_swsGroundHeight", _rtGroundHeight);
@@ -199,7 +197,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour
 public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 {
     [Space, Header("Debug")]
-    [SerializeField] bool _updateInEditMode = false;
+    //[SerializeField] bool _updateInEditMode = false;
 
     Material _matInjectSWSAnimWaves;
     Material _matInjectSWSFlow;
@@ -234,10 +232,12 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _matInjectSWSFlow.SetFloat(RegisterLodDataInputBase.sp_Weight, 1f);
         }
 
-#if UNITY_EDITOR
-        EditorApplication.update -= EditorUpdate;
-        EditorApplication.update += EditorUpdate;
-#endif
+        LodDataMgrAnimWaves.RegisterUpdatable(this);
+
+        //#if UNITY_EDITOR
+        //        EditorApplication.update -= EditorUpdate;
+        //        EditorApplication.update += EditorUpdate;
+        //#endif
 
         // Register shape
         {
@@ -253,7 +253,12 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             registrar.Add(0, this);
         }
 
-        Reset();
+        //Reset();
+    }
+
+    void OnDisable()
+    {
+        LodDataMgrAnimWaves.DeregisterUpdatable(this);
     }
 
     RenderTexture CreateSWSRT()
@@ -270,14 +275,14 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
         InitData();
 
-        _buf.Clear();
+        var buf = new CommandBuffer();
 
         // Populate ground height - used for initial water heigh calculation
-        PopulateGroundHeight(_buf);
+        PopulateGroundHeight(buf);
 
         // Init sim data - water heights and velocities
         {
-            _csSWSProps.Initialise(_buf, _csSWS, _krnlInit);
+            _csSWSProps.Initialise(buf, _csSWS, _krnlInit);
 
             _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
 
@@ -295,22 +300,15 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.SetFloat(Shader.PropertyToID("_InitialWaterHeight"), _initialWaterHeight);
             _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
 
-            _buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+            buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }
 
-        Graphics.ExecuteCommandBuffer(_buf);
+        Graphics.ExecuteCommandBuffer(buf);
     }
 
     void PopulateGroundHeight(CommandBuffer buf)
     {
-        // TODO - when this gets called through Reset, ocean is not resident. Should this lifecycle thing
-        // be driven by the ocean renderer?
-        if (OceanRenderer.Instance == null)
-        {
-            return;
-        }
-
-        _csSWSProps.Initialise(_buf, _csSWS, _krnlInitGroundHeight);
+        _csSWSProps.Initialise(buf, _csSWS, _krnlInitGroundHeight);
         _csSWSProps.SetVector(Shader.PropertyToID("_ObstacleSphere1Pos"), _obstacleSphere1.position);
         _csSWSProps.SetFloat(Shader.PropertyToID("_ObstacleSphere1Radius"), _obstacleSphere1.lossyScale.x / 2f);
         _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightRW"), _rtGroundHeight);
@@ -329,15 +327,15 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         buf.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
     }
 
-#if UNITY_EDITOR
-    void EditorUpdate()
-    {
-        if (_updateInEditMode && !EditorApplication.isPlaying)
-        {
-            Update();
-        }
-    }
-#endif
+//#if UNITY_EDITOR
+//    void EditorUpdate()
+//    {
+//        if (_updateInEditMode && !EditorApplication.isPlaying)
+//        {
+//            Update();
+//        }
+//    }
+//#endif
 }
 
 #if UNITY_EDITOR

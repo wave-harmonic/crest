@@ -75,7 +75,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 
-				if (h < 0.001) h -= 0.01;// discard;
+				if (h < 0.001) h -= 0.1;// discard;
 
 				// Add ground height to water height to get world height of sruface
 				h += _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x + _SimOrigin.y - _OceanCenterPosWorld.y;

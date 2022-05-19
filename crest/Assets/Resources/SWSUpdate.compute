@@ -142,7 +142,7 @@ void Init(uint2 id : SV_DispatchThreadID)
 {
 	const float2 worldXZ = IdToWorldXZ_H(id);
 
-	float h = _InitialWaterHeight;
+	float h = _InitialWaterHeight - _SimOrigin.y;
 	h = max(0.0, h - SampleGroundHeight(worldXZ));
 
 	_H1[id.xy] = h;

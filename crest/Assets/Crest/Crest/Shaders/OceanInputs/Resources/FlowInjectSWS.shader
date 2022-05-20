@@ -78,7 +78,11 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 
 				//return float3(normalize(input.uv - 0.5), 0.0).xyzz;
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
-				
+
+				float2 offset = abs(input.uv - 0.5);
+				float maxOff = max(offset.x, offset.y);
+				alpha *= smoothstep(0.5, 0.45, maxOff);
+
 				return half4(wt * vx, wt * vy, 0.0, alpha);
 			}
 			ENDCG

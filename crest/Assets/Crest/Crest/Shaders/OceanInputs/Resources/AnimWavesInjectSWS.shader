@@ -93,6 +93,11 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				// Fade out when approaching dry. Does .. something.
 				alpha *= saturate(heightRaw / 0.02);
 
+				// Fade out at edge of domain
+				float2 offset = abs(input.uv - 0.5);
+				float maxOff = max(offset.x, offset.y);
+				alpha *= smoothstep(0.5, 0.45, maxOff);
+
 				// Power up alpha to bring anim waves further in towards shore
 				return half4(0.0, wt * h, 0.0, pow(alpha, 2.0));
 			}

@@ -28,6 +28,11 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
     [SerializeField] bool _doUpdateVels = true;
     [SerializeField] bool _doBlurH = true;
 
+    [Header("Blending With Waves")]
+    [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMinDepth = 0f;
+    [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMaxDepth = 4f;
+    [SerializeField, UnityEngine.Range(0f, 1f)] float _blendPushUpStrength = 0.1f;
+    
     [Header("Inputs")]
     [SerializeField] Transform _obstacleSphere1 = null;
     [SerializeField] Turbine _turbine1 = null;
@@ -129,6 +134,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                 _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maxVel);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_BlendPushUpStrength"), _blendPushUpStrength);
                 _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
 
                 // Advect
@@ -159,6 +167,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMask"), _rtSimulationMask);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
                     LodDataMgrAnimWaves.Bind(_csSWSProps);
 
                     buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);

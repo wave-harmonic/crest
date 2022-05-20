@@ -39,6 +39,10 @@ float _InitialWaterHeight;
 float _AddAdditionalWater;
 float _TexelSize;
 
+float _ShallowMinDepth;
+float _ShallowMaxDepth;
+float _BlendPushUpStrength;
+
 float3 _ObstacleSphere1Pos;
 float _ObstacleSphere1Radius;
 
@@ -129,7 +133,7 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 	// Mask is directly based off depth at the moment
 	// TODO sea level does not seem to work - have no idea why as it should be 0 in my test scene!
 	float depth = _OceanCenterPosWorld.y /* + groundHeight_seaLevelOffset.y*/ - g;
-	_SimulationMaskRW[id] = 1.0 - saturate(depth/2.0);
+	_SimulationMaskRW[id] = 1.0 - saturate((depth - _ShallowMinDepth) / _ShallowMaxDepth);
 
 	// Sphere obstacle
 	//const float2 offset = worldXZ - _ObstacleSphere1Pos.xz;
@@ -224,14 +228,6 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const float2 worldXZ = IdToWorldXZ_H(id);
 
 	float pump = 0.0;
-	//if (length(worldXZ - float2(-14.0, 14.0)) < 1.0)
-	//{
-	//	float targetHeight = 4.0;
-	//	float pumpIn = 0.01 * (targetHeight - h);
-	//	float maxPump = 0.04;
-	//	if (abs(pumpIn) > maxPump) pumpIn *= maxPump / abs(pumpIn);
-	//	pump += pumpIn;
-	//}
 
 	if (h > 0.01)
 	{
@@ -251,7 +247,12 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 			wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
 			wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
 
-		pump += _SimulationMask[id] * .01 * dispy;
+		float wavey = dispy + _OceanCenterPosWorld.y;
+		float simH = h + _SimOrigin.y + _GroundHeight[id];
+		if(wavey > simH)
+		{
+			pump += _BlendPushUpStrength * _SimulationMask[id] * (wavey - simH);
+		}
 	}
 
 

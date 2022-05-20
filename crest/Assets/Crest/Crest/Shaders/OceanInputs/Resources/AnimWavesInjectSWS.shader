@@ -89,7 +89,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 				
-				return half4(0.0, wt * h, 0.0, alpha);
+				return half4(0.0, wt * h, 0.0, pow(alpha, 2.0));
 			}
 			ENDCG
 		}

@@ -75,6 +75,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				float wt = _Weight;
 
 				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
+				float heightRaw = h;
 
 				if (h < 0.001) h = 0.0;// -= 0.1;
 
@@ -88,6 +89,9 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				h -= _OceanCenterPosWorld.y;
 
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
+
+				// Fade out when approaching dry. Does .. something.
+				alpha *= saturate(heightRaw / 0.02);
 
 				// Power up alpha to bring anim waves further in towards shore
 				return half4(0.0, wt * h, 0.0, pow(alpha, 2.0));

@@ -231,7 +231,11 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 
 	if (h > 0.01)
 	{
-		pump += _Drain;
+		float2 offset = abs(id / float(_Res) - 0.5);
+		float maxOff = max(offset.x, offset.y);
+
+		// Drain water out at boundary of domain. This seems to work ok. 
+		pump += _Drain * smoothstep(0.4, 0.5, maxOff);
 
 		uint slice0, slice1;
 		float lodAlpha;

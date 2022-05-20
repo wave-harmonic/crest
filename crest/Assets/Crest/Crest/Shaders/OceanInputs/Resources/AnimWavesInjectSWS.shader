@@ -88,7 +88,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				h -= _OceanCenterPosWorld.y;
 
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
-				
+
+				// Power up alpha to bring anim waves further in towards shore
 				return half4(0.0, wt * h, 0.0, pow(alpha, 2.0));
 			}
 			ENDCG

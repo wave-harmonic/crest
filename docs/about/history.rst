@@ -13,9 +13,11 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: TODO
+Breaking
+^^^^^^^^
+.. bullet_list::
 
-   Work in progress
+   -  Set minimum Unity version to 2021.3.3.
 
 
 4.15.2

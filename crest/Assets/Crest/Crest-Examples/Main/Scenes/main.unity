@@ -573,7 +573,7 @@ MonoBehaviour:
   _texelSize: 0.125
   _maxResolution: 1024
   _domainWidth: 128
-  _drain: 0
+  _drain: -0.01
   _friction: 0.02
   _maxVel: 100
   _doUpdate: 1
@@ -1946,6 +1946,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _resolution
       value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 7972957055494851339, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _windTurbulence
+      value: 0.058
       objectReference: {fileID: 0}
     - target: {fileID: 7972957055494851339, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}

@@ -128,7 +128,7 @@ void ComputeFoamWithFlow
 	in const CascadeParams cascadeData1
 )
 {
-	const float half_period = 1;
+	const float half_period = 0.5;
 	const float period = half_period * 2;
 	float sample1_offset = fmod(_CrestTime, period);
 	float sample1_weight = sample1_offset / half_period;

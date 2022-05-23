@@ -30,6 +30,7 @@ Fixed
 .. bullet_list::
 
    -  Fixed FFTs incorrectly adding extra foam.
+   -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
 
 
 4.15.2

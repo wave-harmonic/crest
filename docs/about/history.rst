@@ -20,6 +20,13 @@ Breaking
    -  Set minimum Unity version to 2021.3.3.
 
 
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
+
+
 4.15.2
 ------
 

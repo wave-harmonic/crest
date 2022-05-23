@@ -185,7 +185,8 @@ namespace Crest
             public FFTBatch(ShapeFFT shapeFFT, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeFFT = shapeFFT;
-                Wavelength = wavelength;
+                // Need sample higher than Nyquist to get good results, especially when waves flowing
+                Wavelength = wavelength / 2f;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;

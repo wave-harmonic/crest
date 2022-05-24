@@ -26,6 +26,13 @@ Fixed
 
    -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
 
+Removed
+^^^^^^^
+.. bullet_list::
+
+   -  Removed deprecated *Underwater Curtain/Meniscus* which has been superceded by the *Underwater Renderer*. `[BIRP] [URP]`
+   -  Removed deprecated *Underwater Post-Process* which has been superceded by the *Underwater Renderer*. `[HDRP]`
+
 
 4.15.2
 ------
@@ -612,7 +619,7 @@ Documentation
    .. only:: hdrp
 
       -  Document *Caustics Distortion Texture*. `[HDRP]`
-      -  Fixed Underwater :ref:`underwater_pp_setup` not being complete. `[HDRP]`
+      -  Fixed *Underwater Post-Processing* setup not being complete. `[HDRP]`
 
    .. only:: hdrp or urp
 

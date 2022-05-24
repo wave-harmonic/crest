@@ -2,6 +2,9 @@
     "name": "Crest",
     "rootNamespace": "",
     "references": [
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
         "Unity.Postprocessing.Runtime",
         "Unity.InputSystem",
         "Unity.Mathematics",
@@ -29,6 +32,21 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.render-pipelines.core",
+            "expression": "",
+            "define": "CREST_SRP"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "CREST_URP"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "",
+            "define": "CREST_HDRP"
         },
         {
             "name": "com.unity.burst",

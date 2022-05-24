@@ -3,7 +3,10 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2020.3.10 and later.
+> **Warning**
+> <br> The master branch has switched to 2021.3 as a minimum version requirement and is in a very active state of development with many breaking changes and an uncertain upgrade path. We recommend using the last stable version [4.15.2](https://github.com/wave-harmonic/crest/releases/tag/4.15.2).
+
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2021.3.3 and later.
 The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
@@ -43,7 +46,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 * Unity version:
   * The SRP assets on the Asset Store specify the minimum version required.
-  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2020.3.10 or later is the minimum version. See further down for 2018.4 support.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2021.3.3 or later is the minimum version. See further down for older versions.
 * *Crest* example content:
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime
@@ -51,6 +54,9 @@ The version hosted here targets the **built-in render pipeline**, links to the s
   * *Crest* unfortunately does not support OpenGL or WebGL backends
 
 # Installation
+
+> **Warning**
+> <br> The master branch has switched to 2021.3 as a minimum version requirement and is in a very active state of development with many breaking changes and no upgrade path. We recommend using the last stable version [4.15.2](https://github.com/wave-harmonic/crest/releases/tag/4.15.2).
 
 ***You can download the latest version from [here](https://github.com/wave-harmonic/crest/archive/master.zip).***
 
@@ -60,7 +66,14 @@ The files that should be copied into an existing project are under *crest/Assets
 
 Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
-**Releases**: Currently we do not prepare release packages. However, we do tag each asset store version, so the zip corresponding to each version can be downloaded by clicking the desired version on the [Releases page](https://github.com/wave-harmonic/crest/releases). Once the zip is downloaded, the steps are as above.
+## Releases
+
+Currently we do not prepare release packages. However, we do tag each asset store version, so the zip corresponding to each version can be downloaded by clicking the desired version on the [Releases page](https://github.com/wave-harmonic/crest/releases). Once the zip is downloaded, the steps are as above.
+
+The release for eacg LTS version is as follows:
+- 2018.3: [4.2](https://github.com/wave-harmonic/crest/releases/tag/4.2) Unsupported
+- 2019.4: [4.11](https://github.com/wave-harmonic/crest/releases/tag/4.11) Unsupported
+- 2020.3: [4.15.2](https://github.com/wave-harmonic/crest/releases/tag/4.15.2) Supported
 
 
 # Notes and Issues

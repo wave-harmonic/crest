@@ -56,7 +56,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 # Installation
 
 > **Warning**
-> <br> The master branch has switched to 2021.3 as a minimum version requirement and is in a very active state of development with many breaking changes and no upgrade path. We recommend using the last stable version [4.15.2](https://github.com/wave-harmonic/crest/releases/tag/4.15.2).
+> <br> The master branch has switched to 2021.3 as a minimum version requirement and is in a very active state of development with many breaking changes and an uncertain upgrade path. We recommend using the last stable version [4.15.2](https://github.com/wave-harmonic/crest/releases/tag/4.15.2).
 
 ***You can download the latest version from [here](https://github.com/wave-harmonic/crest/archive/master.zip).***
 

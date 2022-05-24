@@ -10,7 +10,12 @@ PrefabInstance:
     - target: {fileID: 4035142850168634852, guid: 123dc0a3f87264eff99c9418d93279b2,
         type: 3}
       propertyPath: m_Name
-      value: SceneCore
+      value: WhirlpoolScene
+      objectReference: {fileID: 0}
+    - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,
         type: 3}
@@ -29,6 +34,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,
         type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,
+        type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -40,16 +50,6 @@ PrefabInstance:
     - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,
-        type: 3}
-      propertyPath: m_RootOrder
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4035142850168634855, guid: 123dc0a3f87264eff99c9418d93279b2,

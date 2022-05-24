@@ -2,16 +2,28 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LakesAndRivers_Material_Water
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
-  m_ShaderKeywords: _CAUSTICS_ON _COMPILESHADERWITHDEBUGINFO_ON _COMPUTEDIRECTIONALLIGHT_ON
-    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FLOW_ON _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACEHEIGHTLERP_ON
-    _SUBSURFACESCATTERING_ON _TRANSPARENCY_ON _UNDERWATER_ON
+  m_ValidKeywords:
+  - _CAUSTICS_ON
+  - _COMPUTEDIRECTIONALLIGHT_ON
+  - _DEBUGVISUALISE_NONE
+  - _FLOW_ON
+  - _FOAM3DLIGHTING_ON
+  - _FOAM_ON
+  - _SUBSURFACESCATTERING_ON
+  - _TRANSPARENCY_ON
+  - _UNDERWATER_ON
+  m_InvalidKeywords:
+  - _COMPILESHADERWITHDEBUGINFO_ON
+  - _DEBUGMULTIPLYBYLIGHT0COLOR_ON
+  - _PROJECTION_BOTH
+  - _SUBSURFACEHEIGHTLERP_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -77,6 +89,7 @@ Material:
         m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - _Albedo: 0
     - _ApplyFlowToNormals: 0

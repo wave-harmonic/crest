@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19dae60af28271c45a418e0869b9b921, type: 3}
   m_Name: SettingsFoamWhirlpool
   m_EditorClassIdentifier: 
+  _version: 0
+  _prewarm: 1
   _foamFadeRate: 0.8
   _waveFoamStrength: 3.27
   _waveFoamCoverage: 0.715
   _shorelineFoamMaxDepth: 0.65
   _shorelineFoamStrength: 2
+  _renderTextureGraphicsFormat: 45
+  _simulationFrequency: 30

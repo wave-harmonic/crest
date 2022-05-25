@@ -10,7 +10,6 @@ using UnityEngine.Rendering;
 public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
 {
     [Header("Settings")]
-    [SerializeField] float _initialWaterHeight = 1f;
     [SerializeField] float _addAdditionalWater = 0f;
     [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
     [SerializeField, UnityEngine.Range(16, 1024)] int _maxResolution = 1024;
@@ -308,7 +307,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
             _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
             _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
-            _csSWSProps.SetFloat(Shader.PropertyToID("_InitialWaterHeight"), _initialWaterHeight);
             _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), _addAdditionalWater);
             _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
 

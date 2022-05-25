@@ -35,7 +35,6 @@ float _Res;
 float _Drain;
 float _Friction;
 float _MaxVel;
-float _InitialWaterHeight;
 float _AddAdditionalWater;
 float _TexelSize;
 
@@ -153,7 +152,7 @@ void Init(uint2 id : SV_DispatchThreadID)
 {
 	const float2 worldXZ = IdToWorldXZ_H(id);
 
-	float h = _InitialWaterHeight - _SimOrigin.y;
+	float h = _OceanCenterPosWorld.y - _SimOrigin.y;
 	h = max(0.0, h - SampleGroundHeight(worldXZ));
 
 	h += _AddAdditionalWater;

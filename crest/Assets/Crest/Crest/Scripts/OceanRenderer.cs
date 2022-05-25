@@ -1527,13 +1527,6 @@ namespace Crest
         {
             ocean.Validate(ocean, ValidatedHelper.DebugLog);
 
-            // ShapeGerstnerBatched
-            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            foreach (var gerstner in gerstners)
-            {
-                gerstner.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
             // ShapeGerstner
             foreach (var component in FindObjectsOfType<ShapeGerstner>())
             {
@@ -1545,15 +1538,6 @@ namespace Crest
             {
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
-
-#pragma warning disable 0618
-            // UnderwaterEffect
-            var underwaters = FindObjectsOfType<UnderwaterEffect>();
-            foreach (var underwater in underwaters)
-            {
-                underwater.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-#pragma warning restore 0618
 
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();
@@ -1615,16 +1599,15 @@ namespace Crest
                 );
             }
 
-            // ShapeGerstnerBatched
-            var gerstnerBatches = FindObjectsOfType<ShapeGerstnerBatched>();
+            // Shape*
             var gerstners = FindObjectsOfType<ShapeGerstner>();
             var ffts = FindObjectsOfType<ShapeFFT>();
-            if (gerstnerBatches.Length == 0 && gerstners.Length == 0 && ffts.Length == 0)
+            if (gerstners.Length == 0 && ffts.Length == 0)
             {
                 showMessage
                 (
-                    "No ShapeGerstnerBatched component found, so ocean will appear flat (no waves).",
-                    "Assign a ShapeGerstnerBatched component to a GameObject.",
+                    "No ShapeGerstner/ShapeFFT component found, so ocean will appear flat (no waves).",
+                    "Assign a ShapeFFT component to a GameObject.",
                     ValidatedHelper.MessageType.Info, ocean
                 );
             }

@@ -167,7 +167,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMask"), _rtSimulationMask);
-                    _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
                     LodDataMgrAnimWaves.Bind(_csSWSProps);
 
                     buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
@@ -181,7 +181,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                     _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-                    _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
 
                     // Turbines
                     Turbine.SetShaderParams(_turbine1, _csSWSProps, 1);
@@ -295,7 +295,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         {
             _csSWSProps.Initialise(buf, _csSWS, _krnlInit);
 
-            _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeight"), _rtGroundHeight);
+            _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
             _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
             _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
             _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
@@ -321,7 +321,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         _csSWSProps.Initialise(buf, _csSWS, _krnlInitGroundHeight);
         _csSWSProps.SetVector(Shader.PropertyToID("_ObstacleSphere1Pos"), _obstacleSphere1.position);
         _csSWSProps.SetFloat(Shader.PropertyToID("_ObstacleSphere1Radius"), _obstacleSphere1.lossyScale.x / 2f);
-        _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightRW"), _rtGroundHeight);
+        _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSSRW"), _rtGroundHeight);
         _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
 
         LodDataMgrSeaFloorDepth.Bind(_csSWSProps);

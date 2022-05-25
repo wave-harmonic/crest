@@ -23,8 +23,8 @@ Texture2D<float> _Vx0;
 RWTexture2D<float> _Vx1;
 Texture2D<float> _Vy0;
 RWTexture2D<float> _Vy1;
-Texture2D<float> _GroundHeight;
-RWTexture2D<float> _GroundHeightRW;
+Texture2D<float> _GroundHeightSS;
+RWTexture2D<float> _GroundHeightSSRW;
 Texture2D<float> _SimulationMask;
 RWTexture2D<float> _SimulationMaskRW;
 
@@ -99,7 +99,7 @@ float SampleH(float2 worldXZ)
 }
 float SampleGroundHeight(float2 worldXZ)
 {
-	return _GroundHeight.SampleLevel(linear_clamp_sampler, WorldXZToUv_GroundHeight(worldXZ), 0.0).x;
+	return _GroundHeightSS.SampleLevel(linear_clamp_sampler, WorldXZToUv_GroundHeight(worldXZ), 0.0).x;
 }
 float SampleVx0(float2 worldXZ)
 {
@@ -145,7 +145,7 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 
 	g = max(0.0, g - _SimOrigin.y);
 
-	_GroundHeightRW[id] = g;
+	_GroundHeightSSRW[id] = g;
 }
 
 [numthreads(8, 8, 1)]
@@ -251,8 +251,9 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 			wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
 			wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
 
+		// TODO Needs sea level offset, not just sea level. Like groundHeight_seaLevelOffset above.
 		float wavey = dispy + _OceanCenterPosWorld.y;
-		float simH = h + _SimOrigin.y + _GroundHeight[id];
+		float simH = h + _SimOrigin.y + _GroundHeightSS[id];
 		if(wavey > simH)
 		{
 			pump += _BlendPushUpStrength * _SimulationMask[id] * (wavey - simH);
@@ -292,7 +293,7 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 {
 	// Height before vel
 	const float2 worldXZ_H0 = IdToWorldXZ_H(id);
-	const float g0 = _GroundHeight[id];
+	const float g0 = _GroundHeightSS[id];
 	const float h0 = _H1[id];
 
 	const uint x = id.x;
@@ -310,7 +311,7 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		float vx = _Vx1[id];
 
 		const float2 worldXZ_H1 = IdToWorldXZ_H(uint2(xp, y));
-		const float g1 = _GroundHeight[uint2(xp, y)];
+		const float g1 = _GroundHeightSS[uint2(xp, y)];
 		const float h1 = _H1[uint2(xp, y)];
 
 		const float hdiff = (h1 + g1) - (h0 + g0);
@@ -345,7 +346,7 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		float vy = _Vy1[id];
 
 		const float2 worldXZ_H1 = IdToWorldXZ_H(uint2(x, yp));
-		const float g1 = _GroundHeight[uint2(x, yp)];
+		const float g1 = _GroundHeightSS[uint2(x, yp)];
 		const float h1 = _H1[uint2(x, yp)];
 
 		const float hdiff = (h1 + g1) - (h0 + g0);

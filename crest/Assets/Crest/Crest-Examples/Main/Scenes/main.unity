@@ -570,7 +570,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a87083040be2a947bf2d5f126a800e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _initialWaterHeight: 3.1
   _addAdditionalWater: 0
   _texelSize: 0.125
   _maxResolution: 1024

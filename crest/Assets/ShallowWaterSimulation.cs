@@ -137,7 +137,8 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                 _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_BlendPushUpStrength"), _blendPushUpStrength);
                 _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
-
+                _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
+                
                 // Advect
                 if (_doAdvect)
                 {
@@ -309,6 +310,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
             _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), _addAdditionalWater);
             _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+            _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
 
             buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
         }

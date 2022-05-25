@@ -1,3 +1,7 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
 Shader "Hidden/Crest/SphereGradientBackground"
 {
 	Properties
@@ -23,20 +27,28 @@ Shader "Hidden/Crest/SphereGradientBackground"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
+			#include "../../../Crest/Shaders/Helpers/BIRP/Core.hlsl"
+
 			struct Attributes
 			{
 				float4 vertex : POSITION;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
 			{
 				float4 vertex : SV_POSITION;
 				float3 positionWS : TEXCOORD0;
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings vert (Attributes v)
 			{
 				Varyings o;
+				ZERO_INITIALIZE(Varyings, o);
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.positionWS = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 				return o;

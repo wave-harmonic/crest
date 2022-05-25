@@ -1,6 +1,6 @@
 ﻿// Crest Ocean System
 
-// Copyright 2021 Wave Harmonic Ltd
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,6 +19,7 @@ namespace Crest
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
+        , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
@@ -71,7 +72,7 @@ namespace Crest
 
         [Header("Generation Settings")]
         [Tooltip("Resolution to use for wave generation buffers. Low resolutions are more efficient but can result in noticeable patterns in the shape."), Delayed]
-        public int _resolution = 32;
+        public int _resolution = 128;
 
         [Tooltip("In Editor, shows the wave generation buffers on screen."), SerializeField]
 #pragma warning disable 414
@@ -113,6 +114,21 @@ namespace Crest
         float _windSpeedOld;
         float _windDirRadOld;
         OceanWaveSpectrum _spectrumOld;
+
+        static OceanWaveSpectrum s_DefaultSpectrum;
+        protected static OceanWaveSpectrum DefaultSpectrum
+        {
+            get
+            {
+                if (s_DefaultSpectrum == null)
+                {
+                    s_DefaultSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                    s_DefaultSpectrum.name = "Default Waves (auto)";
+                }
+
+                return s_DefaultSpectrum;
+            }
+        }
 
         public class FFTBatch : ILodDataInput
         {
@@ -180,16 +196,22 @@ namespace Crest
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
+        static int s_Count = 0;
+
         /// <summary>
         /// Min wavelength for a cascade in the wave buffer. Does not depend on viewpoint.
         /// </summary>
         public float MinWavelength(int cascadeIdx)
         {
             var diameter = 0.5f * (1 << cascadeIdx);
-            var texelSize = diameter / _resolution;
             // Matches constant with same name in FFTSpectrum.compute
-            float SAMPLES_PER_WAVE = 4f;
-            return texelSize * SAMPLES_PER_WAVE;
+            var WAVE_SAMPLE_FACTOR = 8f;
+            return diameter / WAVE_SAMPLE_FACTOR;
+
+            // This used to be:
+            //var texelSize = diameter / _resolution;
+            //float samplesPerWave = _resolution / 8;
+            //return texelSize * samplesPerWave;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -255,8 +277,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
             // Unassign mesh
@@ -269,7 +290,8 @@ namespace Crest
 
         void ReportMaxDisplacement()
         {
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxHorizontalDisplacement, _maxVerticalDisplacement, _maxVerticalDisplacement);
+            // Apply weight or will cause popping due to scale change.
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxHorizontalDisplacement * _weight, _maxVerticalDisplacement * _weight, _maxVerticalDisplacement * _weight);
         }
 
         void InitBatches()
@@ -288,8 +310,8 @@ namespace Crest
             {
                 var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, subdivs, radius, Vector2.one,
-                    ref _meshForDrawingWaves, out _, out _))
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
+                    radius, Vector2.one, ref _meshForDrawingWaves, out _, out _))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
@@ -300,7 +322,6 @@ namespace Crest
                 if (_matGenerateWavesGlobal == null)
                 {
                     _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
-                    _matGenerateWavesGlobal.hideFlags = HideFlags.HideAndDontSave;
                 }
 
                 _matGenerateWaves = _matGenerateWavesGlobal;
@@ -310,7 +331,6 @@ namespace Crest
                 if (_matGenerateWavesGeometry == null)
                 {
                     _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
-                    _matGenerateWavesGeometry.hideFlags = HideFlags.HideAndDontSave;
                 }
 
                 _matGenerateWaves = _matGenerateWavesGeometry;
@@ -326,6 +346,25 @@ namespace Crest
             }
         }
 
+        void Awake()
+        {
+            s_Count++;
+        }
+
+        void OnDestroy()
+        {
+            // Since FFTCompute resources are shared we will clear after last ShapeFFT is destroyed.
+            if (--s_Count <= 0)
+            {
+                FFTCompute.CleanUpAll();
+
+                if (s_DefaultSpectrum != null)
+                {
+                    Helpers.Destroy(s_DefaultSpectrum);
+                }
+            }
+        }
+
         private void OnEnable()
         {
             _firstUpdate = true;
@@ -338,8 +377,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
 #if UNITY_EDITOR
@@ -370,6 +408,12 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            _resolution = Mathf.ClosestPowerOfTwo(_resolution);
+            _resolution = Mathf.Max(_resolution, 16);
+        }
+
         private void OnDrawGizmosSelected()
         {
             DrawMesh();
@@ -397,6 +441,18 @@ namespace Crest
             DrawMesh();
         }
 #endif
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (splinePoint.TryGetComponent(out SplinePointDataWaves _))
+            {
+                // Already existing, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointDataWaves>();
+            return true;
+        }
     }
 
 #if UNITY_EDITOR

@@ -12,9 +12,10 @@ namespace Crest.Examples
     [ExecuteAlways]
     public abstract class CustomPassForCameraBase : MonoBehaviour
     {
-        protected abstract CameraEvent Event { get; }
+        // Use int to support other RPs. We could use a custom enum to map to each RP in the future.
+        protected abstract int Event { get; }
 
-        CameraEvent _currentEvent;
+        int _currentEvent;
         CommandBuffer _buffer;
         List<Camera> _cameras = new List<Camera>();
 
@@ -37,7 +38,6 @@ namespace Crest.Examples
         void OnDisable()
         {
             Camera.onPreRender -= OnBeforeRender;
-
             CleanCameras();
         }
 
@@ -74,7 +74,7 @@ namespace Crest.Examples
                 }
 
                 _cameras.Add(camera);
-                camera.AddCommandBuffer(Event, _buffer);
+                camera.AddCommandBuffer((CameraEvent)Event, _buffer);
             }
 
             // Buffer will be shared by multiple cameras and multiple Execute calls. Clear once for each camera.
@@ -96,6 +96,8 @@ namespace Crest.Examples
 
     public class CustomPassForCamera : CustomPassForCameraBase
     {
+        // TODO: We need a separate event for deferred as it is very different from forward. But having an event per
+        // camera complicates things so will skip for now. Will probably need a dictionary.
         [SerializeField]
         CameraEvent _event;
 
@@ -105,11 +107,17 @@ namespace Crest.Examples
         [SerializeField]
         UnityEvent<CommandBuffer, Camera> _onClear = new UnityEvent<CommandBuffer, Camera>();
 
-        protected override CameraEvent Event => _event;
+        protected override int Event
+        {
+            get
+            {
+                return (int)_event;
+            }
+        }
 
         protected override void Execute(CommandBuffer buffer, Camera camera, RenderTextureDescriptor descriptor)
         {
-            _onExecute.Invoke(buffer, camera, XRHelpers.GetRenderTextureDescriptor(camera));
+            _onExecute.Invoke(buffer, camera, descriptor);
         }
 
         protected override void Clear(CommandBuffer buffer, Camera camera)

@@ -10,7 +10,12 @@ PrefabInstance:
     - target: {fileID: 4156536485464132324, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
         type: 3}
       propertyPath: m_Name
-      value: ThreeBoatsSceneCore
+      value: ThreeBoatsScene
+      objectReference: {fileID: 0}
+    - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
         type: 3}
@@ -29,6 +34,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
         type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
+        type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -40,16 +50,6 @@ PrefabInstance:
     - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,
-        type: 3}
-      propertyPath: m_RootOrder
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4156536485464132325, guid: 4eeedd0cf33b44a7697cd1f89ce5e464,

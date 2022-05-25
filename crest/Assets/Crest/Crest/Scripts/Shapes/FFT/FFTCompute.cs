@@ -1,6 +1,6 @@
 ﻿// Crest Ocean System
 
-// Copyright 2021 Wave Harmonic Ltd
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Inspired by https://github.com/speps/GX-EncinoWaves
 
@@ -125,23 +125,31 @@ namespace Crest
             rtd.colorFormat = RenderTextureFormat.ARGBFloat;
             rtd.msaaSamples = 1;
 
-            _spectrumInit = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _spectrumInit, rtd);
+            _spectrumInit.name = "CrestFFTSpectrumInit";
             _spectrumInit.Create();
 
             rtd.colorFormat = RenderTextureFormat.RGFloat;
 
-            _spectrumHeight = new RenderTexture(rtd);
+
+            Helpers.SafeCreateRenderTexture(ref _spectrumHeight, rtd);
+            _spectrumHeight.name = "CrestFFTSpectrumHeight";
             _spectrumHeight.Create();
-            _spectrumDisplaceX = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _spectrumDisplaceX, rtd);
+            _spectrumDisplaceX.name = "CrestFFTSpectrumDisplaceX";
             _spectrumDisplaceX.Create();
-            _spectrumDisplaceZ = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _spectrumDisplaceZ, rtd);
+            _spectrumDisplaceZ.name = "CrestFFTSpectrumDisplaceZ";
             _spectrumDisplaceZ.Create();
 
-            _tempFFT1 = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _tempFFT1, rtd);
+            _tempFFT1.name = "CrestFFTOutput1";
             _tempFFT1.Create();
-            _tempFFT2 = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _tempFFT2, rtd);
+            _tempFFT2.name = "CrestFFTOutput2";
             _tempFFT2.Create();
-            _tempFFT3 = new RenderTexture(rtd);
+            Helpers.SafeCreateRenderTexture(ref _tempFFT3, rtd);
+            _tempFFT3.name = "CrestFFTOutput3";
             _tempFFT3.Create();
 
             // Raw wave data buffer
@@ -162,6 +170,28 @@ namespace Crest
             InitialiseSpectrumHandControls();
 
             _isInitialised = true;
+        }
+
+        void CleanUp()
+        {
+            // Destroy to clear references.
+            Helpers.Destroy(_spectrumInit);
+            Helpers.Destroy(_spectrumHeight);
+            Helpers.Destroy(_spectrumDisplaceX);
+            Helpers.Destroy(_spectrumDisplaceZ);
+            Helpers.Destroy(_tempFFT1);
+            Helpers.Destroy(_tempFFT2);
+            Helpers.Destroy(_tempFFT3);
+            _spectrumInitialised = false;
+        }
+
+        internal static void CleanUpAll()
+        {
+            foreach (var generator in _generators)
+            {
+                generator.Value.Release();
+                generator.Value.CleanUp();
+            }
         }
 
         static Dictionary<int, FFTCompute> _generators = new Dictionary<int, FFTCompute>();
@@ -362,6 +392,9 @@ namespace Crest
         /// </summary>
         void UpdateSpectrum(CommandBuffer buf, float time)
         {
+            // Always set _Size as the compute shader returned from Resource.Load is the same asset every time and more
+            // than one ShapeFFT will overwrite this value.
+            buf.SetComputeIntParam(_shaderSpectrum, "_Size", _resolution);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Time", time * _spectrum._gravityScale);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Chop", _spectrum._chop);
             buf.SetComputeFloatParam(_shaderSpectrum, "_Period", _loopPeriod);

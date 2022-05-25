@@ -1,0 +1,13 @@
+﻿
+# The Unity Terrain - URP Demo Scene and all its art assets are governed by the standard Unity Asset Store EULA; however, the following components are governed by custom licenses as listed below:
+
+================================================
+
+# Terrain Height Data
+-----------------
+
+OpenStreetMap ©OpenStreetMap contributors
+https://www.openstreetmap.org/copyright
+
+Courtesy of the U.S. Geological Survey
+https://www.usgs.gov/

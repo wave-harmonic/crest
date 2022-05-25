@@ -96,6 +96,8 @@ namespace Crest
 
         internal Renderer _renderer;
         protected Material _material;
+        // We pass this to GetSharedMaterials to avoid allocations.
+        protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
         // If this is true, then the renderer should not be there as input source is from something else.
@@ -153,10 +155,11 @@ namespace Crest
                     buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
                 }
 
-                for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
+                _renderer.GetSharedMaterials(_sharedMaterials);
+                for (var i = 0; i < _sharedMaterials.Count; i++)
                 {
                     // Empty material slots is a user error, but skip so we do not spam errors.
-                    if (_renderer.sharedMaterials[i] == null)
+                    if (_sharedMaterials[i] == null)
                     {
                         continue;
                     }
@@ -164,7 +167,7 @@ namespace Crest
                     // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
                     // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
                     // Submesh count generally must equal number of materials.
-                    buf.DrawRenderer(_renderer, _renderer.sharedMaterials[i], submeshIndex: i, shaderPass: 0);
+                    buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass: 0);
                 }
             }
         }
@@ -459,10 +462,11 @@ namespace Crest
 
             if (_renderer != null)
             {
-                for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
+                _renderer.GetSharedMaterials(_sharedMaterials);
+                for (var i = 0; i < _sharedMaterials.Count; i++)
                 {
                     // Empty material slots is a user error. Unity complains about it so we should too.
-                    if (_renderer.sharedMaterials[i] == null)
+                    if (_sharedMaterials[i] == null)
                     {
                         showMessage
                         (
@@ -525,8 +529,8 @@ namespace Crest
         {
             bool isValid = base.Validate(ocean, showMessage);
 
-            // Will be invalid if no renderer and no spline.
-            if (RendererRequired && !TryGetComponent<Renderer>(out _))
+            // Is there a renderer? Check spline explicitly as the renderer may not be created (eg GO is inactive).
+            if (RendererRequired && !TryGetComponent<Renderer>(out _) && !TryGetComponent<Spline.Spline>(out _))
             {
                 showMessage
                 (

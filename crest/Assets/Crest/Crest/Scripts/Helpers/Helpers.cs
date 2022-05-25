@@ -16,6 +16,9 @@ namespace Crest
         public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
             BindingFlags.Static;
 
+        static WaitForEndOfFrame s_WaitForEndOfFrame = new WaitForEndOfFrame();
+        public static WaitForEndOfFrame WaitForEndOfFrame => s_WaitForEndOfFrame;
+
         static Material s_UtilityMaterial;
         public static Material UtilityMaterial
         {
@@ -40,10 +43,13 @@ namespace Crest
             ClearStencil,
         }
 
+#if UNITY_EDITOR
         public static bool IsPreviewOfGameCamera(Camera camera)
         {
+            // StartsWith has GC allocations. It is only used in the editor.
             return camera.cameraType == CameraType.Game && camera.name.StartsWith("Preview");
         }
+#endif
 
         public static bool IsMSAAEnabled(Camera camera)
         {
@@ -126,14 +132,33 @@ namespace Crest
             {
                 // Dummy values. We are only creating an RT reference, not an RT native object. RT should be configured
                 // properly before using or calling Create.
-                texture = new RenderTexture(0, 0, 0)
-                {
-                    hideFlags = HideFlags.HideAndDontSave,
-                };
+                texture = new RenderTexture(0, 0, 0);
             }
 
             // Always call this in case of recompilation as RTI will lose its reference to the RT.
             RenderTargetIdentifierXR(ref texture, ref target);
+        }
+
+        /// <summary>
+        /// Creates an RT with an RTD if it does not exist or assigns RTD to RT (RT should be released first). This
+        /// prevents reference leaks.
+        /// </summary>
+        /// <remarks>
+        /// Afterwards call <a href="https://docs.unity3d.com/ScriptReference/RenderTexture.Create.html">Create</a> if
+        /// necessary or <a href="https://docs.unity3d.com/ScriptReference/RenderTexture-active.html">let Unity handle
+        /// it</a>.
+        /// </remarks>
+        public static void SafeCreateRenderTexture(ref RenderTexture texture, RenderTextureDescriptor descriptor)
+        {
+            // Do not overwrite reference or it will create reference leak.
+            if (texture == null)
+            {
+                texture = new RenderTexture(descriptor);
+            }
+            else
+            {
+                texture.descriptor = descriptor;
+            }
         }
 
         public static bool RenderTargetTextureNeedsUpdating(RenderTexture texture, RenderTextureDescriptor descriptor)

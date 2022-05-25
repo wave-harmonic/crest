@@ -29,6 +29,9 @@ namespace Crest
 
         [SerializeField] bool _drawLodDatasActualSize = false;
 
+        [SerializeField, UnityEngine.Range(0f, 1f)]
+        float _pausedScroll;
+
         [Header("Lod Datas")]
         [SerializeField] bool _drawAnimWaves = true;
         [SerializeField] bool _drawDynWaves = false;
@@ -47,7 +50,15 @@ namespace Crest
 
         static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
-        static Dictionary<RenderTexture, Material> s_textureArrayMaterials = new Dictionary<RenderTexture, Material>();
+        static Material s_DebugArrayMaterial;
+        static Material DebugArrayMaterial
+        {
+            get
+            {
+                if (s_DebugArrayMaterial == null) s_DebugArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                return s_DebugArrayMaterial;
+            }
+        }
 
         static OceanDebugGUI s_Instance;
 
@@ -87,6 +98,12 @@ namespace Crest
         void OnDisable()
         {
             s_Instance = null;
+        }
+
+        void OnDestroy()
+        {
+            // Safe as there should only be one instance at a time.
+            Helpers.Destroy(s_DebugArrayMaterial);
         }
 
         Vector3 _viewerPosLastFrame;
@@ -328,6 +345,15 @@ namespace Crest
             GUI.DrawTexture(rect, Texture2D.whiteTexture);
             GUI.color = Color.white;
 
+            var scrollSize = lodData.DataTexture.height * lodData.DataTexture.volumeDepth - height;
+
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPaused)
+            {
+                _scroll = _pausedScroll * scrollSize;
+            }
+#endif
+
             _scroll = GUI.VerticalScrollbar
             (
                 rect,
@@ -337,6 +363,13 @@ namespace Crest
                 bottomValue: lodData.DataTexture.height * lodData.DataTexture.volumeDepth,
                 style
             );
+
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPaused)
+            {
+                _pausedScroll = Mathf.Clamp01(_scroll / scrollSize);
+            }
+#endif
         }
 
         void DrawSim(LodDataMgr lodData, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f)
@@ -377,18 +410,11 @@ namespace Crest
                         float y = idx * h;
                         if (isRightmost) w += b;
 
-                        s_textureArrayMaterials.TryGetValue(lodData.DataTexture, out var material);
-                        if (material == null)
-                        {
-                            material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
-                            s_textureArrayMaterials.Add(lodData.DataTexture, material);
-                        }
-
                         // Render specific slice of 2D texture array
-                        material.SetInt("_Depth", idx);
-                        material.SetFloat("_Scale", scale);
-                        material.SetFloat("_Bias", bias);
-                        Graphics.DrawTexture(new Rect(x + b, (y + b / 2f) - scroll, h - b, h - b), lodData.DataTexture, material);
+                        DebugArrayMaterial.SetInt("_Depth", idx);
+                        DebugArrayMaterial.SetFloat("_Scale", scale);
+                        DebugArrayMaterial.SetFloat("_Bias", bias);
+                        Graphics.DrawTexture(new Rect(x + b, (y + b / 2f) - scroll, h - b, h - b), lodData.DataTexture, DebugArrayMaterial);
                     }
                 }
             }
@@ -422,18 +448,11 @@ namespace Crest
                         float y = idx * h;
                         if (offset == 1f) w += b;
 
-                        s_textureArrayMaterials.TryGetValue(data, out var material);
-                        if (material == null)
-                        {
-                            material = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
-                            s_textureArrayMaterials.Add(data, material);
-                        }
-
                         // Render specific slice of 2D texture array
-                        material.SetInt("_Depth", idx);
-                        material.SetFloat("_Scale", scale);
-                        material.SetFloat("_Bias", bias);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, material);
+                        DebugArrayMaterial.SetInt("_Depth", idx);
+                        DebugArrayMaterial.SetFloat("_Scale", scale);
+                        DebugArrayMaterial.SetFloat("_Bias", bias);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, DebugArrayMaterial);
                     }
                 }
             }
@@ -449,7 +468,6 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             s_simNames.Clear();
-            s_textureArrayMaterials.Clear();
         }
     }
 }

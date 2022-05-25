@@ -56,6 +56,13 @@ namespace Crest
         [SerializeField]
         [Tooltip("Rendering mode of the underwater effect (and ocean). See the documentation for more details.")]
         internal Mode _mode;
+        public static bool IsCullable
+        {
+            get
+            {
+                return Instance != null && Instance._mode == Mode.FullScreen;
+            }
+        }
 
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
@@ -212,7 +219,9 @@ namespace Crest
             SetupOceanMask();
             OnEnableMask();
             SetupUnderwaterEffect();
+            // Handle both forward and deferred.
             _camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+            _camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
             _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
 
             _currentEnableShaderAPI = _enableShaderAPI;
@@ -226,7 +235,9 @@ namespace Crest
         {
             if (_oceanMaskCommandBuffer != null)
             {
+                // Handle both forward and deferred.
                 _camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                _camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
             }
 
             if (_underwaterEffectCommandBuffer != null)
@@ -351,7 +362,9 @@ namespace Crest
 
                 if (_oceanMaskCommandBuffer != null)
                 {
+                    // Handle both forward and deferred.
                     camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
                 }
 
                 if (_underwaterEffectCommandBuffer != null)
@@ -415,7 +428,9 @@ namespace Crest
             if (!_editorCameras.Contains(camera))
             {
                 _editorCameras.Add(camera);
+                // Handle both forward and deferred.
                 camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
                 camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
             }
 

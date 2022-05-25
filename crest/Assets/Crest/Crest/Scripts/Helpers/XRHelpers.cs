@@ -72,7 +72,10 @@ namespace Crest
             else
 #endif
             {
-                return new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                // As recommended by Unity, in 2021.2 using SystemInfo.GetGraphicsFormat with DefaultFormat.LDR is
+                // necessary or gamma color space texture is returned:
+                // https://docs.unity3d.com/ScriptReference/Experimental.Rendering.DefaultFormat.html
+                return new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight, SystemInfo.GetGraphicsFormat(UnityEngine.Experimental.Rendering.DefaultFormat.LDR), 0);
             }
         }
 

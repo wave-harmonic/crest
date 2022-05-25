@@ -9,11 +9,15 @@ using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
+#if UNITY_2021_2_OR_NEWER
+using UnityEditor.SceneManagement;
+#else
 using UnityEditor.Experimental.SceneManagement;
 #endif
+#endif
 
-#if !UNITY_2020_3_OR_NEWER
-#error This version of Crest requires Unity 2020.3 or later.
+#if !UNITY_2021_3_OR_NEWER
+#error This version of Crest requires Unity 2021.3 or later.
 #endif
 
 namespace Crest
@@ -197,8 +201,8 @@ namespace Crest
         [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
         float _dropDetailHeightBasedOnWaves = 0.2f;
 
-        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
-        int _lodDataResolution = 256;
+        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384.")]
+        int _lodDataResolution = 384;
         public int LodDataResolution => _lodDataResolution;
 
         [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
@@ -206,12 +210,6 @@ namespace Crest
 
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
-
-        [SerializeField, Range(UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM)]
-        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled.")]
-        public float _underwaterCullLimit = 0.001f;
-        internal const float UNDERWATER_CULL_LIMIT_MINIMUM = 0.000001f;
-        internal const float UNDERWATER_CULL_LIMIT_MAXIMUM = 0.01f;
 
 
         [Header("Simulation Params")]
@@ -272,6 +270,26 @@ namespace Crest
         [Predicated("_createAlbedoData"), Embedded]
         public SimSettingsAlbedo _settingsAlbedo;
 
+
+        [Header("Advanced")]
+
+        [SerializeField]
+        [Tooltip("How Crest should handle self-intersections of the ocean surface caused by choppy waves which can cause a flipped underwater effect. Automatic will disable the fix if portals/volumes are used which is the recommend setting.")]
+        SurfaceSelfIntersectionFixMode _surfaceSelfIntersectionFixMode = SurfaceSelfIntersectionFixMode.Automatic;
+        public enum SurfaceSelfIntersectionFixMode
+        {
+            Off,
+            On,
+            Automatic,
+        }
+
+        [SerializeField, Range(UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM)]
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled.")]
+        public float _underwaterCullLimit = 0.001f;
+        internal const float UNDERWATER_CULL_LIMIT_MINIMUM = 0.000001f;
+        internal const float UNDERWATER_CULL_LIMIT_MAXIMUM = 0.01f;
+
+
         [Header("Edit Mode Params")]
 
         [SerializeField]
@@ -292,6 +310,12 @@ namespace Crest
 #pragma warning disable 414
         bool _followSceneCamera = true;
 #pragma warning restore 414
+
+        [Tooltip("Whether height queries are enabled in edit mode."), SerializeField]
+#pragma warning disable 414
+        bool _heightQueries = true;
+#pragma warning restore 414
+
 
         [Header("Server Settings")]
         [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument."), SerializeField]
@@ -409,7 +433,7 @@ namespace Crest
         readonly static int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly static int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         readonly static int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
-        public static readonly int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        public static readonly int sp_CrestForceUnderwater = Shader.PropertyToID("_CrestForceUnderwater");
 
         public static class ShaderIDs
         {
@@ -1003,7 +1027,8 @@ namespace Crest
 #if UNITY_EDITOR
             // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
             // so knock this out.
-            if (EditorApplication.isPlaying)
+            // This was marked as resolved by Unity and confirmed fixed by forum posts.
+            if (_heightQueries || EditorApplication.isPlaying)
 #endif
             {
                 CollisionProvider?.UpdateQueries();
@@ -1017,13 +1042,30 @@ namespace Crest
         {
             if (OceanMaterial != null)
             {
-                // Override isFrontFace when camera is far enough from the ocean surface to fix self intersecting waves.
+                // Override isFrontFace when camera is far enough from the ocean surface to fix self-intersecting waves.
                 // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
                 // add a param here that forces ocean to be in underwater state. I think the root
                 // cause here might be imprecision or numerical issues at ocean tile boundaries, although
                 // i'm not sure why cracks are not visible in this case.
                 var height = ViewerHeightAboveWater;
-                OceanMaterial.SetFloat(sp_ForceUnderwater, height < -2f ? 1f : height > 2f ? -1f : 0f);
+                var value = 0f;
+
+                switch (_surfaceSelfIntersectionFixMode)
+                {
+                    case SurfaceSelfIntersectionFixMode.Off:
+                        break;
+                    case SurfaceSelfIntersectionFixMode.On:
+                        value = height < -2f ? 1f : height > 2f ? -1f : 0f;
+                        break;
+                    case SurfaceSelfIntersectionFixMode.Automatic:
+                        // Skip if UnderwaterRenderer is not full-screen (ocean will be clipped).
+                        var skip = UnderwaterRenderer.Instance != null && UnderwaterRenderer.Instance.IsActive &&
+                            UnderwaterRenderer.Instance._mode != UnderwaterRenderer.Mode.FullScreen;
+                        value = skip ? 0f : height < -2f ? 1f : height > 2f ? -1f : 0f;
+                        break;
+                }
+
+                Shader.SetGlobalFloat(sp_CrestForceUnderwater, value);
             }
 
             _cascadeParams.Flip();
@@ -1035,6 +1077,21 @@ namespace Crest
             WritePerCascadeInstanceData(_perCascadeInstanceData);
             _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData.Current);
             _bufPerCascadeInstanceDataSource.SetData(_perCascadeInstanceData.Previous(1));
+        }
+
+        /// <summary>
+        /// Sets the SurfaceSelfIntersectionFixMode using a string. Only useful for UnityEvents.
+        /// </summary>
+        public void SetSurfaceSelfIntersectionFixMode(string mode)
+        {
+            if (System.Enum.TryParse<SurfaceSelfIntersectionFixMode>(mode, out var result))
+            {
+                _surfaceSelfIntersectionFixMode = result;
+            }
+            else
+            {
+                Debug.LogError($"Crest: {mode} is not a valid value");
+            }
         }
 
         void WritePerCascadeInstanceData(BufferedData<PerCascadeInstanceData[]> instanceData)
@@ -1201,7 +1258,7 @@ namespace Crest
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
                 var density = UnderwaterDepthFogDensity = OceanMaterial.GetVector(ShaderIDs.s_DepthFogDensity) * UnderwaterRenderer.DepthFogDensityFactor;
                 // Only run optimisation in play mode due to shared height above water.
-                if (Application.isPlaying)
+                if (Application.isPlaying && UnderwaterRenderer.IsCullable)
                 {
                     var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
                     var underwaterCullLimit = Mathf.Clamp(_underwaterCullLimit, UNDERWATER_CULL_LIMIT_MINIMUM, UNDERWATER_CULL_LIMIT_MAXIMUM);

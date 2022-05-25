@@ -21,8 +21,8 @@ sys.path.insert(0, os.path.abspath('./extensions'))
 project = "Crest"
 organization = "Wave Harmonic"
 author = f"{organization} & Contributors"
-copyright = f"2021, {author}"
-version = "4.15"
+copyright = f"2022, {author}"
+version = "2022.0.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
 sponsor_link = "https://github.com/sponsors/wave-harmonic"
@@ -202,6 +202,8 @@ rst_prolog = rst_prolog + """
 .. set:: WikiLink \{GitHubLink}/wiki
 .. set:: RoadmapLink \https://trello.com/b/L7iejCPI
 
+.. set:: SGDocLink {UPMDocLinkBase}/com.unity.shadergraph@{RPMinVersion}/manual
+
 .. set:: [BIRP] :guilabel:`BIRP`
 .. set:: BIRPNameLong Built-in
 .. set:: BIRPNameShort BIRP
@@ -240,13 +242,17 @@ rst_prolog = rst_prolog + """
 .. set:: FFT :abbr:`FFT (Fast Fourier Transform)`
 .. set:: GC :abbr:`GC (Garbage Collector)`
 .. set:: SSR :abbr:`SSR (Screen-Space Reflections)`
+.. set:: SSAO :abbr:`SSAO (Screen-Space Ambient Occlusion)`
 
 .. set:: DWP2 :abbr:`DWP2 (Dynamic Water Physics 2)`
 
 .. set:: Time.time :link:`Time.time <{UnityDocScriptLink}/Time-time.html>`
 .. set:: Time.timeScale :link:`Time.timeScale <{UnityDocScriptLink}/Time-timeScale.html>`
 .. set:: Timeline :link:`Timeline <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/tl_about.html>`
-.. set:: Playable Director :link:`Playable Director <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/play_director.html>`
+.. set:: Playable_Director :link:`Playable Director <{UPMDocLinkBase}/com.unity.timeline@1.5/manual/play_director.html>`
+.. set:: Master_Stack :link:`Master Stack <{SGDocLink}/Master-Stack.html>`
+.. set:: HDRP_Lit_Shader :link:`Lit Shader <{HDRPDocLink}/Lit-Shader.html>`
+.. set:: URP_Lit_Shader :link:`Lit Shader <{URPDocLink}/lit-shader.html>`
 """
 
 # -- Debugging ---------------------------------------------------------------

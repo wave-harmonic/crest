@@ -27,6 +27,10 @@ Crest can be configured to efficiently generate smaller bodies of water, using t
 -  If the lake altitude differs from the global sea level, create a spline that covers the area of the lake and attach the *RegisterHeightInput* component which will set the water level to match the spline (or click the *Set Height* button in the *Spline* inspector).
    It is recommended to cover a larger area than the lake itself, to give a protective margin against LOD effects in the distance.
 
+.. admonition:: Example
+
+   The *LakesAndRivers.unity* scene contains an example of a lake connected by a river.
+
 Another advantage of the *WaterBody* component is it allows an optional override material to be provided, to change the appearance of the water.
 Since this feature cannot be applied partially to an ocean tile, and an ocean tile can overlap two water bodies, this feature does not work well with bordering water bodies.
 If you use this feature and want to still have an ocean, then disable *Water Body Culling* on the *Ocean Renderer*.
@@ -41,3 +45,7 @@ Splines can also be used to create rivers, by creating a spline at the water sur
 -  *ShapeFFT* can be used to generate waves that propagate along the river.
 
 The *Add Feature* section of the *Spline* inspector has helper buttons to quickly add these components.
+
+.. admonition:: Example
+
+   The *LakesAndRivers.unity* scene contains an example of a river connecting two lakes.

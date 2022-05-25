@@ -34,19 +34,13 @@ namespace Crest
         public PropertyWrapperMaterial(Shader shader)
         {
             Debug.Assert(shader != null, "Crest: PropertyWrapperMaterial: Cannot create required material because shader is null");
-            material = new Material(shader)
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-            };
+            material = new Material(shader);
         }
         public PropertyWrapperMaterial(string shaderPath)
         {
             Shader shader = Shader.Find(shaderPath);
             Debug.AssertFormat(shader != null, $"Crest.PropertyWrapperMaterial: {PropertyWrapperConstants.NO_SHADER_MESSAGE}", shaderPath);
-            material = new Material(shader)
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-            };
+            material = new Material(shader);
         }
 
         public void SetFloat(int param, float value) => material.SetFloat(param, value);

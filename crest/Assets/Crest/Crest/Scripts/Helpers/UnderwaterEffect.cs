@@ -11,7 +11,11 @@ using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Collections.Generic;
+#if UNITY_2021_2_OR_NEWER
+using UnityEditor.SceneManagement;
+#else
 using UnityEditor.Experimental.SceneManagement;
+#endif
 #endif
 
 namespace Crest
@@ -241,7 +245,6 @@ namespace Crest
             }
 
             var mesh = new Mesh();
-            mesh.hideFlags = HideFlags.DontSave;
             mesh.name = "Grid2D_" + divs0 + "x" + divs1;
             mesh.vertices = verts;
             mesh.uv = uvs;

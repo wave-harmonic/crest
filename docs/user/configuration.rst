@@ -311,7 +311,11 @@ Underwater
 Flow
 ^^^^
 
-|  **Enable** Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene.
+.. admonition:: Example
+
+    Flow is demonstrated in the *whirlpool* example scene.
+
+|  **Enable** Flow is horizontal motion in water.
    'Create Flow Sim' must be enabled on the OceanRenderer to generate flow data.
 
 .. _lighting:
@@ -413,3 +417,18 @@ There are a small number of parameters that control the construction of the ocea
 
 -  **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level.
    Low values give lots of detail, but will limit the horizontal extents of the ocean detail.
+
+
+.. _advanced_ocean_renderer_options:
+
+Advanced Ocean Parameters
+-------------------------
+
+These parameters are found on the *Ocean Renderer* under the *Advanced* heading.
+
+-  **Surface Self-Intersection Mode** - How Crest should handle self-intersections of the ocean surface caused by choppy waves which can cause a flipped underwater effect.
+   When not using the portals/volumes, this fix is only applied when within 2 metres of the ocean surface.
+   *Automatic* will disable the fix if portals/volumes are used and is the recommended setting.
+
+-  **Underwater Cull Limit** - Proportion of visibility below which ocean will be culled underwater.
+   The larger the number, the closer to the camera the ocean tiles will be culled.

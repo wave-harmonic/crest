@@ -87,10 +87,49 @@ void ApplyCaustics
 	// caustics come from many directions and don't exhibit such a strong directonality
 	// Removing the fudge factor (4.0) will cause the caustics to move around more with the waves. But this will also
 	// result in stretched/dilated caustics in certain areas. This is especially noticeable on angled surfaces.
-	float2 surfacePosXZ = i_scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
-	half2 causticN = _CausticsDistortionStrength * UnpackNormal(i_distortionTexture.Sample(surfacePosXZ / i_distortionTexture._scale)).xy;
-	float3 cuv1 = float3((surfacePosXZ / i_causticsTexture._scale + 1.3 * causticN + float2(0.044 * _CrestTime + 17.16, -0.169 * _CrestTime)), mipLod);
-	float3 cuv2 = float3((1.37 * surfacePosXZ / i_causticsTexture._scale + 1.77 * causticN + float2(0.248 * _CrestTime, 0.117 * _CrestTime)), mipLod);
+	float2 lightProjection = i_lightDir.xz * sceneDepth / (4.0 * i_lightDir.y);
+
+	float3 cuv1 = 0.0; float3 cuv2 = 0.0;
+	{
+		float2 surfacePosXZ = i_scenePos.xz;
+		float surfacePosScale = 1.37;
+
+#if CREST_FLOATING_ORIGIN
+		// Apply tiled floating origin offset. Always needed.
+		surfacePosXZ -= i_causticsTexture.FloatingOriginOffset();
+		// Scale was causing popping.
+		surfacePosScale = 1.0;
+#endif
+
+		surfacePosXZ += lightProjection;
+
+		cuv1 = float3
+		(
+			surfacePosXZ / i_causticsTexture._scale + float2(0.044 * _CrestTime + 17.16, -0.169 * _CrestTime),
+			mipLod
+		);
+		cuv2 = float3
+		(
+			surfacePosScale * surfacePosXZ / i_causticsTexture._scale + float2(0.248 * _CrestTime, 0.117 * _CrestTime),
+			mipLod
+		);
+	}
+
+	// Apply distortion.
+	{
+		float2 surfacePosXZ = i_scenePos.xz;
+
+#if CREST_FLOATING_ORIGIN
+		// Apply tiled floating origin offset. Always needed.
+		surfacePosXZ -= i_distortionTexture.FloatingOriginOffset();
+#endif
+
+		surfacePosXZ += lightProjection;
+
+		half2 causticN = _CausticsDistortionStrength * UnpackNormal(i_distortionTexture.Sample(surfacePosXZ / i_distortionTexture._scale)).xy;
+		cuv1.xy += 1.30 * causticN;
+		cuv2.xy += 1.77 * causticN;
+	}
 
 	half causticsStrength = _CausticsStrength;
 

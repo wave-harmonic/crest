@@ -33,6 +33,8 @@ namespace Crest
         public float _boyancyTorque = 8f;
         [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), Range(0, 1)]
         public float _accelerateDownhill = 0f;
+        [Tooltip("Clamps the buoyancy force to this value. Useful for handling fully submerged objects. Enter 'Infinity' to disable.")]
+        public float _maximumBuoyancyForce = Mathf.Infinity;
 
         [Header("Wave Response")]
         [Tooltip("Diameter of object, for physics purposes. The larger this value, the more filtered/smooth the wave response will be.")]
@@ -111,6 +113,10 @@ namespace Crest
             }
 
             var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
+            if (_maximumBuoyancyForce < Mathf.Infinity)
+            {
+                buoyancy = Vector3.ClampMagnitude(buoyancy, _maximumBuoyancyForce);
+            }
             _rb.AddForce(buoyancy, ForceMode.Acceleration);
 
             // Approximate hydrodynamics of sliding along water

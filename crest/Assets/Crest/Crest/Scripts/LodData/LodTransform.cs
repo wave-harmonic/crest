@@ -109,13 +109,18 @@ namespace Crest
                 // Detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness.
                 if (isFirstUpdate && _renderData[lodIdx].Size > 1)
                 {
+                    // Cache to prevent captured variable allocation.
+                    var posSnapped = _renderData[lodIdx].Current._posSnapped;
+                    var texelWidth = _renderData[lodIdx].Current._texelWidth;
+                    var textureRes = _renderData[lodIdx].Current._textureRes;
+                    var maxWavelength = _renderData[lodIdx].Current._maxWavelength;
                     // We are writing to "Current" again. But it is okay since only once.
                     _renderData[lodIdx].RunLambda(buffer =>
                     {
-                        buffer._posSnapped = _renderData[lodIdx].Current._posSnapped;
-                        buffer._texelWidth = _renderData[lodIdx].Current._texelWidth;
-                        buffer._textureRes = _renderData[lodIdx].Current._textureRes;
-                        buffer._maxWavelength = _renderData[lodIdx].Current._maxWavelength;
+                        buffer._posSnapped = posSnapped;
+                        buffer._texelWidth = texelWidth;
+                        buffer._textureRes = textureRes;
+                        buffer._maxWavelength = maxWavelength;
                     });
                 }
 
@@ -172,8 +177,14 @@ namespace Crest
         {
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                cascadeParams.Current[lodIdx]._posSnapped[0] = _renderData[lodIdx].Current._posSnapped[0];
-                cascadeParams.Current[lodIdx]._posSnapped[1] = _renderData[lodIdx].Current._posSnapped[2];
+                // All _posSnapped values will be updated on Floating Origin shift so we need to recopy them.
+                var frames = FloatingOrigin.HasTeleportedThisFrame ? _renderData[lodIdx].Size : 1;
+                for (var frame = 0; frame < frames; frame++)
+                {
+                    cascadeParams.Previous(frame)[lodIdx]._posSnapped[0] = _renderData[lodIdx].Previous(frame)._posSnapped[0];
+                    cascadeParams.Previous(frame)[lodIdx]._posSnapped[1] = _renderData[lodIdx].Previous(frame)._posSnapped[2];
+                }
+
                 // NOTE: Current scale was assigned to current and previous frame, but not sure why. 2021.10.17
                 cascadeParams.Current[lodIdx]._scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 cascadeParams.Current[lodIdx]._textureRes = _renderData[lodIdx].Current._textureRes;

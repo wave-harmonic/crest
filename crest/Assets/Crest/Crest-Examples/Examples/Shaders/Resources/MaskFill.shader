@@ -1,3 +1,7 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
 Shader "Hidden/Crest/Examples/Mask Fill"
 {
     SubShader
@@ -13,34 +17,39 @@ Shader "Hidden/Crest/Examples/Mask Fill"
 
             #include "UnityCG.cginc"
 
-            UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture)
+            #include "../../../../Crest/Shaders/Helpers/BIRP/Core.hlsl"
+
+            TEXTURE2D_X(_CrestWaterVolumeFrontFaceTexture);
 
             struct Attributes
             {
                 float4 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float4 screenPos : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vertex(Attributes input)
             {
                 Varyings output;
+                ZERO_INITIALIZE(Varyings, output);
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
                 output.positionCS = UnityObjectToClipPos(input.positionOS);
-                output.screenPos = ComputeScreenPos(output.positionCS);
                 return output;
             }
 
             float4 Fragment(Varyings input, bool isFrontFace : SV_IsFrontFace) : SV_Target
             {
-                float2 positionNDC = input.screenPos.xy / input.screenPos.w;
-                float deviceZ = input.screenPos.z / input.screenPos.w;
+                // We need this when sampling a screenspace texture.
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                float frontFaceZ = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestWaterVolumeFrontFaceTexture, positionNDC);
-                if (frontFaceZ == 0.0 || frontFaceZ < deviceZ)
+                if (LOAD_TEXTURE2D_X(_CrestWaterVolumeFrontFaceTexture, input.positionCS.xy).r < input.positionCS.z)
                 {
                     discard;
                 }

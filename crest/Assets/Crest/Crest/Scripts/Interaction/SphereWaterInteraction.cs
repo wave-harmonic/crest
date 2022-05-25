@@ -59,9 +59,11 @@ namespace Crest
         [SerializeField]
         bool _warnOnSpeedClamp = false;
 
+#if UNITY_EDITOR
         [Header("Debug")]
         [Tooltip("Draws debug lines at each substep position. Editor only."), SerializeField]
         bool _debugSubsteps = false;
+#endif
 
         Vector3 _velocity;
         Vector3 _velocityClamped;
@@ -145,11 +147,11 @@ namespace Crest
 
             _mpb.SetVector(sp_velocity, relativeVelocity);
             _mpb.SetFloat(sp_simDeltaTime, dt);
-            
+
             // Enlarge radius slightly - this tends to help waves 'wrap' the sphere slightly better
             float radiusScale = 1.1f;
             _mpb.SetFloat(sp_radius, _radius * radiusScale);
-            
+
             _mpb.SetFloat(sp_innerSphereOffset, _innerSphereOffset);
             _mpb.SetFloat(sp_innerSphereMultiplier, _innerSphereMultiplier);
             _mpb.SetFloat(sp_largeWaveMultiplier, _boostLargeWaves ? 2f : 1f);

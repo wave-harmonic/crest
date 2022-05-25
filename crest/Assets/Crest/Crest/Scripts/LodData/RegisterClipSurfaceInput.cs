@@ -78,7 +78,10 @@ namespace Crest
         // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
         protected override bool FollowHorizontalMotion => true;
 
-        protected override bool SupportsMultiPassShaders => _material != null && _material.shader.name == "Crest/Inputs/Clip Surface/Convex Hull";
+        // Cache shader name to prevent allocations.
+        protected override bool SupportsMultiPassShaders => _currentShaderName == "Crest/Inputs/Clip Surface/Convex Hull";
+        Material _currentMaterial;
+        string _currentShaderName;
 
         PropertyWrapperMPB _mpb;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
@@ -139,7 +142,6 @@ namespace Crest
             if (_signedDistancedMaterial == null)
             {
                 _signedDistancedMaterial = new Material(Shader.Find(k_SignedDistanceShaderPath));
-                _signedDistancedMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
 
             // Could refactor using hashy.
@@ -190,13 +192,16 @@ namespace Crest
             else
             {
                 var shaderPass = SupportsMultiPassShaders ? -1 : 0;
-                for (var i = 0; i < _renderer.sharedMaterials.Length; i++)
+                _renderer.GetSharedMaterials(_sharedMaterials);
+                for (var i = 0; i < _sharedMaterials.Count; i++)
                 {
-                    // Empty material slots is a user error. Unity complains about it so we should too.
-                    Debug.AssertFormat(_renderer.sharedMaterials[i] != null, _renderer,
-                        "Crest: {0} has empty material slots. Remove these slots or fill them with a material.", _renderer);
+                    // Empty material slots is a user error, but skip so we do not spam errors.
+                    if (_sharedMaterials[i] == null)
+                    {
+                        continue;
+                    }
 
-                    buf.DrawRenderer(_renderer, _renderer.sharedMaterials[i], submeshIndex: i, shaderPass);
+                    buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass);
                 }
 
             }
@@ -207,6 +212,13 @@ namespace Crest
             if (OceanRenderer.Instance == null || (_mode == Mode.Geometry && _renderer == null))
             {
                 return;
+            }
+
+            if (_currentMaterial != _material)
+            {
+                _currentMaterial = _material;
+                // GC allocation hence the caching.
+                _currentShaderName = _currentMaterial.shader.name;
             }
 
             // Prevents possible conflicts since overlapping doesn't work for every case for convex null.

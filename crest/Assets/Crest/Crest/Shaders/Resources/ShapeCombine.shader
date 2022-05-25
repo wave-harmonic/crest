@@ -56,7 +56,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			void Flow(out float2 offsets, out float2 weights)
 			{
-				const float period = 3.0 * _CrestCascadeData[_LD_SliceIndex]._texelWidth;
+				const float period = max(3.0 * _CrestCascadeData[_LD_SliceIndex]._texelWidth, 1.0);
 				const float half_period = period / 2.0;
 				offsets = fmod(float2(_CrestTime, _CrestTime + half_period), period);
 				weights.x = offsets.x / half_period;

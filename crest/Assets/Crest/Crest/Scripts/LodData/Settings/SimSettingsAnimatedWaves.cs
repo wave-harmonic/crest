@@ -23,6 +23,13 @@ namespace Crest
 
         public const string k_HelpURL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves-settings";
 
+        [Tooltip("PREVIEW: Set this to 2 to improve wave quality. In some cases like flowing rivers this can make a substantial difference to visual stability."
+            + "\n\nWe recommend doubling the Lod Data Resolution on the OceanRenderer component to preserve detail after making this change, but note that this will "
+            + "consume 4x more video memory until we are able to optimise data usage further, so apply this change with caution.")]
+        [SerializeField, Range(1f, 4f)]
+        float _waveResolutionMultiplier = 1f;
+        public float WaveResolutionMultiplier => Mathf.Max(1f, _waveResolutionMultiplier);
+
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
         float _attenuationInShallows = 0.95f;
         public float AttenuationInShallows => _attenuationInShallows;

@@ -20,6 +20,14 @@ Breaking
    -  Set minimum Unity version to 2021.3.3.
 
 
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  Added option to the Animated Waves settings to increase wave resolution to fix quality issues that appear especially in flowing water.
+      See tooltip on this new option for instructions and more details.
+
+
 Fixed
 ^^^^^
 .. bullet_list::

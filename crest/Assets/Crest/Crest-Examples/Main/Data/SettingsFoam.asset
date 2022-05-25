@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _version: 0
   _prewarm: 1
-  _foamFadeRate: 0.05
+  _foamFadeRate: 0.07
   _waveFoamStrength: 1
   _waveFoamCoverage: 0
   _shorelineFoamMaxDepth: 0.3

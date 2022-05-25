@@ -34,10 +34,10 @@ namespace Crest
 
         public enum CollisionSources
         {
-            None,
-            GerstnerWavesCPU,
-            ComputeShaderQueries,
-            BakedFFT
+            None = 0,
+            // GerstnerWavesCPU = 1,
+            ComputeShaderQueries = 2,
+            BakedFFT = 3
         }
 
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
@@ -80,9 +80,6 @@ namespace Crest
             {
                 case CollisionSources.None:
                     result = new CollProviderNull();
-                    break;
-                case CollisionSources.GerstnerWavesCPU:
-                    result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
                     if (!OceanRenderer.RunningWithoutGPU)
@@ -131,13 +128,13 @@ namespace Crest
         {
             var isValid = base.Validate(ocean, showMessage);
 
-            if (_collisionSource == CollisionSources.GerstnerWavesCPU && showMessage != ValidatedHelper.DebugLog)
+            if (_collisionSource == CollisionSources.BakedFFT && showMessage != ValidatedHelper.DebugLog)
             {
                 showMessage
                 (
-                    "<i>Gerstner Waves CPU</i> has significant drawbacks. It does not include wave attenuation from " +
+                    "<i>Baked FFT</i> has significant drawbacks. It does not include wave attenuation from " +
                     "water depth or any custom rendered shape. It does not support multiple " +
-                    "<i>GerstnerWavesBatched</i> components including cross blending. Please read the user guide for more information.",
+                    "<i>ShapeFFT</i> components including cross blending. Please read the user guide for more information.",
                     "Set collision source to ComputeShaderQueries",
                     ValidatedHelper.MessageType.Info, this
                 );

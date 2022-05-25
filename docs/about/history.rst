@@ -32,6 +32,7 @@ Removed
 
    -  Removed deprecated *Underwater Curtain/Meniscus* which has been superceded by the *Underwater Renderer*. `[BIRP] [URP]`
    -  Removed deprecated *Underwater Post-Process* which has been superceded by the *Underwater Renderer*. `[HDRP]`
+   -  Removed deprecated *Shape Gerstner Batched* as superceded by *Shape FFT* and *Shape Gerstner*.
 
 
 4.15.2

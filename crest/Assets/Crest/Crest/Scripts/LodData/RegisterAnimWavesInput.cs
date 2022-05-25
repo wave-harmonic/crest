@@ -12,7 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Animated Waves Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves")]
-    public class RegisterAnimWavesInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAnimWaves>
+    public class RegisterAnimWavesInput : RegisterLodDataInput<LodDataMgrAnimWaves>
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -34,9 +34,6 @@ namespace Crest
         protected override Color GizmoColor => s_gizmoColor;
 
         protected override string ShaderPrefix => "Crest/Inputs/Animated Waves";
-
-        protected override string SplineShaderName => "Crest/Inputs/Animated Waves/Set Base Water Height Using Geometry";
-        protected override Vector2 DefaultCustomData => Vector2.zero;
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = true;

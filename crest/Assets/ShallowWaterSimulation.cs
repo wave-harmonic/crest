@@ -78,10 +78,12 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
         if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT();
 
         _matInjectSWSAnimWaves.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-        _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
-
         _matInjectSWSFlow.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+        _matInjectSWSFoam.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+        _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
         _matInjectSWSFlow.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+        _matInjectSWSFoam.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+        _matInjectSWSFoam.SetFloat(Shader.PropertyToID("_Resolution"), _resolution);
     }
 
     void Swap<T>(ref T a, ref T b)
@@ -221,6 +223,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 
     Material _matInjectSWSAnimWaves;
     Material _matInjectSWSFlow;
+    // It currently does not trigger jacobian foam term. If we added displacement to SWS waves it would prob help, but
+    // the quality of the shape would have to be much better i guess!
+    Material _matInjectSWSFoam;
 
     // Draw to all LODs
     public float Wavelength => 0f;
@@ -251,6 +256,11 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _matInjectSWSFlow.hideFlags = HideFlags.HideAndDontSave;
             _matInjectSWSFlow.SetFloat(RegisterLodDataInputBase.sp_Weight, 1f);
         }
+        {
+            _matInjectSWSFoam = new Material(Shader.Find("Hidden/Crest/Inputs/Foam/Inject SWS"));
+            _matInjectSWSFoam.hideFlags = HideFlags.HideAndDontSave;
+            _matInjectSWSFoam.SetFloat(RegisterLodDataInputBase.sp_Weight, 1f);
+        }
 
         LodDataMgrAnimWaves.RegisterUpdatable(this);
 
@@ -264,6 +274,13 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         // Register flow
         {
             var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrFlow));
+            registrar.Remove(this);
+            registrar.Add(0, this);
+        }
+
+        // Register foam
+        {
+            var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrFoam));
             registrar.Remove(this);
             registrar.Add(0, this);
         }
@@ -334,7 +351,10 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         //if (!gameObject || !gameObject.activeInHierarchy || !enabled) return;
         buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-        var mat = (lodData is LodDataMgrAnimWaves) ? _matInjectSWSAnimWaves : _matInjectSWSFlow;
+        // TODO better way to do this?
+        var mat = (lodData is LodDataMgrAnimWaves) ? _matInjectSWSAnimWaves
+            : ((lodData is LodDataMgrFlow) ? _matInjectSWSFlow
+            : _matInjectSWSFoam);
 
         buf.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
     }

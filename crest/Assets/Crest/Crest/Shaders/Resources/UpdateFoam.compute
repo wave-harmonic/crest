@@ -97,9 +97,6 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float det = determinant( jacobian );
 	foam += 5.0 * simDeltaTime * _WaveFoamStrength * saturate( _WaveFoamCoverage - det + foamBase * 0.7 );
 
-	float grad = max(abs(disp_x.y - disp.y), abs(disp_z.y - disp.y)) / dd.z;
-	foam += smoothstep(0.5, 1.5, grad);
-
 	// Prewarm shoreline foam. 1.0 / _FoamFadeRate perfectly matches a paused ocean in edit mode which is fine for
 	// shoreline foam.
 	simDeltaTime = _NeedsPrewarming ? (1.0 / _FoamFadeRate) : _SimDeltaTime;

@@ -118,7 +118,7 @@ namespace Crest
             public GerstnerBatch(ShapeGerstner gerstner, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _gerstner = gerstner;
-                Wavelength = wavelength / Mathf.Max(1f, OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
+                Wavelength = wavelength / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;

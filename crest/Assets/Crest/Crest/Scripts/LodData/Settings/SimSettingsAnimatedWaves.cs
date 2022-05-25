@@ -28,7 +28,7 @@ namespace Crest
             + "consume 4x more video memory until we are able to optimise data usage further, so apply this change with caution.")]
         [SerializeField, Range(1f, 4f)]
         float _waveResolutionMultiplier = 1f;
-        public float WaveResolutionMultiplier => _waveResolutionMultiplier;
+        public float WaveResolutionMultiplier => Mathf.Max(1f, _waveResolutionMultiplier);
 
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
         float _attenuationInShallows = 0.95f;

@@ -143,7 +143,7 @@ namespace Crest
             {
                 _shapeFFT = shapeFFT;
                 // Need sample higher than Nyquist to get good results, especially when waves flowing
-                Wavelength = wavelength / Mathf.Max(1f, OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
+                Wavelength = wavelength / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;

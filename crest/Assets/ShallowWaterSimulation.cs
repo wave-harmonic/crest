@@ -346,10 +346,22 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
         {
             var s = 200f;
             var y = 0f;
-            GUI.DrawTexture(new Rect(200, y, s, s), _rtH1); y += s;
-            GUI.DrawTexture(new Rect(200, y, s, s), _rtVx1); y += s;
-            GUI.DrawTexture(new Rect(200, y, s, s), _rtVy1); y += s;
-            GUI.DrawTexture(new Rect(200, y, s, s), _rtSimulationMask); y += s;
+            Rect r;
+
+            r = new Rect(200, y, s, s); y += s;
+            GUI.DrawTexture(r, _rtH1); GUI.Label(r, "_rtH1");
+
+            r = new Rect(200, y, s, s); y += s;
+            GUI.DrawTexture(r, _rtVx1); GUI.Label(r, "_rtVx1");
+
+            r = new Rect(200, y, s, s); y += s;
+            GUI.DrawTexture(r, _rtVy1); GUI.Label(r, "_rtVy1");
+
+            r = new Rect(200, y, s, s); y += s;
+            GUI.DrawTexture(r, _rtGroundHeight); GUI.Label(r, "_rtGroundHeight");
+
+            r = new Rect(200, y, s, s); y += s;
+            GUI.DrawTexture(r, _rtSimulationMask); GUI.Label(r, "_rtSimulationMask");
         }
     }
 #endif

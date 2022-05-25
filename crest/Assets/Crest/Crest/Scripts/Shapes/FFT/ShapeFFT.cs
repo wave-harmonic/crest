@@ -142,7 +142,8 @@ namespace Crest
             public FFTBatch(ShapeFFT shapeFFT, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeFFT = shapeFFT;
-                Wavelength = wavelength;
+                // Need sample higher than Nyquist to get good results, especially when waves flowing
+                Wavelength = wavelength / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
@@ -161,7 +162,7 @@ namespace Crest
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
-                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
                     {

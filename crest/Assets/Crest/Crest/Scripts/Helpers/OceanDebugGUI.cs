@@ -248,22 +248,6 @@ namespace Crest
         {
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
 
-            foreach (var gerstner in ShapeGerstnerBatched.Instances)
-            {
-                var specW = 75f;
-                gerstner.Value._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner.Value._weight, 0f, 1f);
-
-#if UNITY_EDITOR
-                if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
-                {
-                    var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner.Value._spectrum);
-                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-                    UnityEditor.Selection.activeObject = asset;
-                }
-#endif
-                y += h;
-            }
-
             foreach (var gerstner in ShapeGerstner.Instances)
             {
                 var specW = 75f;

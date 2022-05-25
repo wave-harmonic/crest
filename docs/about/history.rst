@@ -20,11 +20,30 @@ Breaking
    -  Set minimum Unity version to 2021.3.3.
 
 
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  Added option to the Animated Waves settings to increase wave resolution to fix quality issues that appear especially in flowing water.
+      See tooltip on this new option for instructions and more details.
+
+
 Fixed
 ^^^^^
 .. bullet_list::
 
    -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
+
+
+Removed
+^^^^^^^
+.. bullet_list::
+
+   -  Removed deprecated *Underwater Curtain/Meniscus* which has been superceded by the *Underwater Renderer*. `[BIRP] [URP]`
+   -  Removed deprecated *Underwater Post-Process* which has been superceded by the *Underwater Renderer*. `[HDRP]`
+   -  Removed deprecated *Shape Gerstner Batched* as superceded by *Shape FFT* and *Shape Gerstner*.
+   -  Removed spline support from *Register Anim Waves Input*. This was primarily good for setting water level like for a river, but this use case is better supported by *Register Height Input*.
+   -  Removed deprecated *Object Water Interaction* as it has been superceded by *Sphere Water Interaction*.
 
 
 4.15.2
@@ -612,7 +631,7 @@ Documentation
    .. only:: hdrp
 
       -  Document *Caustics Distortion Texture*. `[HDRP]`
-      -  Fixed Underwater :ref:`underwater_pp_setup` not being complete. `[HDRP]`
+      -  Fixed *Underwater Post-Processing* setup not being complete. `[HDRP]`
 
    .. only:: hdrp or urp
 

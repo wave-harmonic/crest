@@ -2,13 +2,16 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using Crest;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
+    /// <summary>
+    /// Runs a shallow water simulation at global sea level in a domain around its transform,
+    /// and injects the results of the sim into the water data.
+    /// </summary>
     public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
     {
         [Header("Settings")]
@@ -34,11 +37,6 @@ namespace Crest
         [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMinDepth = 0f;
         [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMaxDepth = 4f;
         [SerializeField, UnityEngine.Range(0f, 1f)] float _blendPushUpStrength = 0.1f;
-
-        [Header("Inputs")]
-        [SerializeField] Transform _obstacleSphere1 = null;
-        [SerializeField] Turbine _turbine1 = null;
-        [SerializeField] Turbine _turbine2 = null;
 
         [Header("Debug")]
         [SerializeField] bool _showTextures = false;
@@ -137,9 +135,6 @@ namespace Crest
             {
                 _timeToSimulate += Time.deltaTime;
 
-                Shader.SetGlobalVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
-                Shader.SetGlobalFloat("_ObstacleSphere1Radius", _obstacleSphere1.lossyScale.x / 2f);
-
                 // Populate ground height every frame to allow dynamic scene
                 PopulateGroundHeight(buf);
 
@@ -207,10 +202,6 @@ namespace Crest
                         _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                         _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
                         _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
-
-                        // Turbines
-                        Turbine.SetShaderParams(_turbine1, _csSWSProps, 1);
-                        Turbine.SetShaderParams(_turbine2, _csSWSProps, 2);
 
                         buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                     }
@@ -359,8 +350,6 @@ namespace Crest
         void PopulateGroundHeight(CommandBuffer buf)
         {
             _csSWSProps.Initialise(buf, _csSWS, _krnlInitGroundHeight);
-            _csSWSProps.SetVector(Shader.PropertyToID("_ObstacleSphere1Pos"), _obstacleSphere1.position);
-            _csSWSProps.SetFloat(Shader.PropertyToID("_ObstacleSphere1Radius"), _obstacleSphere1.lossyScale.x / 2f);
             _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSSRW"), _rtGroundHeight);
             _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
 

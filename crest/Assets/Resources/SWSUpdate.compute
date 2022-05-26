@@ -42,12 +42,6 @@ float _ShallowMinDepth;
 float _ShallowMaxDepth;
 float _BlendPushUpStrength;
 
-float3 _ObstacleSphere1Pos;
-float _ObstacleSphere1Radius;
-
-float3 _Turbine1Position; float3 _Turbine1Velocity; float _Turbine1Radius; float _Turbine1Weight;
-float3 _Turbine2Position; float3 _Turbine2Velocity; float _Turbine2Radius; float _Turbine2Weight;
-
 #define DT 0.01
 
 float2 IdToWorldXZ_H(uint2 id)
@@ -252,7 +246,7 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	}
 
 
-	float outPump = 0.0;// 30.0;
+	float outPump = 30.0;// 30.0;
 	float vxp = (x == uint(_Res - 1)) ? outPump : _Vx1[id];
 	float vyp = (y == uint(_Res - 1)) ? outPump : _Vy1[id];
 	float vxm = (x == 0) ? -outPump : _Vx1[uint2(x - 1, y)];
@@ -271,11 +265,6 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	// Dry - force to 0
 	//if (h < 0.001) h = 0.0;
 
-	// Pull down height at boundaries
-	//if (id.x == 0 || id.y == 0 || id.x == _Res - 1 || id.y == _Res - 1) h = lerp(h, 120.5, 0.01);
-
-	//if(length(IdToWorldXZ_H(id)) < 4.0) h = 0;
-
 	_H1[id] = h;
 }
 
@@ -293,9 +282,6 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 	const uint yp = min(y + 1, _Res - 1);
 
 	const float gravity = 9.81f;
-
-	float _turbine1Weight = _Turbine1Weight * smoothstep(_Turbine1Radius * 1.1, _Turbine1Radius * 0.7, length(worldXZ_H0 - _Turbine1Position.xz));
-	float _turbine2Weight = _Turbine2Weight * smoothstep(_Turbine2Radius * 1.1, _Turbine2Radius * 0.7, length(worldXZ_H0 - _Turbine2Position.xz));
 
 	// Vx
 	{
@@ -325,9 +311,6 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		{
 			vx = sign(vx) * maxVel;
 		}*/
-
-		vx = lerp(vx, _Turbine1Velocity.x, _turbine1Weight * DT);
-		vx = lerp(vx, _Turbine2Velocity.x, _turbine2Weight * DT);
 
 		_Vx1[id] = vx;
 	}
@@ -361,9 +344,6 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 			vx = sign(vx) * maxVel;
 		}*/
 
-		vy = lerp(vy, _Turbine1Velocity.z, _turbine1Weight * DT);
-		vy = lerp(vy, _Turbine2Velocity.z, _turbine2Weight * DT);
-
 		_Vy1[id] = vy;
 	}
 }
@@ -396,7 +376,6 @@ void BlurH(int2 id : SV_DispatchThreadID)
 			twt += wt;
 		}
 	}
-
 
 	_H1[id] = twt > 0.0 ? result / twt : hcenter;
 }

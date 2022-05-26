@@ -404,6 +404,19 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             GUI.DrawTexture(r, _rtSimulationMask); GUI.Label(r, "_rtSimulationMask");
         }
     }
+
+    private void OnDrawGizmosSelected()
+    {
+        Vector3 pos = SimOrigin();
+
+        var oldMatrix = Gizmos.matrix;
+        Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(_domainWidth, 1f, _domainWidth));
+        Gizmos.color = new Color(1f, 0f, 1f, 1f);
+
+        // Draw a rectangle at the sim base height
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
+        Gizmos.matrix = oldMatrix;
+    }
 #endif
 }
 

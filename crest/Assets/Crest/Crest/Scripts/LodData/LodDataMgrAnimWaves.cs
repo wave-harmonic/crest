@@ -387,7 +387,7 @@ namespace Crest
                 }
 
                 // Flow
-                LodDataMgrFlow.Bind((_combineProperties));
+                LodDataMgrFlow.Bind(_combineProperties);
 
                 // Set the animated waves texture where the results will be combined.
                 _combineProperties.SetTexture(

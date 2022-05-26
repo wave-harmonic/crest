@@ -102,11 +102,11 @@ Material:
     - _Caustics: 1
     - _CausticsBase: 0.07
     - _CausticsBias: 0.7
-    - _CausticsDepthOfField: 2
-    - _CausticsDistortionScale: 44.8
-    - _CausticsDistortionStrength: 0.1361
-    - _CausticsFocalDepth: 3
-    - _CausticsStrength: 2.23
+    - _CausticsDepthOfField: 0.4
+    - _CausticsDistortionScale: 15.5
+    - _CausticsDistortionStrength: 0.033
+    - _CausticsFocalDepth: 2
+    - _CausticsStrength: 1.28
     - _CausticsTextureAverage: 0.082
     - _CausticsTextureScale: 4.39
     - _ClipSurface: 1

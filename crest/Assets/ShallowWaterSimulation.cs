@@ -10,6 +10,8 @@ using UnityEngine.Rendering;
 public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
 {
     [Header("Settings")]
+    [SerializeField] bool _placeSimAtGlobalSeaLevel = true;
+    [SerializeField] float _depth = 2f;
     [SerializeField] float _addAdditionalWater = 0f;
     [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
     [SerializeField, UnityEngine.Range(16, 1024)] int _maxResolution = 1024;
@@ -31,7 +33,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
     [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMinDepth = 0f;
     [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMaxDepth = 4f;
     [SerializeField, UnityEngine.Range(0f, 1f)] float _blendPushUpStrength = 0.1f;
-    
+
     [Header("Inputs")]
     [SerializeField] Transform _obstacleSphere1 = null;
     [SerializeField] Turbine _turbine1 = null;
@@ -80,9 +82,12 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
         _matInjectSWSAnimWaves.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
         _matInjectSWSFlow.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
         _matInjectSWSFoam.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-        _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
-        _matInjectSWSFlow.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
-        _matInjectSWSFoam.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+
+        var simOrigin = SimOrigin();
+        _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), simOrigin);
+        _matInjectSWSFlow.SetVector(Shader.PropertyToID("_SimOrigin"), simOrigin);
+        _matInjectSWSFoam.SetVector(Shader.PropertyToID("_SimOrigin"), simOrigin);
+
         _matInjectSWSFoam.SetFloat(Shader.PropertyToID("_Resolution"), _resolution);
     }
 
@@ -93,13 +98,30 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
         b = temp;
     }
 
+    // Currently sim will be placed _depth below global sea level
+    Vector3 SimOrigin()
+    {
+        var result = transform.position;
+
+        if (_placeSimAtGlobalSeaLevel)
+        {
+            result.y = OceanRenderer.Instance.transform.position.y;
+        }
+
+        // Sim origin is at 'bottom' of domain, water height/ground height are added
+        result.y -= _depth;
+
+        return result;
+    }
+
+
     public void CrestUpdate(CommandBuffer buf)
     {
     }
 
     public void CrestUpdatePostCombine(CommandBuffer buf)
     {
-        if(_firstUpdate)
+        if (_firstUpdate)
         {
             Reset(buf);
 
@@ -111,8 +133,6 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
         if (_doUpdate)
         {
             _timeToSimulate += Time.deltaTime;
-
-            //_buf.Clear();
 
             Shader.SetGlobalVector("_ObstacleSphere1Pos", _obstacleSphere1.position);
             Shader.SetGlobalFloat("_ObstacleSphere1Radius", _obstacleSphere1.lossyScale.x / 2f);
@@ -138,9 +158,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                 _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_BlendPushUpStrength"), _blendPushUpStrength);
-                _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+                _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
                 _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
-                
+
                 // Advect
                 if (_doAdvect)
                 {
@@ -156,7 +176,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
                     _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-                    
+
                     buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                 }
 
@@ -326,7 +346,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
             _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
             _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
             _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), _addAdditionalWater);
-            _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), transform.position);
+            _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
             _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
 
             buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
@@ -362,7 +382,7 @@ public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
 #if UNITY_EDITOR
     private void OnGUI()
     {
-        if(_showTextures)
+        if (_showTextures)
         {
             var s = 200f;
             var y = 0f;

@@ -73,8 +73,9 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 
 				const float wt = _Weight;
 
-				const float vx = _swsVx.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
-				const float vy = _swsVy.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
+				// These should use mip maps. Without this bad pops ensue from aliasing x combine-pass-flow
+				const float vx = _swsVx.Sample(LODData_linear_clamp_sampler, input.uv).x;
+				const float vy = _swsVy.Sample(LODData_linear_clamp_sampler, input.uv).x;
 
 				//return float3(normalize(input.uv - 0.5), 0.0).xyzz;
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;

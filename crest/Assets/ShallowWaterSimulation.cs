@@ -69,10 +69,10 @@ namespace Crest
 
             if (_rtH0 == null) _rtH0 = CreateSWSRT();
             if (_rtH1 == null) _rtH1 = CreateSWSRT();
-            if (_rtVx0 == null) _rtVx0 = CreateSWSRT();
-            if (_rtVx1 == null) _rtVx1 = CreateSWSRT();
-            if (_rtVy0 == null) _rtVy0 = CreateSWSRT();
-            if (_rtVy1 == null) _rtVy1 = CreateSWSRT();
+            if (_rtVx0 == null) _rtVx0 = CreateSWSRT(true);
+            if (_rtVx1 == null) _rtVx1 = CreateSWSRT(true);
+            if (_rtVy0 == null) _rtVy0 = CreateSWSRT(true);
+            if (_rtVy1 == null) _rtVy1 = CreateSWSRT(true);
             if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT();
             if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT();
 
@@ -202,6 +202,13 @@ namespace Crest
                         _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
 
                         buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+
+                        // This is important. Without this, there is aliasing in the injected vels which, in collaboration
+                        // with the flow in the combine pass which has large period, makes annoying pops. Perhaps an
+                        // alternative would be to just not add flow from SWS to big cascades. I tried something like this
+                        // and it did not seem to help for me, so going with this.
+                        buf.GenerateMips(_rtVx1);
+                        buf.GenerateMips(_rtVy1);
                     }
 
                     // Blur H
@@ -325,11 +332,20 @@ namespace Crest
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
         }
 
-        RenderTexture CreateSWSRT()
+        RenderTexture CreateSWSRT(bool withMips = false)
         {
             var result = new RenderTexture(_resolution, _resolution, 0, RenderTextureFormat.RFloat);
+
             result.enableRandomWrite = true;
+
+            if (withMips)
+            {
+                result.useMipMap = true;
+                result.autoGenerateMips = false;
+            }
+
             result.Create();
+
             return result;
         }
 

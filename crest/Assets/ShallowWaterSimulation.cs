@@ -10,7 +10,6 @@ using UnityEngine.Rendering;
 public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
 {
     [Header("Settings")]
-    [SerializeField] bool _placeSimAtGlobalSeaLevel = true;
     [SerializeField] float _depth = 2f;
     [SerializeField] float _addAdditionalWater = 0f;
     [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
@@ -103,7 +102,9 @@ public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves
     {
         var result = transform.position;
 
-        if (_placeSimAtGlobalSeaLevel)
+        // Always place at sea level. Would be nice to use this for rivers and such but that will
+        // require more work. Also varying sea levels complicate sim setup.
+        //if (_placeSimAtGlobalSeaLevel)
         {
             result.y = OceanRenderer.Instance.transform.position.y;
         }

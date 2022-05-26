@@ -17,7 +17,8 @@ namespace Crest
     /// Stores shadowing data to use during ocean shading. Shadowing is persistent and supports sampling across
     /// many frames and jittered sampling for (very) soft shadows.
     /// </summary>
-    public class LodDataMgrShadow : LodDataMgr
+    [System.Serializable]
+    public class LodDataMgrShadow : LodDataMgr<SimSettingsShadow>
     {
         public override string SimName => "Shadow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
@@ -50,9 +51,6 @@ namespace Crest
         readonly int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static readonly int sp_CrestScreenSpaceShadowTexture = Shader.PropertyToID("_CrestScreenSpaceShadowTexture");
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
 
         public enum Error
         {
@@ -109,14 +107,14 @@ namespace Crest
             }
         }
 
-        internal override void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
 
             CleanUpShadowCommandBuffers();
         }
 
-        internal override void OnDisable()
+        public override void OnDisable()
         {
             base.OnDisable();
 

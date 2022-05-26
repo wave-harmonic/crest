@@ -14,7 +14,7 @@ namespace Crest
     /// Data that gives depth of the ocean (height of sea level above ocean floor). Stores terrain height and water level
     /// offset in x & y channels.
     /// </summary>
-    public class LodDataMgrSeaFloorDepth : LodDataMgr
+    public class LodDataMgrSeaFloorDepth : LodDataMgr<SimSettingsSeaFloorDepth>
     {
         // NOTE: Must match CREST_OCEAN_DEPTH_BASELINE in OceanConstants.hlsl.
         internal const float k_DepthBaseline = 1_000f;
@@ -33,9 +33,6 @@ namespace Crest
         public const string FEATURE_TOGGLE_LABEL = "Create Sea Floor Depth Data";
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsSeaFloorDepth != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {

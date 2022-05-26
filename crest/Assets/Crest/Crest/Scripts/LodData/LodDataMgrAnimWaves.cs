@@ -24,7 +24,7 @@ namespace Crest
     /// surface. The A channel holds the variance/energy in all the smaller wavelengths that are too small to go into the cascade
     /// slice. This is used as a statistical measure for the missing waves and is used to ensure foam is generated everywhere.
     /// </summary>
-    public class LodDataMgrAnimWaves : LodDataMgr
+    public class LodDataMgrAnimWaves : LodDataMgr<SimSettingsAnimatedWaves>
     {
         public override string SimName => "AnimatedWaves";
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
@@ -68,9 +68,6 @@ namespace Crest
         public static void RegisterUpdatable(IShapeUpdatable updatable) => _updatables.Add(updatable);
         public static void DeregisterUpdatable(IShapeUpdatable updatable) => _updatables.RemoveAll(candidate => candidate == updatable);
 
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsAnimatedWaves : GetDefaultSettings<SettingsType>();
-
         readonly int _bufferCount = 1;
 
         public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
@@ -80,7 +77,7 @@ namespace Crest
             Start();
         }
 
-        internal override void OnDisable()
+        public override void OnDisable()
         {
             base.OnDisable();
             _waveBuffers.Release();

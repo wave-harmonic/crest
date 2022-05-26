@@ -349,7 +349,7 @@ namespace Crest
 #endif
         }
 
-        void DrawSim(LodDataMgr lodData, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f)
+        void DrawSim(ILodDataMgr<SimSettingsBase> lodData, ref bool doDraw, ref float offset, float bias = 0f, float scale = 1f)
         {
             if (lodData == null) return;
 

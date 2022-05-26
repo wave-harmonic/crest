@@ -208,7 +208,7 @@ namespace Crest
         [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
         int _geometryDownSampleFactor = 2;
 
-        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
+        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr<SimSettingsBase>.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
 
@@ -360,7 +360,7 @@ namespace Crest
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
-        [HideInInspector] public LodDataMgrShadow _lodDataShadow;
+        public LodDataMgrShadow _lodDataShadow;
         [HideInInspector] public LodDataMgrAlbedo _lodDataAlbedo;
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace Crest
         /// </summary>
         public Vector3 UnderwaterDepthFogDensity { get; private set; }
 
-        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
+        List<ILodDataMgr<SimSettingsBase>> _lodDatas = new();
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
         public List<OceanChunkRenderer> Tiles => _oceanChunkRenderers;
@@ -565,19 +565,19 @@ namespace Crest
             BufferSize = 2;
             foreach (var lodData in _lodDatas)
             {
-                if (lodData.enabled)
+                if (lodData.Enabled)
                 {
                     BufferSize = Mathf.Max(BufferSize, lodData.BufferCount);
                 }
             }
 
-            _perCascadeInstanceData = new BufferedData<PerCascadeInstanceData[]>(BufferSize, () => new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT + 1]);
+            _perCascadeInstanceData = new BufferedData<PerCascadeInstanceData[]>(BufferSize, () => new PerCascadeInstanceData[LodDataMgr<SimSettingsBase>.MAX_LOD_COUNT + 1]);
             _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Current.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
             Shader.SetGlobalBuffer(sp_perCascadeInstanceData, _bufPerCascadeInstanceData);
             _bufPerCascadeInstanceDataSource = new ComputeBuffer(_perCascadeInstanceData.Previous(1).Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
             Shader.SetGlobalBuffer(sp_CrestPerCascadeInstanceDataSource, _bufPerCascadeInstanceDataSource);
 
-            _cascadeParams = new BufferedData<CascadeParams[]>(BufferSize, () => new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1]);
+            _cascadeParams = new BufferedData<CascadeParams[]>(BufferSize, () => new CascadeParams[LodDataMgr<SimSettingsBase>.MAX_LOD_COUNT + 1]);
             _bufCascadeDataTgt = new ComputeBuffer(_cascadeParams.Current.Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
             _bufCascadeDataSrc = new ComputeBuffer(_cascadeParams.Previous(1).Length, UnsafeUtility.SizeOf<CascadeParams>());
@@ -947,9 +947,9 @@ namespace Crest
             foreach (var lod in _lodDatas)
             {
                 // Null means it does not support settings.
-                if (lod.SettingsBase != null)
+                if (lod.Settings != null)
                 {
-                    lod.SettingsBase.AddToSettingsHash(ref settingsHash);
+                    lod.Settings.AddToSettingsHash(ref settingsHash);
                 }
             }
 

@@ -12,7 +12,7 @@ namespace Crest
     /// <summary>
     /// A dynamic shape simulation that moves around with a displacement LOD.
     /// </summary>
-    public class LodDataMgrDynWaves : LodDataMgrPersistent
+    public class LodDataMgrDynWaves : LodDataMgrPersistent<SimSettingsWave>
     {
         protected override string ShaderSim => "UpdateDynWaves";
         protected override int krnl_ShaderSim => _shader.FindKernel(ShaderSim);
@@ -38,9 +38,6 @@ namespace Crest
         readonly int sp_CourantNumber = Shader.PropertyToID("_CourantNumber");
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
 
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsDynamicWaves != null ? _ocean._simSettingsDynamicWaves : GetDefaultSettings<SettingsType>();
-
         public float TimeLeftToSimulate => _timeToSimulate;
 
         public LodDataMgrDynWaves(OceanRenderer ocean) : base(ocean)
@@ -56,14 +53,14 @@ namespace Crest
             for (int i = 0; i < _active.Length; i++) _active[i] = true;
         }
 
-        internal override void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
 
             Shader.EnableKeyword(DYNWAVES_KEYWORD);
         }
 
-        internal override void OnDisable()
+        public override void OnDisable()
         {
             base.OnDisable();
 

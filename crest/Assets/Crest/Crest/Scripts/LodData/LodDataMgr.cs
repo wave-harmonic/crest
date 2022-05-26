@@ -54,10 +54,25 @@ namespace Crest
         int _currentFrameIndex = 0;
     }
 
+    public interface ILodDataMgr<out SettingsType>
+    {
+        RenderTexture DataTexture { get; }
+        bool Enabled { get; }
+        void OnEnable();
+        void OnDisable();
+
+        SettingsType Settings { get; }
+
+        void ClearLodData();
+
+        int BufferCount { get; }
+    }
+
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
-    public abstract class LodDataMgr
+    [Serializable]
+    public abstract class LodDataMgr<SettingsType> : ILodDataMgr<SettingsType> where SettingsType : SimSettingsBase
     {
         public abstract string SimName { get; }
 
@@ -102,26 +117,30 @@ namespace Crest
         int _shapeRes = -1;
 
         public bool enabled { get; protected set; }
+        public bool Enabled => enabled;
 
         protected OceanRenderer _ocean;
 
-        // Implement in any sub-class which supports having an asset file for settings. This is used for polymorphic
-        // operations. A sub-class will also implement an alternative for the specialised type called Settings.
-        public virtual SimSettingsBase SettingsBase => null;
-        SimSettingsBase _defaultSettings;
-
-        /// <summary>
-        /// Returns the default value of the settings asset for the provided type.
-        /// </summary>
-        protected SettingsType GetDefaultSettings<SettingsType>() where SettingsType : SimSettingsBase
+        [SerializeField, Embedded]
+        internal SettingsType _settings;
+        SettingsType _defaultSettings;
+        public SettingsType Settings
         {
-            if (_defaultSettings == null)
+            get
             {
-                _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                _defaultSettings.name = SimName + " Auto-generated Settings";
-            }
+                if (_settings != null)
+                {
+                    return _settings;
+                }
 
-            return (SettingsType)_defaultSettings;
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+
+                return _defaultSettings;
+            }
         }
 
         public LodDataMgr(OceanRenderer ocean)
@@ -271,10 +290,10 @@ namespace Crest
             public int GetId(bool sourceLod) => sourceLod ? _paramId_Source : _paramId;
         }
 
-        internal virtual void OnEnable()
+        public virtual void OnEnable()
         {
         }
-        internal virtual void OnDisable()
+        public virtual void OnDisable()
         {
             // Unbind from all graphics shaders (not compute)
             Shader.SetGlobalTexture(GetParamIdSampler(), NullTexture);

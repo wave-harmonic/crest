@@ -129,12 +129,12 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
-            public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
+            public void Draw(ILodDataMgr<SimSettingsBase> lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 var finalWeight = weight * _gerstner._weight;
                 if (finalWeight > 0f)
                 {
-                    buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                    buf.SetGlobalInt(LodDataMgr<SimSettingsBase>.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
@@ -531,7 +531,7 @@ namespace Crest
             buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_GerstnerWaveData, _bufWaveData);
             buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, sp_WaveBuffer, _waveBuffers);
 
-            buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / LodDataMgr.THREAD_GROUP_SIZE_X, _waveBuffers.height / LodDataMgr.THREAD_GROUP_SIZE_Y, _lastCascade - _firstCascade + 1);
+            buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / LodDataMgr<SimSettingsBase>.THREAD_GROUP_SIZE_X, _waveBuffers.height / LodDataMgr<SimSettingsBase>.THREAD_GROUP_SIZE_Y, _lastCascade - _firstCascade + 1);
         }
 
         /// <summary>

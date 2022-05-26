@@ -154,12 +154,12 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
-            public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
+            public void Draw(ILodDataMgr<SimSettingsBase> lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 var finalWeight = weight * _shapeFFT._weight;
                 if (finalWeight > 0f)
                 {
-                    buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                    buf.SetGlobalInt(LodDataMgr<SimSettingsBase>.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);

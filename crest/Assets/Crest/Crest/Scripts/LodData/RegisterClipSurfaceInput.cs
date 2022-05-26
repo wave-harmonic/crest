@@ -158,7 +158,7 @@ namespace Crest
             }
         }
 
-        public override void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public override void Draw(ILodDataMgr<SimSettingsBase> lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (weight <= 0f)
             {
@@ -176,7 +176,7 @@ namespace Crest
             }
 
             buf.SetGlobalFloat(sp_Weight, weight);
-            buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+            buf.SetGlobalFloat(LodDataMgr<SimSettingsBase>.sp_LD_SliceIndex, lodIdx);
             buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
 
             if (_mode == Mode.Primitive)
@@ -260,7 +260,7 @@ namespace Crest
                     _signedDistancedMaterial.SetInt(sp_BlendOp, (int)(_inverted ? BlendOp.Min : BlendOp.Max));
                 }
 
-                _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                _mpb.SetInt(LodDataMgr<SimSettingsBase>.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
 
                 if (_mode == Mode.Geometry)

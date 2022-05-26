@@ -12,7 +12,7 @@ namespace Crest
     /// <summary>
     /// A persistent foam simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class LodDataMgrFoam : LodDataMgrPersistent
+    public class LodDataMgrFoam : LodDataMgrPersistent<SimSettingsFoam>
     {
         protected override string ShaderSim => "UpdateFoam";
         protected override int krnl_ShaderSim => _shader.FindKernel(ShaderSim);
@@ -34,9 +34,6 @@ namespace Crest
         readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
         readonly int sp_NeedsPrewarming = Shader.PropertyToID("_NeedsPrewarming");
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsFoam != null ? _ocean._simSettingsFoam : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrFoam(OceanRenderer ocean) : base(ocean)
         {

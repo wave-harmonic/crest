@@ -47,8 +47,8 @@ namespace Crest
             s_clearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_TexArray_Target, dst);
             s_clearToBlackShader.Dispatch(
                 krnl_ClearToBlack,
-                OceanRenderer.Instance.LodDataResolution / LodDataMgr.THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / LodDataMgr.THREAD_GROUP_SIZE_Y,
+                OceanRenderer.Instance.LodDataResolution / LodDataMgr<SimSettingsBase>.THREAD_GROUP_SIZE_X,
+                OceanRenderer.Instance.LodDataResolution / LodDataMgr<SimSettingsBase>.THREAD_GROUP_SIZE_Y,
                 dst.volumeDepth
             );
         }
@@ -70,13 +70,13 @@ namespace Crest
         {
             var array = new Texture2DArray(
                 SMALL_TEXTURE_DIM, SMALL_TEXTURE_DIM,
-                LodDataMgr.MAX_LOD_COUNT,
+                LodDataMgr<SimSettingsBase>.MAX_LOD_COUNT,
                 texture.format,
                 false,
                 false
             );
 
-            for (int textureArrayIndex = 0; textureArrayIndex < LodDataMgr.MAX_LOD_COUNT; textureArrayIndex++)
+            for (int textureArrayIndex = 0; textureArrayIndex < LodDataMgr<SimSettingsBase>.MAX_LOD_COUNT; textureArrayIndex++)
             {
                 // There is a bug using Graphics.CopyTexture with Texture2DArray when "Texture Quality"
                 // (QualitySettings.masterTextureLimit) is not "Full Res" (0) where result is junk (white from what I

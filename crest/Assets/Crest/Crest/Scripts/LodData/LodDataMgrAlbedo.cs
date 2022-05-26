@@ -13,7 +13,7 @@ namespace Crest
     /// <summary>
     /// A colour layer that can be composited onto the water surface.
     /// </summary>
-    public class LodDataMgrAlbedo : LodDataMgr
+    public class LodDataMgrAlbedo : LodDataMgr<SimSettingsAlbedo>
     {
         public override string SimName => "Albedo";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8B8A8_UNorm;
@@ -29,9 +29,6 @@ namespace Crest
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Albedo feature is disabled on the this but is enabled on the ocean material.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Albedo Data</i> option on this component to turn it on, or disable the <i>Albedo</i> feature on the ocean material to save performance.";
         bool _targetsClear = false;
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._settingsAlbedo != null ? _ocean._settingsAlbedo : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrAlbedo(OceanRenderer ocean) : base(ocean)
         {

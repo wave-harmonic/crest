@@ -13,7 +13,7 @@ namespace Crest
     /// <summary>
     /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class LodDataMgrFlow : LodDataMgr
+    public class LodDataMgrFlow : LodDataMgr<SimSettingsFlow>
     {
         public override string SimName => "Flow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
@@ -30,9 +30,6 @@ namespace Crest
         bool _targetsClear = false;
 
         public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsFlow != null ? _ocean._simSettingsFlow : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrFlow(OceanRenderer ocean) : base(ocean)
         {
@@ -53,14 +50,14 @@ namespace Crest
 #endif
         }
 
-        internal override void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
 
             Shader.EnableKeyword(FLOW_KEYWORD);
         }
 
-        internal override void OnDisable()
+        public override void OnDisable()
         {
             base.OnDisable();
 

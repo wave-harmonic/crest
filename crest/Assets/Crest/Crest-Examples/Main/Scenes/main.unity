@@ -495,15 +495,16 @@ MonoBehaviour:
   _drain: -0.01
   _friction: 0.02
   _maxVel: 100
-  _doUpdate: 1
-  _doAdvect: 1
-  _doUpdateH: 1
-  _doUpdateVels: 1
-  _doBlurH: 0
   _blendShallowMinDepth: 0
   _blendShallowMaxDepth: 3
   _blendPushUpStrength: 1
-  _showTextures: 1
+  _debugSettings:
+    _showSimulationData: 1
+    _doUpdate: 1
+    _doAdvect: 1
+    _doUpdateH: 1
+    _doUpdateVels: 1
+    _doBlurH: 1
 --- !u!4 &146652081
 Transform:
   m_ObjectHideFlags: 0

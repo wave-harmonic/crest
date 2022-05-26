@@ -26,20 +26,13 @@ namespace Crest
         [SerializeField] float _friction = 0.001f;
         [SerializeField] float _maxVel = 100.0f;
 
-        [Header("Sim Controls")]
-        [SerializeField] bool _doUpdate = true;
-        [SerializeField] bool _doAdvect = true;
-        [SerializeField] bool _doUpdateH = true;
-        [SerializeField] bool _doUpdateVels = true;
-        [SerializeField] bool _doBlurH = true;
-
         [Header("Blending With Waves")]
         [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMinDepth = 0f;
         [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMaxDepth = 4f;
         [SerializeField, UnityEngine.Range(0f, 1f)] float _blendPushUpStrength = 0.1f;
 
-        [Header("Debug")]
-        [SerializeField] bool _showTextures = false;
+        [Header("Advanced")]
+        [SerializeField] DebugSettings _debugSettings = new DebugSettings();
 
         RenderTexture _rtH0, _rtH1;
         RenderTexture _rtVx0, _rtVx1;
@@ -66,6 +59,11 @@ namespace Crest
 
         void InitData()
         {
+            if (_debugSettings == null)
+            {
+                _debugSettings = new DebugSettings();
+            }
+
             _resolution = Mathf.CeilToInt(_domainWidth / _texelSize);
             _resolution = Mathf.Min(_resolution, _maxResolution);
 
@@ -131,7 +129,7 @@ namespace Crest
 
             InitData();
 
-            if (_doUpdate)
+            if (_debugSettings._doUpdate)
             {
                 _timeToSimulate += Time.deltaTime;
 
@@ -160,7 +158,7 @@ namespace Crest
                     _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
 
                     // Advect
-                    if (_doAdvect)
+                    if (_debugSettings._doAdvect)
                     {
                         Swap(ref _rtH0, ref _rtH1);
                         Swap(ref _rtVx0, ref _rtVx1);
@@ -179,7 +177,7 @@ namespace Crest
                     }
 
                     // Update H
-                    if (_doUpdateH)
+                    if (_debugSettings._doUpdateH)
                     {
                         _csSWSProps.Initialise(buf, _csSWS, _krnlUpdateH);
 
@@ -194,7 +192,7 @@ namespace Crest
                     }
 
                     // Update vels
-                    if (_doUpdateVels)
+                    if (_debugSettings._doUpdateVels)
                     {
                         _csSWSProps.Initialise(buf, _csSWS, _krnlUpdateVels);
 
@@ -207,7 +205,7 @@ namespace Crest
                     }
 
                     // Blur H
-                    if (_doBlurH)
+                    if (_debugSettings._blurShapeForRender)
                     {
                         // Cheekily write to H0, but dont flip. This is a temporary result purely for rendering.
                         // Next update will flip and overwrite this.
@@ -227,7 +225,7 @@ namespace Crest
             Shader.SetGlobalTexture("_swsSimulationMask", _rtSimulationMask);
             Shader.SetGlobalTexture("_swsH", _rtH1);
             // If blurring is enabled, apply the blurred height which was put into H0 until next frame overwrites
-            Shader.SetGlobalTexture("_swsHRender", _doBlurH ? _rtH0 : _rtH1);
+            Shader.SetGlobalTexture("_swsHRender", _debugSettings._blurShapeForRender ? _rtH0 : _rtH1);
             Shader.SetGlobalTexture("_swsVx", _rtVx1);
             Shader.SetGlobalTexture("_swsVy", _rtVy1);
         }
@@ -236,7 +234,6 @@ namespace Crest
     // Separate helpers/glue/initialisation/etc
     public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
     {
-        [Space, Header("Debug")]
         //[SerializeField] bool _updateInEditMode = false;
 
         Material _matInjectSWSAnimWaves;
@@ -248,6 +245,25 @@ namespace Crest
         // Draw to all LODs
         public float Wavelength => 0f;
         public bool Enabled => true;
+
+        [System.Serializable]
+        class DebugSettings
+        {
+            [Header("Simulation Stages")]
+            public bool _doUpdate = true;
+            public bool _doAdvect = true;
+            public bool _doUpdateH = true;
+            public bool _doUpdateVels = true;
+
+            [Header("Output (editor only)")]
+            public bool _injectShape = true;
+            public bool _injectFlow = true;
+            public bool _injectFoam = true;
+            public bool _blurShapeForRender = true;
+
+            [Header("Overlay")]
+            public bool _showSimulationData = false;
+        }
 
         void OnEnable()
         {
@@ -367,18 +383,39 @@ namespace Crest
             //if (!gameObject || !gameObject.activeInHierarchy || !enabled) return;
             buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-            // TODO better way to do this?
-            var mat = (lodData is LodDataMgrAnimWaves) ? _matInjectSWSAnimWaves
-                : ((lodData is LodDataMgrFlow) ? _matInjectSWSFlow
-                : _matInjectSWSFoam);
+            Material injectionMat;
+            if (lodData is LodDataMgrAnimWaves)
+            {
+                if (!_debugSettings._injectShape)
+                {
+                    return;
+                }
+                injectionMat = _matInjectSWSAnimWaves;
+            }
+            else if (lodData is LodDataMgrFlow)
+            {
+                if (!_debugSettings._injectFlow)
+                {
+                    return;
+                }
+                injectionMat = _matInjectSWSFlow;
+            }
+            else
+            {
+                if (!_debugSettings._injectFoam)
+                {
+                    return;
+                }
+                injectionMat = _matInjectSWSFoam;
+            }
 
-            buf.DrawProcedural(Matrix4x4.identity, mat, 0, MeshTopology.Triangles, 3);
+            buf.DrawProcedural(Matrix4x4.identity, injectionMat, 0, MeshTopology.Triangles, 3);
         }
 
 #if UNITY_EDITOR
         private void OnGUI()
         {
-            if (_showTextures)
+            if (_debugSettings._showSimulationData)
             {
                 var s = 200f;
                 var y = 0f;

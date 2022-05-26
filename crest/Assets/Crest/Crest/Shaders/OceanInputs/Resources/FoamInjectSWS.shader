@@ -81,9 +81,7 @@ Shader "Hidden/Crest/Inputs/Foam/Inject SWS"
 
 			half Frag(Varyings input) : SV_Target
 			{
-				// Over scan to ensure signal continued off the edges which helps at low LODs
-				const float overscan = 0.0; // 0.2
-				if (!all(input.uv == clamp(input.uv, -overscan, 1.0 + overscan))) discard;
+				if (any(input.uv != saturate(input.uv))) discard;
 
 				// Use approximation of max curvature as foam term. Seems to grab leading wave edge alright
 				float2 dx = float2(1.0 / _Resolution, 0.0);

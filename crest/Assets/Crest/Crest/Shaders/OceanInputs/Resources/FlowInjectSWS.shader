@@ -68,8 +68,7 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				// Over scan to ensure signal continued off the edges which helps at low LODs
-				const float overscan = 0.0; // 0.2
-				if (!all(input.uv == clamp(input.uv, -overscan, 1.0 + overscan))) discard;
+				if (any(input.uv != saturate(input.uv))) discard;
 
 				const float wt = _Weight;
 
@@ -77,7 +76,6 @@ Shader "Hidden/Crest/Inputs/Flow/Inject SWS"
 				const float vx = _swsVx.Sample(LODData_linear_clamp_sampler, input.uv).x;
 				const float vy = _swsVy.Sample(LODData_linear_clamp_sampler, input.uv).x;
 
-				//return float3(normalize(input.uv - 0.5), 0.0).xyzz;
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 
 				float2 offset = abs(input.uv - 0.5);

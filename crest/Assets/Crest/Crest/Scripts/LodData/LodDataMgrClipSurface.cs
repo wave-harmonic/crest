@@ -13,7 +13,7 @@ namespace Crest
     /// <summary>
     /// Drives ocean surface clipping (carving holes). 0-1 values, surface clipped when > 0.5.
     /// </summary>
-    public class LodDataMgrClipSurface : LodDataMgr<SimSettingsClipSurface>
+    public class LodDataMgrClipSurface : LodDataMgrWithSettings<SimSettingsClipSurface>
     {
         public override string SimName => "ClipSurface";
 

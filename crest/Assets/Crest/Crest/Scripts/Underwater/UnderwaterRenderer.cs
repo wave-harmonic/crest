@@ -67,9 +67,9 @@ namespace Crest
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
         // data in/out), as more filtering was better in testing.
-        [SerializeField, Range(0, LodDataMgr<SimSettingsBase>.MAX_LOD_COUNT - 2)]
+        [SerializeField, Range(0, LodDataMgr.MAX_LOD_COUNT - 2)]
         [Tooltip("How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.")]
-        internal int _filterOceanData = LodDataMgr<SimSettingsBase>.MAX_LOD_COUNT - 2;
+        internal int _filterOceanData = LodDataMgr.MAX_LOD_COUNT - 2;
 
         [SerializeField]
         [Tooltip("Add a meniscus to the boundary between water and air.")]

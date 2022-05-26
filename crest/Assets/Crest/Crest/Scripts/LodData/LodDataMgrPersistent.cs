@@ -10,7 +10,7 @@ namespace Crest
     /// <summary>
     /// A persistent simulation that moves around with a displacement LOD.
     /// </summary>
-    public abstract class LodDataMgrPersistent<SettingsType> : LodDataMgr<SettingsType> where SettingsType : SimSettingsBase
+    public abstract class LodDataMgrPersistent<SettingsType> : LodDataMgrWithSettings<SettingsType> where SettingsType : SimSettingsBase
     {
         protected override bool NeedToReadWriteTextureData => true;
         public override int BufferCount => 2;

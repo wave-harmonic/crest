@@ -35,7 +35,7 @@ namespace Crest
         /// <summary>
         /// Draw the input (the render target will be bound)
         /// </summary>
-        void Draw(ILodDataMgr<SimSettingsBase> lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx);
+        void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx);
 
         /// <summary>
         /// The wavelength of the input - used to choose which level of detail to apply the input to.
@@ -136,12 +136,12 @@ namespace Crest
 #endif
         }
 
-        public virtual void Draw(ILodDataMgr<SimSettingsBase> lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public virtual void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && _material && weight > 0f)
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr<SimSettingsBase>.sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
                 if (!FollowHorizontalMotion)
                 {
@@ -199,7 +199,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
-        where LodDataType : ILodDataMgr<SimSettingsBase>
+        where LodDataType : LodDataMgr
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
 
@@ -293,7 +293,7 @@ namespace Crest
 
     public abstract class RegisterLodDataInputWithSplineSupport<LodDataType>
         : RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointDataNone>
-        where LodDataType : ILodDataMgr<SimSettingsBase>
+        where LodDataType : LodDataMgr
     {
     }
 
@@ -304,7 +304,7 @@ namespace Crest
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
-        where LodDataType : ILodDataMgr<SimSettingsBase>
+        where LodDataType : LodDataMgr
         where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
         [Header("Spline settings")]
@@ -348,14 +348,14 @@ namespace Crest
             _splineMaterial = new Material(Shader.Find(SplineShaderName));
         }
 
-        public override void Draw(ILodDataMgr<SimSettingsBase> lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public override void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (weight <= 0f) return;
 
             if (_splineMesh != null && _splineMaterial != null)
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr<SimSettingsBase>.sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
                 buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
             }

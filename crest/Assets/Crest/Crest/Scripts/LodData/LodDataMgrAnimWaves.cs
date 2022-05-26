@@ -24,7 +24,7 @@ namespace Crest
     /// surface. The A channel holds the variance/energy in all the smaller wavelengths that are too small to go into the cascade
     /// slice. This is used as a statistical measure for the missing waves and is used to ensure foam is generated everywhere.
     /// </summary>
-    public class LodDataMgrAnimWaves : LodDataMgr<SimSettingsAnimatedWaves>
+    public class LodDataMgrAnimWaves : LodDataMgrWithSettings<SimSettingsAnimatedWaves>
     {
         public override string SimName => "AnimatedWaves";
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.

@@ -13,7 +13,7 @@ namespace Crest
     /// <summary>
     /// A colour layer that can be composited onto the water surface.
     /// </summary>
-    public class LodDataMgrAlbedo : LodDataMgr<SimSettingsAlbedo>
+    public class LodDataMgrAlbedo : LodDataMgrWithSettings<SimSettingsAlbedo>
     {
         public override string SimName => "Albedo";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8B8A8_UNorm;

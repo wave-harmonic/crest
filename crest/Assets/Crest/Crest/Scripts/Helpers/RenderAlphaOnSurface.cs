@@ -62,7 +62,7 @@ namespace Crest
                 }
 
                 _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
-                _mpb.SetInt(LodDataMgr<SimSettingsBase>.sp_LD_SliceIndex, lodIdx);
+                _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
 

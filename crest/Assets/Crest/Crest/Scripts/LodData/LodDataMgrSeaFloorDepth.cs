@@ -14,7 +14,7 @@ namespace Crest
     /// Data that gives depth of the ocean (height of sea level above ocean floor). Stores terrain height and water level
     /// offset in x & y channels.
     /// </summary>
-    public class LodDataMgrSeaFloorDepth : LodDataMgr<SimSettingsSeaFloorDepth>
+    public class LodDataMgrSeaFloorDepth : LodDataMgrWithSettings<SimSettingsSeaFloorDepth>
     {
         // NOTE: Must match CREST_OCEAN_DEPTH_BASELINE in OceanConstants.hlsl.
         internal const float k_DepthBaseline = 1_000f;

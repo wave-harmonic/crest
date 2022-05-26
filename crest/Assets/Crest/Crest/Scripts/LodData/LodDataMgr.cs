@@ -72,7 +72,7 @@ namespace Crest
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
     [Serializable]
-    public abstract class LodDataMgr<SettingsType> : ILodDataMgr<SettingsType> where SettingsType : SimSettingsBase
+    public abstract class LodDataMgr
     {
         public abstract string SimName { get; }
 
@@ -120,28 +120,6 @@ namespace Crest
         public bool Enabled => enabled;
 
         protected OceanRenderer _ocean;
-
-        [SerializeField, Embedded]
-        internal SettingsType _settings;
-        SettingsType _defaultSettings;
-        public SettingsType Settings
-        {
-            get
-            {
-                if (_settings != null)
-                {
-                    return _settings;
-                }
-
-                if (_defaultSettings == null)
-                {
-                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
-                    _defaultSettings.name = SimName + " Auto-generated Settings";
-                }
-
-                return _defaultSettings;
-            }
-        }
 
         public LodDataMgr(OceanRenderer ocean)
         {
@@ -304,6 +282,37 @@ namespace Crest
                 x.Release();
                 Helpers.Destroy(x);
             });
+        }
+    }
+
+    [System.Serializable]
+    public abstract class LodDataMgrWithSettings<SettingsType> : LodDataMgr, ILodDataMgr<SettingsType> where SettingsType : SimSettingsBase
+    {
+        [SerializeField, Embedded]
+        internal SettingsType _settings;
+        SettingsType _defaultSettings;
+
+        protected LodDataMgrWithSettings(OceanRenderer ocean) : base(ocean)
+        {
+        }
+
+        public SettingsType Settings
+        {
+            get
+            {
+                if (_settings != null)
+                {
+                    return _settings;
+                }
+
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+
+                return _defaultSettings;
+            }
         }
     }
 }

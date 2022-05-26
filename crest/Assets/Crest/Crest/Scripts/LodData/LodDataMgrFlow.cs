@@ -13,7 +13,7 @@ namespace Crest
     /// <summary>
     /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class LodDataMgrFlow : LodDataMgr<SimSettingsFlow>
+    public class LodDataMgrFlow : LodDataMgrWithSettings<SimSettingsFlow>
     {
         public override string SimName => "Flow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;

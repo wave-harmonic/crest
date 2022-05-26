@@ -18,7 +18,7 @@ namespace Crest
     /// many frames and jittered sampling for (very) soft shadows.
     /// </summary>
     [System.Serializable]
-    public class LodDataMgrShadow : LodDataMgr<SimSettingsShadow>
+    public class LodDataMgrShadow : LodDataMgrWithSettings<SimSettingsShadow>
     {
         public override string SimName => "Shadow";
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;

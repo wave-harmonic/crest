@@ -253,7 +253,7 @@ namespace Crest
             Gizmos.DrawWireSphere(transform.position + _velocityOffset * _velocity, _radius);
         }
 
-        public void Draw(ILodDataMgr<SimSettingsBase> lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             var timeBeforeCurrentTime = (lodData as LodDataMgrDynWaves).TimeLeftToSimulate;
 

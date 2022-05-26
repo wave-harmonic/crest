@@ -434,16 +434,7 @@ namespace Crest
         // Whether there is an alternative methods than a renderer (like splines).
         protected virtual bool RendererOptional => false;
 
-        protected virtual string FeatureToggleLabel => null;
-        protected virtual string FeatureToggleName => null;
-        protected virtual bool FeatureEnabled(OceanRenderer ocean) => true;
-
-        protected virtual string RequiredShaderKeyword => null;
-        // NOTE: Temporary until shader keywords are the same across pipelines.
-        protected virtual string RequiredShaderKeywordProperty => null;
-
-        protected virtual string MaterialFeatureDisabledError => null;
-        protected virtual string MaterialFeatureDisabledFix => null;
+        protected virtual ISimulation<LodDataMgr, SimSettingsBase> GetSimulation(OceanRenderer ocean) => null;
 
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
@@ -478,22 +469,28 @@ namespace Crest
                 }
             }
 
-            if (ocean != null && !FeatureEnabled(ocean))
+            if (ocean != null)
             {
-                showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the <i>OceanRenderer</i> component.",
-                    $"Enable the <i>{FeatureToggleLabel}</i> option on the <i>OceanRenderer</i> component.",
-                    ValidatedHelper.MessageType.Error, ocean,
-                    (so) => OceanRenderer.FixSetFeatureEnabled(so, FeatureToggleName, true)
-                    );
-                isValid = false;
-            }
+                var simulation = GetSimulation(ocean);
 
-            if (ocean != null && !string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
-            {
-                showMessage(MaterialFeatureDisabledError, MaterialFeatureDisabledFix,
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
-                    (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, RequiredShaderKeyword, RequiredShaderKeywordProperty, true));
-                isValid = false;
+                if (simulation.Enabled)
+                {
+                    showMessage
+                    (
+                        $"<i>{simulation.Name} Simulation</i> must be enabled on the <i>OceanRenderer</i> component.",
+                        $"Enable the <i>{simulation.Name} Simulation</i> on the <i>OceanRenderer</i> component.",
+                        ValidatedHelper.MessageType.Error, ocean/*, TODO:
+                        (so) => OceanRenderer.FixSetFeatureEnabled(so, FeatureToggleName, true)*/
+                    );
+                    isValid = false;
+                }
+                else
+                {
+                    if (GetSimulation(ocean) is ISimulationWithMaterialKeyword sim)
+                    {
+                        sim.Validate(ocean, showMessage);
+                    }
+                }
             }
 
             return isValid;

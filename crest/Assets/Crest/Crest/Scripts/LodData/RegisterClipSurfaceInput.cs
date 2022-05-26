@@ -275,13 +275,8 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        protected override string FeatureToggleName => "_createClipSurfaceData";
-        protected override string FeatureToggleLabel => "Create Clip Surface Data";
-        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
-        protected override string RequiredShaderKeywordProperty => LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY;
-        protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
-        protected override string MaterialFeatureDisabledError => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;
-        protected override string MaterialFeatureDisabledFix => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+        // TODO:
+        protected override ISimulation<LodDataMgr, SimSettingsBase> GetSimulation(OceanRenderer ocean) => null;
 
         protected override bool RendererRequired => _mode == Mode.Geometry;
         protected override bool RendererOptional => _mode != Mode.Geometry;

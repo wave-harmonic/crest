@@ -9,6 +9,7 @@ using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
+using System.Linq;
 #if UNITY_2021_2_OR_NEWER
 using UnityEditor.SceneManagement;
 #else
@@ -37,7 +38,7 @@ namespace Crest
         /// </summary>
         [SerializeField, HideInInspector]
 #pragma warning disable 414
-        int _version = 0;
+        int _version = 1;
 #pragma warning restore 414
 
         [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f, power: 2f)]
@@ -242,11 +243,13 @@ namespace Crest
         [Predicated("_createFlowSim"), Embedded]
         public SimSettingsFlow _simSettingsFlow;
 
-        [Tooltip("Shadow information used for lighting water."), SerializeField]
+        [HideInInspector, SerializeField]
         bool _createShadowData = false;
-        public bool CreateShadowData => _createShadowData;
-        [Predicated("_createShadowData"), Embedded]
+        [HideInInspector, SerializeField]
         public SimSettingsShadow _simSettingsShadow;
+
+        [Tooltip("Shadow information used for lighting water."), SerializeField]
+        internal ShadowSimulation _shadowSimulation = new ShadowSimulation();
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
@@ -360,7 +363,6 @@ namespace Crest
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
-        [HideInInspector] public LodDataMgrShadow _lodDataShadow;
         [HideInInspector] public LodDataMgrAlbedo _lodDataAlbedo;
 
         /// <summary>
@@ -378,7 +380,7 @@ namespace Crest
         /// </summary>
         public Vector3 UnderwaterDepthFogDensity { get; private set; }
 
-        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
+        List<ISimulation<LodDataMgr, SimSettingsBase>> _simulations = new List<ISimulation<LodDataMgr, SimSettingsBase>>();
 
         List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
         public List<OceanChunkRenderer> Tiles => _oceanChunkRenderers;
@@ -503,6 +505,9 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // TODO: Add all simulations here.
+            _simulations.Add(_shadowSimulation);
+
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -557,17 +562,23 @@ namespace Crest
             LodDataMgrShadow.BindNullToGraphicsShaders();
             LodDataMgrAlbedo.BindNullToGraphicsShaders();
 
+            // TODO: Remove CreateDestroySubSystems.
             CreateDestroySubSystems();
+            foreach (var simulation in _simulations)
+            {
+                _shadowSimulation.SetUpData(this);
+            }
 
             // TODO: Have a BufferCount which will be the run-time buffer size or prune data.
             // NOTE: Hardcode minimum (2) to avoid breaking server builds and LodData* toggles.
             // Gather the buffer size for shared data.
             BufferSize = 2;
-            foreach (var lodData in _lodDatas)
+            foreach (var simulation in _simulations)
             {
-                if (lodData.enabled)
+                // TODO: or use _enabled? or create Enabled
+                if (simulation.Enabled)
                 {
-                    BufferSize = Mathf.Max(BufferSize, lodData.BufferCount);
+                    BufferSize = Mathf.Max(BufferSize, simulation.Data.BufferCount);
                 }
             }
 
@@ -609,10 +620,8 @@ namespace Crest
             EditorApplication.update -= EditorUpdate;
             EditorApplication.update += EditorUpdate;
 #endif
-            foreach (var lodData in _lodDatas)
-            {
-                lodData.OnEnable();
-            }
+
+            // NOTE: OnEnable is handled by SetUpData. I couldn't see anything in OnEnable that required it to be called here.
 
             _canSkipCulling = false;
 
@@ -686,60 +695,11 @@ namespace Crest
 
         void CreateDestroySubSystems()
         {
+            // TODO: FlowProvider could live on Flow simulation.
             if (!RunningWithoutGPU)
             {
-                {
-                    if (_lodDataAnimWaves == null)
-                    {
-                        _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
-                        _lodDatas.Add(_lodDataAnimWaves);
-                    }
-                }
-
-                if (CreateClipSurfaceData && !RunningHeadless)
-                {
-                    if (_lodDataClipSurface == null)
-                    {
-                        _lodDataClipSurface = new LodDataMgrClipSurface(this);
-                        _lodDatas.Add(_lodDataClipSurface);
-                    }
-                }
-                else
-                {
-                    if (_lodDataClipSurface != null)
-                    {
-                        _lodDataClipSurface.OnDisable();
-                        _lodDatas.Remove(_lodDataClipSurface);
-                        _lodDataClipSurface = null;
-                    }
-                }
-
-                if (CreateDynamicWaveSim)
-                {
-                    if (_lodDataDynWaves == null)
-                    {
-                        _lodDataDynWaves = new LodDataMgrDynWaves(this);
-                        _lodDatas.Add(_lodDataDynWaves);
-                    }
-                }
-                else
-                {
-                    if (_lodDataDynWaves != null)
-                    {
-                        _lodDataDynWaves.OnDisable();
-                        _lodDatas.Remove(_lodDataDynWaves);
-                        _lodDataDynWaves = null;
-                    }
-                }
-
                 if (CreateFlowSim)
                 {
-                    if (_lodDataFlow == null)
-                    {
-                        _lodDataFlow = new LodDataMgrFlow(this);
-                        _lodDatas.Add(_lodDataFlow);
-                    }
-
                     if (FlowProvider != null && !(FlowProvider is QueryFlow))
                     {
                         FlowProvider.CleanUp();
@@ -748,13 +708,6 @@ namespace Crest
                 }
                 else
                 {
-                    if (_lodDataFlow != null)
-                    {
-                        _lodDataFlow.OnDisable();
-                        _lodDatas.Remove(_lodDataFlow);
-                        _lodDataFlow = null;
-                    }
-
                     if (FlowProvider != null && FlowProvider is QueryFlow)
                     {
                         FlowProvider.CleanUp();
@@ -765,80 +718,9 @@ namespace Crest
                 {
                     FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
                 }
-
-                if (CreateFoamSim && !RunningHeadless)
-                {
-                    if (_lodDataFoam == null)
-                    {
-                        _lodDataFoam = new LodDataMgrFoam(this);
-                        _lodDatas.Add(_lodDataFoam);
-                    }
-                }
-                else
-                {
-                    if (_lodDataFoam != null)
-                    {
-                        _lodDataFoam.OnDisable();
-                        _lodDatas.Remove(_lodDataFoam);
-                        _lodDataFoam = null;
-                    }
-                }
-
-                if (CreateSeaFloorDepthData)
-                {
-                    if (_lodDataSeaDepths == null)
-                    {
-                        _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
-                        _lodDatas.Add(_lodDataSeaDepths);
-                    }
-                }
-                else
-                {
-                    if (_lodDataSeaDepths != null)
-                    {
-                        _lodDataSeaDepths.OnDisable();
-                        _lodDatas.Remove(_lodDataSeaDepths);
-                        _lodDataSeaDepths = null;
-                    }
-                }
-
-                if (CreateShadowData && !RunningHeadless)
-                {
-                    if (_lodDataShadow == null)
-                    {
-                        _lodDataShadow = new LodDataMgrShadow(this);
-                        _lodDatas.Add(_lodDataShadow);
-                    }
-                }
-                else
-                {
-                    if (_lodDataShadow != null)
-                    {
-                        _lodDataShadow.OnDisable();
-                        _lodDatas.Remove(_lodDataShadow);
-                        _lodDataShadow = null;
-                    }
-                }
-
-                if (CreateAlbedoData)
-                {
-                    if (_lodDataAlbedo == null)
-                    {
-                        _lodDataAlbedo = new LodDataMgrAlbedo(this);
-                        _lodDatas.Add(_lodDataAlbedo);
-                    }
-                }
-                else
-                {
-                    if (_lodDataAlbedo != null)
-                    {
-                        _lodDataAlbedo.OnDisable();
-                        _lodDatas.Remove(_lodDataAlbedo);
-                        _lodDataAlbedo = null;
-                    }
-                }
             }
 
+            // TODO: CollisionProvider could live on AnimatedWaves simulation
             // Potential extension - add 'type' field to collprovider and change provider if settings have changed - this would support runtime changes.
             if (CollisionProvider == null)
             {
@@ -943,13 +825,12 @@ namespace Crest
             Hashy.AddObject(_layerName, ref settingsHash);
 #pragma warning restore 0618
 
-            // Also include anything from the simulation settings for rebuilding.
-            foreach (var lod in _lodDatas)
+            // TODO: Instead this should be internal to simulation and rebuild each simulation rather than whole thing.
+            foreach (var simulation in _simulations)
             {
-                // Null means it does not support settings.
-                if (lod.SettingsBase != null)
+                if (simulation.Data != null && simulation.Settings != null)
                 {
-                    lod.SettingsBase.AddToSettingsHash(ref settingsHash);
+                    simulation.Settings.AddToSettingsHash(ref settingsHash);
                 }
             }
 
@@ -1235,14 +1116,10 @@ namespace Crest
 
             _lodTransform.UpdateTransforms();
 
-            _lodDataAnimWaves?.UpdateLodData();
-            _lodDataClipSurface?.UpdateLodData();
-            _lodDataDynWaves?.UpdateLodData();
-            _lodDataFlow?.UpdateLodData();
-            _lodDataFoam?.UpdateLodData();
-            _lodDataSeaDepths?.UpdateLodData();
-            _lodDataShadow?.UpdateLodData();
-            _lodDataAlbedo?.UpdateLodData();
+            foreach (var simulation in _simulations)
+            {
+                simulation.Update(this);
+            }
         }
 
         void LateUpdateTiles()
@@ -1411,11 +1288,11 @@ namespace Crest
 
         private void CleanUp()
         {
-            foreach (var lodData in _lodDatas)
+            foreach (var simulation in _simulations)
             {
-                lodData.OnDisable();
+                simulation.CleanUpData();
             }
-            _lodDatas.Clear();
+            _simulations.Clear();
 
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying && Root != null)
@@ -1432,14 +1309,6 @@ namespace Crest
             Root = null;
 
             _lodTransform = null;
-            _lodDataAnimWaves = null;
-            _lodDataClipSurface = null;
-            _lodDataDynWaves = null;
-            _lodDataFlow = null;
-            _lodDataFoam = null;
-            _lodDataSeaDepths = null;
-            _lodDataShadow = null;
-            _lodDataAlbedo = null;
 
             if (CollisionProvider != null)
             {
@@ -1467,9 +1336,15 @@ namespace Crest
         /// </summary>
         public void ClearLodData()
         {
+            // TODO: Remove
             foreach (var lodData in _lodDatas)
             {
                 lodData.ClearLodData();
+            }
+
+            foreach (var simulation in _simulations)
+            {
+                simulation.CleanUpData();
             }
         }
 
@@ -1518,6 +1393,27 @@ namespace Crest
             }
         }
 #endif
+    }
+
+    // Version handling - perform data migration after data loaded.
+    public partial class OceanRenderer : ISerializationCallbackReceiver
+    {
+        public void OnBeforeSerialize()
+        {
+            // Intentionally left empty.
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Version 1 (2021.10.02)
+            // - Alignment added with default value different than old behaviour
+            if (_version == 0)
+            {
+                // TODO: Add others and increment.
+                // _shadowSimulation._enabled = _createShadowData;
+                // _shadowSimulation._settings = _simSettingsShadow;
+            }
+        }
     }
 
 #if UNITY_EDITOR
@@ -1781,85 +1677,14 @@ namespace Crest
             }
 
             // For safety.
-            if (ocean == null || ocean.OceanMaterial == null)
+            if (ocean != null && ocean.OceanMaterial != null)
             {
-                return isValid;
-            }
-
-            if (ocean.OceanMaterial.HasProperty(LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFoamSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
-            {
-                if (ocean.CreateFoamSim)
+                foreach (var simulation in _simulations.OfType<ISimulationWithMaterialKeyword>())
                 {
-                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
-                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrFoam.MATERIAL_KEYWORD, LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY, true));
-                }
-                else
-                {
-                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean);
+                    simulation.Validate(ocean, showMessage);
                 }
             }
 
-            if (ocean.OceanMaterial.HasProperty(LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFlowSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
-            {
-                if (ocean.CreateFlowSim)
-                {
-                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
-                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrFlow.MATERIAL_KEYWORD, LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY, true));
-                }
-                else
-                {
-                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean);
-                }
-            }
-
-            if (ocean.OceanMaterial.HasProperty(LodDataMgrShadow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateShadowData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
-            {
-                if (ocean.CreateShadowData)
-                {
-                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
-                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrShadow.MATERIAL_KEYWORD, LodDataMgrShadow.MATERIAL_KEYWORD_PROPERTY, true));
-                }
-                else
-                {
-                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean);
-                }
-            }
-
-            if (ocean.OceanMaterial.HasProperty(LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateClipSurfaceData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
-            {
-                if (ocean.CreateClipSurfaceData)
-                {
-                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
-                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrClipSurface.MATERIAL_KEYWORD, LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY, true));
-                }
-                else
-                {
-                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean);
-                }
-            }
-
-            if (ocean.OceanMaterial.HasProperty(LodDataMgrAlbedo.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateAlbedoData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrAlbedo.MATERIAL_KEYWORD))
-            {
-                if (ocean.CreateAlbedoData)
-                {
-                    showMessage(LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING_FIX,
-                        ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
-                        (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, LodDataMgrAlbedo.MATERIAL_KEYWORD, LodDataMgrAlbedo.MATERIAL_KEYWORD_PROPERTY, true));
-                }
-                else
-                {
-                    showMessage(LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX,
-                        ValidatedHelper.MessageType.Info, ocean);
-                }
-            }
 
             return isValid;
         }

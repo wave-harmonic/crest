@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
+// TODO !RunningWithoutGPU
+
 namespace Crest
 {
     using SettingsType = SimSettingsFlow;
@@ -30,9 +32,6 @@ namespace Crest
         bool _targetsClear = false;
 
         public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsFlow != null ? _ocean._simSettingsFlow : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrFlow(OceanRenderer ocean) : base(ocean)
         {

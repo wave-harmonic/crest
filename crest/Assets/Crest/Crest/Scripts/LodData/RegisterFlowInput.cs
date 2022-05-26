@@ -42,15 +42,8 @@ namespace Crest
         bool _followHorizontalMotion = false;
 
 #if UNITY_EDITOR
-        protected override string FeatureToggleName => "_createFlowSim";
-        protected override string FeatureToggleLabel => "Create Flow Sim";
-        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFlowSim;
-
-        protected override string RequiredShaderKeywordProperty => LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY;
-        protected override string RequiredShaderKeyword => LodDataMgrFlow.MATERIAL_KEYWORD;
-
-        protected override string MaterialFeatureDisabledError => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;
-        protected override string MaterialFeatureDisabledFix => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+        // TODO:
+        protected override ISimulation<LodDataMgr, SimSettingsBase> GetSimulation(OceanRenderer ocean) => null;
 #endif // UNITY_EDITOR
     }
 }

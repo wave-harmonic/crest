@@ -76,5 +76,10 @@ namespace Crest
                 OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxDisplacementHorizontal, maxDispVert, 0f);
             }
         }
+
+#if UNITY_EDITOR
+        // TODO:
+        protected override ISimulation<LodDataMgr, SimSettingsBase> GetSimulation(OceanRenderer ocean) => null;
+#endif // UNITY_EDITOR
     }
 }

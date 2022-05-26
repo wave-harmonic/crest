@@ -7,9 +7,20 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
+// TODO !RunningWithoutGPU
+
 namespace Crest
 {
-    using SettingsType = SimSettingsAnimatedWaves;
+    [System.Serializable]
+    public class AnimatedWavesSimulation : Simulation<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>
+    {
+        public override string Name => "AnimatedWaves";
+
+        protected override void AddData(OceanRenderer ocean)
+        {
+            _data = new LodDataMgrAnimWaves(ocean, this);
+        }
+    }
 
     /// <summary>
     /// Captures waves/shape that is drawn kinematically - there is no frame-to-frame state. The Gerstner
@@ -28,7 +39,7 @@ namespace Crest
     {
         public override string SimName => "AnimatedWaves";
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-        protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
+        protected override GraphicsFormat RequestedTextureFormat => _simulation.Settings._renderTextureGraphicsFormat;
         protected override bool NeedToReadWriteTextureData => true;
         public override int BufferCount => _bufferCount;
 
@@ -68,13 +79,13 @@ namespace Crest
         public static void RegisterUpdatable(IShapeUpdatable updatable) => _updatables.Add(updatable);
         public static void DeregisterUpdatable(IShapeUpdatable updatable) => _updatables.RemoveAll(candidate => candidate == updatable);
 
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsAnimatedWaves != null ? _ocean._simSettingsAnimatedWaves : GetDefaultSettings<SettingsType>();
-
         readonly int _bufferCount = 1;
 
-        public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
+        AnimatedWavesSimulation _simulation;
+
+        public LodDataMgrAnimWaves(OceanRenderer ocean, AnimatedWavesSimulation simulation) : base(ocean)
         {
+            _simulation = simulation;
             _bufferCount = Helpers.IsMotionVectorsEnabled() ? 2 : 1;
 
             Start();
@@ -220,7 +231,7 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            Shader.SetGlobalFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
+            Shader.SetGlobalFloat(sp_AttenuationInShallows, _simulation.Settings.AttenuationInShallows);
 
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
@@ -251,7 +262,7 @@ namespace Crest
             }
 
             // Combine the LODs - copy results from biggest LOD down to LOD 0
-            if (Settings.PingPongCombinePass)
+            if (_simulation.Settings.PingPongCombinePass)
             {
                 CombinePassPingPong(buf);
             }

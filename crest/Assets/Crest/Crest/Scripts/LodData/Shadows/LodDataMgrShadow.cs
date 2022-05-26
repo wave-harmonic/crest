@@ -11,7 +11,23 @@ using UnityEngine.XR;
 
 namespace Crest
 {
-    using SettingsType = SimSettingsShadow;
+    [System.Serializable]
+    public class ShadowSimulation : Simulation<LodDataMgrShadow, SimSettingsShadow>, ISimulationWithMaterialKeyword
+    {
+        public override string Name => "Shadow";
+
+        public string MaterialKeywordProperty => "_Shadows";
+        public string MaterialKeyword => "_SHADOWS_ON";
+        public string ErrorMaterialKeywordMissing => "Shadowing is not enabled on the ocean material and will not be visible.";
+        public string ErrorMaterialKeywordMissingFix => "Tick the <i>Shadowing</i> option in the <i>Scattering<i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
+        public string ErrorMaterialKeywordOnFeatureOff => "The shadow feature is disabled on this component but is enabled on the ocean material.";
+        public string ErrorMaterialKeywordOnFeatureOffFix => "If this is not intentional, either enable the <i>Create Shadow Data</i> option on this component to turn it on, or disable the <i>Shadowing</i> feature on the ocean material to save performance.";
+
+        protected override void AddData(OceanRenderer ocean)
+        {
+            _data = new LodDataMgrShadow(ocean, this);
+        }
+    }
 
     /// <summary>
     /// Stores shadowing data to use during ocean shading. Shadowing is persistent and supports sampling across
@@ -19,19 +35,12 @@ namespace Crest
     /// </summary>
     public class LodDataMgrShadow : LodDataMgr
     {
-        public override string SimName => "Shadow";
+        public override string SimName => _simulation.Name;
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
         protected override bool NeedToReadWriteTextureData => true;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
         public override int BufferCount => 2;
-
-        internal static readonly string MATERIAL_KEYWORD_PROPERTY = "_Shadows";
-        internal static readonly string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_SHADOWS_ON";
-        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Shadowing is not enabled on the ocean material and will not be visible.";
-        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Shadowing</i> option in the <i>Scattering<i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
-        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The shadow feature is disabled on this component but is enabled on the ocean material.";
-        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Shadow Data</i> option on this component to turn it on, or disable the <i>Shadowing</i> feature on the ocean material to save performance.";
 
         public static bool s_processData = true;
 
@@ -51,9 +60,6 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static readonly int sp_CrestScreenSpaceShadowTexture = Shader.PropertyToID("_CrestScreenSpaceShadowTexture");
 
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsShadow != null ? _ocean._simSettingsShadow : GetDefaultSettings<SettingsType>();
-
         public enum Error
         {
             None,
@@ -64,8 +70,11 @@ namespace Crest
 
         Error _error;
 
-        public LodDataMgrShadow(OceanRenderer ocean) : base(ocean)
+        readonly ShadowSimulation _simulation;
+
+        public LodDataMgrShadow(OceanRenderer ocean, ShadowSimulation simulation) : base(ocean)
         {
+            _simulation = simulation;
             Start();
         }
 
@@ -85,10 +94,10 @@ namespace Crest
 
 #if UNITY_EDITOR
             if (OceanRenderer.Instance.OceanMaterial != null
-                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
-                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
+                && OceanRenderer.Instance.OceanMaterial.HasProperty(_simulation.MaterialKeywordProperty)
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(_simulation.MaterialKeyword))
             {
-                Debug.LogWarning("Crest: " + ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
+                Debug.LogWarning($"Crest: {_simulation.ErrorMaterialKeywordMissing} {_simulation.ErrorMaterialKeywordMissingFix}", _ocean);
             }
 #endif
 
@@ -151,12 +160,13 @@ namespace Crest
         {
             if (_mainLight == null)
             {
-                if (!Settings._allowNullLight)
+                if (!_simulation.Settings._allowNullLight)
                 {
                     if (_error != Error.NoLight)
                     {
                         Debug.LogWarning("Crest: Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
                         _error = Error.NoLight;
+                        _simulation._failed = true;
                     }
                     return false;
                 }
@@ -166,7 +176,7 @@ namespace Crest
 
             if (_mainLight.shadows == LightShadows.None)
             {
-                if (!Settings._allowNoShadows)
+                if (!_simulation.Settings._allowNoShadows)
                 {
                     if (_error != Error.NoShadows)
                     {
@@ -373,13 +383,20 @@ namespace Crest
                     _renderMaterial[lodIdx].SetVector(sp_CenterPos, lt._renderData[lodIdx].Current._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                     _renderMaterial[lodIdx].SetVector(sp_Scale, new Vector3(scale, 1f, scale));
-                    _renderMaterial[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
+                    _renderMaterial[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4
+                    (
+                        _simulation.Settings._jitterDiameterSoft,
+                        _simulation.Settings._jitterDiameterHard,
+                        _simulation.Settings._currentFrameWeightSoft,
+                        _simulation.Settings._currentFrameWeightHard)
+                    );
                     _renderMaterial[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, renderIntoTexture: true) * camera.worldToCameraMatrix);
                     _renderMaterial[lodIdx].SetFloat(sp_SimDeltaTime, Time.deltaTime);
 
                     _renderMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
                     _renderMaterial[lodIdx].SetTexture(GetParamIdSampler(true), _targets.Previous(1));
 
+                    // TODO: this should be _ocean.SeaFloorDepthSimulation.Bind()
                     LodDataMgrSeaFloorDepth.Bind(_renderMaterial[lodIdx]);
 
                     BufCopyShadowMap.Blit(Texture2D.blackTexture, _targets.Current, _renderMaterial[lodIdx].material, -1, lodIdx);
@@ -436,9 +453,21 @@ namespace Crest
 
         public static void Bind(IPropertyWrapper properties)
         {
-            if (OceanRenderer.Instance._lodDataShadow != null)
+            if (OceanRenderer.Instance._shadowSimulation.Enabled)
             {
-                properties.SetTexture(OceanRenderer.Instance._lodDataShadow.GetParamIdSampler(), OceanRenderer.Instance._lodDataShadow.DataTexture);
+                properties.SetTexture(ParamIdSampler(), OceanRenderer.Instance._shadowSimulation.Data.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), s_nullTexture);
+            }
+        }
+
+        public static void Bind(OceanRenderer ocean, IPropertyWrapper properties)
+        {
+            if (ocean._shadowSimulation.Enabled)
+            {
+                properties.SetTexture(ParamIdSampler(), ocean._shadowSimulation.Data.DataTexture);
             }
             else
             {

@@ -34,15 +34,8 @@ namespace Crest
         protected override bool FollowHorizontalMotion => false;
 
 #if UNITY_EDITOR
-        protected override string FeatureToggleName => "_createAlbedoData";
-        protected override string FeatureToggleLabel => "Create Albedo Data";
-        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateAlbedoData;
-
-        protected override string RequiredShaderKeywordProperty => LodDataMgrAlbedo.MATERIAL_KEYWORD_PROPERTY;
-        protected override string RequiredShaderKeyword => LodDataMgrAlbedo.MATERIAL_KEYWORD;
-
-        protected override string MaterialFeatureDisabledError => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING;
-        protected override string MaterialFeatureDisabledFix => LodDataMgrAlbedo.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
+        // TODO:
+        protected override ISimulation<LodDataMgr, SimSettingsBase> GetSimulation(OceanRenderer ocean) => null;
 #endif // UNITY_EDITOR
     }
 }

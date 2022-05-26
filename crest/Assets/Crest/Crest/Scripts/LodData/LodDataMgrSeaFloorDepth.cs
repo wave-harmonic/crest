@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
+// TODO !RunningWithoutGPU
+
 namespace Crest
 {
     using SettingsType = SimSettingsSeaFloorDepth;
@@ -33,9 +35,6 @@ namespace Crest
         public const string FEATURE_TOGGLE_LABEL = "Create Sea Floor Depth Data";
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsSeaFloorDepth != null ? _ocean._simSettingsSeaFloorDepth : GetDefaultSettings<SettingsType>();
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {

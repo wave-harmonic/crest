@@ -32,9 +32,8 @@ namespace Crest
         protected override string ShaderPrefix => "Crest/Inputs/Dynamic Waves";
 
 #if UNITY_EDITOR
-        protected override string FeatureToggleName => LodDataMgrDynWaves.FEATURE_TOGGLE_NAME;
-        protected override string FeatureToggleLabel => LodDataMgrDynWaves.FEATURE_TOGGLE_LABEL;
-        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateDynamicWaveSim;
-#endif
+        // TODO:
+        protected override ISimulation<LodDataMgr, SimSettingsBase> GetSimulation(OceanRenderer ocean) => null;
+#endif // UNITY_EDITOR
     }
 }

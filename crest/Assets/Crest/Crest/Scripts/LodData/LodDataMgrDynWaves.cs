@@ -5,10 +5,10 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
+// TODO !RunningWithoutGPU
+
 namespace Crest
 {
-    using SettingsType = SimSettingsWave;
-
     /// <summary>
     /// A dynamic shape simulation that moves around with a displacement LOD.
     /// </summary>
@@ -37,9 +37,6 @@ namespace Crest
         readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
         readonly int sp_CourantNumber = Shader.PropertyToID("_CourantNumber");
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
-
-        public override SimSettingsBase SettingsBase => Settings;
-        public SettingsType Settings => _ocean._simSettingsDynamicWaves != null ? _ocean._simSettingsDynamicWaves : GetDefaultSettings<SettingsType>();
 
         public float TimeLeftToSimulate => _timeToSimulate;
 

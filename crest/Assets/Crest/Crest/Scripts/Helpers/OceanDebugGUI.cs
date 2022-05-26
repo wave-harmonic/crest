@@ -311,7 +311,7 @@ namespace Crest
             DrawSim(OceanRenderer.Instance._lodDataDynWaves, ref _drawDynWaves, ref column, 0.5f, 2f);
             DrawSim(OceanRenderer.Instance._lodDataFoam, ref _drawFoam, ref column);
             DrawSim(OceanRenderer.Instance._lodDataFlow, ref _drawFlow, ref column, 0.5f, 2f);
-            DrawSim(OceanRenderer.Instance._lodDataShadow, ref _drawShadow, ref column);
+            DrawSim(OceanRenderer.Instance._shadowSimulation._data, ref _drawShadow, ref column);
             DrawSim(OceanRenderer.Instance._lodDataSeaDepths, ref _drawSeaFloorDepth, ref column);
             DrawSim(OceanRenderer.Instance._lodDataClipSurface, ref _drawClipSurface, ref column);
         }

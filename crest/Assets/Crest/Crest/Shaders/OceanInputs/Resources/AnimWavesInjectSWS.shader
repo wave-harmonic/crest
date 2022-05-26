@@ -26,7 +26,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 			#include "../../OceanHelpersNew.hlsl"
 			#include "../../FullScreenTriangle.hlsl"
 
-			Texture2D<float> _swsH;
+			Texture2D<float> _swsHRender;
 			Texture2D<float> _swsGroundHeight;
 			Texture2D<float> _swsSimulationMask;
 
@@ -74,7 +74,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				float wt = _Weight;
 
-				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
+				float h = _swsHRender.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 				float heightRaw = h;
 
 				if (h < 0.001) h = 0.0;// -= 0.1;

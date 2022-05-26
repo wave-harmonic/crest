@@ -209,14 +209,16 @@ namespace Crest
                     // Blur H
                     if (_doBlurH)
                     {
-                        Swap(ref _rtH0, ref _rtH1);
+                        // Cheekily write to H0, but dont flip. This is a temporary result purely for rendering.
+                        // Next update will flip and overwrite this.
+                        //Swap(ref _rtH0, ref _rtH1);
 
                         _csSWSProps.Initialise(buf, _csSWS, _krnlBlurH);
 
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+                        _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH1);
+                        _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH0);
 
-                        buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                        buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH0.width + 7) / 8, (_rtH0.height + 7) / 8, 1);
                     }
                 }
             }
@@ -224,6 +226,8 @@ namespace Crest
             Shader.SetGlobalTexture("_swsGroundHeight", _rtGroundHeight);
             Shader.SetGlobalTexture("_swsSimulationMask", _rtSimulationMask);
             Shader.SetGlobalTexture("_swsH", _rtH1);
+            // If blurring is enabled, apply the blurred height which was put into H0 until next frame overwrites
+            Shader.SetGlobalTexture("_swsHRender", _doBlurH ? _rtH0 : _rtH1);
             Shader.SetGlobalTexture("_swsVx", _rtVx1);
             Shader.SetGlobalTexture("_swsVy", _rtVy1);
         }

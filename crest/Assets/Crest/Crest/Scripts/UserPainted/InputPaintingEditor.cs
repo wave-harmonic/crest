@@ -197,6 +197,7 @@ namespace Crest
     [EditorTool("Crest Input Painting", typeof(IPaintable))]
     public class InputPaintingEditorTool : EditorTool
     {
+        // TODO - sort out icon i guess
         public override GUIContent toolbarIcon => _toolbarIcon ??
             (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Input Painting"));
 

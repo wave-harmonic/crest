@@ -107,9 +107,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 				const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
 				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
-
-
-
 				float4 disp_variance = 0.0;
 
 #if _PAINTED_ON
@@ -156,10 +153,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 					disp_variance = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0);
 					disp_variance.xz = disp_variance.x * _AxisX + disp_variance.z * float2(-_AxisX.y, _AxisX.x);
 				}
-
-
-
-
 
 				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
 				// for the last fitting wave cascade captures everything needed.

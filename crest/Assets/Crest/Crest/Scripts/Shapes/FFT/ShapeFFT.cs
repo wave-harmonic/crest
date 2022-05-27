@@ -383,8 +383,6 @@ namespace Crest
                 {
                     _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
                 }
-
-                //IPaintedData.DisablePainting(_matGenerateWavesGlobal);
             }
             else if (_mode == Mode.Painted)
             {

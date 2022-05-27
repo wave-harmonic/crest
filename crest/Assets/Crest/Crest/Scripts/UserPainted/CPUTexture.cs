@@ -53,10 +53,6 @@ namespace Crest
     [Serializable]
     public abstract class CPUTexture2D<T> : CPUTexture2DBase
     {
-        // Perhaps this will be used instead of manually attaching UserDataPainted
-        //[SerializeField]
-        //bool _enable = false;
-
         [SerializeField, HideInInspector]
         T[] _data;
 
@@ -209,7 +205,6 @@ namespace Crest
 
             if (_dataChangeFlag)
             {
-                // TODO do this with a coroutine at 30fps? (measure frequency?)
                 var colors = new Color[_data.Length];
                 for (int i = 0; i < _data.Length; i++)
                 {

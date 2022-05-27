@@ -122,22 +122,26 @@ namespace Crest
         [Range(0f, 5f)]
         public float _brushStrength = 1f;
 
+        static int sp_ParamPaintedWavesSize = Shader.PropertyToID("_PaintedWavesSize");
+        static int sp_ParamPaintedWavesPosition = Shader.PropertyToID("_PaintedWavesPosition");
+        static int sp_ParamPaintedWavesData = Shader.PropertyToID("_PaintedWavesData");
+
         public void PrepareMaterial(Material mat, Func<T, Color> colorConstructFn)
         {
             mat.EnableKeyword("_PAINTED_ON");
 
-            mat.SetVector("_PaintedWavesSize", WorldSize);
-            mat.SetVector("_PaintedWavesPosition", CenterPosition);
-            mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
+            mat.SetVector(sp_ParamPaintedWavesSize, WorldSize);
+            mat.SetVector(sp_ParamPaintedWavesPosition, CenterPosition);
+            mat.SetTexture(sp_ParamPaintedWavesData, GetGPUTexture(colorConstructFn));
         }
 
         public void UpdateMaterial(Material mat, Func<T, Color> colorConstructFn)
         {
 #if UNITY_EDITOR
             // Any per-frame update. In editor keep it all fresh.
-            mat.SetVector("_PaintedWavesSize", WorldSize);
-            mat.SetVector("_PaintedWavesPosition", CenterPosition);
-            mat.SetTexture("_PaintedWavesData", GetGPUTexture(colorConstructFn));
+            mat.SetVector(sp_ParamPaintedWavesSize, WorldSize);
+            mat.SetVector(sp_ParamPaintedWavesPosition, CenterPosition);
+            mat.SetTexture(sp_ParamPaintedWavesData, GetGPUTexture(colorConstructFn));
 #endif
         }
 

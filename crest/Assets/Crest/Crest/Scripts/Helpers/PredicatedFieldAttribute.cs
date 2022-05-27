@@ -129,6 +129,9 @@ namespace Crest
                 var otherProperty = property.FindPropertyRelative(_propertyName);
                 if (otherProperty == null)
                 {
+                    // This allows the property in question to be deeper in the serialisation hierarchy, for example
+                    // it could be predicated on <serialisedObject>._someObjectProperty._someProperty . The use case
+                    // for this was a member that was a member of a _debugSettings object.
                     otherProperty = property.serializedObject.FindProperty(_propertyName);
                 }
                 if (otherProperty != null)

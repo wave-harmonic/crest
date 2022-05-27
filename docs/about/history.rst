@@ -44,6 +44,7 @@ Removed
    -  Removed deprecated *Shape Gerstner Batched* as superceded by *Shape FFT* and *Shape Gerstner*.
    -  Removed spline support from *Register Anim Waves Input*. This was primarily good for setting water level like for a river, but this use case is better supported by *Register Height Input*.
    -  Removed deprecated *Object Water Interaction* as it has been superceded by *Sphere Water Interaction*.
+   -  Removed *Ocean Surface Alpha* in favour of *Albedo* feature or *Unity Decal Projector* for `HDRP`.
 
 
 4.15.2

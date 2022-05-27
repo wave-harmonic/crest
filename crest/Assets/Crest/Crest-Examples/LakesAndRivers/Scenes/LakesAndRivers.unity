@@ -72759,6 +72759,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _mode: 1
   _windTurbulence: 0.144
   _spectrum: {fileID: 11400000, guid: 5a90d2a2a791f414989edd11ca418efd, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -85324,10 +85325,9 @@ MonoBehaviour:
     _dataChangeFlag: 0
     _brushRadius: 2
     _brushStrength: 1
-  _splineSettings:
-    _overrideSplineSettings: 0
-    _radius: 50
-    _subdivisions: 1
+  _overrideSplineSettings: 0
+  _radius: 50
+  _subdivisions: 1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0

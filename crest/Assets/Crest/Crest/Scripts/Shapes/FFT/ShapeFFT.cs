@@ -33,6 +33,17 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
+        public enum Mode
+        {
+            Global,
+            Painted,
+            Spline,
+            CustomGeometryAndShader
+        }
+
+        [Header("Mode")]
+        public Mode _mode = Mode.Global;
+
         [Header("Wave Conditions")]
         [Tooltip("Impacts how aligned waves are with wind.")]
         [Range(0, 1)]
@@ -47,7 +58,7 @@ namespace Crest
 
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
         public float _waveDirectionHeadingAngle = 0f;
-        public float WindDirRadForFFT => _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
+        public float WindDirRadForFFT => UsingGeometryToGenerate ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
@@ -84,19 +95,6 @@ namespace Crest
         bool _debugDrawSlicesInEditor = false;
 #pragma warning restore 414
 
-        // This is spline specific. I'm not sure if we'll have paint settings. If we do we may want to put them into a class so they're
-        // at least out of the way, and then only show the relevant ones in the inspector?
-        [System.Serializable]
-        class SplineSettings
-        {
-            // TODO - tooltips? can pull from RTD?
-            public bool _overrideSplineSettings = false;
-            [Predicated("_splineSettings._overrideSplineSettings"), DecoratedField]
-            public float _radius = 50f;
-            [Predicated("_splineSettings._overrideSplineSettings"), Delayed]
-            public int _subdivisions = 1;
-        }
-
         #region Painting
         [Header("Painting Settings")]
         public CPUTexture2DPaintable_RG16_AddBlend _paintData;
@@ -129,21 +127,13 @@ namespace Crest
         #endregion
 
         [Header("Spline Settings")]
-        // TODO - perhaps migrate data for components that have the wave data enabled?
         [SerializeField]
-        SplineSettings _splineSettings;
+        bool _overrideSplineSettings = false;
+        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
+        float _radius = 50f;
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
+        int _subdivisions = 1;
 
-        // TODO remove or rename?
-        bool _overrideSplineSettings => _splineSettings != null ? _splineSettings._overrideSplineSettings : false;
-        float _radius => _overrideSplineSettings ? _splineSettings._radius : 50f;
-        int _subdivisions => _overrideSplineSettings ? _splineSettings._subdivisions : 1;
-
-        //[SerializeField]
-        //bool _overrideSplineSettings = false;
-        //[SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
-        //float _radius = 50f;
-        //[SerializeField, Predicated("_overrideSplineSettings"), Delayed]
-        //int _subdivisions = 1;
 
         [Header("Culling")]
         [Tooltip("Maximum amount surface will be displaced vertically from sea level. Increase this if gaps appear at bottom of screen."), SerializeField]
@@ -166,7 +156,12 @@ namespace Crest
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => null;
 
-        Mesh _meshForDrawingWaves;
+        Mesh MeshForGeneration => _mode == Mode.Spline ? _meshForDrawingWavesSpline : (_mode == Mode.CustomGeometryAndShader ? _meshForDrawingWavesCustom : null);
+        bool UsingGeometryToGenerate => _mode == Mode.Spline || _mode == Mode.CustomGeometryAndShader;
+
+        // Will either be spline mesh, or custom geo assigned by user
+        Mesh _meshForDrawingWavesSpline;
+        Mesh _meshForDrawingWavesCustom;
 
         float _windTurbulenceOld;
         float _windSpeedOld;
@@ -212,6 +207,8 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
+            public Material Material => _material;
+
             public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 var finalWeight = weight * _shapeFFT._weight;
@@ -242,12 +239,22 @@ namespace Crest
         // Used to populate data on first frame
         bool _firstUpdate = true;
 
-        // Active material.
-        Material _matGenerateWaves;
-        // Cache material options.
+        // Various material options
         Material _matGenerateWavesGlobal;
+        Material _matGenerateWavesPainted;
         // This is used both by spline and by user provided geo.. so left here
         Material _matGenerateWavesGeometry;
+
+        Material MaterialForGeneration
+        {
+            get
+            {
+                if (_mode == Mode.Global) return _matGenerateWavesGlobal;
+                if (_mode == Mode.Painted) return _matGenerateWavesPainted;
+                if (_mode == Mode.Spline) return _matGenerateWavesGeometry;
+                return _matGenerateWavesGeometry;
+            }
+        }
 
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
@@ -285,24 +292,35 @@ namespace Crest
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
+
+            var mat = MaterialForGeneration;
+
+            bool needToRefreshMaterials = _batches == null || mat == null || _batches.Length < 1 || _batches[0].Material != mat;
+
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame)
+            if (_firstUpdate || updateDataEachFrame || needToRefreshMaterials)
             {
                 InitBatches();
+
+                mat = MaterialForGeneration;
 
                 _firstUpdate = false;
             }
 
-            _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
-            _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
-            _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
-            UpdatePaintInputMaterial(_matGenerateWaves);
+            mat.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
+            mat.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
+            mat.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+
+            if (_mode == Mode.Painted)
+            {
+                UpdatePaintInputMaterial(mat);
+            }
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
-            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
-            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
+            var waveDir = UsingGeometryToGenerate ? PrimaryWaveDirection : Vector2.right;
+            mat.SetVector(sp_AxisX, waveDir);
 
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
             var windDirRad = WindDirRadForFFT;
@@ -321,7 +339,7 @@ namespace Crest
             _windDirRadOld = windDirRad;
             _windSpeedOld = windSpeedMPS;
             _spectrumOld = _spectrum;
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
+            mat.SetTexture(sp_WaveBuffer, waveData);
 
             ReportMaxDisplacement();
         }
@@ -337,12 +355,6 @@ namespace Crest
             if (_activeSpectrum == null)
             {
                 _activeSpectrum = DefaultSpectrum;
-            }
-
-            // Unassign mesh
-            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _))
-            {
-                _meshForDrawingWaves = null;
             }
         }
 #endif
@@ -365,48 +377,59 @@ namespace Crest
                 }
             }
 
-            if (TryGetComponent<Spline.Spline>(out var splineForWaves))
-            {
-                var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
-                var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
-                    radius, Vector2.one, ref _meshForDrawingWaves, out _, out _))
-                {
-                    _meshForDrawingWaves.name = gameObject.name + "_mesh";
-                }
-            }
-
-            if (_meshForDrawingWaves == null)
+            if (_mode == Mode.Global)
             {
                 if (_matGenerateWavesGlobal == null)
                 {
                     _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
                 }
 
-                _matGenerateWaves = _matGenerateWavesGlobal;
+                //IPaintedData.DisablePainting(_matGenerateWavesGlobal);
+            }
+            else if (_mode == Mode.Painted)
+            {
+                if (_matGenerateWavesPainted == null)
+                {
+                    _matGenerateWavesPainted = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
+                }
+
+                // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
+                // validation
+                _paintData.PrepareMaterial(_matGenerateWavesPainted, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
             }
             else
             {
+                if (_mode == Mode.Spline)
+                {
+                    if (TryGetComponent<Spline.Spline>(out var splineForWaves))
+                    {
+                        var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
+                        var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
+                        if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
+                            radius, Vector2.one, ref _meshForDrawingWavesSpline, out _, out _))
+                        {
+                            _meshForDrawingWavesSpline.name = gameObject.name + "_mesh";
+                        }
+                    }
+                }
+
                 if (_matGenerateWavesGeometry == null)
                 {
                     _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
                 }
-
-                _matGenerateWaves = _matGenerateWavesGeometry;
             }
 
-            // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
-            // validation
-            // TODO - I guess this ALWAYS makes the material use painted waves. Add enabled option to painted texture class?
-            _paintData.PrepareMaterial(_matGenerateWaves, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
-
-            // Submit draws to create the FFT waves
-            _batches = new FFTBatch[CASCADE_COUNT];
-            for (int i = 0; i < CASCADE_COUNT; i++)
+            if (!UsingGeometryToGenerate || MeshForGeneration)
             {
-                if (i == -1) break;
-                _batches[i] = new FFTBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
-                registered.Add(0, _batches[i]);
+                // Submit draws to create the FFT waves
+                _batches = new FFTBatch[CASCADE_COUNT];
+                var generationMaterial = MaterialForGeneration;
+                for (int i = 0; i < CASCADE_COUNT; i++)
+                {
+                    if (i == -1) break;
+                    _batches[i] = new FFTBatch(this, MinWavelength(i), i, generationMaterial, MeshForGeneration);
+                    registered.Add(0, _batches[i]);
+                }
             }
         }
 
@@ -480,17 +503,27 @@ namespace Crest
 
         private void OnDrawGizmosSelected()
         {
-            DrawMesh();
-
-            PaintableEditor.DrawPaintAreaGizmo(this, Color.green);
+            if (_mode == Mode.Painted)
+            {
+                PaintableEditor.DrawPaintAreaGizmo(this, Color.green);
+            }
+            else if (_mode == Mode.CustomGeometryAndShader)
+            {
+                DrawMesh();
+            }
         }
 
         void DrawMesh()
         {
-            if (_meshForDrawingWaves != null)
+            if (_mode == Mode.CustomGeometryAndShader && _meshForDrawingWavesCustom != null)
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
-                Gizmos.DrawWireMesh(_meshForDrawingWaves, 0, transform.position, transform.rotation, transform.lossyScale);
+                Gizmos.DrawWireMesh(_meshForDrawingWavesCustom, 0, transform.position, transform.rotation, transform.lossyScale);
+            }
+            if (_mode == Mode.Spline && _meshForDrawingWavesSpline != null)
+            {
+                Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
+                Gizmos.DrawWireMesh(_meshForDrawingWavesSpline, 0, transform.position, transform.rotation, transform.lossyScale);
             }
         }
 

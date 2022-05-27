@@ -34,7 +34,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2DArray _WaveBuffer;
-			Texture2D _PaintedWavesData;
+			Texture2D _PaintedData;
 
 			CBUFFER_START(CrestPerOceanInput)
 			int _WaveBufferSliceIndex;
@@ -48,8 +48,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 
 #if _PAINTED_ON
 			CBUFFER_START(CrestPerMaterial)
-			float2 _PaintedWavesSize;
-			float2 _PaintedWavesPosition;
+			float2 _PaintedDataSize;
+			float2 _PaintedDataPosition;
 			CBUFFER_END
 #endif
 
@@ -110,13 +110,13 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 				float4 disp_variance = 0.0;
 
 #if _PAINTED_ON
-				if (all(_PaintedWavesSize > 0.0))
+				if (all(_PaintedDataSize > 0.0))
 				{
-					float2 paintUV = (input.worldPosXZ - _PaintedWavesPosition) / _PaintedWavesSize + 0.5;
+					float2 paintUV = (input.worldPosXZ - _PaintedDataPosition) / _PaintedDataSize + 0.5;
 					// Check if in bounds
 					if (all(saturate(paintUV) == paintUV))
 					{
-						float2 axis = _PaintedWavesData.Sample(LODData_linear_clamp_sampler, paintUV).xy;
+						float2 axis = _PaintedData.Sample(LODData_linear_clamp_sampler, paintUV).xy;
 						float axisLen2 = dot(axis, axis);
 						if (axisLen2 > 0.00001)
 						{

@@ -30,7 +30,7 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Painted"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2DArray _WaveBuffer;
-			Texture2D _PaintedWavesData;
+			Texture2D _PaintedData;
 
 			CBUFFER_START(CrestPerOceanInput)
 			int _WaveBufferSliceIndex;
@@ -39,8 +39,8 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Painted"
 			CBUFFER_END
 
 			CBUFFER_START(CrestPerMaterial)
-			float2 _PaintedWavesSize;
-			float2 _PaintedWavesPosition;
+			float2 _PaintedDataSize;
+			float2 _PaintedDataPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -70,13 +70,13 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Painted"
 			{
 				half result = 0.0;
 
-				if (all(_PaintedWavesSize > 0.0))
+				if (all(_PaintedDataSize > 0.0))
 				{
-					float2 paintUV = (input.worldPosXZ - _PaintedWavesPosition) / _PaintedWavesSize + 0.5;
+					float2 paintUV = (input.worldPosXZ - _PaintedDataPosition) / _PaintedDataSize + 0.5;
 					// Check if in bounds
 					if (all(saturate(paintUV) == paintUV))
 					{
-						result = _PaintedWavesData.Sample(LODData_linear_clamp_sampler, paintUV).x;
+						result = _PaintedData.Sample(LODData_linear_clamp_sampler, paintUV).x;
 					}
 				}
 

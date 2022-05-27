@@ -26,6 +26,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6552292598085690517}
   - {fileID: 7004465649187820915}
@@ -63,6 +64,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 8.566847, z: 70.096}
   m_LocalScale: {x: 28.080664, y: 7.1969504, z: 136.03627}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4676003223697204548}
   m_RootOrder: 4
@@ -86,6 +88,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -145,6 +148,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -16, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4654252841192348929}
   m_RootOrder: 4
@@ -168,6 +172,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -238,6 +243,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 112.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 4
@@ -258,10 +264,16 @@ MonoBehaviour:
   _radius: 10
   _weight: 4
   _weightUpDownMul: 0.5
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.45
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &1505799907152315829
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,6 +301,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 130.41}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 3
@@ -309,10 +322,16 @@ MonoBehaviour:
   _radius: 5
   _weight: 4
   _weightUpDownMul: 0.5
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.45
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &2381584658867927824
 GameObject:
   m_ObjectHideFlags: 0
@@ -339,6 +358,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7728053173882770536}
   - {fileID: 3690536431285866606}
@@ -375,6 +395,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 40.9, z: -172.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 0
@@ -407,6 +428,7 @@ Transform:
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: -92.675}
   m_LocalScale: {x: 28.030594, y: 42.12505, z: 31.628101}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4676003223697204548}
   m_RootOrder: 3
@@ -430,6 +452,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -487,6 +510,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 60.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 5
@@ -507,10 +531,16 @@ MonoBehaviour:
   _radius: 10
   _weight: 4
   _weightUpDownMul: 0.5
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.45
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &3637049894953701043
 GameObject:
   m_ObjectHideFlags: 0
@@ -538,6 +568,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -126.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 9
@@ -558,10 +589,16 @@ MonoBehaviour:
   _radius: 10
   _weight: 4
   _weightUpDownMul: 0.5
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.45
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &3751618530634477665
 GameObject:
   m_ObjectHideFlags: 0
@@ -591,6 +628,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -14.1, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4654252841192348929}
   m_RootOrder: 2
@@ -614,6 +652,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -686,6 +725,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -135}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4654252841192348929}
   m_RootOrder: 0
@@ -709,6 +749,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -780,6 +821,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5440412411261671542}
   - {fileID: 4676003223697204548}
@@ -855,6 +897,7 @@ MonoBehaviour:
   _forceMultiplier: 15000
   _minSpatialLength: 24
   _turningHeel: 0.35
+  _maximumBuoyancyForce: Infinity
   _dragInWaterUp: 1
   _dragInWaterRight: 4
   _dragInWaterForward: 0
@@ -863,6 +906,8 @@ MonoBehaviour:
   _playerControlled: 0
   _engineBias: 1
   _turnBias: -0.4
+  _debug:
+    _drawQueries: 0
 --- !u!54 &8380954490411808174
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -908,6 +953,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 14.1, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4654252841192348929}
   m_RootOrder: 1
@@ -931,6 +977,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1001,6 +1048,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -82.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 8
@@ -1021,10 +1069,16 @@ MonoBehaviour:
   _radius: 10
   _weight: 4
   _weightUpDownMul: 0.5
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.45
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &5161712154300537121
 GameObject:
   m_ObjectHideFlags: 0
@@ -1052,6 +1106,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 16.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 6
@@ -1072,10 +1127,16 @@ MonoBehaviour:
   _radius: 10
   _weight: 4
   _weightUpDownMul: 0.5
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.45
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &5764837783019788758
 GameObject:
   m_ObjectHideFlags: 0
@@ -1105,6 +1166,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 135}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4654252841192348929}
   m_RootOrder: 5
@@ -1128,6 +1190,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1199,6 +1262,7 @@ Transform:
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 8.566855, z: -33.7}
   m_LocalScale: {x: 28.030594, y: 202.20026, z: 14.278117}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4676003223697204548}
   m_RootOrder: 2
@@ -1222,6 +1286,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1279,6 +1344,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -31.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4699689828683719271}
   m_RootOrder: 7
@@ -1299,10 +1365,16 @@ MonoBehaviour:
   _radius: 10
   _weight: 4
   _weightUpDownMul: 0.5
+  _innerSphereMultiplier: 1.55
+  _innerSphereOffset: 0.109
+  _velocityOffset: 0.04
+  _compensateForWaveMotion: 0.45
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
+  _debugSubsteps: 0
 --- !u!1 &7280846314752337608
 GameObject:
   m_ObjectHideFlags: 0
@@ -1332,6 +1404,7 @@ Transform:
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 28.030594, y: 134.80013, z: 33.933342}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4676003223697204548}
   m_RootOrder: 0
@@ -1355,6 +1428,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1427,6 +1501,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 15.420329, z: -8.425}
   m_LocalScale: {x: 16.26195, y: 17.688906, z: 119.425514}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4676003223697204548}
   m_RootOrder: 1
@@ -1450,6 +1525,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1509,6 +1585,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 16, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4654252841192348929}
   m_RootOrder: 3
@@ -1532,6 +1609,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1

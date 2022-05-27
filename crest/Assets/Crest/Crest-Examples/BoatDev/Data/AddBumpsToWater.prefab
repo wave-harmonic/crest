@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6370312182862802035}
   - component: {fileID: 6370312182862802036}
   m_Layer: 0
-  m_Name: Quad
+  m_Name: AddBumpsToWater
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,6 +29,7 @@ Transform:
   m_LocalRotation: {x: 0.7239539, y: -0, z: -0, w: 0.68984836}
   m_LocalPosition: {x: 43.1, y: 5, z: 49.8}
   m_LocalScale: {x: 76.5468, y: 76.5468, z: 76.5468}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -52,9 +53,12 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -66,6 +70,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -78,6 +83,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &6370312182862802036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90,8 +96,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _checkShaderPasses: 1
   _disableRenderer: 1
+  _overrideSplineSettings: 0
+  _radius: 20
+  _subdivisions: 1
+  _version: 0
   _octaveWavelength: 0
+  _followHorizontalMotion: 1
   _maxDisplacementVertical: 0
   _maxDisplacementHorizontal: 0
   _reportRendererBoundsToOceanSystem: 0

@@ -13,16 +13,76 @@ Release Notes
 |version|
 ---------
 
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Set minimum Unity version to 2021.3.3.
+
+
+Preview
+^^^^^^^
+.. bullet_list::
+
+   -  Added option to the Animated Waves settings to increase wave resolution to fix quality issues that appear especially in flowing water.
+      See tooltip on this new option for instructions and more details.
+
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
+
+
+Removed
+^^^^^^^
+.. bullet_list::
+
+   -  Removed deprecated *Underwater Curtain/Meniscus* which has been superceded by the *Underwater Renderer*. `[BIRP] [URP]`
+   -  Removed deprecated *Underwater Post-Process* which has been superceded by the *Underwater Renderer*. `[HDRP]`
+   -  Removed deprecated *Shape Gerstner Batched* as superceded by *Shape FFT* and *Shape Gerstner*.
+   -  Removed spline support from *Register Anim Waves Input*. This was primarily good for setting water level like for a river, but this use case is better supported by *Register Height Input*.
+   -  Removed deprecated *Object Water Interaction* as it has been superceded by *Sphere Water Interaction*.
+
+
+4.15.2
+------
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Default FFT resolution increased to match quality standards.
+   -  FFT samples-per-wave now scales proportionally to FFT resolution, meaning overall quality scales gracefully with the resolution setting.
+   -  Re-enable height queries in edit-mode which allows several height based components to work in edit-mode.
+      They can still be disabled with the new *Height Queries* toggle on the *Ocean Renderer*.
+
+
 Fixed
 ^^^^^
 .. bullet_list::
 
    -  Provide feedback on how to solve errors from *Sphere-Water Interaction* moving file locations.
    -  Fix *Underwater Renderer* stereo rendering not working in builds for Unity 2021.2.
+   -  Fix *Underwater Renderer* stereo rendering issue where both eyes are same for color and/or depth with certain features enabled.
+   -  Fix stereo rendering for *Examples* scene.
+   -  Fix many memory/reference leaks.
+   -  Fix excessively long build times when no *Underwater Renderer* is present in scene.
+   -  Fix *Underwater Renderer* not working with varying water level.
+   -  Fix jagged shoreline foam when using baked *Sea Floor Depth* cache.
 
-.. only:: urp
+   .. only:: birp
 
-   -  Disable `SSAO` for *Examples* scene and warn users of incompatibility with *Portals and Volumes* feature. `[URP]`
+      -  Fix color being incorrect for *Underwater Shader API*. `[BIRP]`
+
+   .. only:: hdrp
+
+      -  Fix ocean not rendering in builds for Unity 2021.2 if no *Underwater Renderer* is present. `[HDRP]`
+
+   .. only:: urp
+
+      -  Disable `SSAO` for *Examples* scene and warn users of incompatibility with *Portals and Volumes* feature. `[URP]`
 
 
 4.15.1
@@ -33,7 +93,6 @@ Fixed
 .. bullet_list::
 
    -  Fix shader compiler error.
-   -  Fix several material and mesh memory leaks and reference leaks.
 
 
 4.15
@@ -572,7 +631,7 @@ Documentation
    .. only:: hdrp
 
       -  Document *Caustics Distortion Texture*. `[HDRP]`
-      -  Fixed Underwater :ref:`underwater_pp_setup` not being complete. `[HDRP]`
+      -  Fixed *Underwater Post-Processing* setup not being complete. `[HDRP]`
 
    .. only:: hdrp or urp
 

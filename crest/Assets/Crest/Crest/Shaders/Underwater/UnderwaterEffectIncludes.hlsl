@@ -13,8 +13,9 @@
 // thus excluding all of our other code and includes from the analyzer. Source:
 // https://github.com/TwoTailsGames/Unity-Built-in-Shaders/blob/6a63f93bc1f20ce6cd47f981c7494e8328915621/CGIncludes/HLSLSupport.cginc#L7-L11
 #ifdef SHADER_TARGET_SURFACE_ANALYSIS
-// Must update signature with implementation below. Make sure to use everything or will be excluded by compiler.
-bool CrestApplyUnderwaterFog(float2 b, float3 c, float d, float e, inout half3 a) { a.rgb = b.x + b.y + c.x + c.y + c.z + d + e; return false; }
+// Must update signature to match implementation below. Make sure to use everything or will be excluded by compiler. Use
+// "+=" instead of "=" or color will come out incorrectly.
+bool CrestApplyUnderwaterFog(float2 b, float3 c, float d, float e, inout half3 a) { a.rgb += b.x + b.y + c.x + c.y + c.z + d + e; return false; }
 #else // SHADER_TARGET_SURFACE_ANALYSIS
 
 UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);

@@ -1,51 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!54 &5452407336008178130
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2226860581654063510}
-  serializedVersion: 2
-  m_Mass: 200
-  m_Drag: 0
-  m_AngularDrag: 1.5
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!114 &-8342519424157835025
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2226860581654063510}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ed9066fe88d1d640889621f4d7684e3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _version: 0
-  _bottomH: 0
-  _buoyancyCoeff: 1000
-  _boyancyTorque: 8
-  _accelerateDownhill: 0
-  _forceHeightOffset: 0.3
-  _enginePower: 3
-  _turnPower: 1.3
-  _boatWidth: 3
-  _useBoatLength: 1
-  _boatLength: 12
-  _dragInWaterUp: 7
-  _dragInWaterRight: 2
-  _dragInWaterForward: 1
-  _playerControlled: 0
-  _throttleBias: 0
-  _steerBias: 0
-  _debugDraw: 0
 --- !u!1 &3870676525926598785
 GameObject:
   m_ObjectHideFlags: 0
@@ -73,6 +27,7 @@ Transform:
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.43, z: -0.15}
   m_LocalScale: {x: 1.1654, y: 1.6488401, z: 0.80607}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2226860581653640630}
   m_RootOrder: 1
@@ -91,25 +46,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6221417270242909756
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8989378477805111985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _checkShaderName: 1
-  _disableRenderer: 1
-  _version: 1
-  _mode: 0
-  _primitive: 3
-  _disableClipSurfaceWhenTooFarFromSurface: 0
-  _animatedWavesDisplacementSamplingIterations: 4
 --- !u!1001 &2226860581654032180
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -167,9 +103,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 62ccde94e774dba4c8620e847d94f072, type: 3}
---- !u!1 &2226860581654063510 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: 62ccde94e774dba4c8620e847d94f072,
+--- !u!4 &2226860581653640628 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 62ccde94e774dba4c8620e847d94f072,
     type: 3}
   m_PrefabInstance: {fileID: 2226860581654032180}
   m_PrefabAsset: {fileID: 0}
@@ -179,12 +115,59 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 2226860581654032180}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &2226860581653640628 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 400000, guid: 62ccde94e774dba4c8620e847d94f072,
+--- !u!1 &2226860581654063510 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100002, guid: 62ccde94e774dba4c8620e847d94f072,
     type: 3}
   m_PrefabInstance: {fileID: 2226860581654032180}
   m_PrefabAsset: {fileID: 0}
+--- !u!54 &5452407336008178130
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2226860581654063510}
+  serializedVersion: 2
+  m_Mass: 200
+  m_Drag: 0
+  m_AngularDrag: 1.5
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 1
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &-8342519424157835025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2226860581654063510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ed9066fe88d1d640889621f4d7684e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _version: 0
+  _bottomH: 0
+  _buoyancyCoeff: 1000
+  _boyancyTorque: 8
+  _accelerateDownhill: 0
+  _maximumBuoyancyForce: Infinity
+  _forceHeightOffset: 0.3
+  _enginePower: 3
+  _turnPower: 1.3
+  _boatWidth: 3
+  _useBoatLength: 1
+  _boatLength: 12
+  _dragInWaterUp: 7
+  _dragInWaterRight: 2
+  _dragInWaterForward: 1
+  _playerControlled: 0
+  _throttleBias: 0
+  _steerBias: 0
+  _debugDraw: 0
 --- !u!1001 &8989378477805014033
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -284,3 +267,25 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 8989378477805014033}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6221417270242909756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8989378477805111985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _checkShaderPasses: 1
+  _disableRenderer: 1
+  _version: 1
+  _mode: 0
+  _primitive: 3
+  _order: 0
+  _inverted: 0
+  _disableClipSurfaceWhenTooFarFromSurface: 0
+  _animatedWavesDisplacementSamplingIterations: 4

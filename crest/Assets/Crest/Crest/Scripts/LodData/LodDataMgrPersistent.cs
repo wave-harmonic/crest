@@ -49,6 +49,14 @@ namespace Crest
             CreateProperties();
         }
 
+        internal override void OnDisable()
+        {
+            base.OnDisable();
+
+            _sources.Release();
+            Helpers.Destroy(_sources);
+        }
+
         void CreateProperties()
         {
             _shader = ComputeShaderHelpers.LoadShader(ShaderSim);

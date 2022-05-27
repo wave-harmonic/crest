@@ -16,8 +16,8 @@ using UnityEditor.Experimental.SceneManagement;
 #endif
 #endif
 
-#if !UNITY_2020_3_OR_NEWER
-#error This version of Crest requires Unity 2020.3 or later.
+#if !UNITY_2021_3_OR_NEWER
+#error This version of Crest requires Unity 2021.3 or later.
 #endif
 
 namespace Crest
@@ -310,6 +310,12 @@ namespace Crest
 #pragma warning disable 414
         bool _followSceneCamera = true;
 #pragma warning restore 414
+
+        [Tooltip("Whether height queries are enabled in edit mode."), SerializeField]
+#pragma warning disable 414
+        bool _heightQueries = true;
+#pragma warning restore 414
+
 
         [Header("Server Settings")]
         [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument."), SerializeField]
@@ -1021,7 +1027,8 @@ namespace Crest
 #if UNITY_EDITOR
             // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
             // so knock this out.
-            if (EditorApplication.isPlaying)
+            // This was marked as resolved by Unity and confirmed fixed by forum posts.
+            if (_heightQueries || EditorApplication.isPlaying)
 #endif
             {
                 CollisionProvider?.UpdateQueries();
@@ -1520,13 +1527,6 @@ namespace Crest
         {
             ocean.Validate(ocean, ValidatedHelper.DebugLog);
 
-            // ShapeGerstnerBatched
-            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            foreach (var gerstner in gerstners)
-            {
-                gerstner.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
             // ShapeGerstner
             foreach (var component in FindObjectsOfType<ShapeGerstner>())
             {
@@ -1538,15 +1538,6 @@ namespace Crest
             {
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
-
-#pragma warning disable 0618
-            // UnderwaterEffect
-            var underwaters = FindObjectsOfType<UnderwaterEffect>();
-            foreach (var underwater in underwaters)
-            {
-                underwater.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-#pragma warning restore 0618
 
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();
@@ -1608,16 +1599,15 @@ namespace Crest
                 );
             }
 
-            // ShapeGerstnerBatched
-            var gerstnerBatches = FindObjectsOfType<ShapeGerstnerBatched>();
+            // Shape*
             var gerstners = FindObjectsOfType<ShapeGerstner>();
             var ffts = FindObjectsOfType<ShapeFFT>();
-            if (gerstnerBatches.Length == 0 && gerstners.Length == 0 && ffts.Length == 0)
+            if (gerstners.Length == 0 && ffts.Length == 0)
             {
                 showMessage
                 (
-                    "No ShapeGerstnerBatched component found, so ocean will appear flat (no waves).",
-                    "Assign a ShapeGerstnerBatched component to a GameObject.",
+                    "No ShapeGerstner/ShapeFFT component found, so ocean will appear flat (no waves).",
+                    "Assign a ShapeFFT component to a GameObject.",
                     ValidatedHelper.MessageType.Info, ocean
                 );
             }

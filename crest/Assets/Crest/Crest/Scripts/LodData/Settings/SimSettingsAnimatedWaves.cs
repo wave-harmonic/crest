@@ -23,6 +23,13 @@ namespace Crest
 
         public const string k_HelpURL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves-settings";
 
+        [Tooltip("PREVIEW: Set this to 2 to improve wave quality. In some cases like flowing rivers this can make a substantial difference to visual stability."
+            + "\n\nWe recommend doubling the Lod Data Resolution on the OceanRenderer component to preserve detail after making this change, but note that this will "
+            + "consume 4x more video memory until we are able to optimise data usage further, so apply this change with caution.")]
+        [SerializeField, Range(1f, 4f)]
+        float _waveResolutionMultiplier = 1f;
+        public float WaveResolutionMultiplier => Mathf.Max(1f, _waveResolutionMultiplier);
+
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
         float _attenuationInShallows = 0.95f;
         public float AttenuationInShallows => _attenuationInShallows;
@@ -34,10 +41,10 @@ namespace Crest
 
         public enum CollisionSources
         {
-            None,
-            GerstnerWavesCPU,
-            ComputeShaderQueries,
-            BakedFFT
+            None = 0,
+            // GerstnerWavesCPU = 1,
+            ComputeShaderQueries = 2,
+            BakedFFT = 3
         }
 
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
@@ -80,9 +87,6 @@ namespace Crest
             {
                 case CollisionSources.None:
                     result = new CollProviderNull();
-                    break;
-                case CollisionSources.GerstnerWavesCPU:
-                    result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
                     if (!OceanRenderer.RunningWithoutGPU)
@@ -131,13 +135,13 @@ namespace Crest
         {
             var isValid = base.Validate(ocean, showMessage);
 
-            if (_collisionSource == CollisionSources.GerstnerWavesCPU && showMessage != ValidatedHelper.DebugLog)
+            if (_collisionSource == CollisionSources.BakedFFT && showMessage != ValidatedHelper.DebugLog)
             {
                 showMessage
                 (
-                    "<i>Gerstner Waves CPU</i> has significant drawbacks. It does not include wave attenuation from " +
+                    "<i>Baked FFT</i> has significant drawbacks. It does not include wave attenuation from " +
                     "water depth or any custom rendered shape. It does not support multiple " +
-                    "<i>GerstnerWavesBatched</i> components including cross blending. Please read the user guide for more information.",
+                    "<i>ShapeFFT</i> components including cross blending. Please read the user guide for more information.",
                     "Set collision source to ComputeShaderQueries",
                     ValidatedHelper.MessageType.Info, this
                 );

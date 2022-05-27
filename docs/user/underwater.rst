@@ -35,8 +35,6 @@ The *Underwater Renderer* component executes a fullscreen underwater effect betw
 It is similar to a post-processing effect, but has the benefit of allowing other renderers to execute after it and still receive post-processing.
 An example is to add underwater fog correctly to semi-transparent objects.
 
-This is the current underwater solution used for the example scenes, and is the simplest to setup.
-
 Setup
 ^^^^^
 
@@ -81,29 +79,10 @@ Parameters
    Useful to reduce the intensity of the fog independently from the ocean surface.
 
 
-.. only:: birp or urp
-
-   Underwater Curtain `[BIRP] [URP]`
-   ---------------------------------
-
-   .. admonition:: Deprecated
-
-      The *Underwater Curtain* will be removed in a future Crest version.
-      It has been replaced by the *Underwater Renderer*.
-
-   Setup
-   ^^^^^
-
-   -  Configure the ocean material for underwater rendering.
-      In the *Underwater* section of the material params, ensure *Enabled* is turned on and *Cull Mode* is set to *Off* so that the underside of the ocean surface renders.
-      See *Ocean-Underwater.mat* for an example.
-
-   -  Place *UnderWaterCurtainGeom* and *UnderWaterMeniscus* prefabs under the camera (with cleared transform).
-
 .. _detecting_above_or_below_water:
 
 Detecting Above or Below Water
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 The *OceanRenderer* component has the *ViewerHeightAboveWater* property which can be accessed with ``OceanRenderer.Instance.ViewerHeightAboveWater``.
 It will return the signed height from the ocean surface of the camera rendering the ocean.
@@ -116,7 +95,7 @@ Simply attach it to a game object, and it will invoke a UnityEvent when the atta
 .. _portals-volumes:
 
 Portals & Volumes
-^^^^^^^^^^^^^^^^^
+-----------------
 
 .. admonition:: Preview
 
@@ -131,7 +110,7 @@ A common use case would be a window on a boat.
 .. _underwater-shader-api:
 
 Underwater Shader API
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 .. admonition:: Preview
 
@@ -196,42 +175,3 @@ The *Shader API* needs to be enabled on the *Underwater Renderer* (located under
    .. tab:: `URP`
 
       .. include:: includes/_underwater-shader-graph.rst
-
-
-.. only:: hdrp
-
-   Underwater Post-Process `[HDRP]`
-   --------------------------------
-
-   .. admonition:: Deprecated
-
-      The *Underwater Post-Process* will be removed in a future Crest version.
-      It has been replaced by the *Underwater Renderer*.
-
-   Renders the underwater effect at the beginning of the post-processing stack.
-
-   .. _underwater_pp_setup:
-
-   Setup
-   ^^^^^
-
-   Steps to set up underwater:
-
-   #. Ensure Crest is properly set up and working before proceeding.
-
-   #. Enable :link:`Custom Pass on the {HDRP} Asset <{HDRPDocLink}/HDRP-Asset.html#rendering>` and ensure that :link:`Custom pass on the camera's Frame Settings <{HDRPDocLink}/Frame-Settings.html#rendering>` is not disabled.
-
-   #. Add the custom post-process (*Crest.UnderwaterPostProcessHDRP*) to the *Before TAA* list.
-      See the :link:`Custom Post Process documentation <{HDRPDocLink}/Custom-Post-Process.html#effect-ordering>`.
-
-   #. Add the *Crest/Underwater* :link:`Volume Component <{HDRPDocLink}/Volume-Components.html>`.
-
-      -   Please learn how to use the *Volume Framework* before proceeding as covering this is beyond the scope of our documentation:
-
-      .. youtube:: vczkfjLoPf8
-
-         Adding Volumes to `HDRP` (Tutorial)
-
-   #. Configure the ocean material for underwater rendering.
-      Ensure that *Double-Sided* is enabled under *Surface Options* on the ocean material so that the underside of the ocean surface renders.
-      See *Ocean-Underwater.mat* for an example.

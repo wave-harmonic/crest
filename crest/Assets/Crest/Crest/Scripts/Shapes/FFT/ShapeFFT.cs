@@ -77,7 +77,7 @@ namespace Crest
 
         [Header("Generation Settings")]
         [Tooltip("Resolution to use for wave generation buffers. Low resolutions are more efficient but can result in noticeable patterns in the shape."), Delayed]
-        public int _resolution = 32;
+        public int _resolution = 128;
 
         [Tooltip("In Editor, shows the wave generation buffers on screen."), SerializeField]
 #pragma warning disable 414
@@ -173,6 +173,21 @@ namespace Crest
         float _windDirRadOld;
         OceanWaveSpectrum _spectrumOld;
 
+        static OceanWaveSpectrum s_DefaultSpectrum;
+        protected static OceanWaveSpectrum DefaultSpectrum
+        {
+            get
+            {
+                if (s_DefaultSpectrum == null)
+                {
+                    s_DefaultSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                    s_DefaultSpectrum.name = "Default Waves (auto)";
+                }
+
+                return s_DefaultSpectrum;
+            }
+        }
+
         public class FFTBatch : ILodDataInput
         {
             ShapeFFT _shapeFFT;
@@ -186,7 +201,7 @@ namespace Crest
             {
                 _shapeFFT = shapeFFT;
                 // Need sample higher than Nyquist to get good results, especially when waves flowing
-                Wavelength = wavelength / 2f;
+                Wavelength = wavelength / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
@@ -205,7 +220,7 @@ namespace Crest
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
-                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
 
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
@@ -242,16 +257,22 @@ namespace Crest
         static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
+        static int s_Count = 0;
+
         /// <summary>
         /// Min wavelength for a cascade in the wave buffer. Does not depend on viewpoint.
         /// </summary>
         public float MinWavelength(int cascadeIdx)
         {
             var diameter = 0.5f * (1 << cascadeIdx);
-            var texelSize = diameter / _resolution;
             // Matches constant with same name in FFTSpectrum.compute
-            float SAMPLES_PER_WAVE = 4f;
-            return texelSize * SAMPLES_PER_WAVE;
+            var WAVE_SAMPLE_FACTOR = 8f;
+            return diameter / WAVE_SAMPLE_FACTOR;
+
+            // This used to be:
+            //var texelSize = diameter / _resolution;
+            //float samplesPerWave = _resolution / 8;
+            //return texelSize * samplesPerWave;
         }
 
         public void CrestUpdate(CommandBuffer buf)
@@ -315,8 +336,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
             // Unassign mesh
@@ -390,6 +410,25 @@ namespace Crest
             }
         }
 
+        void Awake()
+        {
+            s_Count++;
+        }
+
+        void OnDestroy()
+        {
+            // Since FFTCompute resources are shared we will clear after last ShapeFFT is destroyed.
+            if (--s_Count <= 0)
+            {
+                FFTCompute.CleanUpAll();
+
+                if (s_DefaultSpectrum != null)
+                {
+                    Helpers.Destroy(s_DefaultSpectrum);
+                }
+            }
+        }
+
         private void OnEnable()
         {
             _firstUpdate = true;
@@ -402,8 +441,7 @@ namespace Crest
 
             if (_activeSpectrum == null)
             {
-                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _activeSpectrum.name = "Default Waves (auto)";
+                _activeSpectrum = DefaultSpectrum;
             }
 
 #if UNITY_EDITOR
@@ -434,6 +472,12 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            _resolution = Mathf.ClosestPowerOfTwo(_resolution);
+            _resolution = Mathf.Max(_resolution, 16);
+        }
+
         private void OnDrawGizmosSelected()
         {
             DrawMesh();

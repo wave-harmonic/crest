@@ -24,6 +24,8 @@ Breaking
       This option may need to be configured on existing components.
       A migration tool to fix up existing inputs is available via the *Run 2022 Migration on Ocean Inputs* button in the *OceanRenderer* inspector.
    -  Removed *DeltaTimeDynamics* field from *Time Provider* interface as it was unused by the system and unnecessary.
+   -  Wave variance for ShapeGerstner has been removed which will reduce overall foam strength.
+      This was necessary to support alpha blending of wave inputs.
 
 
 Preview

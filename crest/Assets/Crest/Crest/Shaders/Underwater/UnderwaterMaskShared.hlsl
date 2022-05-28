@@ -79,15 +79,13 @@ Varyings Vert(Attributes v)
 	// Data that needs to be sampled at the undisplaced position
 	if (wt_smallerLod > 0.001)
 	{
-		half sss = 0.0;
 		const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, worldPos, sss);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, worldPos);
 	}
 	if (wt_biggerLod > 0.001)
 	{
-		half sss = 0.0;
 		const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos, sss);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos);
 	}
 
 	// Data that needs to be sampled at the displaced position.

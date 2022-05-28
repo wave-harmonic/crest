@@ -59,6 +59,14 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
+        [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
+        [Tooltip("How the waves are blended into the wave buffer. Use <i>AlphaBlend</i> to override waves.")]
+        public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
+
+        [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
+        [Tooltip("Order this input will render. Queue is <i>Queue + SiblingIndex</i>")]
+        public int _queue = 0;
+
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;
 
@@ -236,6 +244,10 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
+#if UNITY_EDITOR
+            Helpers.SetBlendFromPreset(_matGenerateWaves, _meshForDrawingWaves ? _blendMode : Helpers.BlendPreset.AdditiveBlend);
+#endif
+
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
             var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
@@ -282,6 +294,12 @@ namespace Crest
                 _meshForDrawingWaves = null;
             }
         }
+
+        // Called by Predicated attribute. Signature must not be changed.
+        bool IsLocalWaves(Component component)
+        {
+            return TryGetComponent<MeshRenderer>(out _) || TryGetComponent<Spline.Spline>(out _);
+        }
 #endif
 
         void ReportMaxDisplacement()
@@ -311,6 +329,11 @@ namespace Crest
                 }
             }
 
+            // Queue determines draw order of this input. Global waves should be rendered first. They are additive
+            // so not order dependent.
+            var queue = int.MinValue;
+            var subQueue = transform.GetSiblingIndex();
+
             if (_meshForDrawingWaves == null)
             {
                 if (_matGenerateWavesGlobal == null)
@@ -319,6 +342,7 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGlobal;
+                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
             }
             else
             {
@@ -328,17 +352,14 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGeometry;
+                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
+                queue = _queue;
             }
 
             // Submit draws to create the FFT waves
             _batches = new FFTBatch[CASCADE_COUNT];
             for (int i = 0; i < CASCADE_COUNT; i++)
             {
-                // Queue determines draw order of this input. Global waves should be rendered first. They are additive
-                // so not order dependent.
-                var queue = 0;
-                var subQueue = transform.GetSiblingIndex();
-
                 if (i == -1) break;
                 _batches[i] = new FFTBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
                 RegisterLodDataInput<LodDataMgrAnimWaves>.RegisterInput(_batches[i], queue, subQueue);

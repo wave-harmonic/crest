@@ -23,12 +23,15 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
         _FeatherWaveStart( "Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
         // Can be set to 0 to make waves ignore shallow water
         _RespectShallowWaterAttenuation( "Respect Shallow Water Attenuation", Range( 0, 1 ) ) = 1
+
+        _BlendSrcMode("Blend Source Mode", Float) = 5
+        _BlendDstMode("Blend Destination Mode", Float) = 1
     }
 
     SubShader
     {
-        // Additive blend everywhere
-        Blend One One
+        // Either additive or alpha blend for geometry waves.
+        Blend [_BlendSrcMode] [_BlendDstMode]
         ZWrite Off
         ZTest Always
         Cull Off
@@ -145,7 +148,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 const float alpha = rem / dTheta;
                 float3 disp = lerp( disp0, disp1, alpha );
 
-                return float4(wt * disp, 0.0);
+                return float4(disp, wt);
             }
             ENDCG
         }

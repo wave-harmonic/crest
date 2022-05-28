@@ -20,6 +20,9 @@ Changed
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
    -  Wave variance for ShapeGerstner has been removed which will reduce overall foam strength.
       ShapeFFTs did not support it yet and this was necessary to support alpha blending of wave inputs.
+   -  Added ability to alpha blend waves (effectively an override) instead of only having additive blend waves.
+      Set *Blend Mode* to *Alpha Blend* on the *ShapeFFT* or *ShapeGerstner* to use.
+      It's useful for preventing rivers and lakes from receiving ocean waves.
 
 
 Fixed

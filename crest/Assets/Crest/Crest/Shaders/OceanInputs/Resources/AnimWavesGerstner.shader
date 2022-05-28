@@ -8,8 +8,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 {
 	SubShader
 	{
-		// Additive blend everywhere
-		Blend One One
+		Blend [_BlendSrcMode] [_BlendDstMode]
 		ZWrite Off
 		ZTest Always
 		Cull Off
@@ -88,7 +87,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 				float3 disp = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0).xyz;
 				disp.xz = disp.x * _AxisX + disp.z * float2(-_AxisX.y, _AxisX.x);
 
-				return half4(wt * disp, 0.0);
+				return half4(disp, wt);
 			}
 			ENDCG
 		}

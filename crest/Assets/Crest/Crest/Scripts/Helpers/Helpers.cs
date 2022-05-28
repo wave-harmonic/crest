@@ -13,6 +13,12 @@ namespace Crest
     /// </summary>
     public static class Helpers
     {
+        public static class ShaderIDs
+        {
+            public static readonly int s_BlendSrcMode = Shader.PropertyToID("_BlendSrcMode");
+            public static readonly int s_BlendDstMode = Shader.PropertyToID("_BlendDstMode");
+        }
+
         public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
             BindingFlags.Static;
 

@@ -71,6 +71,14 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
+        [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
+        [Tooltip("If enabled, waves are additive. Otherwise waves are blended.")]
+        public bool _additive = true;
+
+        [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
+        [Tooltip("Order this input will render.")]
+        public int _queue = 0;
+
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;
 
@@ -336,6 +344,13 @@ namespace Crest
                 UpdatePaintInputMaterial(mat);
             }
 
+            if (_inputMode == Mode.Spline && _matGenerateWavesGeometry != null)
+            {
+                _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendSrcMode, (int)(_additive ? BlendMode.One : BlendMode.SrcAlpha));
+                _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendDstMode, (int)(_additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));
+                _matGenerateWavesGeometry.SetKeyword("_ADDITIVE", _additive);
+            }
+
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
             var waveDir = _inputMode == Mode.Spline ? PrimaryWaveDirection : Vector2.right;
@@ -432,6 +447,10 @@ namespace Crest
                     {
                         _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
                     }
+
+                    _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendSrcMode, (int)(_additive ? BlendMode.One : BlendMode.SrcAlpha));
+                    _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendDstMode, (int)(_additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));
+                    _matGenerateWavesGeometry.SetKeyword("_ADDITIVE", _additive);
                 }
             }
 
@@ -445,7 +464,8 @@ namespace Crest
                 {
                     if (i == -1) break;
                     _batches[i] = new FFTBatch(this, MinWavelength(i), i, generationMaterial, MeshForGeneration);
-                    registered.Add(0, _batches[i]);
+                    // Use the queue if local waves.
+                    registered.Add(MeshForGeneration != null ? _queue : int.MinValue, _batches[i]);
                 }
             }
         }
@@ -573,6 +593,12 @@ namespace Crest
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)
         {
             DrawMesh();
+        }
+
+        // Called by Predicated attribute. Signature must not be changed.
+        bool IsLocalWaves(Component component)
+        {
+            return TryGetComponent<MeshRenderer>(out _) || TryGetComponent<Spline.Spline>(out _);
         }
 #endif
 

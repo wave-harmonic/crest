@@ -41,6 +41,11 @@ Changed
 
    -  Warn users edits in prefab mode will not be reflected in scene view until prefab is saved.
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Added ability to blend waves (effectively an override) instead of only having additive waves. Disable "Additive" on the *ShapeFFT* or *ShapeGerstner* when using with a *MeshRenderer* or *Spline* to use. Useful for preventing rivers from receiving ocean waves.
 
 Fixed
 ^^^^^

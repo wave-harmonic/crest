@@ -10,6 +10,18 @@
 #define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
 #define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 
+CascadeParams MakeCascadeParams(float3 posScale, float4 params)
+{
+	CascadeParams result;
+	result._posSnapped = posScale.xy;
+	result._scale = posScale.z;
+	result._texelWidth = params.x;
+	result._textureRes = params.y;
+	result._weight = params.z;
+	result._oneOverTextureRes = params.w;
+	return result;
+}
+
 float2 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams)
 {
 	return (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;

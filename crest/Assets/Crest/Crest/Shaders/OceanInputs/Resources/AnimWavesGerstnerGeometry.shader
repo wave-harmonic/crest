@@ -138,22 +138,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 const float2 uv1 = float2(dot( input.worldPosScaled.xz, axisX1 ), dot( input.worldPosScaled.xz, axisZ1 ));
 
                 // Sample displacement, rotate into frame
-                float4 disp_variance0 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv0, _WaveBufferSliceIndex), 0 );
-                float4 disp_variance1 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv1, _WaveBufferSliceIndex), 0 );
-                disp_variance0.xz = disp_variance0.x * axisX0 + disp_variance0.z * axisZ0;
-                disp_variance1.xz = disp_variance1.x * axisX1 + disp_variance1.z * axisZ1;
+                float3 disp0 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv0, _WaveBufferSliceIndex), 0 ).xyz;
+                float3 disp1 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv1, _WaveBufferSliceIndex), 0 ).xyz;
+                disp0.xz = disp0.x * axisX0 + disp0.z * axisZ0;
+                disp1.xz = disp1.x * axisX1 + disp1.z * axisZ1;
                 const float alpha = rem / dTheta;
-                float4 disp_variance = lerp( disp_variance0, disp_variance1, alpha );
+                float3 disp = lerp( disp0, disp1, alpha );
 
-                // The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
-                // for the last fitting wave cascade captures everything needed.
-                const float minWavelength = _AverageWavelength / 1.5;
-                if( minWavelength > _CrestCascadeData[_LD_SliceIndex]._maxWavelength )
-                {
-                    disp_variance.w = 0.0;
-                }
-
-                return wt * disp_variance;
+                return float4(wt * disp, 0.0);
             }
             ENDCG
         }

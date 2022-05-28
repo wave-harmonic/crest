@@ -21,8 +21,7 @@ namespace Crest
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
     ///
     /// The RGB channels are the XYZ displacement from a rest plane at sea level to the corresponding displaced position on the
-    /// surface. The A channel holds the variance/energy in all the smaller wavelengths that are too small to go into the cascade
-    /// slice. This is used as a statistical measure for the missing waves and is used to ensure foam is generated everywhere.
+    /// surface.
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {

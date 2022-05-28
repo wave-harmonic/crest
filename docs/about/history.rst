@@ -18,6 +18,8 @@ Changed
 .. bullet_list::
 
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
+   -  Wave variance for ShapeGerstner has been removed which will reduce overall foam strength.
+      ShapeFFTs did not support it yet and this was necessary to support alpha blending of wave inputs.
 
 
 Fixed

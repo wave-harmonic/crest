@@ -94,7 +94,6 @@ void ShapeCombineBase(uint3 id)
 	float3 uv_thisLod = float3(input_uv, _LD_SliceIndex);
 
 	float3 result = 0.0;
-	half variance = 0.0;
 
 	// Sample in waves for this cascade.
 #if _FLOW_ON
@@ -106,15 +105,14 @@ void ShapeCombineBase(uint3 id)
 
 	const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
 	const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, variance );
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, variance );
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result);
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result);
 #else
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod, 1.0, result, variance);
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod, 1.0, result);
 #endif // _FLOW_ON
 
 #if !_DISABLE_COMBINE
 	// Waves to combine down from the next lod up the chain.
-	// Do not combine variance. Variance is already cumulative - from low cascades up.
 	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result);
 #endif
 
@@ -145,7 +143,7 @@ void ShapeCombineBase(uint3 id)
 	}
 #endif // _DYNAMIC_WAVE_SIM_ON
 
-	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, variance);
+	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, 0.0);
 }
 
 

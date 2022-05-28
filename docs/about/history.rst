@@ -23,6 +23,7 @@ Breaking
    -  Added new *Input Mode* setting to FFT component and to all *RegisterInput* components to support more diverse authoring workflows.
       This option may need to be configured on existing components.
       A migration tool to fix up existing inputs is available via the *Run 2022 Migration on Ocean Inputs* button in the *OceanRenderer* inspector.
+   -  Wave variance for ShapeGerstner has been removed which will reduce overall foam strength.
 
 
 Preview

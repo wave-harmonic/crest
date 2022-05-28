@@ -50,6 +50,7 @@ Fixed
    -  Fixed water plane moving in edit mode with *Always Refresh* disabled. `[HDRP]`
    -  Fixed *Build Processor* deprecated/obsolete warnings.
    -  Fixed some components breaking in edit mode after entering/exiting prefab mode.
+   -  Fixed FFTs incorrectly adding extra foam.
 
 
 Removed

@@ -20,6 +20,13 @@ Changed
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
 
 
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fixed FFTs incorrectly adding extra foam.
+
+
 4.15.2
 ------
 

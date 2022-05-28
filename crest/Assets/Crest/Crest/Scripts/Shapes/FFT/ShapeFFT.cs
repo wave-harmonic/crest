@@ -71,6 +71,14 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
+        [Predicated("_inputMode", inverted: false, Mode.Global), DecoratedField]
+        [Tooltip("How the waves are blended into the wave buffer. Use <i>AlphaBlend</i> to override waves.")]
+        public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
+
+        [Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
+        [Tooltip("Order this input will render. Queue is <i>Queue + SiblingIndex</i>")]
+        public int _queue = 0;
+
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;
 
@@ -104,6 +112,9 @@ namespace Crest
         {
             _paintData.CenterPosition3 = transform.position;
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+#if UNITY_EDITOR
+            Helpers.SetBlendFromPreset(mat, _blendMode);
+#endif
         }
 
         public Vector2 WorldSize => _paintData.WorldSize;
@@ -336,6 +347,18 @@ namespace Crest
                 UpdatePaintInputMaterial(mat);
             }
 
+#if UNITY_EDITOR
+            if (_inputMode == Mode.Spline && _matGenerateWavesGeometry != null)
+            {
+                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
+            }
+
+            if (_inputMode == Mode.Global && _matGenerateWavesGlobal != null)
+            {
+                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
+            }
+#endif
+
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
             var waveDir = (_inputMode == Mode.Spline || _inputMode == Mode.Painted) ? PrimaryWaveDirection : Vector2.right;
@@ -400,6 +423,8 @@ namespace Crest
                 {
                     _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
                 }
+
+                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
             }
             else if (_inputMode == Mode.Painted)
             {
@@ -411,6 +436,8 @@ namespace Crest
                 // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
                 // validation
                 _paintData.PrepareMaterial(_matGenerateWavesPainted, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+
+                Helpers.SetBlendFromPreset(_matGenerateWavesPainted, _blendMode);
             }
             else if (_inputMode == Mode.Spline)
             {
@@ -430,6 +457,8 @@ namespace Crest
                     {
                         _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
                     }
+
+                    Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
                 }
             }
 
@@ -438,7 +467,7 @@ namespace Crest
             {
                 // Queue determines draw order of this input. Global waves should be rendered first. They are additive
                 // so not order dependent.
-                var queue = 0;
+                var queue = _inputMode == Mode.Global ? int.MinValue : _queue;
                 var subQueue = transform.GetSiblingIndex();
 
                 // Submit draws to create the FFT waves

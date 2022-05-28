@@ -43,6 +43,9 @@ Changed
 
    -  Warn users edits in prefab mode will not be reflected in scene view until prefab is saved.
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
+   -  Added ability to alpha blend waves (effectively an override) instead of only having additive blend waves.
+      Set *Blend Mode* to *Alpha Blend* on the *ShapeFFT* or *ShapeGerstner* to use.
+      It's useful for preventing rivers and lakes from receiving ocean waves.
 
 
 Fixed

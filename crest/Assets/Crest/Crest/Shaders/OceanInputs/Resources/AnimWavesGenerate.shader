@@ -107,7 +107,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 				const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
 				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
-				float4 disp_variance = 0.0;
+				float3 disp = 0.0;
 
 #if _PAINTED_ON
 				if (all(_PaintedDataSize > 0.0))
@@ -137,12 +137,12 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 							const float2 uv1 = float2(dot(input.worldPosScaled.xy, axisX1), dot(input.worldPosScaled.xy, axisZ1));
 
 							// Sample displacement, rotate into frame
-							float4 disp_variance0 = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(uv0, _WaveBufferSliceIndex), 0);
-							float4 disp_variance1 = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(uv1, _WaveBufferSliceIndex), 0);
+							float3 disp0 = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(uv0, _WaveBufferSliceIndex), 0).xyz;
+							float3 disp1 = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(uv1, _WaveBufferSliceIndex), 0).xyz;
 
-							disp_variance = lerp(disp_variance0, disp_variance1, rem / dTheta);
-							disp_variance.xz = disp_variance.x * axis + disp_variance.z * float2(-axis.y, axis.x);
-							disp_variance.y *= sqrt(axisLen2);
+							disp = lerp(disp0, disp1, rem / dTheta);
+							disp.xz = disp.x * axis + disp.z * float2(-axis.y, axis.x);
+							disp.y *= sqrt(axisLen2);
 						}
 					}
 				}
@@ -150,19 +150,11 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 #endif
 				{
 					// Sample displacement, rotate into frame defined by global wind direction
-					disp_variance = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0);
-					disp_variance.xz = disp_variance.x * _AxisX + disp_variance.z * float2(-_AxisX.y, _AxisX.x);
+					disp = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0).xyz;
+					disp.xz = disp.x * _AxisX + disp.z * float2(-_AxisX.y, _AxisX.x);
 				}
 
-				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
-				// for the last fitting wave cascade captures everything needed.
-				const float minWavelength = _AverageWavelength / 1.5;
-				if( minWavelength > _CrestCascadeData[_LD_SliceIndex]._maxWavelength )
-				{
-					disp_variance.w = 0.0;
-				}
-
-				return wt * disp_variance;
+				return half4(wt * disp, 1.0);
 			}
 			ENDCG
 		}

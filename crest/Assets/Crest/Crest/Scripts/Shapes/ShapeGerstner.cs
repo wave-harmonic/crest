@@ -54,6 +54,14 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
+        [Predicated(typeof(ShapeGerstner), "IsLocalWaves"), DecoratedField]
+        [Tooltip("How the waves are blended into the wave buffer. Use <i>AlphaBlend</i> to override waves.")]
+        public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
+
+        [Predicated(typeof(ShapeGerstner), "IsLocalWaves"), DecoratedField]
+        [Tooltip("Order this input will render.")]
+        public int _queue = 0;
+
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;
 
@@ -322,6 +330,18 @@ namespace Crest
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
+#if UNITY_EDITOR
+            if (_meshForDrawingWaves != null && _matGenerateWavesGeometry != null)
+            {
+                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
+            }
+
+            if (_meshForDrawingWaves == null && _matGenerateWavesGlobal != null)
+            {
+                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
+            }
+#endif
+
             ReportMaxDisplacement();
 
             // If some cascades have waves in them, generate
@@ -352,6 +372,12 @@ namespace Crest
             {
                 _meshForDrawingWaves = null;
             }
+        }
+
+        // Called by Predicated attribute. Signature must not be changed.
+        bool IsLocalWaves(Component component)
+        {
+            return TryGetComponent<MeshRenderer>(out _) || TryGetComponent<Spline.Spline>(out _);
         }
 #endif
 
@@ -645,6 +671,8 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGlobal;
+
+                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
             }
             else
             {
@@ -654,11 +682,15 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGeometry;
+
+                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
             }
 
-            var queue = 0;
+            // Queue determines draw order of this input. Global waves should be rendered first. They are additive
+            // so not order dependent.
+            var queue = _meshForDrawingWaves == null ? int.MinValue : _queue;
             var subQueue = transform.GetSiblingIndex();
-            
+
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[CASCADE_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)

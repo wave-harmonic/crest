@@ -12,7 +12,7 @@ using UnityEditor;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsFoam", menuName = "Crest/Foam Sim Settings", order = 10000)]
-    [HelpURL(HELP_URL)]
+    [CrestHelpURL("user/ocean-simulation", "foam-settings")]
     public class SimSettingsFoam : SimSettingsBase
     {
         /// <summary>
@@ -23,8 +23,6 @@ namespace Crest
 #pragma warning disable 414
         int _version = 0;
 #pragma warning restore 414
-
-        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#id5";
 
         [Header("General settings")]
         [Tooltip("Prewarms the simulation on load and teleports. Results are only an approximation but are better than no foam.")]
@@ -56,22 +54,4 @@ namespace Crest
             Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
         }
     }
-
-#if UNITY_EDITOR
-    [CustomEditor(typeof(SimSettingsFoam), true), CanEditMultipleObjects]
-    class SimSettingsFoamEditor : SimSettingsBaseEditor
-    {
-        public override void OnInspectorGUI()
-        {
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Open Online Help Page"))
-            {
-                Application.OpenURL(SimSettingsFoam.HELP_URL);
-            }
-            EditorGUILayout.Space();
-
-            base.OnInspectorGUI();
-        }
-    }
-#endif
 }

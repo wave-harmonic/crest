@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Water Body")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-bodies.html")]
+    [CrestHelpURL("user/water-bodies")]
     public partial class WaterBody : MonoBehaviour
     {
         /// <summary>

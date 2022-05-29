@@ -19,7 +19,7 @@ namespace Crest
     [ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Renderer")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "underwater.html" + Internal.Constants.HELP_URL_RP)]
+    [CrestHelpURL("user/underwater")]
     public partial class UnderwaterRenderer : MonoBehaviour
     {
         /// <summary>

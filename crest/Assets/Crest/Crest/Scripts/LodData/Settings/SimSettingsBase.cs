@@ -31,6 +31,22 @@ namespace Crest
     }
 
     [CustomEditor(typeof(SimSettingsBase), true), CanEditMultipleObjects]
-    class SimSettingsBaseEditor : ValidatedEditor { }
+    class SimSettingsBaseEditor : ValidatedEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Open Online Help Page"))
+            {
+                var targetType = target.GetType();
+                var helpAttribute = (CrestHelpURLAttribute)System.Attribute.GetCustomAttribute(targetType, typeof(CrestHelpURLAttribute));
+                Debug.AssertFormat(helpAttribute != null, "Crest: Could not get CrestHelpURL attribute from {0}.", targetType);
+                Application.OpenURL(helpAttribute.URL);
+            }
+            EditorGUILayout.Space();
+
+            base.OnInspectorGUI();
+        }
+    }
 #endif
 }

@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Albedo Input")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#albedo")]
+    [CrestHelpURL("user/ocean-simulation", "albedo")]
     public class RegisterAlbedoInput : RegisterLodDataInput<LodDataMgrAlbedo>
     {
         /// <summary>

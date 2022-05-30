@@ -71,11 +71,15 @@ namespace Crest
 
         protected virtual void OnEnable()
         {
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
         protected virtual void OnDestroy()
         {
             UnityEngine.Profiling.Profiler.BeginSample("Crest:PaintedInputEditor.OnDestroy");
+
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 
             if (_dirtyFlag)
             {
@@ -107,6 +111,11 @@ namespace Crest
                 DestroyImmediate(_cursor.gameObject);
                 _cursor = null;
             }
+        }
+
+        void OnUndoRedoPerformed()
+        {
+            (target as IPaintable)?.MakeDirty();
         }
 
         protected virtual void OnSceneGUI()
@@ -175,6 +184,8 @@ namespace Crest
                 dir.x = pt.x - ptLast.x;
                 dir.y = pt.z - ptLast.z;
                 dir.Normalize();
+
+                Undo.RecordObject(this.target, "Paint Input");
 
                 if (target.Paint(pt, dir, weightMultiplier, Event.current.shift))
                 {

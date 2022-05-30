@@ -21,6 +21,7 @@ namespace Crest
 
         [SerializeField, HideInInspector]
         bool _dataChangeFlag = false;
+        public void MakeDirty() => _dataChangeFlag = true;
 
         Texture2D _textureGPU;
         public Texture2D Texture => _textureGPU;

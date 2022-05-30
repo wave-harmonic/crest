@@ -62,10 +62,8 @@ namespace Crest
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
         }
 
-        public void ClearData()
-        {
-            _paintData.Clear(this, Vector2.zero);
-        }
+        public void ClearData() => _paintData.Clear(this, Vector2.zero);
+        public void MakeDirty() => _paintData.MakeDirty();
 
         public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
         {

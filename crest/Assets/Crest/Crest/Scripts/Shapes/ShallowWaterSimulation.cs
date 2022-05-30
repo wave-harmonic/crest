@@ -469,9 +469,34 @@ namespace Crest
 #endif
     }
 
+    public partial class ShallowWaterSimulation : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            if (ocean == null) return true;
+
+            var isValid = true;
+
+            // Ensure Flow is enabled
+            if (!OceanRenderer.ValidateFeatureEnabled(ocean, showMessage, ocean => ocean.CreateFlowSim,
+                    LodDataMgrFlow.FEATURE_TOGGLE_NAME, LodDataMgrFlow.FEATURE_TOGGLE_LABEL, LodDataMgrFlow.MATERIAL_KEYWORD, LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY,
+                    LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX))
+            {
+                isValid = false;
+            }
+
+            // Other features which usually contribute on but not validated:
+            // - Foam - this is on by default and if it's off it is obvious that it is off
+            // - AnimWaves - always on
+            // - Depths - actually this can work without terrain depths, like for a "swimming" pool case where sea floor is trivially flat.
+
+            return isValid;
+        }
+    }
+
 #if UNITY_EDITOR
     [CustomEditor(typeof(ShallowWaterSimulation))]
-    class ShallowWaterSimulationEditor : Editor
+    class ShallowWaterSimulationEditor : ValidatedEditor
     {
         public override void OnInspectorGUI()
         {

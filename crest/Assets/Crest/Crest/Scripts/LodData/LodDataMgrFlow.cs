@@ -27,6 +27,9 @@ namespace Crest
         internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Flow</i> parameter section on the material currently assigned to the <i>OceanRenderer</i> component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Flow feature is disabled on the this but is enabled on the ocean material.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Flow Data</i> option on this component to turn it on, or disable the <i>Flow</i> feature on the ocean material to save performance.";
+        internal const string FEATURE_TOGGLE_LABEL = "Create Flow Sim";
+        internal const string FEATURE_TOGGLE_NAME = "_createFlowSim";
+
         bool _targetsClear = false;
 
         public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";

@@ -140,16 +140,7 @@ namespace Crest
         {
             var r = HandleUtility.GUIPointToWorldRay(mousePos);
 
-            float planeY;
-            var comp = target as Component;
-            if (comp)
-            {
-                planeY = comp.transform.position.y;
-            }
-            else
-            {
-                planeY = OceanRenderer.Instance.transform.position.y;
-            }
+            float planeY = OceanRenderer.Instance.transform.position.y;
 
             var heightOffset = r.origin.y - planeY;
             var diry = r.direction.y;
@@ -198,9 +189,8 @@ namespace Crest
             {
                 Vector3 pos = (paintable as Component).transform.position;
 
-                // Draw gizmo at sea level. Right now its pretty hard to paint and having the gizmo at
-                // object level helps. However we could bring this back once cursor is better.
-                //if (OceanRenderer.Instance) pos.y = OceanRenderer.Instance.transform.position.y;
+                // Draw gizmo at sea level.
+                if (OceanRenderer.Instance) pos.y = OceanRenderer.Instance.transform.position.y;
 
                 var oldMatrix = Gizmos.matrix;
                 Gizmos.matrix = Matrix4x4.Translate(pos) * Matrix4x4.Scale(new Vector3(paintable.PaintedData.WorldSize.x, 1f, paintable.PaintedData.WorldSize.y));

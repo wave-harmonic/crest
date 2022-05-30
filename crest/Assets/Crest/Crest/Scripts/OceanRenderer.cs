@@ -1910,6 +1910,36 @@ namespace Crest
             return isValid;
         }
 #pragma warning restore 0618
+
+        /// <summary>
+        /// Does validation for a feature on the water component and on the material
+        /// </summary>
+        public static bool ValidateFeatureEnabled(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage, System.Func<OceanRenderer, bool> featureEnabled,
+            string FeatureToggleLabel, string FeatureToggleName, string RequiredShaderKeyword, string RequiredShaderKeywordProperty,
+            string MaterialFeatureDisabledError, string MaterialFeatureDisabledFix)
+        {
+            var isValid = true;
+
+            if (!featureEnabled(ocean))
+            {
+                showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the <i>OceanRenderer</i> component.",
+                    $"Enable the <i>{FeatureToggleLabel}</i> option on the <i>OceanRenderer</i> component.",
+                    ValidatedHelper.MessageType.Error, ocean,
+                    (so) => FixSetFeatureEnabled(so, FeatureToggleName, true)
+                    );
+                isValid = false;
+            }
+
+            if (!string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
+            {
+                showMessage(MaterialFeatureDisabledError, MaterialFeatureDisabledFix,
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                    (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, RequiredShaderKeyword, RequiredShaderKeywordProperty, true));
+                isValid = false;
+            }
+
+            return isValid;
+        }
     }
 
     [CustomEditor(typeof(OceanRenderer))]

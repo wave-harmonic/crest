@@ -14,6 +14,10 @@ namespace Crest
 #if UNITY_EDITOR
     public class PaintableEditor : ValidatedEditor
     {
+        Transform _cursor;
+
+        bool _dirtyFlag = false;
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -55,6 +59,8 @@ namespace Crest
                 {
                     ToolManager.SetActiveTool<InputPaintingEditorTool>();
                 }
+
+                DestroyCursorIfPresent();
             }
 
             if (GUILayout.Button("Clear"))
@@ -63,15 +69,8 @@ namespace Crest
             }
         }
 
-        Transform _cursor;
-
-        bool _dirtyFlag = false;
-
         protected virtual void OnEnable()
         {
-            _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
-            _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
-            _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
         }
 
         protected virtual void OnDestroy()
@@ -88,7 +87,26 @@ namespace Crest
 
         protected virtual void OnDisable()
         {
-            DestroyImmediate(_cursor.gameObject);
+            DestroyCursorIfPresent();
+        }
+
+        void CreateCursorIfNotPresent()
+        {
+            if (_cursor == null)
+            {
+                _cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
+                _cursor.gameObject.hideFlags = HideFlags.HideAndDontSave;
+                _cursor.GetComponent<Renderer>().material = new Material(Shader.Find("Crest/PaintCursor"));
+            }
+        }
+
+        void DestroyCursorIfPresent()
+        {
+            if (_cursor != null)
+            {
+                DestroyImmediate(_cursor.gameObject);
+                _cursor = null;
+            }
         }
 
         protected virtual void OnSceneGUI()
@@ -97,6 +115,8 @@ namespace Crest
             {
                 return;
             }
+
+            CreateCursorIfNotPresent();
 
             switch (Event.current.type)
             {

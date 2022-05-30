@@ -519,6 +519,16 @@ namespace Crest
                         (so) => OceanRenderer.FixSetFeatureEnabled(so, "_debugSettings._showSimulationData", false)
                     );
                 }
+
+                if (!EditorApplication.isPlaying)
+                {
+                    showMessage
+                    (
+                        "<i>Shallow Water Simulation</i> only works in Play Mode.",
+                        "Enter Play Mode to see simulation running.",
+                        ValidatedHelper.MessageType.Info
+                    );
+                }
             }
             return isValid;
         }

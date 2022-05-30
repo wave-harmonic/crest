@@ -164,9 +164,6 @@ MonoBehaviour:
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
   _paintData:
-    _worldSize: {x: 256, y: 256}
-    _centerPosition: {x: 0, y: 0}
-    _resolution: {x: 64, y: 64}
     _data:
     - 0
     - 0
@@ -4265,6 +4262,11 @@ MonoBehaviour:
     - 0
     - 0
     _dataChangeFlag: 0
+    _worldSize: {x: 256, y: 256}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!4 &75681064
 Transform:
   m_ObjectHideFlags: 0
@@ -4275,6 +4277,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
@@ -4316,9 +4319,6 @@ MonoBehaviour:
   _subdivisions: 1
   _version: 0
   _paintData:
-    _worldSize: {x: 128, y: 128}
-    _centerPosition: {x: 67.8, y: 57.7}
-    _resolution: {x: 64, y: 64}
     _data:
     - {x: 0, y: 0}
     - {x: 0, y: 0}
@@ -8417,6 +8417,11 @@ MonoBehaviour:
     - {x: 0, y: 0}
     - {x: 0, y: 0}
     _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 67.8, y: 57.7}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!4 &862645732
 Transform:
@@ -8428,6 +8433,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 67.8, y: 5, z: 57.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -8470,9 +8476,6 @@ MonoBehaviour:
   _version: 0
   _maxDisplacementVertical: 0
   _paintData:
-    _worldSize: {x: 128, y: 128}
-    _centerPosition: {x: -65, y: 91.4}
-    _resolution: {x: 64, y: 64}
     _data:
     - 0
     - 0
@@ -12571,6 +12574,11 @@ MonoBehaviour:
     - 0
     - 0
     _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: -65, y: 91.4}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!4 &966604913
 Transform:
   m_ObjectHideFlags: 0
@@ -12581,6 +12589,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -65, y: 5, z: 91.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -12620,6 +12629,11 @@ PrefabInstance:
     - target: {fileID: 2588902590926931974, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7972957055494851339, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _mode
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7972957055494851339, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
@@ -53454,6 +53468,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 56.5, y: 5, z: 53.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -53502,6 +53517,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 46.16, y: 5, z: 41.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -53543,9 +53559,6 @@ MonoBehaviour:
   _subdivisions: 1
   _version: 0
   _paintData:
-    _worldSize: {x: 256, y: 256}
-    _centerPosition: {x: -16.8, y: 0}
-    _resolution: {x: 64, y: 64}
     _data:
     - 0
     - 0
@@ -57644,6 +57657,11 @@ MonoBehaviour:
     - 0
     - 0
     _dataChangeFlag: 0
+    _worldSize: {x: 256, y: 256}
+    _centerPosition: {x: -16.8, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!4 &1746708860
 Transform:
@@ -57655,6 +57673,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -16.8, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -57686,6 +57705,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 10, z: -0.000011444092}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1030721471}
   m_RootOrder: 2
@@ -57703,6 +57723,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _mode: 0
   _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -57717,9 +57738,6 @@ MonoBehaviour:
   _resolution: 64
   _debugDrawSlicesInEditor: 0
   _paintData:
-    _worldSize: {x: 128, y: 128}
-    _centerPosition: {x: 0, y: -0.000011444092}
-    _resolution: {x: 64, y: 64}
     _data:
     - {x: 0, y: 0}
     - {x: 0, y: 0}
@@ -61818,10 +61836,14 @@ MonoBehaviour:
     - {x: 0, y: 0}
     - {x: 0, y: 0}
     _dataChangeFlag: 0
-  _splineSettings:
-    _overrideSplineSettings: 0
-    _radius: 50
-    _subdivisions: 1
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: -0.000011444092}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _overrideSplineSettings: 0
+  _radius: 50
+  _subdivisions: 1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0

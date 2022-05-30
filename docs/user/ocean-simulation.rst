@@ -242,6 +242,8 @@ The following input shaders are provided under *Crest/Inputs/Foam*:
    Useful for removing foam from unwanted areas.
 
 
+.. _foam-settings:
+
 Simulation Settings
 ^^^^^^^^^^^^^^^^^^^
 

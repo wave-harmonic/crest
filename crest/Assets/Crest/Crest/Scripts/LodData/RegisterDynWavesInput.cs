@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Dynamic Waves Input")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#dynamic-waves")]
+    [CrestHelpURL("user/ocean-simulation", "dynamic-waves")]
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
     {
         /// <summary>

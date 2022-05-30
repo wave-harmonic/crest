@@ -16,7 +16,7 @@ namespace Crest
     /// clip the surface of the ocean.
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface")]
+    [CrestHelpURL("user/ocean-simulation", "clip-surface")]
     public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintable
     {
         /// <summary>

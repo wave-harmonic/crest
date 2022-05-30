@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsDynamicWaves", menuName = "Crest/Dynamic Wave Sim Settings", order = 10000)]
-    [HelpURL(HELP_URL)]
+    [CrestHelpURL("user/ocean-simulation", "dynamic-waves-settings")]
     public class SimSettingsWave : SimSettingsBase
     {
         /// <summary>
@@ -19,8 +19,6 @@ namespace Crest
 #pragma warning disable 414
         int _version = 0;
 #pragma warning restore 414
-
-        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#simulation-settings";
 
         //[Header("Range")]
         [Range(0f, 32f), Tooltip("NOT CURRENTLY WORKING. The wave sim will not run if the simulation grid is smaller in resolution than this size. Useful to limit sim range for performance."),
@@ -49,22 +47,4 @@ namespace Crest
         [Range(0f, 64f), Tooltip("Multiplier for gravity. More gravity means dynamic waves will travel faster.")]
         public float _gravityMultiplier = 1f;
     }
-
-#if UNITY_EDITOR
-    [CustomEditor(typeof(SimSettingsWave), true), CanEditMultipleObjects]
-    class SimSettingsWaveEditor : SimSettingsBaseEditor
-    {
-        public override void OnInspectorGUI()
-        {
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Open Online Help Page"))
-            {
-                Application.OpenURL(SimSettingsWave.HELP_URL);
-            }
-            EditorGUILayout.Space();
-
-            base.OnInspectorGUI();
-        }
-    }
-#endif
 }

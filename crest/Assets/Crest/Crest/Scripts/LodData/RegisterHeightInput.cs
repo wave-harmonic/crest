@@ -45,7 +45,7 @@ namespace Crest
         [Header("Paint Settings")]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
-        public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Animated Waves/Painted Height");
+        public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Sea Floor Depth/Base Water Height Painted");
 
         protected override void PreparePaintInputMaterial(Material mat)
         {

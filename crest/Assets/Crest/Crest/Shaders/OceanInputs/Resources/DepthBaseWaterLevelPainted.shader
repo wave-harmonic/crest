@@ -4,9 +4,11 @@
 
 // Adds height from the Painting feature
 
-// TODO this is actually writing into the depth cache - setting the water level! By luck y is the correct channel.
+// Unintuitively, this writes into SeaFloorDepth data rather than AnimWaves data because it changes
+// base water level (rather than writing a displacement). This is better for precision and allows
+// waves to apply nicely on top.
 
-Shader "Hidden/Crest/Inputs/Animated Waves/Painted Height"
+Shader "Hidden/Crest/Inputs/Sea Floor Depth/Base Water Height Painted"
 {
 	SubShader
 	{
@@ -68,7 +70,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Painted Height"
 				return o;
 			}
 
-			half4 Frag( Varyings input ) : SV_Target
+			float2 Frag( Varyings input ) : SV_Target
 			{
 				half result = 0.0;
 
@@ -82,7 +84,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Painted Height"
 					}
 				}
 
-				return _Weight * float4(0.0, result, 0.0, 0.0);
+				// Terrain height in x channel and water level offset in y channel.
+				return float2(0.0, _Weight * result);
 			}
 			ENDCG
 		}

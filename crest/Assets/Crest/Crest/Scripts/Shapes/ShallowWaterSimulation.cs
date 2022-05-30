@@ -490,6 +490,36 @@ namespace Crest
             // - AnimWaves - always on
             // - Depths - actually this can work without terrain depths, like for a "swimming" pool case where sea floor is trivially flat.
 
+            if (_debugSettings != null)
+            {
+                if (!_debugSettings._doUpdate || !_debugSettings._doAdvect || !_debugSettings._doUpdateH || !_debugSettings._doUpdateVels)
+                {
+                    showMessage
+                    (
+                        "Debug options currently disable one or more stages of the simulation.",
+                        "Enable all simulation stages.",
+                        ValidatedHelper.MessageType.Warning, this,
+                        (so) =>
+                        {
+                            OceanRenderer.FixSetFeatureEnabled(so, "_debugSettings._doUpdate", true);
+                            OceanRenderer.FixSetFeatureEnabled(so, "_debugSettings._doAdvect", true);
+                            OceanRenderer.FixSetFeatureEnabled(so, "_debugSettings._doUpdateH", true);
+                            OceanRenderer.FixSetFeatureEnabled(so, "_debugSettings._doUpdateVels", true);
+                        }
+                    );
+                }
+
+                if (_debugSettings._showSimulationData)
+                {
+                    showMessage
+                    (
+                        "Debug drawing of simulation data currently active.",
+                        "Disable debug drawing.",
+                        ValidatedHelper.MessageType.Info, this,
+                        (so) => OceanRenderer.FixSetFeatureEnabled(so, "_debugSettings._showSimulationData", false)
+                    );
+                }
+            }
             return isValid;
         }
     }

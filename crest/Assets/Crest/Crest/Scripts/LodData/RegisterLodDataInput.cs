@@ -478,22 +478,14 @@ namespace Crest
                 }
             }
 
-            if (ocean != null && !FeatureEnabled(ocean))
+            if (ocean != null)
             {
-                showMessage($"<i>{FeatureToggleLabel}</i> must be enabled on the <i>OceanRenderer</i> component.",
-                    $"Enable the <i>{FeatureToggleLabel}</i> option on the <i>OceanRenderer</i> component.",
-                    ValidatedHelper.MessageType.Error, ocean,
-                    (so) => OceanRenderer.FixSetFeatureEnabled(so, FeatureToggleName, true)
-                    );
-                isValid = false;
-            }
-
-            if (ocean != null && !string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
-            {
-                showMessage(MaterialFeatureDisabledError, MaterialFeatureDisabledFix,
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
-                    (material) => ValidatedHelper.FixSetMaterialOptionEnabled(material, RequiredShaderKeyword, RequiredShaderKeywordProperty, true));
-                isValid = false;
+                if (!OceanRenderer.ValidateFeatureEnabled(ocean, showMessage, FeatureEnabled,
+                    FeatureToggleLabel, FeatureToggleName, RequiredShaderKeyword, RequiredShaderKeywordProperty,
+                    MaterialFeatureDisabledError, MaterialFeatureDisabledFix))
+                {
+                    isValid = false;
+                }
             }
 
             return isValid;

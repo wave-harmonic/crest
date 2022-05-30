@@ -51,7 +51,7 @@ namespace Crest
 
         [Tooltip("Where the source of the clipping will come from.")]
         [SerializeField]
-        internal Mode _mode = Mode.Painted;
+        internal Mode _mode = Mode.Primitive;
 
         [Tooltip("The primitive to render (signed distance) into the simulation.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]

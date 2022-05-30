@@ -109,7 +109,6 @@ namespace Crest
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
         }
 
-        public CPUTexture2DBase Texture => _paintData;
         public Vector2 WorldSize => _paintData.WorldSize;
         public Transform Transform => transform;
 

@@ -2,12 +2,17 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// General helpers for interactive painting system.
+
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
+    /// <summary>
+    /// Interface implemented by data used to expose some high level properties
+    /// </summary>
     public interface IPaintedData
     {
         Texture2D Texture { get; }
@@ -15,6 +20,9 @@ namespace Crest
         float BrushRadius { get; }
     }
 
+    /// <summary>
+    /// Interface implemented by 'clients' / receivers of painted data.
+    /// </summary>
     public interface IPaintable
     {
         IPaintedData PaintedData { get; }
@@ -25,6 +33,9 @@ namespace Crest
         bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove);
     }
 
+    /// <summary>
+    /// Helper functions for various operations on data types.
+    /// </summary>
     public static class CPUTexturePaintHelpers
     {
         public static float PaintFnAlphaBlendFloat(float existingValue, float paintValue, float weight, bool remove)
@@ -109,8 +120,11 @@ namespace Crest
         }
     }
 
+    /// <summary>
+    /// Base class for a texture that is paintable by the user.
+    /// </summary>
     [Serializable]
-    public abstract class CPUTexture2DPaintable<T> : CPUTexture2D<T>, IPaintedData
+    public abstract class CPUTexture2DPaintable<DataType> : CPUTexture2D<DataType>, IPaintedData
     {
         // These two params have been around the houses. It doesn't really make sense to put them here, but it was awful having them shared across all
         // input types, and having them as statics so they'd get lost after code changes. Perhaps they belong in a dictionary based on data type,
@@ -126,7 +140,7 @@ namespace Crest
         static int sp_ParamPaintedDataPosition = Shader.PropertyToID("_PaintedDataPosition");
         static int sp_ParamPaintedData = Shader.PropertyToID("_PaintedData");
 
-        public void PrepareMaterial(Material mat, Func<T, Color> colorConstructFn)
+        public void PrepareMaterial(Material mat, Func<DataType, Color> colorConstructFn)
         {
             mat.EnableKeyword("_PAINTED_ON");
 
@@ -135,7 +149,7 @@ namespace Crest
             mat.SetTexture(sp_ParamPaintedData, GetGPUTexture(colorConstructFn));
         }
 
-        public void UpdateMaterial(Material mat, Func<T, Color> colorConstructFn)
+        public void UpdateMaterial(Material mat, Func<DataType, Color> colorConstructFn)
         {
 #if UNITY_EDITOR
             // Any per-frame update. In editor keep it all fresh.
@@ -145,7 +159,7 @@ namespace Crest
 #endif
         }
 
-        public bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintWeight, T paintValue, float brushRadius, float brushStrength, Func<T, T, float, bool, T> paintFn, bool remove)
+        public bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintWeight, DataType paintValue, float brushRadius, float brushStrength, Func<DataType, DataType, float, bool, DataType> paintFn, bool remove)
         {
             return PaintSmoothstep(owner, paintPosition3, brushRadius, paintWeight * brushStrength, paintValue, paintFn, remove);
         }

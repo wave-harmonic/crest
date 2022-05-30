@@ -50,19 +50,26 @@ namespace Crest
         public static Color ColorConstructFnTwoChannel(Vector2 value) => new Color(value.x, value.y, 0f);
     }
 
+    /// <summary>
+    /// Stores a 2D grid of data of type specified by template argument. Serialised. Helpers including upload
+    /// to GPU.
+    /// </summary>
     [Serializable]
-    public abstract class CPUTexture2D<T> : CPUTexture2DBase
+    public abstract class CPUTexture2D<DataType>
     {
         [SerializeField, HideInInspector]
-        T[] _data;
+        DataType[] _data;
 
         [SerializeField, HideInInspector]
         bool _dataChangeFlag = false;
 
         Texture2D _textureGPU;
+        public Texture2D Texture => _textureGPU;
+
+        public abstract GraphicsFormat GraphicsFormat { get; }
 
         // Interpolation func(data[], dataResolutionX, bottomLeftCoord, fractional) return interpolated value
-        public bool Sample(Vector3 position3, Func<T[], int, Vector2Int, Vector2, T> interpolationFn, ref T result)
+        public bool Sample(Vector3 position3, Func<DataType[], int, Vector2Int, Vector2, DataType> interpolationFn, ref DataType result)
         {
             var position = new Vector2(position3.x, position3.z);
             var uv = (position - _centerPosition) / _worldSize + 0.5f * Vector2.one;
@@ -108,7 +115,7 @@ namespace Crest
         }
 
         // Paint func(Existing value, Paint value, Value weight) returns new value
-        protected bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintRadius, float paintWeight, T paintValue, Func<T, T, float, bool, T> paintFn, bool remove)
+        protected bool PaintSmoothstep(Component owner, Vector3 paintPosition3, float paintRadius, float paintWeight, DataType paintValue, Func<DataType, DataType, float, bool, DataType> paintFn, bool remove)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Crest:CPUTexture2D.PaintSmoothstep");
 
@@ -174,7 +181,7 @@ namespace Crest
             if (_data == null || _data.Length != _resolution.x * _resolution.y)
             {
                 // Could copy data to be more graceful
-                _data = new T[_resolution.x * _resolution.y];
+                _data = new DataType[_resolution.x * _resolution.y];
 
 #if UNITY_EDITOR
                 if (owner != null)
@@ -185,10 +192,8 @@ namespace Crest
             }
         }
 
-        public override Texture2D Texture => _textureGPU;
-
         // This may allocate the texture and update it with data if needed.
-        public Texture2D GetGPUTexture(Func<T, Color> colorConstructFn)
+        public Texture2D GetGPUTexture(Func<DataType, Color> colorConstructFn)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Crest:CPUTexture2D.GetGPUTexture");
 
@@ -222,7 +227,7 @@ namespace Crest
             return _textureGPU;
         }
 
-        public void Clear(Component owner, T value)
+        public void Clear(Component owner, DataType value)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Crest:CPUTexture2D.Clear");
 
@@ -238,28 +243,24 @@ namespace Crest
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        protected override void SetWorldSize(Vector2 newWorldSize)
+        protected void SetWorldSize(Vector2 newWorldSize)
         {
             // Could copy data to be more graceful
             _worldSize = newWorldSize;
         }
 
-        protected override void SetCenterPosition(Vector2 newCenterPosition)
+        protected void SetCenterPosition(Vector2 newCenterPosition)
         {
             // Could copy data to be more graceful..
             _centerPosition = newCenterPosition;
         }
 
-        protected override void SetResolution(Vector2Int newResolution)
+        protected void SetResolution(Vector2Int newResolution)
         {
             // Could copy data to be more graceful..
             _resolution = newResolution;
         }
-    }
 
-    [Serializable]
-    public abstract class CPUTexture2DBase
-    {
         [SerializeField]
         protected Vector2 _worldSize = Vector2.one * 128f;
         public Vector2 WorldSize
@@ -288,13 +289,5 @@ namespace Crest
             get => _resolution;
             set => SetResolution(value);
         }
-
-        protected abstract void SetWorldSize(Vector2 newWorldSize);
-        protected abstract void SetCenterPosition(Vector2 newCenterPosition);
-        protected abstract void SetResolution(Vector2Int newResolution);
-
-        public abstract Texture2D Texture { get; }
-
-        public abstract GraphicsFormat GraphicsFormat { get; }
     }
 }

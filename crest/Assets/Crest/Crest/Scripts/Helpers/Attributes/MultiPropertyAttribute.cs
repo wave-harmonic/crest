@@ -14,6 +14,7 @@ namespace Crest
 #if UNITY_EDITOR
     using Crest.EditorHelpers;
     using UnityEditor;
+    using System.Linq;
     using System.Reflection;
 #endif
 
@@ -178,5 +179,88 @@ namespace Crest
             }
         }
 #endif
+    }
+
+    /// <summary>
+    /// Allows an enum to render only a subset of options in subclasses.
+    /// </summary>
+    public class FilteredAttribute : DecoratedPropertyAttribute
+    {
+        public enum Mode
+        {
+            Include,
+            Exclude,
+        }
+
+#if UNITY_EDITOR
+        string[] _labels;
+        int[] _values;
+
+        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
+        {
+            if (property.propertyType != SerializedPropertyType.Enum)
+            {
+                EditorGUI.LabelField(position, label.text, "Filtered: must be an enum.");
+                return;
+            }
+
+            var attributes = property.serializedObject.targetObject.GetType()
+                .GetCustomAttributes<FilterEnumAttribute>(true)
+                .Where(x => x._property == property.name);
+
+            if (attributes.Count() == 0)
+            {
+                EditorGUI.PropertyField(position, property, label);
+                return;
+            }
+
+            Debug.AssertFormat(attributes.Count() == 1, "Crest: {0}.{1} has a subclass with too many DynamicEnumFilters",
+                drawer.fieldInfo.FieldType, property.name);
+
+            var attribute = attributes.First();
+
+            if (_labels == null || _values == null)
+            {
+                var labels = Enum.GetNames(drawer.fieldInfo.FieldType).ToList();
+                var values = ((int[])Enum.GetValues(drawer.fieldInfo.FieldType)).ToList();
+
+                // Filter enum entries.
+                for (var i = 0; i < labels.Count; i++)
+                {
+                    if (attribute._mode == Mode.Exclude && attribute._values.Contains(values[i]) ||
+                        attribute._mode == Mode.Include && !attribute._values.Contains(values[i]))
+                    {
+                        labels.RemoveAt(i);
+                        values.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                _labels = labels.ToArray();
+                _values = values.ToArray();
+            }
+
+            property.intValue = EditorGUI.IntPopup(position, label.text, property.intValue, _labels, _values);
+        }
+#endif
+    }
+
+    /// <summary>
+    /// Marks which enum options this subclass wants to use. Companion to FilteredAttribute.
+    /// Usage: [FilterEnum("_mode", FilteredAttribute.Mode.Include, (int)Mode.One, (int)Mode.Two)]
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class FilterEnumAttribute : Attribute
+    {
+        public string _property;
+        public FilteredAttribute.Mode _mode;
+        internal int[] _values;
+
+        public FilterEnumAttribute(string property, FilteredAttribute.Mode mode, params int[] values)
+        {
+            _mode = mode;
+            _values = values;
+            _property = property;
+        }
     }
 }

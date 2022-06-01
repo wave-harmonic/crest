@@ -27,7 +27,7 @@ Material:
   - _PROJECTION_BOTH
   - _SUBSURFACEHEIGHTLERP_ON
   m_LightmapFlags: 5
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}

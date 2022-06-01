@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
-using UnityEditor.EditorTools;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -57,6 +56,18 @@ namespace Crest
     [ExecuteAlways]
     public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
+        public enum Mode
+        {
+            Painted,
+            Spline,
+            CustomGeometryAndShader,
+            Primitive
+        }
+
+        [Header("Mode")]
+        [SerializeField, Filtered]
+        protected Mode _mode;
+
 #if UNITY_EDITOR
         [Header("--- CUSTOM GEOMETRY/SHADER MODE ---")]
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
@@ -104,8 +115,6 @@ namespace Crest
         protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
-        // If this is true, then the renderer should not be there as input source is from something else.
-        protected virtual bool RendererRequired => true;
         protected virtual bool SupportsMultiPassShaders => false;
 
         protected virtual void OnEnable()
@@ -118,40 +127,51 @@ namespace Crest
 
         protected virtual void OnDrawGizmosSelected()
         {
-            var mf = GetComponent<MeshFilter>();
-            if (mf)
+            if (_mode == Mode.CustomGeometryAndShader)
             {
-                Gizmos.color = GizmoColor;
-                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+                MeshFilter mf;
+                if (TryGetComponent(out mf))
+                {
+                    Gizmos.color = GizmoColor;
+                    Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+                }
             }
 
-            var paintable = this as IPaintable;
-            if (paintable != null)
+            if (_mode == Mode.Painted)
             {
-                PaintableEditor.DrawPaintAreaGizmo(paintable, GizmoColor);
+                var paintable = this as IPaintable;
+                if (paintable != null)
+                {
+                    PaintableEditor.DrawPaintAreaGizmo(paintable, GizmoColor);
+                }
             }
         }
 
         void InitRendererAndMaterial(bool verifyShader)
         {
-            _renderer = GetComponent<Renderer>();
-
-            if (RendererRequired && _renderer != null)
+            if (_mode == Mode.CustomGeometryAndShader)
             {
-#if UNITY_EDITOR
-                if (Application.isPlaying && verifyShader)
+                _renderer = GetComponent<Renderer>();
+
+                if (_renderer != null)
                 {
-                    ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, _checkShaderName ? ShaderPrefix : String.Empty);
-                }
+#if UNITY_EDITOR
+                    if (Application.isPlaying && verifyShader)
+                    {
+                        ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, _checkShaderName ? ShaderPrefix : String.Empty);
+                    }
 #endif
+                }
             }
-
-            var paintable = this as IPaintable;
-            var paintedInputShader = paintable?.PaintedInputShader;
-            if (paintedInputShader)
+            else if (_mode == Mode.Painted)
             {
-                _paintInputMaterial = new Material(paintedInputShader);
-                PreparePaintInputMaterial(_paintInputMaterial);
+                var paintable = this as IPaintable;
+                var paintedInputShader = paintable?.PaintedInputShader;
+                if (paintedInputShader)
+                {
+                    _paintInputMaterial = new Material(paintedInputShader);
+                    PreparePaintInputMaterial(_paintInputMaterial);
+                }
             }
         }
 
@@ -206,25 +226,31 @@ namespace Crest
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
             }
 
-            if (_paintInputMaterial)
+            if (_mode == Mode.Painted)
             {
-                buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
-            }
-            else if (_renderer)
-            {
-                _renderer.GetSharedMaterials(_sharedMaterials);
-                for (var i = 0; i < _sharedMaterials.Count; i++)
+                if (_paintInputMaterial)
                 {
-                    // Empty material slots is a user error, but skip so we do not spam errors.
-                    if (_sharedMaterials[i] == null)
+                    buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
+                }
+            }
+            else if (_mode == Mode.CustomGeometryAndShader)
+            {
+                if (_renderer)
+                {
+                    _renderer.GetSharedMaterials(_sharedMaterials);
+                    for (var i = 0; i < _sharedMaterials.Count; i++)
                     {
-                        continue;
-                    }
+                        // Empty material slots is a user error, but skip so we do not spam errors.
+                        if (_sharedMaterials[i] == null)
+                        {
+                            continue;
+                        }
 
-                    // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
-                    // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
-                    // Submesh count generally must equal number of materials.
-                    buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass: 0);
+                        // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
+                        // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
+                        // Submesh count generally must equal number of materials.
+                        buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass: 0);
+                    }
                 }
             }
         }
@@ -373,24 +399,27 @@ namespace Crest
         protected abstract string SplineShaderName { get; }
         protected abstract Vector2 DefaultCustomData { get; }
 
-        // TODO can we simply remove this property now that painted input is a good default option?
-        protected override bool RendererRequired => false;
+        //// TODO can we simply remove this property now that painted input is a good default option?
+        //protected override bool RendererRequired => false;
 
         protected float _splinePointHeightMin;
         protected float _splinePointHeightMax;
 
         void Awake()
         {
-            if (TryGetComponent(out _spline))
+            if (_mode == Mode.Spline)
             {
-                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
-                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
-                    ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
-
-                if (_splineMaterial == null)
+                if (TryGetComponent(out _spline))
                 {
-                    CreateSplineMaterial();
+                    var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                    var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
+                        ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+
+                    if (_splineMaterial == null)
+                    {
+                        CreateSplineMaterial();
+                    }
                 }
             }
         }
@@ -404,12 +433,15 @@ namespace Crest
         {
             if (weight <= 0f) return;
 
-            if (_splineMesh != null && _splineMaterial != null)
+            if (_mode == Mode.Spline)
             {
-                buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
+                if (_splineMesh != null && _splineMaterial != null)
+                {
+                    buf.SetGlobalFloat(sp_Weight, weight);
+                    buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                    buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
+                }
             }
             else
             {
@@ -443,40 +475,49 @@ namespace Crest
             // Check for spline and rebuild spline mesh each frame in edit mode
             if (!EditorApplication.isPlaying)
             {
-                if (_spline == null)
+                if (_mode == Mode.Spline)
                 {
-                    TryGetComponent(out _spline);
+                    UpdateSpline();
                 }
+            }
+        }
 
-                if (_spline != null)
-                {
-                    var radius = _overrideSplineSettings ? _radius : _spline.Radius;
-                    var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
-                        ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+        void UpdateSpline()
+        {
+            if (_spline == null)
+            {
+                TryGetComponent(out _spline);
+            }
 
-                    if (_splineMaterial == null)
-                    {
-                        CreateSplineMaterial();
-                    }
-                }
-                else
+            if (_spline != null)
+            {
+                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
+                    ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+
+                if (_splineMaterial == null)
                 {
-                    _splineMesh = null;
+                    CreateSplineMaterial();
                 }
+            }
+            else
+            {
+                _splineMesh = null;
             }
         }
 
         protected override void OnDrawGizmosSelected()
         {
-            if (_splineMesh != null)
+            base.OnDrawGizmosSelected();
+
+            if (_mode == Mode.Spline)
             {
-                Gizmos.color = GizmoColor;
-                Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
-            }
-            else
-            {
-                base.OnDrawGizmosSelected();
+                if (_splineMesh != null)
+                {
+                    Gizmos.color = GizmoColor;
+                    Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+                }
             }
         }
 
@@ -506,17 +547,27 @@ namespace Crest
 
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            var isValid = ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, RendererRequired, RendererOptional, _checkShaderName ? ShaderPrefix : String.Empty);
+            var isValid = true;
 
-            if (_checkShaderPasses && _paintInputMaterial != null && _paintInputMaterial.passCount > 1 && !SupportsMultiPassShaders)
+            // Check if Renderer component is/is not attached. Ran for any mode.
+            var rendererRequired = _mode == Mode.CustomGeometryAndShader;
+            if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, rendererRequired, RendererOptional, _checkShaderName ? ShaderPrefix : String.Empty))
             {
-                showMessage
-                (
-                    $"The shader <i>{_paintInputMaterial.shader.name}</i> for material <i>{_paintInputMaterial.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
-                    "See documentation for more information on what multi-pass shaders work or",
-                    "use a shader with a single pass.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
+                isValid = false;
+            }
+
+            if (_mode == Mode.Painted)
+            {
+                if (_checkShaderPasses && _paintInputMaterial != null && _paintInputMaterial.passCount > 1 && !SupportsMultiPassShaders)
+                {
+                    showMessage
+                    (
+                        $"The shader <i>{_paintInputMaterial.shader.name}</i> for material <i>{_paintInputMaterial.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
+                        "See documentation for more information on what multi-pass shaders work or",
+                        "use a shader with a single pass.",
+                        ValidatedHelper.MessageType.Warning, this
+                    );
+                }
             }
 
             if (_renderer != null)
@@ -537,6 +588,7 @@ namespace Crest
                 }
             }
 
+            // Validate that any water feature required for this input is enabled, if any
             if (ocean != null)
             {
                 if (!OceanRenderer.ValidateFeatureEnabled(ocean, showMessage, FeatureEnabled,
@@ -580,16 +632,31 @@ namespace Crest
         {
             bool isValid = base.Validate(ocean, showMessage);
 
-            // Is there a renderer? Check spline explicitly as the renderer may not be created (eg GO is inactive).
-            if (RendererRequired && !TryGetComponent<Renderer>(out _) && !TryGetComponent<Spline.Spline>(out _))
+            if (_mode == Mode.Spline)
             {
-                showMessage
-                (
-                    "A <i>Crest Spline</i> component is required to drive this data. Alternatively a <i>Renderer</i> can be added. Neither is currently attached to ocean input.",
-                    "Attach a <i>Crest Spline</i> component.",
-                    ValidatedHelper.MessageType.Error, gameObject,
-                    ValidatedHelper.FixAttachComponent<Spline.Spline>
-                );
+                if (!TryGetComponent<Spline.Spline>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Crest Spline</i> component is required to drive this data and none is attached to this ocean input GameObject.",
+                        "Attach a <i>Crest Spline</i> component.",
+                        ValidatedHelper.MessageType.Error, gameObject,
+                        ValidatedHelper.FixAttachComponent<Spline.Spline>
+                    );
+                }
+            }
+            else if (_mode == Mode.CustomGeometryAndShader)
+            {
+                if (!TryGetComponent<Renderer>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Renderer</i> component is required to drive this data and none is attached to this ocean input GameObject.",
+                        "Attach a <i>Renderer</i> component.",
+                        ValidatedHelper.MessageType.Error, gameObject,
+                        ValidatedHelper.FixAttachComponent<MeshRenderer>
+                    );
+                }
             }
 
             return isValid;

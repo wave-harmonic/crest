@@ -17,6 +17,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [CrestHelpURL("user/ocean-simulation", "clip-surface")]
+    [FilterEnum("_mode", FilteredAttribute.Mode.Exclude, (int)Mode.Spline)]
     public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintable
     {
         /// <summary>
@@ -30,13 +31,6 @@ namespace Crest
 
         const string k_SignedDistanceShaderPath = "Hidden/Crest/Inputs/Clip Surface/Signed Distance";
 
-        public enum Mode
-        {
-            Geometry,
-            Primitive,
-            Painted
-        }
-
         // Have this match UnityEngine.PrimitiveType.
         public enum Primitive
         {
@@ -47,25 +41,23 @@ namespace Crest
         bool _enabled = true;
         public override bool Enabled => _enabled;
 
-        [Header("Clip Surface Input Options")]
-
-        [Tooltip("Where the source of the clipping will come from.")]
-        [SerializeField]
-        internal Mode _mode = Mode.Primitive;
+        [Header("--- PRIMITIVE MODE ---")]
 
         [Tooltip("The primitive to render (signed distance) into the simulation.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         Primitive _primitive = Primitive.Cube;
 
+        // TODO is this really specific to PRIMITIVE mode?
         [Tooltip("Order (ascending) that this input will be rendered into the clip surface data.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         int _order = 0;
 
+        // TODO is this really specific to PRIMITIVE mode?
         [Tooltip("Removes clip surface data instead of adding it.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         bool _inverted = false;
 
-        [Header("3D Clipping Options")]
+        [Header("--- 3D CLIPPING OPTIONS ---")]
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
         [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = false;
@@ -83,7 +75,7 @@ namespace Crest
         protected override bool FollowHorizontalMotion => true;
 
         #region Painting
-        [Header("Paint Settings")]
+        [Header("--- PAINT MODE ---")]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
@@ -207,7 +199,7 @@ namespace Crest
                 return;
             }
 
-            if (_mode == Mode.Geometry && (_renderer == null || _sharedMaterials.Count == 0))
+            if (_mode == Mode.CustomGeometryAndShader && (_renderer == null || _sharedMaterials.Count == 0))
             {
                 return;
             }
@@ -250,7 +242,7 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null || (_mode == Mode.Geometry && _renderer == null))
+            if (OceanRenderer.Instance == null || (_mode == Mode.CustomGeometryAndShader && _renderer == null))
             {
                 return;
             }
@@ -291,7 +283,7 @@ namespace Crest
                     _mpb = new PropertyWrapperMPB();
                 }
 
-                if (_mode == Mode.Geometry)
+                if (_mode == Mode.CustomGeometryAndShader)
                 {
                     _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
                 }
@@ -304,7 +296,7 @@ namespace Crest
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
 
-                if (_mode == Mode.Geometry)
+                if (_mode == Mode.CustomGeometryAndShader)
                 {
                     _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
                 }
@@ -324,9 +316,6 @@ namespace Crest
         protected override string MaterialFeatureDisabledError => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;
         protected override string MaterialFeatureDisabledFix => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 
-        protected override bool RendererRequired => _mode == Mode.Geometry;
-        protected override bool RendererOptional => _mode != Mode.Geometry;
-
         // Use Unity's UV sphere mesh for gizmos as Gizmos.DrawSphere is too low resolution.
         static Mesh s_SphereMesh;
 
@@ -334,13 +323,13 @@ namespace Crest
         {
             Gizmos.color = GizmoColor;
 
-            if(_mode == Mode.Painted)
+            if (_mode == Mode.Painted)
             {
                 base.OnDrawGizmosSelected();
                 return;
             }
 
-            if (_mode == Mode.Geometry)
+            if (_mode == Mode.CustomGeometryAndShader)
             {
                 if (TryGetComponent<MeshFilter>(out var mf))
                 {
@@ -350,32 +339,35 @@ namespace Crest
                 return;
             }
 
-            // Show gizmo for quad which encompasses the shape.
-            Gizmos.matrix = QuadMatrix;
-            Gizmos.DrawWireMesh(QuadMesh);
-
-            Gizmos.matrix = transform.localToWorldMatrix;
-
-            switch (_primitive)
+            if (_mode == Mode.Primitive)
             {
-                case Primitive.Sphere:
-                    if (s_SphereMesh == null)
-                    {
-                        s_SphereMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-                    }
+                // Show gizmo for quad which encompasses the shape.
+                Gizmos.matrix = QuadMatrix;
+                Gizmos.DrawWireMesh(QuadMesh);
 
-                    // Render mesh and wire sphere at default size (0.5m radius) which is scaled by gizmo matrix.
-                    Gizmos.DrawMesh(s_SphereMesh, submeshIndex: 0, Vector3.zero, Quaternion.identity, Vector3.one);
-                    Gizmos.DrawWireSphere(Vector3.zero, 0.5f);
-                    break;
-                case Primitive.Cube:
-                    // Render mesh and wire box at default size which is scaled by gizmo matrix.
-                    Gizmos.DrawCube(Vector3.zero, Vector3.one);
-                    Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
-                    break;
-                default:
-                    Debug.LogError("Crest: Not a valid primitive type!");
-                    break;
+                Gizmos.matrix = transform.localToWorldMatrix;
+
+                switch (_primitive)
+                {
+                    case Primitive.Sphere:
+                        if (s_SphereMesh == null)
+                        {
+                            s_SphereMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+                        }
+
+                        // Render mesh and wire sphere at default size (0.5m radius) which is scaled by gizmo matrix.
+                        Gizmos.DrawMesh(s_SphereMesh, submeshIndex: 0, Vector3.zero, Quaternion.identity, Vector3.one);
+                        Gizmos.DrawWireSphere(Vector3.zero, 0.5f);
+                        break;
+                    case Primitive.Cube:
+                        // Render mesh and wire box at default size which is scaled by gizmo matrix.
+                        Gizmos.DrawCube(Vector3.zero, Vector3.one);
+                        Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+                        break;
+                    default:
+                        Debug.LogError("Crest: Not a valid primitive type!");
+                        break;
+                }
             }
         }
 #endif
@@ -396,7 +388,7 @@ namespace Crest
             if (_version == 0)
             {
                 // The user is using geometry for clipping.
-                _mode = Mode.Geometry;
+                _mode = Mode.CustomGeometryAndShader;
 
                 _version = 1;
             }

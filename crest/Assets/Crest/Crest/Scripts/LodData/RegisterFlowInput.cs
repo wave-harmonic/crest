@@ -16,6 +16,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     [CrestHelpURL("user/ocean-simulation", "flow")]
+    [FilterEnum("_mode", FilteredAttribute.Mode.Exclude, (int)Mode.Primitive)]
     public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>, IPaintable
     {
         /// <summary>
@@ -41,7 +42,7 @@ namespace Crest
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
 
         #region Painting
-        [Header("Paint Settings")]
+        [Header("--- PAINT MODE ---")]
         public CPUTexture2DPaintable_RG16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");

@@ -13,6 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
     [CrestHelpURL("user/water-bodies")]
+    [FilterEnum("_mode", FilteredAttribute.Mode.Exclude, (int)Mode.Primitive)]
     public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, IPaintable
     {
         /// <summary>
@@ -80,13 +81,13 @@ namespace Crest
 
         protected override bool GetQueue(out int queue)
         {
-            // TODO another symptom of murky input situation. What should happen here? Goal - make this apply strictly after
-            // spline height, because spline height stomps (necessarily i think - needs to write its height not add it).
-            if (!GetComponent<Spline.Spline>())
+            // Make this apply strictly after spline height, because spline height stomps (necessarily i think - needs to write its height not add it).
+            if (_mode == Mode.Spline)
             {
                 queue = -1000;
                 return true;
             }
+
             return base.GetQueue(out queue);
         }
 
@@ -99,22 +100,33 @@ namespace Crest
                 return;
             }
 
+            UpdateMaxDisplacementReporting();
+        }
+
+        void UpdateMaxDisplacementReporting()
+        {
             var maxDispVert = _maxDisplacementVertical;
 
-            // let ocean system know how far from the sea level this shape may displace the surface
-            if (_renderer != null)
+            // Let ocean system know how far from the sea level this shape may displace the surface
+            if (_mode == Mode.CustomGeometryAndShader)
             {
-                var minY = _renderer.bounds.min.y;
-                var maxY = _renderer.bounds.max.y;
-                var seaLevel = OceanRenderer.Instance.SeaLevel;
-                maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
+                if (_renderer != null)
+                {
+                    var minY = _renderer.bounds.min.y;
+                    var maxY = _renderer.bounds.max.y;
+                    var seaLevel = OceanRenderer.Instance.SeaLevel;
+                    maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
+                }
             }
-            else if (_splineMaterial != null &&
-                ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
+            else if (_mode == Mode.Spline)
             {
-                var seaLevel = OceanRenderer.Instance.SeaLevel;
-                maxDispVert = Mathf.Max(maxDispVert,
-                    Mathf.Abs(seaLevel - _splinePointHeightMin), Mathf.Abs(seaLevel - _splinePointHeightMax));
+                if (_splineMaterial != null &&
+                    ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
+                {
+                    var seaLevel = OceanRenderer.Instance.SeaLevel;
+                    maxDispVert = Mathf.Max(maxDispVert,
+                        Mathf.Abs(seaLevel - _splinePointHeightMin), Mathf.Abs(seaLevel - _splinePointHeightMax));
+                }
             }
 
             if (maxDispVert > 0f)

@@ -47,12 +47,10 @@ namespace Crest
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         Primitive _primitive = Primitive.Cube;
 
-        // TODO is this really specific to PRIMITIVE mode?
         [Tooltip("Order (ascending) that this input will be rendered into the clip surface data.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         int _order = 0;
 
-        // TODO is this really specific to PRIMITIVE mode?
         [Tooltip("Removes clip surface data instead of adding it.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         bool _inverted = false;

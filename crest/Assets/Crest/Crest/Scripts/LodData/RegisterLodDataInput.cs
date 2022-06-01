@@ -58,6 +58,7 @@ namespace Crest
     public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
 #if UNITY_EDITOR
+        [Header("--- CUSTOM GEOMETRY/SHADER MODE ---")]
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         [Predicated(typeof(Renderer)), DecoratedField]
         bool _checkShaderName = true;
@@ -355,7 +356,9 @@ namespace Crest
         where LodDataType : LodDataMgr
         where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
-        [Header("Spline settings")]
+        // TODO Would be nice for this section to disappear if we're not in spline mode. I tried disabling but it doesnt disable the header,
+        // and predication already exists below so would have to be extended to multiple-predication.
+        [Header("--- SPLINE MODE ---")]
         [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField]
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField]

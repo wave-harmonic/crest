@@ -38,12 +38,11 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => true;
 
-        [Header("Height Input Settings")]
-        [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
-        float _maxDisplacementVertical = 0f;
-
         #region Painting
-        [Header("Paint Settings")]
+        // TODO Would be nice if this section would disappear if not in painting mode. I could use predication but it stops _paintData from being expandable.
+        // Potentially this could be called 'a feature' if spline/custom geo/painting settings were all inside subobjects, predication would prevent them being
+        // expanded. However the little expand triangle thing is still clickable which is dodgy, and maybe in the future predication might work on subobjects.
+        [Header("--- PAINT MODE ---")]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Sea Floor Depth/Base Water Height Painted");
@@ -74,6 +73,10 @@ namespace Crest
             return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.01f : 0.02f, _paintData.BrushRadius, _paintData._brushStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
         }
         #endregion
+
+        [Header("--- OTHER SETTINGS ---")]
+        [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
+        float _maxDisplacementVertical = 0f;
 
         protected override bool GetQueue(out int queue)
         {

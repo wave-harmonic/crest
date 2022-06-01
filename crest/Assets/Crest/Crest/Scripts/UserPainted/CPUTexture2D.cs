@@ -221,7 +221,7 @@ namespace Crest
             _resolution = newResolution;
         }
 
-        [SerializeField]
+        [SerializeField, DecoratedField]
         protected Vector2 _worldSize = Vector2.one * 128f;
         public Vector2 WorldSize
         {
@@ -242,7 +242,7 @@ namespace Crest
             set => SetCenterPosition(new Vector2(value.x, value.z));
         }
 
-        [SerializeField]
+        [SerializeField, DecoratedField]
         protected Vector2Int _resolution = Vector2Int.one * 64;
         public Vector2Int Resolution
         {

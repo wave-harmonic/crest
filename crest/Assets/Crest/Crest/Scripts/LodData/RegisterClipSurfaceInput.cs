@@ -136,6 +136,12 @@ namespace Crest
             }
         }
 
+        private void Reset()
+        {
+            // Primitive is the best default for clipping, so override the default defined in the base class.
+            _mode = Mode.Primitive;
+        }
+
         protected override void Start()
         {
             base.Start();

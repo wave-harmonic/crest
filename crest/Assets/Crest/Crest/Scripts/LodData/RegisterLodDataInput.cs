@@ -69,13 +69,13 @@ namespace Crest
         protected Mode _mode;
 
 #if UNITY_EDITOR
-        [Header("--- CUSTOM GEOMETRY/SHADER MODE ---")]
+        [Header("Custom Geometry And Shader Mode Settings")]
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
-        [Predicated(typeof(Renderer)), DecoratedField]
+        [Predicated("_mode", inverted: true, Mode.CustomGeometryAndShader), DecoratedField]
         bool _checkShaderName = true;
 
         [SerializeField, Tooltip("Check that the shader applied to this object has only a single pass as only the first pass is executed for most inputs.")]
-        [Predicated(typeof(Renderer)), DecoratedField]
+        [Predicated("_mode", inverted: true, Mode.CustomGeometryAndShader), DecoratedField]
         bool _checkShaderPasses = true;
 #endif
 
@@ -286,7 +286,7 @@ namespace Crest
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
 
-        [SerializeField, Predicated(typeof(Renderer)), DecoratedField]
+        [SerializeField, Predicated("_mode", inverted: true, Mode.CustomGeometryAndShader), DecoratedField]
         bool _disableRenderer = true;
 
         int _registeredQueueValue = int.MinValue;
@@ -382,14 +382,12 @@ namespace Crest
         where LodDataType : LodDataMgr
         where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
-        // TODO Would be nice for this section to disappear if we're not in spline mode. I tried disabling but it doesnt disable the header,
-        // and predication already exists below so would have to be extended to multiple-predication.
-        [Header("--- SPLINE MODE ---")]
-        [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField]
+        [Header("Spline Mode Settings")]
+        [SerializeField, Predicated("_mode", inverted: true, Mode.Spline), DecoratedField]
         bool _overrideSplineSettings = false;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField]
+        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 20f;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
 
         protected Material _splineMaterial;
@@ -398,9 +396,6 @@ namespace Crest
 
         protected abstract string SplineShaderName { get; }
         protected abstract Vector2 DefaultCustomData { get; }
-
-        //// TODO can we simply remove this property now that painted input is a good default option?
-        //protected override bool RendererRequired => false;
 
         protected float _splinePointHeightMin;
         protected float _splinePointHeightMax;

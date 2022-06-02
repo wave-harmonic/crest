@@ -41,7 +41,7 @@ namespace Crest
         bool _enabled = true;
         public override bool Enabled => _enabled;
 
-        [Header("--- PRIMITIVE MODE ---")]
+        [Header("Primitive Mode Settings")]
 
         [Tooltip("The primitive to render (signed distance) into the simulation.")]
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
@@ -57,7 +57,7 @@ namespace Crest
         [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
         bool _inverted = false;
 
-        [Header("--- 3D CLIPPING OPTIONS ---")]
+        [Header("3D Clipping Options")]
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
         [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = false;
@@ -75,7 +75,8 @@ namespace Crest
         protected override bool FollowHorizontalMotion => true;
 
         #region Painting
-        [Header("--- PAINT MODE ---")]
+        [Header("Paint Mode Settings")]
+        [Predicated("_mode", inverted: true, Mode.Painted), DecoratedField]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");

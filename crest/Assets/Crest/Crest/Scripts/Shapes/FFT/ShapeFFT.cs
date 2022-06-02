@@ -96,7 +96,8 @@ namespace Crest
 #pragma warning restore 414
 
         #region Painting
-        [Header("Painting Settings")]
+        [Header("Paint Mode Settings")]
+        [Predicated("_mode", inverted: true, Mode.Painted), DecoratedField]
         public CPUTexture2DPaintable_RG16_AddBlend _paintData;
         void PreparePaintInputMaterial(Material mat)
         {
@@ -123,8 +124,8 @@ namespace Crest
         }
         #endregion
 
-        [Header("Spline Settings")]
-        [SerializeField]
+        [Header("Spline Mode Settings")]
+        [SerializeField, Predicated("_mode", inverted: true, Mode.Spline), DecoratedField]
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 50f;

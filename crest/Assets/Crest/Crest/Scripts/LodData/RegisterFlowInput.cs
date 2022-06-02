@@ -42,7 +42,8 @@ namespace Crest
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
 
         #region Painting
-        [Header("--- PAINT MODE ---")]
+        [Header("Paint Mode Settings")]
+        [Predicated("_mode", inverted: true, Mode.Painted), DecoratedField]
         public CPUTexture2DPaintable_RG16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");

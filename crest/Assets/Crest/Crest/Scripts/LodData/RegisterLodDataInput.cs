@@ -596,7 +596,32 @@ namespace Crest
                 }
             }
 
+            if (_mode != Mode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
+            {
+                showMessage
+                (
+                    "A <i>Renderer</i> component is present on this GameObject but will not be used by Crest.",
+                    "Change the mode to <i>CustomGeometryAndShader</i> to use this renderer as the input.",
+                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, Mode.CustomGeometryAndShader)
+                );
+            }
+
+            if (_mode != Mode.Spline && TryGetComponent<Spline.Spline>(out _))
+            {
+                showMessage
+                (
+                    "A <i>Spline</i> component is present on this GameObject but will not be used by Crest.",
+                    "Change the mode to <i>Spline</i> to use this renderer as the input.",
+                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, Mode.Spline)
+                );
+            }
+
             return isValid;
+        }
+
+        void FixSetMode(SerializedObject registerInputComponent, Mode mode)
+        {
+            registerInputComponent.FindProperty("_mode").enumValueIndex = (int)mode;
         }
     }
 

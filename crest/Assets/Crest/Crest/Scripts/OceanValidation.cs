@@ -162,23 +162,6 @@ namespace Crest
                     return false;
                 }
             }
-            else
-            {
-                if (renderer)
-                {
-                    showMessage
-                    (
-                        "A <i>MeshRenderer</i> is present but is unused and should be removed.",
-                        "Remove the <i>MeshRenderer</i> component.",
-                        MessageType.Warning, gameObject,
-                        FixRemoveRenderer
-                    );
-
-                    return false;
-                }
-
-                return true;
-            }
 
             return true;
         }

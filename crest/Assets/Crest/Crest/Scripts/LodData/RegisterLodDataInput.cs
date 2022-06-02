@@ -68,7 +68,7 @@ namespace Crest
         [SerializeField, Filtered]
         protected Mode _mode;
 
-        public bool ShowPaintedDataPreview => _mode == Mode.Painted;
+        public bool ShowPaintingUI => _mode == Mode.Painted;
 
 #if UNITY_EDITOR
         [Header("Custom Geometry And Shader Mode Settings")]

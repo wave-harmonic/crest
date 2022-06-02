@@ -34,7 +34,7 @@ namespace Crest
 
         void MakeDirty();
 
-        bool ShowPaintedDataPreview { get; }
+        bool ShowPaintingUI { get; }
     }
 
     /// <summary>

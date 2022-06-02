@@ -12,7 +12,7 @@ namespace Crest
     /// </summary>
     public class UserPaintedDataPreview : ObjectPreview
     {
-        public override bool HasPreviewGUI() => (target as IPaintable).ShowPaintedDataPreview;
+        public override bool HasPreviewGUI() => (target as IPaintable).ShowPaintingUI;
 
         /// <summary>
         /// Text displayed on top of preview.

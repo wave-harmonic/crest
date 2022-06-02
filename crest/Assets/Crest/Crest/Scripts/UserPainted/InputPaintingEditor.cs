@@ -30,6 +30,8 @@ namespace Crest
 
         void OnInspectorGUIPainting(IPaintable target)
         {
+            if (!target.ShowPaintingUI) return;
+
             EditorGUILayout.Space();
 
             if (InputPaintingEditorTool.CurrentlyPainting)

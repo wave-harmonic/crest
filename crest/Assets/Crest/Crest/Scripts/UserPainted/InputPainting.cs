@@ -33,6 +33,8 @@ namespace Crest
         bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove);
 
         void MakeDirty();
+
+        bool ShowPaintedDataPreview { get; }
     }
 
     /// <summary>

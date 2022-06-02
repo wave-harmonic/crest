@@ -68,6 +68,8 @@ namespace Crest
         [SerializeField, Filtered]
         protected Mode _mode;
 
+        public bool ShowPaintedDataPreview => _mode == Mode.Painted;
+
 #if UNITY_EDITOR
         [Header("Custom Geometry And Shader Mode Settings")]
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]

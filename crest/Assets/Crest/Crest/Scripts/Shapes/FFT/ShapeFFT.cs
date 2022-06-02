@@ -43,6 +43,7 @@ namespace Crest
 
         [Header("Mode")]
         public Mode _mode = Mode.Global;
+        public bool ShowPaintedDataPreview => _mode == Mode.Painted;
 
         [Header("Wave Conditions")]
         [Tooltip("Impacts how aligned waves are with wind.")]

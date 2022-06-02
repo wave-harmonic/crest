@@ -98,17 +98,6 @@ namespace Crest
             mat.SetInt(intParam, value);
         }
 
-        static void FixRemoveRenderer(SerializedObject componentOrGameObject)
-        {
-            // We will either get the component or the GameObject it is attached to.
-            var gameObject = componentOrGameObject.targetObject is GameObject
-                ? componentOrGameObject.targetObject as GameObject
-                : (componentOrGameObject.targetObject as Component).gameObject;
-            var renderer = gameObject.GetComponent<MeshRenderer>();
-            Undo.DestroyObjectImmediate(renderer);
-            EditorUtility.SetDirty(gameObject);
-        }
-
         public static void FixAddMissingMathPackage(SerializedObject componentOrGameObject)
         {
             PackageManagerHelpers.AddMissingPackage("com.unity.mathematics");
@@ -119,48 +108,35 @@ namespace Crest
             PackageManagerHelpers.AddMissingPackage("com.unity.burst");
         }
 
-        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, string shaderPrefix) where T : Renderer
-        {
-            return ValidateRenderer<T>(gameObject, showMessage, isRendererRequired: true, isRendererOptional: false, shaderPrefix);
-        }
-
-        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, bool isRendererRequired, bool isRendererOptional, string shaderPrefix = null) where T : Renderer
+        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, string shaderPrefix = null) where T : Renderer
         {
             gameObject.TryGetComponent<T>(out var renderer);
 
-            if (isRendererRequired)
+            if (renderer == null)
             {
-                if (renderer == null)
+                var type = typeof(T);
+                var name = type.Name;
+
+                // Give users a hint as to what "Renderer" really means.
+                if (type == typeof(Renderer))
                 {
-                    // If renderer is optional, then a different error message with all the optionals should be presented.
-                    if (isRendererOptional)
-                    {
-                        return true;
-                    }
-
-                    var type = typeof(T);
-                    var name = type.Name;
-
-                    // Give users a hint as to what "Renderer" really means.
-                    if (type == typeof(Renderer))
-                    {
-                        name += " (Mesh, Trail etc)";
-                    }
-
-                    showMessage
-                    (
-                        $"A <i>{name}</i> component is required but none is attached to ocean input.",
-                        "Attach a <i>MeshRenderer</i> component.",
-                        MessageType.Error, gameObject,
-                        FixAttachComponent<MeshRenderer>
-                    );
-
-                    return false;
+                    name += " (Mesh, Trail etc)";
                 }
-                else if (!ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix))
-                {
-                    return false;
-                }
+
+                showMessage
+                (
+                    $"A <i>{name}</i> component is required but none is attached to ocean input.",
+                    "Attach a <i>MeshRenderer</i> component.",
+                    MessageType.Error, gameObject,
+                    FixAttachComponent<MeshRenderer>
+                );
+
+                return false;
+            }
+
+            if (!ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix))
+            {
+                return false;
             }
 
             return true;

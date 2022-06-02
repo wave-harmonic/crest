@@ -528,9 +528,6 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
-        // Whether there is an alternative methods than a renderer (like splines).
-        protected virtual bool RendererOptional => false;
-
         protected virtual string FeatureToggleLabel => null;
         protected virtual string FeatureToggleName => null;
         protected virtual bool FeatureEnabled(OceanRenderer ocean) => true;
@@ -546,11 +543,13 @@ namespace Crest
         {
             var isValid = true;
 
-            // Check if Renderer component is/is not attached. Ran for any mode.
-            var rendererRequired = _mode == Mode.CustomGeometryAndShader;
-            if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, rendererRequired, RendererOptional, _checkShaderName ? ShaderPrefix : String.Empty))
+            if (_mode == Mode.CustomGeometryAndShader)
             {
-                isValid = false;
+                // Check if Renderer component is attached.
+                if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, _checkShaderName ? ShaderPrefix : String.Empty))
+                {
+                    isValid = false;
+                }
             }
 
             if (_mode == Mode.Painted)
@@ -648,8 +647,6 @@ namespace Crest
 
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
     {
-        protected override bool RendererOptional => true;
-
         public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             bool isValid = base.Validate(ocean, showMessage);
@@ -664,19 +661,6 @@ namespace Crest
                         "Attach a <i>Crest Spline</i> component.",
                         ValidatedHelper.MessageType.Error, gameObject,
                         ValidatedHelper.FixAttachComponent<Spline.Spline>
-                    );
-                }
-            }
-            else if (_mode == Mode.CustomGeometryAndShader)
-            {
-                if (!TryGetComponent<Renderer>(out _))
-                {
-                    showMessage
-                    (
-                        "A <i>Renderer</i> component is required to drive this data and none is attached to this ocean input GameObject.",
-                        "Attach a <i>Renderer</i> component.",
-                        ValidatedHelper.MessageType.Error, gameObject,
-                        ValidatedHelper.FixAttachComponent<MeshRenderer>
                     );
                 }
             }

@@ -95,7 +95,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 0.9, g: 0.9, b: 0.9, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _CrestEmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &3495921561544627001
 MonoBehaviour:

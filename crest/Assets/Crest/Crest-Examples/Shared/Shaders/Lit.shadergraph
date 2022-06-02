@@ -1705,7 +1705,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Emission",
     "m_DefaultReferenceName": "_Emission",
-    "m_OverrideReferenceName": "_EmissionColor",
+    "m_OverrideReferenceName": "_CrestEmissionColor",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",

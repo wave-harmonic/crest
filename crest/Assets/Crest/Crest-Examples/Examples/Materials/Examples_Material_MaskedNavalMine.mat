@@ -54,7 +54,7 @@ Material:
     - _Smoothness: 0.3
     m_Colors:
     - _Color: {r: 1, g: 0.1764706, b: 0.1764706, a: 1}
-    - _EmissionColor: {r: 1.4980392, g: 0, b: 0, a: 1}
+    - _CrestEmissionColor: {r: 1.4980392, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &856575574031515761
 MonoBehaviour:

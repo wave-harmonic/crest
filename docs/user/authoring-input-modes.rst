@@ -1,3 +1,5 @@
+Authoring Input Modes
+=====================
 
 # Overview
 

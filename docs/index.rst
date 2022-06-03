@@ -47,6 +47,7 @@ Crest Ocean System
    user/configuration
    user/ocean-simulation
    user/wave-conditions
+   user/authoring-input-modes
    user/shallows-and-shorelines
    user/water-bodies
    user/collision-shape-for-physics

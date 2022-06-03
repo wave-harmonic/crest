@@ -23,6 +23,8 @@ namespace Crest
         float _texelSize = 32f / 512f;
         [Tooltip("Maximum resolution of simulation grid. Safety limit to avoid simulation using large amount of video memory."), SerializeField, UnityEngine.Range(16, 4096)]
         int _maximumResolution = 1024;
+        [Tooltip("Time step used for simulation (s). Smaller values can make simulation more stable but require more runtime computation."), SerializeField, Range(0.001f, 0.03333333f)]
+        float _simulationTimeStep = 0.01f;
         [Tooltip("Rate at which to remove water at the boundaries of the domain, useful for preventing buildup of water when simulating shoreline waves."), SerializeField]
         float _drainWaterAtBoundaries = -0.01f;
         [Tooltip("Friction applied to water to prevent dampen velocities."), SerializeField]
@@ -157,23 +159,26 @@ namespace Crest
 
             if (doUpdate)
             {
-                _timeToSimulate += Time.deltaTime;
                 if (_allowDynamicSeabed)
                 {
                     // Populate ground height every frame to allow dynamic scene
                     PopulateGroundHeight(buf);
                 }
 
+                // Safety first
+                _simulationTimeStep = Mathf.Max(_simulationTimeStep, 0.001f);
 
-                float fixedDt = 0.01f;
-                int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / fixedDt) : 0;
-                _timeToSimulate -= steps * fixedDt;
+                // Compute substeps
+                _timeToSimulate += Time.deltaTime;
+                int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / _simulationTimeStep) : 0;
+                _timeToSimulate -= steps * _simulationTimeStep;
 
                 for (int i = 0; i < steps; i++)
                 {
                     // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
 
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_DeltaTime"), _simulationTimeStep);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DrainWaterAtBoundaries"), _drainWaterAtBoundaries);
@@ -410,6 +415,7 @@ namespace Crest
                 _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
                 _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_DeltaTime"), _simulationTimeStep);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);

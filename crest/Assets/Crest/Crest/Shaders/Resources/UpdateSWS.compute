@@ -29,6 +29,7 @@ Texture2D<float> _SimulationMask;
 RWTexture2D<float> _SimulationMaskRW;
 
 float _Time;
+float _DeltaTime;
 float _DomainWidth;
 float3 _SimOrigin;
 float _Res;
@@ -41,8 +42,6 @@ float _TexelSize;
 float _ShallowMinDepth;
 float _ShallowMaxDepth;
 float _BlendPushUpStrength;
-
-#define DT 0.01
 
 float2 IdToWorldXZ_H(uint2 id)
 {
@@ -158,7 +157,7 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float vx = SampleVx0(worldXZ_H);
 		const float vy = SampleVy0(worldXZ_H);
 
-		const float2 worldXZAdvected = worldXZ_H - DT * float2(vx, vy);
+		const float2 worldXZAdvected = worldXZ_H - _DeltaTime * float2(vx, vy);
 
 		_H1[id] = SampleH(worldXZAdvected);
 	}
@@ -170,11 +169,11 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float vx = SampleVx0(worldXZ_Vx); // Can be load
 		const float vy = SampleVy0(worldXZ_Vx);
 
-		const float2 worldXZAdvected = worldXZ_Vx - DT * float2(vx, vy);
+		const float2 worldXZAdvected = worldXZ_Vx - _DeltaTime * float2(vx, vy);
 		float vxAdvected = SampleVx0(worldXZAdvected);
 
 		const float h_vx = SampleH(worldXZAdvected);
-		const float friction = _Friction * DT / max(0.001f, pow(h_vx, 1.333333f));
+		const float friction = _Friction * _DeltaTime / max(0.001f, pow(h_vx, 1.333333f));
 		vxAdvected -= abs(vxAdvected) * vxAdvected * friction;
 
 		vxAdvected = clamp(vxAdvected, -_MaximumVelocity, _MaximumVelocity);
@@ -189,11 +188,11 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float vx = SampleVx0(worldXZ_Vy);
 		const float vy = SampleVy0(worldXZ_Vy); // Can be load
 		
-		const float2 worldXZAdvected = worldXZ_Vy - DT * float2(vx, vy);
+		const float2 worldXZAdvected = worldXZ_Vy - _DeltaTime * float2(vx, vy);
 		float vyAdvected = SampleVy0(worldXZAdvected);
 
 		const float h_vy = SampleH(worldXZAdvected);
-		const float friction = _Friction * DT / max(0.001f, pow(h_vy, 1.333333f));
+		const float friction = _Friction * _DeltaTime / max(0.001f, pow(h_vy, 1.333333f));
 		vyAdvected -= abs(vyAdvected) * vyAdvected * friction;
 
 		vyAdvected = clamp(vyAdvected, -_MaximumVelocity, _MaximumVelocity);
@@ -259,7 +258,7 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const float hvel = -h * divergence;
 	//hvel = clamp(hvel, -32.0f, 32.0f);
 
-	h += DT * hvel + pump;
+	h += _DeltaTime * hvel + pump;
 	h = max(h, 0.0);
 
 	// Dry - force to 0
@@ -296,7 +295,7 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 
 		float accel = -gravity * hdiff / _TexelSize;
 
-		vx += DT * accel;
+		vx += _DeltaTime * accel;
 
 		if (accel < 0 && h1 < 0.001)
 		{
@@ -328,7 +327,7 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 
 		float accel = -gravity * hdiff / _TexelSize;
 
-		vy += DT * accel;
+		vy += _DeltaTime * accel;
 
 		if (accel < 0 && h1 < 0.001)
 		{

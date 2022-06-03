@@ -173,10 +173,8 @@ namespace Crest
                 int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / _simulationTimeStep) : 0;
                 _timeToSimulate -= steps * _simulationTimeStep;
 
-                for (int i = 0; i < steps; i++)
+                // Set once per frame stuff
                 {
-                    // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
-
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DeltaTime"), _simulationTimeStep);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
@@ -190,6 +188,11 @@ namespace Crest
                     _csSWSProps.SetFloat(Shader.PropertyToID("_BlendPushUpStrength"), _blendPushUpStrength);
                     _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
                     _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
+                }
+
+                for (int i = 0; i < steps; i++)
+                {
+                    // Each stage block should leave latest state in '1' buffer (H1, Vx1, Vy1)
 
                     // Advect
                     if (_debugSettings._doAdvect)

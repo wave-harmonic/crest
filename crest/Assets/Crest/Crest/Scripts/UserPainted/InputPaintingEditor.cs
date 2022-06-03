@@ -30,7 +30,18 @@ namespace Crest
 
         void OnInspectorGUIPainting(IPaintable target)
         {
-            if (!target.ShowPaintingUI) return;
+            // If the target is not in the right mode, turn off painting and return
+            if (!target.ShowPaintingUI)
+            {
+                if (InputPaintingEditorTool.CurrentlyPainting)
+                {
+                    ToolManager.RestorePreviousPersistentTool();
+                }
+
+                DestroyCursorIfPresent();
+
+                return;
+            }
 
             EditorGUILayout.Space();
 

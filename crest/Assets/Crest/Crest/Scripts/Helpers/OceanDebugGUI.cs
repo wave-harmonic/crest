@@ -36,7 +36,7 @@ namespace Crest
         [SerializeField] bool _drawAnimWaves = true;
         [SerializeField] bool _drawDynWaves = false;
         [SerializeField] bool _drawFoam = false;
-        [SerializeField] bool _drawFlow = true;
+        [SerializeField] bool _drawFlow = false;
         [SerializeField] bool _drawShadow = false;
         [SerializeField] bool _drawSeaFloorDepth = false;
         [SerializeField] bool _drawClipSurface = false;
@@ -297,9 +297,9 @@ namespace Crest
             DrawVerticalScrollBar();
 
             DrawSim(OceanRenderer.Instance._lodDataAnimWaves, ref _drawAnimWaves, ref column, 0.5f);
-            DrawSim(OceanRenderer.Instance._lodDataFlow, ref _drawFlow, ref column, 0.5f, 2f);
             DrawSim(OceanRenderer.Instance._lodDataDynWaves, ref _drawDynWaves, ref column, 0.5f, 2f);
             DrawSim(OceanRenderer.Instance._lodDataFoam, ref _drawFoam, ref column);
+            DrawSim(OceanRenderer.Instance._lodDataFlow, ref _drawFlow, ref column, 0.5f, 2f);
             DrawSim(OceanRenderer.Instance._lodDataShadow, ref _drawShadow, ref column);
             DrawSim(OceanRenderer.Instance._lodDataSeaDepths, ref _drawSeaFloorDepth, ref column);
             DrawSim(OceanRenderer.Instance._lodDataClipSurface, ref _drawClipSurface, ref column);

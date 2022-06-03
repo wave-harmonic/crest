@@ -306,7 +306,7 @@ namespace Crest
         {
             if (_csSWS == null)
             {
-                _csSWS = ComputeShaderHelpers.LoadShader("SWSUpdate");
+                _csSWS = ComputeShaderHelpers.LoadShader("UpdateSWS");
                 _csSWSProps = new PropertyWrapperCompute();
 
                 _krnlInit = _csSWS.FindKernel("Init");

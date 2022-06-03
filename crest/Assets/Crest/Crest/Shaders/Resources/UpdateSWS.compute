@@ -11,9 +11,9 @@
 
 #include "HLSLSupport.cginc"
 
-#include "../Crest/Crest/Shaders/OceanGlobals.hlsl"
-#include "../Crest/Crest/Shaders/OceanInputsDriven.hlsl"
-#include "../Crest/Crest/Shaders/OceanHelpersNew.hlsl"
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanHelpersNew.hlsl"
 
 SamplerState linear_clamp_sampler;
 

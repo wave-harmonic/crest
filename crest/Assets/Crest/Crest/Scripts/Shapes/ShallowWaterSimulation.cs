@@ -29,6 +29,8 @@ namespace Crest
         float _friction = 0.02f;
         [Tooltip("Maximum velocity that simulation is allowed to contain (m/s)."), SerializeField]
         float _maximumVelocity = 100.0f;
+        [Tooltip("Recompute ground heights every frame. Only enable this if terrain used by water system changes at runtime."), SerializeField]
+        bool _allowDynamicSeabed = false;
 
         [Header("Blending With Waves")]
         [Tooltip("The minimum depth for blending (m). When the water depth is less than this value, animated waves will not contribute at all, water shape will come purely from this simulation. Negative depths are valid and occur when surfaces are above sea level."), SerializeField, UnityEngine.Range(-10f, 10f)]
@@ -156,9 +158,12 @@ namespace Crest
             if (doUpdate)
             {
                 _timeToSimulate += Time.deltaTime;
+                if (_allowDynamicSeabed)
+                {
+                    // Populate ground height every frame to allow dynamic scene
+                    PopulateGroundHeight(buf);
+                }
 
-                // Populate ground height every frame to allow dynamic scene
-                PopulateGroundHeight(buf);
 
                 float fixedDt = 0.01f;
                 int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / fixedDt) : 0;

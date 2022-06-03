@@ -542,10 +542,12 @@ MonoBehaviour:
   _domainWidth: 128
   _waterDepth: 2
   _texelSize: 0.125
-  _maxResolution: 1024
+  _maximumResolution: 1024
+  _simulationTimeStep: 0.01
   _drainWaterAtBoundaries: -0.01
   _friction: 0.02
-  _maxVel: 100
+  _maximumVelocity: 100
+  _allowDynamicSeabed: 0
   _blendShallowMinDepth: 0
   _blendShallowMaxDepth: 3
   _blendPushUpStrength: 1

@@ -15,22 +15,20 @@ namespace Crest
     public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
     {
         [Header("Settings")]
-        [Tooltip("The width of the simulation (m). Enable gizmos to see a wireframe outline of the domain."), SerializeField, UnityEngine.Range(8, 1024)]
+        [Tooltip("The width of the simulation area (m). Enable gizmos to see a wireframe outline of the domain."), SerializeField, UnityEngine.Range(8, 1024)]
         float _domainWidth = 64f;
         [Tooltip("The depth of the water in the shallow water simulation (m). Any underwater surfaces deeper than this depth will not influence the sim. Large values can lead to instabilities / jitter in the result."), SerializeField, Range(0.1f, 16.0f)]
         float _waterDepth = 2f;
-        [Tooltip("Simulation resolution - width of simulation grid cell (m)."), SerializeField, UnityEngine.Range(0.01f, 2f)]
+        [Tooltip("Simulation resolution; width of simulation grid cell (m). Smaller values will increase resolution but take more computation time and memory, and may lead to instabilities for small values."), SerializeField, UnityEngine.Range(0.01f, 2f)]
         float _texelSize = 32f / 512f;
-        [Tooltip("Maximum resolution of simulation grid (no units). Safety limit to avoid simulation using large amount of video memory."), SerializeField, UnityEngine.Range(16, 4096)]
-        int _maxResolution = 1024;
+        [Tooltip("Maximum resolution of simulation grid. Safety limit to avoid simulation using large amount of video memory."), SerializeField, UnityEngine.Range(16, 4096)]
+        int _maximumResolution = 1024;
         [Tooltip("Rate at which to remove water at the boundaries of the domain, useful for preventing buildup of water when simulating shoreline waves."), SerializeField]
         float _drainWaterAtBoundaries = -0.01f;
-
-        [Header("Sim Settings")]
         [Tooltip("Friction applied to water to prevent dampen velocities."), SerializeField]
         float _friction = 0.02f;
         [Tooltip("Maximum velocity that simulation is allowed to contain (m/s)."), SerializeField]
-        float _maxVel = 100.0f;
+        float _maximumVelocity = 100.0f;
 
         [Header("Blending With Waves")]
         [Tooltip("The minimum depth for blending (m). When the water depth is less than this value, animated waves will not contribute at all, water shape will come purely from this simulation. Negative depths are valid and occur when surfaces are above sea level."), SerializeField, UnityEngine.Range(-10f, 10f)]
@@ -82,7 +80,7 @@ namespace Crest
             }
 
             _resolution = Mathf.CeilToInt(_domainWidth / _texelSize);
-            _resolution = Mathf.Min(_resolution, _maxResolution);
+            _resolution = Mathf.Min(_resolution, _maximumResolution);
 
             if (_rtH0 == null) _rtH0 = CreateSWSRT();
             if (_rtH1 == null) _rtH1 = CreateSWSRT();
@@ -175,7 +173,7 @@ namespace Crest
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DrainWaterAtBoundaries"), _drainWaterAtBoundaries);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maxVel);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maximumVelocity);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
@@ -265,6 +263,7 @@ namespace Crest
     }
 
     // Separate helpers/glue/initialisation/etc
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shallow Water Simulation")]
     public partial class ShallowWaterSimulation : MonoBehaviour, ILodDataInput
     {
         //[SerializeField] bool _updateInEditMode = false;
@@ -289,12 +288,16 @@ namespace Crest
             public bool _doUpdateVels = true;
 
             [Header("Output (editor only)")]
+            [Tooltip("Add the resulting shape to the water system.")]
             public bool _injectShape = true;
+            [Tooltip("Add the resulting flow velocities to the water system.")]
             public bool _injectFlow = true;
+            [Tooltip("Add the resulting foam to the water system.")]
             public bool _injectFoam = true;
+            [Tooltip("Filters the shape prior to rendering to smooth out sharp features.")]
             public bool _blurShapeForRender = true;
 
-            [Header("Overlay")]
+            [Header("Debug Overlay")]
             public bool _showSimulationData = false;
 
             [Header("Simulation")]
@@ -405,7 +408,7 @@ namespace Crest
                 _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), _debugSettings._addAdditionalWater);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), Mathf.Max(0f, _debugSettings._addAdditionalWater));
                 _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
                 _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
 

@@ -34,7 +34,7 @@ float3 _SimOrigin;
 float _Res;
 float _DrainWaterAtBoundaries;
 float _Friction;
-float _MaxVel;
+float _MaximumVelocity;
 float _AddAdditionalWater;
 float _TexelSize;
 
@@ -177,7 +177,7 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float friction = _Friction * DT / max(0.001f, pow(h_vx, 1.333333f));
 		vxAdvected -= abs(vxAdvected) * vxAdvected * friction;
 
-		vxAdvected = clamp(vxAdvected, -_MaxVel, _MaxVel);
+		vxAdvected = clamp(vxAdvected, -_MaximumVelocity, _MaximumVelocity);
 
 		_Vx1[id] = vxAdvected;
 	}
@@ -196,7 +196,7 @@ void Advect(uint2 id : SV_DispatchThreadID)
 		const float friction = _Friction * DT / max(0.001f, pow(h_vy, 1.333333f));
 		vyAdvected -= abs(vyAdvected) * vyAdvected * friction;
 
-		vyAdvected = clamp(vyAdvected, -_MaxVel, _MaxVel);
+		vyAdvected = clamp(vyAdvected, -_MaximumVelocity, _MaximumVelocity);
 
 		_Vy1[id] = vyAdvected;
 	}

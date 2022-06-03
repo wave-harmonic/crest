@@ -12,6 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Shadow Input")]
     [CrestHelpURL("user/ocean-simulation", "shadows")]
+    [FilterEnum("_mode", FilteredAttribute.Mode.Exclude, (int)Mode.Spline, (int)Mode.Painted)]
     public class RegisterShadowInput : RegisterLodDataInput<LodDataMgrShadow>
     {
         /// <summary>

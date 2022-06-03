@@ -16,8 +16,8 @@ namespace Crest
     {
         [Header("Settings")]
         [Tooltip("The width of the simulation (m). Enable gizmos to see a wireframe outline of the domain."), SerializeField, UnityEngine.Range(8, 1024)]
-        float _domainWidth = 32f;
-        [Tooltip("The depth of the water in the shallow water simulation (m). Any underwater surfaces deeper than this depth will not influence the sim. Large values can lead to instabilities / jitter in the result."), SerializeField]
+        float _domainWidth = 64f;
+        [Tooltip("The depth of the water in the shallow water simulation (m). Any underwater surfaces deeper than this depth will not influence the sim. Large values can lead to instabilities / jitter in the result."), SerializeField, Range(0.1f, 16.0f)]
         float _waterDepth = 2f;
         [Tooltip("Simulation resolution - width of simulation grid cell (m)."), SerializeField, UnityEngine.Range(0.01f, 2f)]
         float _texelSize = 32f / 512f;
@@ -499,6 +499,7 @@ namespace Crest
 #endif
     }
 
+    // Validation
     public partial class ShallowWaterSimulation : IValidated
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
@@ -544,7 +545,7 @@ namespace Crest
                     showMessage
                     (
                         "Debug drawing of simulation data currently active.",
-                        "Disable debug drawing.",
+                        "Disable debug drawing when debugging is done to hide the overlay.",
                         ValidatedHelper.MessageType.Info, this,
                         (so) => OceanRenderer.FixSetFeatureEnabled(so, "_debugSettings._showSimulationData", false)
                     );
@@ -560,6 +561,7 @@ namespace Crest
                     );
                 }
             }
+
             return isValid;
         }
     }

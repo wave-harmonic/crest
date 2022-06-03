@@ -19,7 +19,7 @@ namespace Crest
         [SerializeField] float _addAdditionalWater = 0f;
         [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
         [SerializeField, UnityEngine.Range(16, 1024)] int _maxResolution = 1024;
-        [SerializeField, UnityEngine.Range(8, 128)] float _domainWidth = 32f;
+        [SerializeField, UnityEngine.Range(8, 1024)] float _domainWidth = 32f;
         [SerializeField] float _drain = -0.0001f;
 
         [Header("Sim Settings")]
@@ -30,6 +30,13 @@ namespace Crest
         [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMinDepth = 0f;
         [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMaxDepth = 4f;
         [SerializeField, UnityEngine.Range(0f, 1f)] float _blendPushUpStrength = 0.1f;
+
+        [Header("Distance Culling")]
+        [SerializeField, Tooltip("Disable simulation when viewpoint far from domain.")]
+        bool _enableDistanceCulling = false;
+        [SerializeField, Predicated("_enableDistanceCulling"), DecoratedField, Range(1f, 1024f)]
+        [Tooltip("Disable simulation if viewpoint (main camera or Viewpoint transform set on OceanRenderer component) is more than this distance outside simulation domain.")]
+        float _cullDistance = 75.0f;
 
         [Header("Advanced")]
         [SerializeField] DebugSettings _debugSettings = new DebugSettings();
@@ -129,7 +136,16 @@ namespace Crest
 
             InitData();
 
-            if (_debugSettings._doUpdate)
+            // Distance culling
+            var doUpdate = _debugSettings._doUpdate;
+            if (_enableDistanceCulling)
+            {
+                var cullRadius = _domainWidth / 2f + _cullDistance;
+                var offset = OceanRenderer.Instance.Viewpoint.position - transform.position;
+                doUpdate = doUpdate && (offset.sqrMagnitude < cullRadius * cullRadius);
+            }
+
+            if (doUpdate)
             {
                 _timeToSimulate += Time.deltaTime;
 

@@ -15,31 +15,41 @@ namespace Crest
     public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
     {
         [Header("Settings")]
-        [SerializeField] float _depth = 2f;
-        [SerializeField] float _addAdditionalWater = 0f;
-        [SerializeField, UnityEngine.Range(0.01f, 2f)] float _texelSize = 32f / 512f;
-        [SerializeField, UnityEngine.Range(16, 1024)] int _maxResolution = 1024;
-        [SerializeField, UnityEngine.Range(8, 1024)] float _domainWidth = 32f;
-        [SerializeField] float _drain = -0.0001f;
+        [Tooltip("The width of the simulation (m). Enable gizmos to see a wireframe outline of the domain."), SerializeField, UnityEngine.Range(8, 1024)]
+        float _domainWidth = 32f;
+        [Tooltip("The depth of the water in the shallow water simulation (m). Any underwater surfaces deeper than this depth will not influence the sim. Large values can lead to instabilities / jitter in the result."), SerializeField]
+        float _waterDepth = 2f;
+        [Tooltip("Simulation resolution - width of simulation grid cell (m)."), SerializeField, UnityEngine.Range(0.01f, 2f)]
+        float _texelSize = 32f / 512f;
+        [Tooltip("Maximum resolution of simulation grid (no units). Safety limit to avoid simulation using large amount of video memory."), SerializeField, UnityEngine.Range(16, 4096)]
+        int _maxResolution = 1024;
+        [Tooltip("Rate at which to remove water at the boundaries of the domain, useful for preventing buildup of water when simulating shoreline waves."), SerializeField]
+        float _drainWaterAtBoundaries = -0.01f;
 
         [Header("Sim Settings")]
-        [SerializeField] float _friction = 0.001f;
-        [SerializeField] float _maxVel = 100.0f;
+        [Tooltip("Friction applied to water to prevent dampen velocities."), SerializeField]
+        float _friction = 0.02f;
+        [Tooltip("Maximum velocity that simulation is allowed to contain (m/s)."), SerializeField]
+        float _maxVel = 100.0f;
 
         [Header("Blending With Waves")]
-        [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMinDepth = 0f;
-        [SerializeField, UnityEngine.Range(-10f, 10f)] float _blendShallowMaxDepth = 4f;
-        [SerializeField, UnityEngine.Range(0f, 1f)] float _blendPushUpStrength = 0.1f;
+        [Tooltip("The minimum depth for blending (m). When the water depth is less than this value, animated waves will not contribute at all, water shape will come purely from this simulation. Negative depths are valid and occur when surfaces are above sea level."), SerializeField, UnityEngine.Range(-10f, 10f)]
+        float _blendShallowMinDepth = 0f;
+        [Tooltip("The maximum depth for blending (m). When the water depth is greater than this value, this simulation will not contribute at all, water shape will come purely from the normal ocean waves. Negative depths are valid and occur when surfaces are above sea level."), SerializeField, UnityEngine.Range(-10f, 10f)]
+        float _blendShallowMaxDepth = 4f;
+        [Tooltip("The intensity at which ocean waves inject water into the simulation."), SerializeField, UnityEngine.Range(0f, 1f)]
+        float _blendPushUpStrength = 0.1f;
 
         [Header("Distance Culling")]
-        [SerializeField, Tooltip("Disable simulation when viewpoint far from domain.")]
+        [Tooltip("Disable simulation when viewpoint far from domain."), SerializeField]
         bool _enableDistanceCulling = false;
         [SerializeField, Predicated("_enableDistanceCulling"), DecoratedField, Range(1f, 1024f)]
         [Tooltip("Disable simulation if viewpoint (main camera or Viewpoint transform set on OceanRenderer component) is more than this distance outside simulation domain.")]
         float _cullDistance = 75.0f;
 
         [Header("Advanced")]
-        [SerializeField] DebugSettings _debugSettings = new DebugSettings();
+        [SerializeField]
+        DebugSettings _debugSettings = new DebugSettings();
 
         RenderTexture _rtH0, _rtH1;
         RenderTexture _rtVx0, _rtVx1;
@@ -115,7 +125,7 @@ namespace Crest
             }
 
             // Sim origin is at 'bottom' of domain, water height/ground height are added
-            result.y -= _depth;
+            result.y -= _waterDepth;
 
             return result;
         }
@@ -163,7 +173,7 @@ namespace Crest
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Drain"), _drain);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_DrainWaterAtBoundaries"), _drainWaterAtBoundaries);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maxVel);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
@@ -286,6 +296,10 @@ namespace Crest
 
             [Header("Overlay")]
             public bool _showSimulationData = false;
+
+            [Header("Simulation")]
+            [Tooltip("Adds additional water into the simulation domain on initialisation (m).")]
+            public float _addAdditionalWater = 0f;
         }
 
         void OnEnable()
@@ -391,7 +405,7 @@ namespace Crest
                 _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), _addAdditionalWater);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), _debugSettings._addAdditionalWater);
                 _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
                 _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
 

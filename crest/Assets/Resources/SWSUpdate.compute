@@ -32,7 +32,7 @@ float _Time;
 float _DomainWidth;
 float3 _SimOrigin;
 float _Res;
-float _Drain;
+float _DrainWaterAtBoundaries;
 float _Friction;
 float _MaxVel;
 float _AddAdditionalWater;
@@ -220,7 +220,7 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 		float maxOff = max(offset.x, offset.y);
 
 		// Drain water out at boundary of domain. This seems to work ok. 
-		pump += _Drain * smoothstep(0.4, 0.5, maxOff);
+		pump += _DrainWaterAtBoundaries * smoothstep(0.4, 0.5, maxOff);
 
 		uint slice0, slice1;
 		float lodAlpha;

@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
-using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -1597,19 +1596,6 @@ namespace Crest
                     "Remove extra <i>OceanRenderer</i> components.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
-            }
-
-            // Shape*
-            var gerstners = FindObjectsOfType<ShapeGerstner>();
-            var ffts = FindObjectsOfType<ShapeFFT>();
-            if (gerstners.Length == 0 && ffts.Length == 0)
-            {
-                //showMessage
-                //(
-                //    "No ShapeGerstner/ShapeFFT component found, so ocean will appear flat (no waves).",
-                //    "Assign a ShapeFFT component to a GameObject.",
-                //    ValidatedHelper.MessageType.Info, ocean
-                //);
             }
 
             // Ocean Detail Parameters

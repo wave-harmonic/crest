@@ -233,7 +233,7 @@ namespace Crest
     {
         // TODO - sort out icon i guess
         public override GUIContent toolbarIcon => _toolbarIcon ??
-            (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/PaintedWaves.png"), "Crest Input Painting"));
+            (_toolbarIcon = new GUIContent(AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Crest/Crest/Editor/CrestPainting.png"), "Crest Input Painting"));
 
         GUIContent _toolbarIcon;
 

@@ -7,6 +7,7 @@ namespace Crest.Examples
     using UnityEngine;
     using UnityEngine.Events;
 
+    [ExecuteAlways]
     public class SendUnityEvent : MonoBehaviour
     {
         [SerializeField]

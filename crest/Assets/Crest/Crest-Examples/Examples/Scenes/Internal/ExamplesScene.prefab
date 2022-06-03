@@ -67,5 +67,415 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4958483896353184571, guid: 7c2511cd54ca84f02977b64a55693638,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4958483896353184571, guid: 7c2511cd54ca84f02977b64a55693638,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7c2511cd54ca84f02977b64a55693638, type: 3}
+--- !u!1 &2465168344474100235 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1837530366066167784, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1362348961358268667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2465168344474100235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 0
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 9205347108959362052}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: DisableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &7223439914544033558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2465168344474100235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 1
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 9205347108959362052}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: EnableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &4360862751143227752 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 518710264395947147, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6474613210161342750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2061253cb8c4941a2983a4a970c55f23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5270618546559963341 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8255887605527117102, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8122779071555931781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2061253cb8c4941a2983a4a970c55f23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &5319222451075030206 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8243730328580567389, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3542698545856679793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5319222451075030206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 0
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 8336695396161522177}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: DisableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &7697510261757707698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5319222451075030206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 1
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 8336695396161522177}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: EnableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1 &6474613210161342750 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7092118025096348925, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3405827269349829495
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6474613210161342750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 0
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 4360862751143227752}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: DisableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &5630489771774940027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6474613210161342750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 1
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 4360862751143227752}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: EnableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &7829509245692059792 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6277508259828469107, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8507853147298307608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2061253cb8c4941a2983a4a970c55f23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &8122779071555931781 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5408780456129012582, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1343065103412995992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8122779071555931781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 0
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5270618546559963341}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: DisableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &3777742132117164817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8122779071555931781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 1
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5270618546559963341}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: EnableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &8336695396161522177 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5190352281775843298, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5319222451075030206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2061253cb8c4941a2983a4a970c55f23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &8507853147298307608 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5595659804234429435, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8205841259712470621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8507853147298307608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 0
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7829509245692059792}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: DisableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &8921301031394548133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8507853147298307608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faba69b00ed6645938ffd34f241b3305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _event: 1
+  _onExecute:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7829509245692059792}
+        m_TargetAssemblyTypeName: Crest.Examples.MaskFill, Crest.Examples
+        m_MethodName: EnableShadowPassKeyword
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &9205347108959362052 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4902669305021575655, guid: 7c2511cd54ca84f02977b64a55693638,
+    type: 3}
+  m_PrefabInstance: {fileID: 4302681115358178787}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2465168344474100235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2061253cb8c4941a2983a4a970c55f23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

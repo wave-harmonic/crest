@@ -28,7 +28,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways, SelectionBase]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
-    [HelpURL(Constants.HELP_URL_GENERAL)]
+    [CrestHelpURL()]
     public partial class OceanRenderer : MonoBehaviour
     {
         /// <summary>
@@ -1997,7 +1997,7 @@ namespace Crest
 
             if (GUILayout.Button("Open Material Online Help"))
             {
-                Application.OpenURL(Internal.Constants.HELP_URL_BASE_USER + "configuration.html" + Internal.Constants.HELP_URL_RP + "#material-parameters");
+                Application.OpenURL(CrestHelpURLAttribute.GetPageLink("user/configuration", "material-parameters"));
             }
 
             DrawMaterialEditor();

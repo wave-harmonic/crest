@@ -160,7 +160,7 @@ namespace Crest
 #if UNITY_EDITOR
                     if (Application.isPlaying && verifyShader)
                     {
-                        ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, _checkShaderName ? ShaderPrefix : String.Empty);
+                        ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, false, SupportsMultiPassShaders, _checkShaderName ? ShaderPrefix : String.Empty);
                     }
 #endif
                 }
@@ -546,40 +546,27 @@ namespace Crest
             if (_mode == Mode.CustomGeometryAndShader)
             {
                 // Check if Renderer component is attached.
-                if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, _checkShaderName ? ShaderPrefix : String.Empty))
+                if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, _checkShaderPasses, SupportsMultiPassShaders, _checkShaderName ? ShaderPrefix : String.Empty))
                 {
                     isValid = false;
                 }
-            }
 
-            if (_mode == Mode.Painted)
-            {
-                if (_checkShaderPasses && _paintInputMaterial != null && _paintInputMaterial.passCount > 1 && !SupportsMultiPassShaders)
+                // Check for empty material slots
+                if (_renderer != null)
                 {
-                    showMessage
-                    (
-                        $"The shader <i>{_paintInputMaterial.shader.name}</i> for material <i>{_paintInputMaterial.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
-                        "See documentation for more information on what multi-pass shaders work or",
-                        "use a shader with a single pass.",
-                        ValidatedHelper.MessageType.Warning, this
-                    );
-                }
-            }
-
-            if (_renderer != null)
-            {
-                _renderer.GetSharedMaterials(_sharedMaterials);
-                for (var i = 0; i < _sharedMaterials.Count; i++)
-                {
-                    // Empty material slots is a user error. Unity complains about it so we should too.
-                    if (_sharedMaterials[i] == null)
+                    _renderer.GetSharedMaterials(_sharedMaterials);
+                    for (var i = 0; i < _sharedMaterials.Count; i++)
                     {
-                        showMessage
-                        (
-                            $"<i>{_renderer.GetType().Name}</i> used by this input (<i>{GetType().Name}</i>) has empty material slots.",
-                            "Remove these slots or fill them with a material.",
-                            ValidatedHelper.MessageType.Warning, _renderer
-                        );
+                        // Empty material slots is a user error. Unity complains about it so we should too.
+                        if (_sharedMaterials[i] == null)
+                        {
+                            showMessage
+                            (
+                                $"<i>{_renderer.GetType().Name}</i> used by this input (<i>{GetType().Name}</i>) has empty material slots.",
+                                "Remove these slots or fill them with a material.",
+                                ValidatedHelper.MessageType.Warning, _renderer
+                            );
+                        }
                     }
                 }
             }
@@ -595,6 +582,7 @@ namespace Crest
                 }
             }
 
+            // Suggest that if a Renderer is present, perhaps mode should be changed to use it
             if (_mode != Mode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
             {
                 showMessage
@@ -605,6 +593,7 @@ namespace Crest
                 );
             }
 
+            // Suggest that if a Spline is present, perhaps mode should be changed to use it
             if (_mode != Mode.Spline && TryGetComponent<Spline.Spline>(out _))
             {
                 showMessage
@@ -663,6 +652,8 @@ namespace Crest
                         ValidatedHelper.FixAttachComponent<Spline.Spline>
                     );
                 }
+
+                isValid = false;
             }
 
             return isValid;

@@ -108,7 +108,7 @@ namespace Crest
             PackageManagerHelpers.AddMissingPackage("com.unity.burst");
         }
 
-        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, string shaderPrefix = null) where T : Renderer
+        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, bool checkShaderPasses, bool supportsMultiPassShaders, string shaderPrefix = null) where T : Renderer
         {
             gameObject.TryGetComponent<T>(out var renderer);
 
@@ -134,7 +134,7 @@ namespace Crest
                 return false;
             }
 
-            if (!ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix))
+            if (!ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix, checkShaderPasses, supportsMultiPassShaders))
             {
                 return false;
             }
@@ -142,7 +142,7 @@ namespace Crest
             return true;
         }
 
-        public static bool ValidateMaterial(GameObject gameObject, ShowMessage showMessage, Material material, string shaderPrefix)
+        public static bool ValidateMaterial(GameObject gameObject, ShowMessage showMessage, Material material, string shaderPrefix, bool checkShaderPasses, bool supportsMultiPassShaders)
         {
             if (shaderPrefix == null && material == null)
             {
@@ -166,6 +166,17 @@ namespace Crest
                 );
 
                 return false;
+            }
+
+            if (checkShaderPasses && material.passCount > 1 && !supportsMultiPassShaders)
+            {
+                showMessage
+                (
+                    $"The shader <i>{material.shader.name}</i> for material <i>{material.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
+                    "See documentation for more information on what multi-pass shaders work or",
+                    "use a shader with a single pass.",
+                    ValidatedHelper.MessageType.Warning, gameObject
+                );
             }
 
             return true;

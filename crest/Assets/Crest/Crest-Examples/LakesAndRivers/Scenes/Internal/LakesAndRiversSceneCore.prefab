@@ -1968,6 +1968,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _mode: 1
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -1975,6 +1976,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _maxDisplacementVertical: 0
 --- !u!114 &8569238539512446963
 MonoBehaviour:
@@ -1989,6 +1998,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _mode: 2
   _windTurbulence: 0.103
   _spectrum: {fileID: 11400000, guid: 82bb9342c0d18d041a4c57c38a096e9f, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -2001,10 +2011,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 32
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -2023,6 +2041,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de0359979120ac418643020f2918594, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _mode: 1
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -2030,6 +2049,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: -6.532089, y: 305.94238}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!1 &8569238539525547524
 GameObject:
@@ -2409,6 +2436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _mode: 0
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -2416,6 +2444,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _maxDisplacementVertical: 0
 --- !u!114 &8569238539655344396
 MonoBehaviour:
@@ -2429,6 +2465,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de0359979120ac418643020f2918594, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _mode: 0
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -2436,6 +2473,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!1 &8569238539701281965
 GameObject:
@@ -3454,6 +3499,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _mode: 0
   _windTurbulence: 0.145
   _spectrum: {fileID: 0}
   _spectrumFixedAtRuntime: 1
@@ -3466,10 +3512,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 32
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0

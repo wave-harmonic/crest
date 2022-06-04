@@ -33,7 +33,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanHelpers.hlsl"
 
 			sampler2D _FlowMap;
 

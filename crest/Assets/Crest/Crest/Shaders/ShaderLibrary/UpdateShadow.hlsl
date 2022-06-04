@@ -5,7 +5,7 @@
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
-#include "../OceanHelpersNew.hlsl"
+#include "../OceanHelpers.hlsl"
 // Noise functions used for jitter.
 #include "../GPUNoise/GPUNoise.hlsl"
 

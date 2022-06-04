@@ -11,7 +11,7 @@
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
-#include "../OceanHelpersNew.hlsl"
+#include "../OceanHelpers.hlsl"
 
 RWTexture2DArray<float2> _LD_TexArray_Target;
 

@@ -22,7 +22,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 	#include "../../OceanGlobals.hlsl"
 	#include "../../OceanInputsDriven.hlsl"
 	#include "../../OceanVertHelpers.hlsl"
-	#include "../../OceanHelpersNew.hlsl"
+	#include "../../OceanHelpers.hlsl"
 	#include "../../OceanHelpersDriven.hlsl"
 
 	CBUFFER_START(CrestPerOceanInput)

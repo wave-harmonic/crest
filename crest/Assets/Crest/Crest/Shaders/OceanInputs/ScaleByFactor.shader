@@ -44,7 +44,7 @@ Shader "Crest/Inputs/All/Scale By Factor"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanHelpers.hlsl"
 
 #if defined(_TEXTURE_ON) || defined(_FEATHERATUVEXTENTS_ON)
 #define _NEED_UVS

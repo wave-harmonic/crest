@@ -76,7 +76,7 @@ half3 CrestScatterColour
 	return col;
 }
 
-// Taken from: OceanHelpersNew.hlsl
+// Taken from: OceanHelpers.hlsl
 float3 CrestWorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams, in float i_sliceIndex)
 {
 	float2 uv = (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;

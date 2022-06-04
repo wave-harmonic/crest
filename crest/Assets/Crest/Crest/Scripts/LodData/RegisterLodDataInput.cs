@@ -68,6 +68,8 @@ namespace Crest
         [SerializeField, Filtered]
         protected Mode _mode;
 
+        protected virtual Mode DefaultMode => Mode.Painted;
+
         public bool ShowPaintingUI => _mode == Mode.Painted;
 
 #if UNITY_EDITOR
@@ -125,6 +127,16 @@ namespace Crest
 
         protected virtual void OnDisable()
         {
+        }
+
+        protected virtual void Reset()
+        {
+            _mode = DefaultMode;
+
+            if (TryGetComponent<Renderer>(out _))
+            {
+                _mode = Mode.CustomGeometryAndShader;
+            }
         }
 
         protected virtual void OnDrawGizmosSelected()
@@ -418,6 +430,16 @@ namespace Crest
                         CreateSplineMaterial();
                     }
                 }
+            }
+        }
+
+        protected override void Reset()
+        {
+            base.Reset();
+
+            if (TryGetComponent<Spline.Spline>(out _))
+            {
+                _mode = Mode.Spline;
             }
         }
 

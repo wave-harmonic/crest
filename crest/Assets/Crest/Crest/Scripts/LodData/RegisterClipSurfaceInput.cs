@@ -41,6 +41,9 @@ namespace Crest
         bool _enabled = true;
         public override bool Enabled => _enabled;
 
+        // Primitive is the best default for clipping, so override the default defined in the base class.
+        protected override Mode DefaultMode => Mode.Primitive;
+
         [Header("Primitive Mode Settings")]
 
         [Tooltip("The primitive to render (signed distance) into the simulation.")]
@@ -135,12 +138,6 @@ namespace Crest
                 scale.z = 0f;
                 return Matrix4x4.TRS(position, Quaternion.Euler(90f, 0f, 0f), scale);
             }
-        }
-
-        private void Reset()
-        {
-            // Primitive is the best default for clipping, so override the default defined in the base class.
-            _mode = Mode.Primitive;
         }
 
         protected override void Start()

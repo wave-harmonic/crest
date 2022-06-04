@@ -280,6 +280,19 @@ namespace Crest
             //return texelSize * samplesPerWave;
         }
 
+        private void Reset()
+        {
+            // Ease of use - set mode based on attached components
+            if (TryGetComponent<Spline.Spline>(out _))
+            {
+                _mode = Mode.Spline;
+            }
+            else if (TryGetComponent<Renderer>(out _))
+            {
+                _mode = Mode.CustomGeometryAndShader;
+            }
+        }
+
         public void CrestUpdate(CommandBuffer buf)
         {
 #if UNITY_EDITOR
@@ -551,6 +564,7 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
+    // Validation
     public partial class ShapeFFT : IValidated
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)

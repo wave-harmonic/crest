@@ -18,6 +18,9 @@ Breaking
 .. bullet_list::
 
    -  Set minimum Unity version to 2021.3.3.
+   -  Added new *Input Mode* setting to FFT component and to all *RegisterInput* components to support more diverse authoring workflows.
+      This option may need to be configured on existing components.
+      A helper migration feature to automatically fix up existing inputs is available via the *Run 2022 Migration on Ocean Inputs* button in the *OceanRenderer* inspector.
 
 
 Preview
@@ -26,6 +29,7 @@ Preview
 
    -  Added option to the Animated Waves settings to increase wave resolution to fix quality issues that appear especially in flowing water.
       See tooltip on this new option for instructions and more details.
+   -  Painting workflow added for flexible water authoring. See new *Authoring Input Modes* section of documentation.
 
 
 Fixed

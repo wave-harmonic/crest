@@ -87,6 +87,7 @@ namespace Crest
         protected override void PreparePaintInputMaterial(Material mat)
         {
             base.PreparePaintInputMaterial(mat);
+            if (_paintData == null) return;
 
             _paintData.CenterPosition3 = transform.position;
             _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
@@ -95,6 +96,7 @@ namespace Crest
         protected override void UpdatePaintInputMaterial(Material mat)
         {
             base.UpdatePaintInputMaterial(mat);
+            if (_paintData == null) return;
 
             _paintData.CenterPosition3 = transform.position;
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
@@ -226,7 +228,7 @@ namespace Crest
 
                 buf.DrawMesh(QuadMesh, QuadMatrix, _signedDistancedMaterial, submeshIndex: 0, shaderPass: 0, _mpb.materialPropertyBlock);
             }
-            else
+            else if (_renderer != null)
             {
                 var shaderPass = SupportsMultiPassShaders ? -1 : 0;
                 _renderer.GetSharedMaterials(_sharedMaterials);

@@ -209,7 +209,7 @@ namespace Crest
 
         public static void DrawPaintAreaGizmo(IPaintable paintable, Color color)
         {
-            if (paintable != null)
+            if (paintable != null && paintable.PaintedData != null)
             {
                 Vector3 pos = (paintable as Component).transform.position;
 

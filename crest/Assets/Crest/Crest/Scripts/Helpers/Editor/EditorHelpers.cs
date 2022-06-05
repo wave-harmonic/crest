@@ -71,6 +71,13 @@ namespace Crest.EditorHelpers
 
         public static void Run2022Migration()
         {
+            System.Action<ShapeFFT, ShapeFFT.Mode> setFFTMode = (input, newMode) =>
+            {
+                Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._mode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
+                input._mode = newMode;
+                EditorUtility.SetDirty(input);
+            };
+
             foreach (var fft in GameObject.FindObjectsOfType<ShapeFFT>(true))
             {
                 if (fft._mode == ShapeFFT.Mode.Painted)
@@ -79,13 +86,12 @@ namespace Crest.EditorHelpers
 
                     if (newMode != fft._mode)
                     {
-                        Debug.Log($"Crest: Changing Mode of ShapeFFT component on GameObject {fft.gameObject.name} from {fft._mode.ToString()} to {newMode}. Click this message to highlight this GameObject.", fft);
-                        fft._mode = newMode;
-                        EditorUtility.SetDirty(fft);
+                        setFFTMode(fft, newMode);
                     }
 
                     continue;
                 }
+
                 if (fft._mode != ShapeFFT.Mode.Global)
                 {
                     // Don't touch if already set to a non-default mode
@@ -94,11 +100,16 @@ namespace Crest.EditorHelpers
 
                 if (fft.AutoDetectMode(out var autoMode) && autoMode != fft._mode)
                 {
-                    Debug.Log($"Crest: Changing Mode of ShapeFFT component on GameObject {fft.gameObject.name} from {fft._mode.ToString()} to {autoMode}. Click this message to highlight this GameObject.", fft);
-                    fft._mode = autoMode;
-                    EditorUtility.SetDirty(fft);
+                    setFFTMode(fft, autoMode);
                 }
             }
+
+            System.Action<RegisterLodDataInputBase, RegisterLodDataInputBase.InputMode> setInputMode = (input, newMode) =>
+            {
+                Debug.Log($"Crest: Changing Input Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
+                input._inputMode = newMode;
+                EditorUtility.SetDirty(input);
+            };
 
             foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
             {
@@ -110,9 +121,7 @@ namespace Crest.EditorHelpers
 
                     if (newMode != input._inputMode)
                     {
-                        Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
-                        input._inputMode = newMode;
-                        EditorUtility.SetDirty(input);
+                        setInputMode(input, newMode);
                     }
 
                     continue;
@@ -126,9 +135,7 @@ namespace Crest.EditorHelpers
 
                 if (input.AutoDetectMode(out var autoMode) && autoMode != input._inputMode)
                 {
-                    Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {autoMode}. Click this message to highlight this GameObject.", input);
-                    input._inputMode = autoMode;
-                    EditorUtility.SetDirty(input);
+                    setInputMode(input, autoMode);
                 }
             }
         }

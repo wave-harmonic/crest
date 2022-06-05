@@ -42,9 +42,9 @@ namespace Crest
         }
 
         [Header("Mode")]
-        public Mode _mode = Mode.Global;
+        public Mode _inputMode = Mode.Global;
 
-        public bool ShowPaintingUI => _mode == Mode.Painted;
+        public bool ShowPaintingUI => _inputMode == Mode.Painted;
 
         [Header("Wave Conditions")]
         [Tooltip("Impacts how aligned waves are with wind.")]
@@ -94,7 +94,7 @@ namespace Crest
 
         #region Painting
         [Header("Paint Mode Settings")]
-        [Predicated("_mode", inverted: true, Mode.Painted), DecoratedField]
+        [Predicated("_inputMode", inverted: true, Mode.Painted), DecoratedField]
         public CPUTexture2DPaintable_RG16_AddBlend _paintData;
         void PreparePaintInputMaterial(Material mat)
         {
@@ -124,9 +124,9 @@ namespace Crest
         [Header("Spline Mode Settings")]
         // NOTE - i think this is valid for wave geometry, not just splines. however custom geo is such a distant edge
         // case at this point esp. with painting. therefore moving into spline settings
-        [SerializeField, Predicated("_mode", inverted: true, Mode.Spline), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
         float _featherWaveStart = 0.1f;
-        [SerializeField, Predicated("_mode", inverted: true, Mode.Spline), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 50f;
@@ -155,8 +155,8 @@ namespace Crest
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => null;
 
-        Mesh MeshForGeneration => _mode == Mode.Spline ? _meshForDrawingWavesSpline : (_mode == Mode.CustomGeometryAndShader ? _meshForDrawingWavesCustom : null);
-        bool UsingGeometryToGenerate => _mode == Mode.Spline || _mode == Mode.CustomGeometryAndShader;
+        Mesh MeshForGeneration => _inputMode == Mode.Spline ? _meshForDrawingWavesSpline : (_inputMode == Mode.CustomGeometryAndShader ? _meshForDrawingWavesCustom : null);
+        bool UsingGeometryToGenerate => _inputMode == Mode.Spline || _inputMode == Mode.CustomGeometryAndShader;
 
         // Will either be spline mesh, or custom geo assigned by user
         Mesh _meshForDrawingWavesSpline;
@@ -248,9 +248,9 @@ namespace Crest
         {
             get
             {
-                if (_mode == Mode.Global) return _matGenerateWavesGlobal;
-                if (_mode == Mode.Painted) return _matGenerateWavesPainted;
-                if (_mode == Mode.Spline) return _matGenerateWavesGeometry;
+                if (_inputMode == Mode.Global) return _matGenerateWavesGlobal;
+                if (_inputMode == Mode.Painted) return _matGenerateWavesPainted;
+                if (_inputMode == Mode.Spline) return _matGenerateWavesGeometry;
                 return _matGenerateWavesGeometry;
             }
         }
@@ -303,7 +303,7 @@ namespace Crest
         {
             if (AutoDetectMode(out var mode))
             {
-                _mode = mode;
+                _inputMode = mode;
             }
         }
 
@@ -337,7 +337,7 @@ namespace Crest
             mat.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             mat.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
-            if (_mode == Mode.Painted)
+            if (_inputMode == Mode.Painted)
             {
                 UpdatePaintInputMaterial(mat);
             }
@@ -402,14 +402,14 @@ namespace Crest
                 }
             }
 
-            if (_mode == Mode.Global)
+            if (_inputMode == Mode.Global)
             {
                 if (_matGenerateWavesGlobal == null)
                 {
                     _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
                 }
             }
-            else if (_mode == Mode.Painted)
+            else if (_inputMode == Mode.Painted)
             {
                 if (_matGenerateWavesPainted == null)
                 {
@@ -422,7 +422,7 @@ namespace Crest
             }
             else
             {
-                if (_mode == Mode.Spline)
+                if (_inputMode == Mode.Spline)
                 {
                     if (TryGetComponent<Spline.Spline>(out var splineForWaves))
                     {
@@ -526,11 +526,11 @@ namespace Crest
 
         private void OnDrawGizmosSelected()
         {
-            if (_mode == Mode.Painted)
+            if (_inputMode == Mode.Painted)
             {
                 PaintableEditor.DrawPaintAreaGizmo(this, Color.green);
             }
-            else if (_mode == Mode.CustomGeometryAndShader)
+            else if (_inputMode == Mode.CustomGeometryAndShader)
             {
                 DrawMesh();
             }
@@ -538,12 +538,12 @@ namespace Crest
 
         void DrawMesh()
         {
-            if (_mode == Mode.CustomGeometryAndShader && _meshForDrawingWavesCustom != null)
+            if (_inputMode == Mode.CustomGeometryAndShader && _meshForDrawingWavesCustom != null)
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
                 Gizmos.DrawWireMesh(_meshForDrawingWavesCustom, 0, transform.position, transform.rotation, transform.lossyScale);
             }
-            if (_mode == Mode.Spline && _meshForDrawingWavesSpline != null)
+            if (_inputMode == Mode.Spline && _meshForDrawingWavesSpline != null)
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
                 Gizmos.DrawWireMesh(_meshForDrawingWavesSpline, 0, transform.position, transform.rotation, transform.lossyScale);

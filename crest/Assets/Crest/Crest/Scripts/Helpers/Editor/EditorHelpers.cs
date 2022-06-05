@@ -73,18 +73,18 @@ namespace Crest.EditorHelpers
         {
             System.Action<ShapeFFT, ShapeFFT.Mode> setFFTMode = (input, newMode) =>
             {
-                Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._mode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
-                input._mode = newMode;
+                Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
+                input._inputMode = newMode;
                 EditorUtility.SetDirty(input);
             };
 
             foreach (var fft in GameObject.FindObjectsOfType<ShapeFFT>(true))
             {
-                if (fft._mode == ShapeFFT.Mode.Painted)
+                if (fft._inputMode == ShapeFFT.Mode.Painted)
                 {
                     fft.AutoDetectMode(out var newMode);
 
-                    if (newMode != fft._mode)
+                    if (newMode != fft._inputMode)
                     {
                         setFFTMode(fft, newMode);
                     }
@@ -92,13 +92,13 @@ namespace Crest.EditorHelpers
                     continue;
                 }
 
-                if (fft._mode != ShapeFFT.Mode.Global)
+                if (fft._inputMode != ShapeFFT.Mode.Global)
                 {
                     // Don't touch if already set to a non-default mode
                     continue;
                 }
 
-                if (fft.AutoDetectMode(out var autoMode) && autoMode != fft._mode)
+                if (fft.AutoDetectMode(out var autoMode) && autoMode != fft._inputMode)
                 {
                     setFFTMode(fft, autoMode);
                 }

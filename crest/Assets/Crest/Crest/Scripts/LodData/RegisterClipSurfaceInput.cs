@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [CrestHelpURL("user/ocean-simulation", "clip-surface")]
-    [FilterEnum("_mode", FilteredAttribute.Mode.Exclude, (int)Mode.Spline)]
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Spline)]
     public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintable
     {
         /// <summary>
@@ -42,22 +42,22 @@ namespace Crest
         public override bool Enabled => _enabled;
 
         // Primitive is the best default for clipping, so override the default defined in the base class.
-        protected override Mode DefaultMode => Mode.Primitive;
+        public override InputMode DefaultMode => InputMode.Primitive;
 
         [Header("Primitive Mode Settings")]
 
         [Tooltip("The primitive to render (signed distance) into the simulation.")]
-        [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive), DecoratedField]
         Primitive _primitive = Primitive.Cube;
 
         // Only needed for Primitive as non-primitive uses queue from shader.
         [Tooltip("Order (ascending) that this input will be rendered into the clip surface data.")]
-        [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive), DecoratedField]
         int _order = 0;
 
         // Only Mode.Primitive SDF supports inverted.
         [Tooltip("Removes clip surface data instead of adding it.")]
-        [SerializeField, Predicated("_mode", inverted: true, Mode.Primitive), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive), DecoratedField]
         bool _inverted = false;
 
         [Header("3D Clipping Options")]
@@ -79,7 +79,7 @@ namespace Crest
 
         #region Painting
         [Header("Paint Mode Settings")]
-        [Predicated("_mode", inverted: true, Mode.Painted), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
@@ -161,7 +161,7 @@ namespace Crest
         protected override bool GetQueue(out int queue)
         {
             // Support queue for primitives.
-            if (_mode == Mode.Primitive)
+            if (_inputMode == InputMode.Primitive)
             {
                 queue = _order;
                 return true;
@@ -200,12 +200,12 @@ namespace Crest
                 return;
             }
 
-            if (_mode == Mode.Primitive && _signedDistancedMaterial == null)
+            if (_inputMode == InputMode.Primitive && _signedDistancedMaterial == null)
             {
                 return;
             }
 
-            if (_mode == Mode.CustomGeometryAndShader && (_renderer == null || _sharedMaterials.Count == 0))
+            if (_inputMode == InputMode.CustomGeometryAndShader && (_renderer == null || _sharedMaterials.Count == 0))
             {
                 return;
             }
@@ -214,11 +214,11 @@ namespace Crest
             buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
             buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
 
-            if (_mode == Mode.Painted)
+            if (_inputMode == InputMode.Painted)
             {
                 buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
             }
-            else if (_mode == Mode.Primitive)
+            else if (_inputMode == InputMode.Primitive)
             {
                 // Need this here or will see NullReferenceException on recompile.
                 if (_mpb == null)
@@ -248,7 +248,7 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null || (_mode == Mode.CustomGeometryAndShader && _renderer == null))
+            if (OceanRenderer.Instance == null || (_inputMode == InputMode.CustomGeometryAndShader && _renderer == null))
             {
                 return;
             }
@@ -289,7 +289,7 @@ namespace Crest
                     _mpb = new PropertyWrapperMPB();
                 }
 
-                if (_mode == Mode.CustomGeometryAndShader)
+                if (_inputMode == InputMode.CustomGeometryAndShader)
                 {
                     _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
                 }
@@ -302,7 +302,7 @@ namespace Crest
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
 
-                if (_mode == Mode.CustomGeometryAndShader)
+                if (_inputMode == InputMode.CustomGeometryAndShader)
                 {
                     _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
                 }
@@ -329,13 +329,13 @@ namespace Crest
         {
             Gizmos.color = GizmoColor;
 
-            if (_mode == Mode.Painted)
+            if (_inputMode == InputMode.Painted)
             {
                 base.OnDrawGizmosSelected();
                 return;
             }
 
-            if (_mode == Mode.CustomGeometryAndShader)
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
                 if (TryGetComponent<MeshFilter>(out var mf))
                 {
@@ -345,7 +345,7 @@ namespace Crest
                 return;
             }
 
-            if (_mode == Mode.Primitive)
+            if (_inputMode == InputMode.Primitive)
             {
                 // Show gizmo for quad which encompasses the shape.
                 Gizmos.matrix = QuadMatrix;
@@ -394,7 +394,7 @@ namespace Crest
             if (_version == 0)
             {
                 // The user is using geometry for clipping.
-                _mode = Mode.CustomGeometryAndShader;
+                _inputMode = InputMode.CustomGeometryAndShader;
 
                 _version = 1;
             }

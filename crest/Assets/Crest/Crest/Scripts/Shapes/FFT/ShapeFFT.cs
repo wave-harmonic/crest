@@ -43,6 +43,7 @@ namespace Crest
 
         [Header("Mode")]
         public Mode _mode = Mode.Global;
+
         public bool ShowPaintingUI => _mode == Mode.Painted;
 
         [Header("Wave Conditions")]
@@ -280,16 +281,29 @@ namespace Crest
             //return texelSize * samplesPerWave;
         }
 
-        private void Reset()
+        public bool AutoDetectMode(out Mode mode)
         {
             // Ease of use - set mode based on attached components
             if (TryGetComponent<Spline.Spline>(out _))
             {
-                _mode = Mode.Spline;
+                mode = Mode.Spline;
+                return true;
             }
             else if (TryGetComponent<Renderer>(out _))
             {
-                _mode = Mode.CustomGeometryAndShader;
+                mode = Mode.CustomGeometryAndShader;
+                return true;
+            }
+
+            mode = Mode.Global;
+            return false;
+        }
+
+        private void Reset()
+        {
+            if (AutoDetectMode(out var mode))
+            {
+                _mode = mode;
             }
         }
 

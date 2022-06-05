@@ -56,7 +56,7 @@ namespace Crest
     [ExecuteAlways]
     public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
-        public enum Mode
+        public enum InputMode
         {
             Painted,
             Spline,
@@ -65,21 +65,21 @@ namespace Crest
         }
 
         [Header("Mode")]
-        [SerializeField, Filtered]
-        protected Mode _mode;
+        [Filtered]
+        public InputMode _inputMode;
 
-        protected virtual Mode DefaultMode => Mode.Painted;
+        public virtual InputMode DefaultMode => InputMode.Painted;
 
-        public bool ShowPaintingUI => _mode == Mode.Painted;
+        public bool ShowPaintingUI => _inputMode == InputMode.Painted;
 
 #if UNITY_EDITOR
         [Header("Custom Geometry And Shader Mode Settings")]
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
-        [Predicated("_mode", inverted: true, Mode.CustomGeometryAndShader), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
         bool _checkShaderName = true;
 
         [SerializeField, Tooltip("Check that the shader applied to this object has only a single pass as only the first pass is executed for most inputs.")]
-        [Predicated("_mode", inverted: true, Mode.CustomGeometryAndShader), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
         bool _checkShaderPasses = true;
 #endif
 
@@ -129,19 +129,31 @@ namespace Crest
         {
         }
 
-        protected virtual void Reset()
+        public virtual bool AutoDetectMode(out InputMode mode)
         {
-            _mode = DefaultMode;
-
             if (TryGetComponent<Renderer>(out _))
             {
-                _mode = Mode.CustomGeometryAndShader;
+                mode = InputMode.CustomGeometryAndShader;
+                return true;
+            }
+
+            mode = DefaultMode;
+            return false;
+        }
+
+        protected void Reset()
+        {
+            _inputMode = DefaultMode;
+
+            if (AutoDetectMode(out var autoMode))
+            {
+                _inputMode = autoMode;
             }
         }
 
         protected virtual void OnDrawGizmosSelected()
         {
-            if (_mode == Mode.CustomGeometryAndShader)
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
                 MeshFilter mf;
                 if (TryGetComponent(out mf))
@@ -151,7 +163,7 @@ namespace Crest
                 }
             }
 
-            if (_mode == Mode.Painted)
+            if (_inputMode == InputMode.Painted)
             {
                 var paintable = this as IPaintable;
                 if (paintable != null)
@@ -163,7 +175,7 @@ namespace Crest
 
         void InitRendererAndMaterial(bool verifyShader)
         {
-            if (_mode == Mode.CustomGeometryAndShader)
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
                 _renderer = GetComponent<Renderer>();
 
@@ -177,7 +189,7 @@ namespace Crest
 #endif
                 }
             }
-            else if (_mode == Mode.Painted)
+            else if (_inputMode == InputMode.Painted)
             {
                 var paintable = this as IPaintable;
                 var paintedInputShader = paintable?.PaintedInputShader;
@@ -240,14 +252,14 @@ namespace Crest
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
             }
 
-            if (_mode == Mode.Painted)
+            if (_inputMode == InputMode.Painted)
             {
                 if (_paintInputMaterial)
                 {
                     buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
                 }
             }
-            else if (_mode == Mode.CustomGeometryAndShader)
+            else if (_inputMode == InputMode.CustomGeometryAndShader)
             {
                 if (_renderer)
                 {
@@ -300,7 +312,7 @@ namespace Crest
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
 
-        [SerializeField, Predicated("_mode", inverted: true, Mode.CustomGeometryAndShader), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
         bool _disableRenderer = true;
 
         int _registeredQueueValue = int.MinValue;
@@ -397,7 +409,7 @@ namespace Crest
         where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
         [Header("Spline Mode Settings")]
-        [SerializeField, Predicated("_mode", inverted: true, Mode.Spline), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Spline), DecoratedField]
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 20f;
@@ -416,7 +428,7 @@ namespace Crest
 
         void Awake()
         {
-            if (_mode == Mode.Spline)
+            if (_inputMode == InputMode.Spline)
             {
                 if (TryGetComponent(out _spline))
                 {
@@ -433,14 +445,15 @@ namespace Crest
             }
         }
 
-        protected override void Reset()
+        public override bool AutoDetectMode(out InputMode mode)
         {
-            base.Reset();
-
             if (TryGetComponent<Spline.Spline>(out _))
             {
-                _mode = Mode.Spline;
+                mode = InputMode.Spline;
+                return true;
             }
+
+            return base.AutoDetectMode(out mode);
         }
 
         protected virtual void CreateSplineMaterial()
@@ -452,7 +465,7 @@ namespace Crest
         {
             if (weight <= 0f) return;
 
-            if (_mode == Mode.Spline)
+            if (_inputMode == InputMode.Spline)
             {
                 if (_splineMesh != null && _splineMaterial != null)
                 {
@@ -494,7 +507,7 @@ namespace Crest
             // Check for spline and rebuild spline mesh each frame in edit mode
             if (!EditorApplication.isPlaying)
             {
-                if (_mode == Mode.Spline)
+                if (_inputMode == InputMode.Spline)
                 {
                     UpdateSpline();
                 }
@@ -530,7 +543,7 @@ namespace Crest
         {
             base.OnDrawGizmosSelected();
 
-            if (_mode == Mode.Spline)
+            if (_inputMode == InputMode.Spline)
             {
                 if (_splineMesh != null)
                 {
@@ -565,7 +578,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (_mode == Mode.CustomGeometryAndShader)
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
                 // Check if Renderer component is attached.
                 if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, _checkShaderPasses, SupportsMultiPassShaders, _checkShaderName ? ShaderPrefix : String.Empty))
@@ -605,33 +618,33 @@ namespace Crest
             }
 
             // Suggest that if a Renderer is present, perhaps mode should be changed to use it
-            if (_mode != Mode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
+            if (_inputMode != InputMode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
             {
                 showMessage
                 (
                     "A <i>Renderer</i> component is present on this GameObject but will not be used by Crest.",
                     "Change the mode to <i>CustomGeometryAndShader</i> to use this renderer as the input.",
-                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, Mode.CustomGeometryAndShader)
+                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, InputMode.CustomGeometryAndShader)
                 );
             }
 
             // Suggest that if a Spline is present, perhaps mode should be changed to use it
-            if (_mode != Mode.Spline && TryGetComponent<Spline.Spline>(out _))
+            if (_inputMode != InputMode.Spline && TryGetComponent<Spline.Spline>(out _))
             {
                 showMessage
                 (
                     "A <i>Spline</i> component is present on this GameObject but will not be used by Crest.",
                     "Change the mode to <i>Spline</i> to use this renderer as the input.",
-                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, Mode.Spline)
+                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, InputMode.Spline)
                 );
             }
 
             return isValid;
         }
 
-        void FixSetMode(SerializedObject registerInputComponent, Mode mode)
+        void FixSetMode(SerializedObject registerInputComponent, InputMode mode)
         {
-            registerInputComponent.FindProperty("_mode").enumValueIndex = (int)mode;
+            registerInputComponent.FindProperty("_inputMode").enumValueIndex = (int)mode;
         }
     }
 
@@ -662,7 +675,7 @@ namespace Crest
         {
             bool isValid = base.Validate(ocean, showMessage);
 
-            if (_mode == Mode.Spline)
+            if (_inputMode == InputMode.Spline)
             {
                 if (!TryGetComponent<Spline.Spline>(out _))
                 {

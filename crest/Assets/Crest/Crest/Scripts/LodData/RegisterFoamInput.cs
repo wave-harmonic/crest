@@ -16,7 +16,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     [CrestHelpURL("user/ocean-simulation", "foam")]
-    [FilterEnum("_mode", FilteredAttribute.Mode.Exclude, (int)Mode.Primitive)]
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
     public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>, IPaintable
     {
         /// <summary>
@@ -43,7 +43,7 @@ namespace Crest
 
         #region Painting
         [Header("Paint Mode Settings")]
-        [Predicated("_mode", inverted: true, Mode.Painted), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");

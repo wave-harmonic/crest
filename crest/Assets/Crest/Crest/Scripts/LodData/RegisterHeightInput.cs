@@ -13,7 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
     [CrestHelpURL("user/water-bodies")]
-    [FilterEnum("_mode", FilteredAttribute.Mode.Exclude, (int)Mode.Primitive)]
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
     public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, IPaintable
     {
         /// <summary>
@@ -41,7 +41,7 @@ namespace Crest
 
         #region Painting
         [Header("Paint Mode Settings")]
-        [Predicated("_mode", inverted: true, Mode.Painted), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Sea Floor Depth/Base Water Height Painted");
@@ -82,7 +82,7 @@ namespace Crest
         protected override bool GetQueue(out int queue)
         {
             // Make this apply strictly after spline height, because spline height stomps (necessarily i think - needs to write its height not add it).
-            if (_mode == Mode.Spline)
+            if (_inputMode == InputMode.Spline)
             {
                 queue = -1000;
                 return true;
@@ -108,7 +108,7 @@ namespace Crest
             var maxDispVert = _maxDisplacementVertical;
 
             // Let ocean system know how far from the sea level this shape may displace the surface
-            if (_mode == Mode.CustomGeometryAndShader)
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
                 if (_renderer != null)
                 {
@@ -118,7 +118,7 @@ namespace Crest
                     maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
                 }
             }
-            else if (_mode == Mode.Spline)
+            else if (_inputMode == InputMode.Spline)
             {
                 if (_splineMaterial != null &&
                     ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))

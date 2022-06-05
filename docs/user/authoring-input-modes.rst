@@ -33,10 +33,10 @@ By left click dragging the mouse, input can be added. For directional input type
 
 The following settings can be modified in the Paint Mode Settings section of the inspector, by expanding the Paint Data group:
 
-* World Size - the size of the input area, centered at the GameObject's transform. Enable gizmos to see a wireframe outline of the area in the Scene View.
-* Resolution - the data resolution. Higher gives more detail but takes more memory.
-* Brush Radius - controls the radius of the brush cursor used for painting. Visualised by the cursor in the Scene View.
-* Brush Strength - scales intensity of the brush interaction.
+* **World Size** - the size of the input area, centered at the GameObject's transform. Enable gizmos to see a wireframe outline of the area in the Scene View.
+* **Resolution** - the data resolution. Higher gives more detail but takes more memory.
+* **Brush Radius** - controls the radius of the brush cursor used for painting. Visualised by the cursor in the Scene View.
+* **Brush Strength** - scales intensity of the brush interaction.
 
 Some planning is advisable before committing significant time to creating the input. The data is not currently resampled when the size/position/resolution is changed, so for example the data needs to be re-authored if the resolution is changed.
 
@@ -54,9 +54,12 @@ Relevant data components will automatically be added to spline points. For examp
 
 # Custom Geometry and Shader
 
-The most advanced type of input involves providing geometry with a shader attached that directly generates the desired data. This geometry will be rendered from a orthographic top down perspective to "print" the data onto the water.
+This is the most advanced type of input and allows rendering any geometry/shader into the water system data. One could draw foam directly into the foam data, or inject a flow map baked from an offline sim.
 
-To illustrate a use case .. TODO which use case? Sea floor depth was not good example. Whirlpool was typical advanced input example. Something else?
+The geometry can come from a standard MeshRenderer/MeshFilter combination, or it can come from any *Renderer* component such as a particle system. 
+This geometry will be rendered from a orthographic top down perspective to "print" the data onto the water.
+
+The *Particle Renderer* example in the Examples scene shows a particle system being projected onto the water surface.
 
 
 # Primitive

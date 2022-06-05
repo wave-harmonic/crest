@@ -1991,7 +1991,7 @@ namespace Crest
 
             if (GUILayout.Button("Run 2022 Migration on Ocean Inputs"))
             {
-                Run2022Migration();
+                EditorHelpers.EditorHelpers.Run2022Migration();
             }
 
             if (GUILayout.Button("Validate Setup"))
@@ -2005,70 +2005,6 @@ namespace Crest
             }
 
             DrawMaterialEditor();
-        }
-
-        void Run2022Migration()
-        {
-            foreach (var fft in GameObject.FindObjectsOfType<ShapeFFT>(true))
-            {
-                if (fft._mode == ShapeFFT.Mode.Painted)
-                {
-                    fft.AutoDetectMode(out var newMode);
-
-                    if (newMode != fft._mode)
-                    {
-                        Debug.Log($"Crest: Changing Mode of ShapeFFT component on GameObject {fft.gameObject.name} from {fft._mode.ToString()} to {newMode}. Click this message to highlight this GameObject.", fft);
-                        fft._mode = newMode;
-                        EditorUtility.SetDirty(fft);
-                    }
-
-                    continue;
-                }
-                if (fft._mode != ShapeFFT.Mode.Global)
-                {
-                    // Don't touch if already set to a non-default mode
-                    continue;
-                }
-
-                if (fft.AutoDetectMode(out var autoMode) && autoMode != fft._mode)
-                {
-                    Debug.Log($"Crest: Changing Mode of ShapeFFT component on GameObject {fft.gameObject.name} from {fft._mode.ToString()} to {autoMode}. Click this message to highlight this GameObject.", fft);
-                    fft._mode = autoMode;
-                    EditorUtility.SetDirty(fft);
-                }
-            }
-
-            foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
-            {
-                // Painted is a new mode. Forcibly upgrade it because it is also the default aso components are likely to have it.
-                if (input._inputMode == RegisterLodDataInputBase.InputMode.Painted)
-                {
-                    var newMode = input.DefaultMode;
-                    input.AutoDetectMode(out newMode);
-
-                    if (newMode != input._inputMode)
-                    {
-                        Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
-                        input._inputMode = newMode;
-                        EditorUtility.SetDirty(input);
-                    }
-
-                    continue;
-                }
-
-                if (input._inputMode != input.DefaultMode)
-                {
-                    // Don't touch if already set to a non-default mode
-                    continue;
-                }
-
-                if (input.AutoDetectMode(out var autoMode) && autoMode != input._inputMode)
-                {
-                    Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {autoMode}. Click this message to highlight this GameObject.", input);
-                    input._inputMode = autoMode;
-                    EditorUtility.SetDirty(input);
-                }
-            }
         }
 
         // Adapted from: http://answers.unity.com/answers/975894/view.html

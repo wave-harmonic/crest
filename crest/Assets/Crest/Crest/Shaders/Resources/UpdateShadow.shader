@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Soft shadow term is red, hard shadow term is green.
+
 Shader "Hidden/Crest/Simulation/Update Shadow"
 {
 	SubShader
@@ -20,6 +22,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 
 			#include "UnityCG.cginc"
 
+			#include "../FullScreenTriangle.hlsl"
 			#include "../Helpers/BIRP/ScreenSpaceShadows.hlsl"
 			#include "../ShaderLibrary/UpdateShadow.hlsl"
 
@@ -41,20 +44,6 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				float fade = UnityComputeShadowFade(fadeDistance);
 				return fade;
 			}
-
-			Varyings Vert(Attributes input)
-			{
-				Varyings output;
-
-				output.positionCS = UnityObjectToClipPos(input.positionOS);
-
-				// World position from [0,1] quad.
-				output.positionWS.xyz = float3(input.positionOS.x - 0.5, 0.0, input.positionOS.y - 0.5) * _Scale * 4.0 + _CenterPos;
-				output.positionWS.y = _OceanCenterPosWorld.y;
-
-				return output;
-			}
-
 			ENDHLSL
 		}
 	}

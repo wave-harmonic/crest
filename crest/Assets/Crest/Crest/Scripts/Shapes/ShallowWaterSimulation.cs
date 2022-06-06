@@ -139,6 +139,8 @@ namespace Crest
 
         public void CrestUpdatePostCombine(CommandBuffer buf)
         {
+            buf.BeginSample("SWS");
+
             if (_firstUpdate)
             {
                 Reset(buf);
@@ -272,6 +274,8 @@ namespace Crest
             Shader.SetGlobalTexture("_swsHRender", _debugSettings._blurShapeForRender ? _rtH0 : _rtH1);
             Shader.SetGlobalTexture("_swsVx", _rtVx1);
             Shader.SetGlobalTexture("_swsVy", _rtVy1);
+
+            buf.EndSample("SWS");
         }
     }
 

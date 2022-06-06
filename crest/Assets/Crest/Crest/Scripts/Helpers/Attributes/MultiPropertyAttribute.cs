@@ -247,7 +247,7 @@ namespace Crest
 
     /// <summary>
     /// Marks which enum options this subclass wants to use. Companion to FilteredAttribute.
-    /// Usage: [FilterEnum("_inputMode", FilteredAttribute.Mode.Include, (int)Mode.One, (int)Mode.Two)]
+    /// Usage: [FilterEnum("_mode", FilteredAttribute.Mode.Include, (int)Mode.One, (int)Mode.Two)]
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class FilterEnumAttribute : Attribute

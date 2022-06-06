@@ -1989,7 +1989,7 @@ namespace Crest
                 }
             }
 
-            if (GUILayout.Button("Run 2022 Migration on Ocean Inputs"))
+            if (!EditorApplication.isPlaying && GUILayout.Button("Run 2022 Migration on Ocean Inputs"))
             {
                 EditorHelpers.EditorHelpers.Run2022Migration();
             }

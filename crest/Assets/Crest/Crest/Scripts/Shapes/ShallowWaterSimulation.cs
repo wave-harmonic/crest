@@ -247,21 +247,21 @@ namespace Crest
                         buf.GenerateMips(_rtVx1);
                         buf.GenerateMips(_rtVy1);
                     }
+                }
 
-                    // Blur H
-                    if (_debugSettings._blurShapeForRender)
-                    {
-                        // Cheekily write to H0, but dont flip. This is a temporary result purely for rendering.
-                        // Next update will flip and overwrite this.
-                        //Swap(ref _rtH0, ref _rtH1);
+                // Blur H postprocess to smooth out render data - only needs to be done once after any simulation updates
+                if (steps > 0 && _debugSettings._blurShapeForRender)
+                {
+                    // Cheekily write to H0, but dont flip. This is a temporary result purely for rendering.
+                    // Next update will flip and overwrite this.
+                    //Swap(ref _rtH0, ref _rtH1);
 
-                        _csSWSProps.Initialise(buf, _csSWS, _krnlBlurH);
+                    _csSWSProps.Initialise(buf, _csSWS, _krnlBlurH);
 
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH0);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH1);
+                    _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH0);
 
-                        buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH0.width + 7) / 8, (_rtH0.height + 7) / 8, 1);
-                    }
+                    buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH0.width + 7) / 8, (_rtH0.height + 7) / 8, 1);
                 }
             }
 

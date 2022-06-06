@@ -1,7 +1,8 @@
 Authoring Input Modes
 =====================
 
-# Overview
+Overview
+--------
 
 A number of components provide multiple authoring modes.
 
@@ -16,12 +17,14 @@ These are selected using the **Input Mode** dropdown on the ShapeFFT component, 
 The following sections describe each mode.
 
 
-# Global Mode
+Global Mode
+-----------
 
 The input simply applies everywhere.
 
 
-# Painted Mode
+Painted Mode
+------------
 
 The painting modality allows the input to be directly hand authored into the world.
 This is flexible and powerful.
@@ -53,7 +56,8 @@ The storage required by saving this data may be evident by a sudden increase in 
 While most painted input is likely to compress well into a small package size, it may still be worth creating prefabs from painted input GameObjects so that the data is stored outside the main level file.
 
 
-# Spline Mode
+Spline Mode
+-----------
 
 Selecting Spline from the Mode dropdown will enable Spline Mode Settings UI in the Inspector.
 This mode requires a Spline component to be present with at least two spline points added.
@@ -79,7 +83,8 @@ This geometry will be rendered from a orthographic top down perspective to "prin
 The *Particle Renderer* example in the Examples scene shows a particle system being projected onto the water surface.
 
 
-# Primitive
+Primitive
+---------
 
 Use a primitive shape for the input such as a mathematical cube or sphere.
 

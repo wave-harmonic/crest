@@ -26,7 +26,7 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanHelpers.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Speed;

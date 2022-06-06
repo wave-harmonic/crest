@@ -8,7 +8,7 @@
 #include "../OceanConstants.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanGlobals.hlsl"
-#include "../OceanHelpersNew.hlsl"
+#include "../OceanHelpers.hlsl"
 #include "../OceanVertHelpers.hlsl"
 #include "../OceanShaderHelpers.hlsl"
 

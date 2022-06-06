@@ -191,7 +191,8 @@ namespace Crest
         }
 
         /// <summary>
-        /// Blit using full screen triangle.
+        /// Blit using full screen triangle. Supports more features than CommandBuffer.Blit like the RenderPipeline tag
+        /// in sub-shaders.
         /// </summary>
         public static void Blit(CommandBuffer buffer, RenderTargetIdentifier target, Material material, int pass, MaterialPropertyBlock properties = null)
         {

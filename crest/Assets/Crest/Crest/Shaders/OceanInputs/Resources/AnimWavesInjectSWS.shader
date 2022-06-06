@@ -23,7 +23,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanHelpersNew.hlsl"
+			#include "../../OceanHelpers.hlsl"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2D<float> _swsHRender;

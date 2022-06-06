@@ -20,7 +20,7 @@ Breaking
    -  Set minimum Unity version to 2021.3.3.
    -  Added new *Input Mode* setting to FFT component and to all *RegisterInput* components to support more diverse authoring workflows.
       This option may need to be configured on existing components.
-      A helper migration feature to automatically fix up existing inputs is available via the *Run 2022 Migration on Ocean Inputs* button in the *OceanRenderer* inspector.
+      A migration tool to fix up existing inputs is available via the *Run 2022 Migration on Ocean Inputs* button in the *OceanRenderer* inspector.
 
 
 Preview

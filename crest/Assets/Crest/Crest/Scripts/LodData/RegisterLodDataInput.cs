@@ -141,6 +141,7 @@ namespace Crest
             return false;
         }
 
+        // Called when component attached in edit mode, or when Reset clicked by user.
         protected void Reset()
         {
             _inputMode = DefaultMode;
@@ -254,6 +255,13 @@ namespace Crest
 
             if (_inputMode == InputMode.Painted)
             {
+#if UNITY_EDITOR
+                if (!(this is IPaintable))
+                {
+                    Debug.LogError($"Crest: {this.GetType().Name} has invalid Input Mode setting, please set this to a supported option such as {DefaultMode.ToString()}.", this);
+                }
+#endif
+
                 if (_paintInputMaterial)
                 {
                     buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
@@ -603,6 +611,19 @@ namespace Crest
                             );
                         }
                     }
+                }
+            }
+
+            if (_inputMode == InputMode.Painted)
+            {
+                if (!(this is IPaintable))
+                {
+                    showMessage
+                    (
+                        "Invalid or unset <i>Input Mode</i> setting.",
+                        $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
+                        ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
+                    );
                 }
             }
 

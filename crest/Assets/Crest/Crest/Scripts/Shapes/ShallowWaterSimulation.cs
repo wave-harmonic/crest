@@ -86,14 +86,14 @@ namespace Crest
             _resolution = Mathf.CeilToInt(_domainWidth / _texelSize);
             _resolution = Mathf.Min(_resolution, _maximumResolution);
 
-            if (_rtH0 == null) _rtH0 = CreateSWSRT();
-            if (_rtH1 == null) _rtH1 = CreateSWSRT();
-            if (_rtVx0 == null) _rtVx0 = CreateSWSRT(true);
-            if (_rtVx1 == null) _rtVx1 = CreateSWSRT(true);
-            if (_rtVy0 == null) _rtVy0 = CreateSWSRT(true);
-            if (_rtVy1 == null) _rtVy1 = CreateSWSRT(true);
-            if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT();
-            if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT();
+            if (_rtH0 == null) _rtH0 = CreateSWSRT("rtH0");
+            if (_rtH1 == null) _rtH1 = CreateSWSRT("rtH1");
+            if (_rtVx0 == null) _rtVx0 = CreateSWSRT("rtVx0", true);
+            if (_rtVx1 == null) _rtVx1 = CreateSWSRT("rtVx1", true);
+            if (_rtVy0 == null) _rtVy0 = CreateSWSRT("rtVy0", true);
+            if (_rtVy1 == null) _rtVy1 = CreateSWSRT("rtVy1", true);
+            if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT("rtGroundHeight");
+            if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT("rtSimulationMask");
 
             _matInjectSWSAnimWaves.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
             _matInjectSWSFlow.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
@@ -378,9 +378,10 @@ namespace Crest
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
         }
 
-        RenderTexture CreateSWSRT(bool withMips = false)
+        RenderTexture CreateSWSRT(string name, bool withMips = false)
         {
             var result = new RenderTexture(_resolution, _resolution, 0, RenderTextureFormat.RFloat);
+            result.name = name;
 
             result.enableRandomWrite = true;
 

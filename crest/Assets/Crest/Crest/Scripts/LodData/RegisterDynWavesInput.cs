@@ -12,6 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Dynamic Waves Input")]
     [CrestHelpURL("user/ocean-simulation", "dynamic-waves")]
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Painted, (int)InputMode.Primitive, (int)InputMode.Spline)]
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
     {
         /// <summary>
@@ -26,6 +27,8 @@ namespace Crest
         public override float Wavelength => 0f;
 
         public override bool Enabled => true;
+
+        public override InputMode DefaultMode => InputMode.CustomGeometryAndShader;
 
         protected override Color GizmoColor => new Color(0f, 1f, 0f, 0.5f);
 

@@ -12,6 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Animated Waves Input")]
     [CrestHelpURL("user/ocean-simulation", "animated-waves")]
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Painted, (int)InputMode.Primitive)]
     public class RegisterAnimWavesInput : RegisterLodDataInput<LodDataMgrAnimWaves>
     {
         /// <summary>
@@ -24,6 +25,8 @@ namespace Crest
 #pragma warning restore 414
 
         public override bool Enabled => true;
+
+        public override InputMode DefaultMode => InputMode.CustomGeometryAndShader;
 
         [Header("Anim Waves Input Settings")]
         [SerializeField, Tooltip("Which octave to render into, for example set this to 2 to use render into the 2m-4m octave. These refer to the same octaves as the wave spectrum editor. Set this value to 0 to render into all LODs.")]

@@ -12,7 +12,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Shadow Input")]
     [CrestHelpURL("user/ocean-simulation", "shadows")]
-    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Spline, (int)InputMode.Painted)]
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Spline, (int)InputMode.Painted, (int)InputMode.Primitive)]
     public class RegisterShadowInput : RegisterLodDataInput<LodDataMgrShadow>
     {
         /// <summary>
@@ -25,6 +25,8 @@ namespace Crest
 #pragma warning restore 414
 
         public override bool Enabled => true;
+
+        public override InputMode DefaultMode => InputMode.CustomGeometryAndShader;
 
         public override float Wavelength => 0f;
 

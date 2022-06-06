@@ -216,7 +216,10 @@ namespace Crest
 
             if (_inputMode == InputMode.Painted)
             {
-                buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
+                if (_paintInputMaterial != null)
+                {
+                    buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
+                }
             }
             else if (_inputMode == InputMode.Primitive)
             {

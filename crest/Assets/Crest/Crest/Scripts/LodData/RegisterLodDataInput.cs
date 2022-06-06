@@ -259,7 +259,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (!(this is IPaintable))
                 {
-                    Debug.LogError($"Crest: {this.GetType().Name} has invalid Input Mode setting, please set this to a supported option such as {DefaultMode.ToString()}.", this);
+                    Debug.LogError($"Crest: {this.GetType().Name} component has invalid Input Mode setting, please set this to a supported option such as {DefaultMode.ToString()}. Click this message to highlight the relevant GameObject.", this);
                 }
 #endif
 
@@ -655,8 +655,8 @@ namespace Crest
                 }
             }
 
-            // Suggest that if a Renderer is present, perhaps mode should be changed to use it
-            if (_inputMode != InputMode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
+            // Suggest that if a Renderer is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+            if (isValid && _inputMode != InputMode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
             {
                 showMessage
                 (
@@ -666,8 +666,8 @@ namespace Crest
                 );
             }
 
-            // Suggest that if a Spline is present, perhaps mode should be changed to use it
-            if (_inputMode != InputMode.Spline && TryGetComponent<Spline.Spline>(out _))
+            // Suggest that if a Spline is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+            if (isValid && _inputMode != InputMode.Spline && TryGetComponent<Spline.Spline>(out _))
             {
                 showMessage
                 (

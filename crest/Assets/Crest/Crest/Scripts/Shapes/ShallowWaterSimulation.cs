@@ -181,7 +181,7 @@ namespace Crest
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_DrainWaterAtBoundaries"), _drainWaterAtBoundaries);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_MaxVel"), _maximumVelocity);
+                    _csSWSProps.SetFloat(Shader.PropertyToID("_MaximumVelocity"), _maximumVelocity);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);

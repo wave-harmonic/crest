@@ -231,21 +231,27 @@ namespace Crest
 
                 buf.DrawMesh(QuadMesh, QuadMatrix, _signedDistancedMaterial, submeshIndex: 0, shaderPass: 0, _mpb.materialPropertyBlock);
             }
-            else if (_renderer != null)
+            else if (_inputMode == InputMode.CustomGeometryAndShader)
             {
-                var shaderPass = SupportsMultiPassShaders ? -1 : 0;
-                _renderer.GetSharedMaterials(_sharedMaterials);
-                for (var i = 0; i < _sharedMaterials.Count; i++)
+                if (_renderer != null)
                 {
-                    // Empty material slots is a user error, but skip so we do not spam errors.
-                    if (_sharedMaterials[i] == null)
+                    var shaderPass = SupportsMultiPassShaders ? -1 : 0;
+                    _renderer.GetSharedMaterials(_sharedMaterials);
+                    for (var i = 0; i < _sharedMaterials.Count; i++)
                     {
-                        continue;
+                        // Empty material slots is a user error, but skip so we do not spam errors.
+                        if (_sharedMaterials[i] == null)
+                        {
+                            continue;
+                        }
+
+                        buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass);
                     }
-
-                    buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass);
                 }
-
+            }
+            else if (_inputMode == InputMode.Unset)
+            {
+                Debug.LogError($"Crest: {this.GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode.ToString()}. Click this message to highlight the relevant GameObject.", this);
             }
         }
 

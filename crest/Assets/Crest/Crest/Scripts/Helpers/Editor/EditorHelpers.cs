@@ -113,8 +113,7 @@ namespace Crest.EditorHelpers
 
             foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
             {
-                // Painted is a new mode. Forcibly upgrade it because it is also the default aso components are likely to have it.
-                if (input._inputMode == RegisterLodDataInputBase.InputMode.Painted)
+                if (input._inputMode == RegisterLodDataInputBase.InputMode.Unset)
                 {
                     var newMode = input.DefaultMode;
                     input.AutoDetectMode(out newMode);

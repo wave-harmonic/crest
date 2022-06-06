@@ -58,6 +58,7 @@ namespace Crest
     {
         public enum InputMode
         {
+            Unset = 0,
             Painted,
             Spline,
             CustomGeometryAndShader,
@@ -66,7 +67,7 @@ namespace Crest
 
         [Header("Mode")]
         [Filtered]
-        public InputMode _inputMode;
+        public InputMode _inputMode = InputMode.Unset;
 
         public virtual InputMode DefaultMode => InputMode.Painted;
 
@@ -286,6 +287,10 @@ namespace Crest
                         buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass: 0);
                     }
                 }
+            }
+            else if (_inputMode == InputMode.Unset)
+            {
+                Debug.LogError($"Crest: {this.GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode.ToString()}. Click this message to highlight the relevant GameObject.", this);
             }
         }
 
@@ -586,6 +591,17 @@ namespace Crest
         {
             var isValid = true;
 
+            if (_inputMode == InputMode.Unset)
+            {
+                showMessage
+                (
+                    "Invalid or unset <i>Input Mode</i> setting.",
+                    $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
+                    ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
+                );
+                isValid = false;
+            }
+
             if (_inputMode == InputMode.CustomGeometryAndShader)
             {
                 // Check if Renderer component is attached.
@@ -624,6 +640,7 @@ namespace Crest
                         $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
                         ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
                     );
+                    isValid = false;
                 }
             }
 

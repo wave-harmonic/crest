@@ -113,8 +113,8 @@ namespace Crest
         void HandleClipInputRegistration()
         {
             var registered = _clipInput != null;
-            var shouldBeRegistered = _registerWithClipSurfaceData && OceanRenderer.Instance && OceanRenderer.Instance.CreateClipSurfaceData
-                && OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
+            var shouldBeRegistered = _registerWithClipSurfaceData && OceanRenderer.Instance && OceanRenderer.Instance._lodDataClipSurface != null
+                && OceanRenderer.Instance._lodDataClipSurface.Settings._defaultClippingState == SimSettingsClipSurface.DefaultClippingState.EverythingClipped;
 
             if (registered != shouldBeRegistered)
             {

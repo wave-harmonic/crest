@@ -144,8 +144,6 @@ namespace Crest
             if (_firstUpdate)
             {
                 Reset(buf);
-
-                _firstUpdate = false;
             }
 
             InitData();
@@ -161,20 +159,6 @@ namespace Crest
 
             if (doUpdate)
             {
-                if (_allowDynamicSeabed)
-                {
-                    // Populate ground height every frame to allow dynamic scene
-                    PopulateGroundHeight(buf);
-                }
-
-                // Safety first
-                _simulationTimeStep = Mathf.Max(_simulationTimeStep, 0.001f);
-
-                // Compute substeps
-                _timeToSimulate += Time.deltaTime;
-                int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / _simulationTimeStep) : 0;
-                _timeToSimulate -= steps * _simulationTimeStep;
-
                 // Set once per frame stuff
                 {
                     _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
@@ -189,8 +173,23 @@ namespace Crest
                     _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_BlendPushUpStrength"), _blendPushUpStrength);
                     _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
-                    _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
+                    _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.transform.position);
                 }
+
+                if (_allowDynamicSeabed || _firstUpdate)
+                {
+                    // Populate ground height every frame to allow dynamic scene
+                    PopulateGroundHeight(buf);
+                }
+                _firstUpdate = false;
+
+                // Safety first
+                _simulationTimeStep = Mathf.Max(_simulationTimeStep, 0.001f);
+
+                // Compute substeps
+                _timeToSimulate += Time.deltaTime;
+                int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / _simulationTimeStep) : 0;
+                _timeToSimulate -= steps * _simulationTimeStep;
 
                 for (int i = 0; i < steps; i++)
                 {
@@ -407,7 +406,7 @@ namespace Crest
             InitData();
 
             // Populate ground height - used for initial water height calculation
-            PopulateGroundHeight(buf);
+            //PopulateGroundHeight(buf); // now done in update
 
             // Init sim data - water heights and velocities
             {
@@ -429,10 +428,12 @@ namespace Crest
                 _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), Mathf.Max(0f, _debugSettings._addAdditionalWater));
                 _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
-                _csSWSProps.SetVector(Shader.PropertyToID("_OceanCenterPosWorld"), OceanRenderer.Instance.transform.position);
+                _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.transform.position);
 
                 buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
             }
+
+            _firstUpdate = true;
         }
 
         void PopulateGroundHeight(CommandBuffer buf)
@@ -440,6 +441,12 @@ namespace Crest
             _csSWSProps.Initialise(buf, _csSWS, _krnlInitGroundHeight);
             _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSSRW"), _rtGroundHeight);
             _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
+            _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.transform.position);
+            _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
+            _csSWSProps.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
+            _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
+            _csSWSProps.SetInt(OceanRenderer.sp_sliceCount, OceanRenderer.Instance.CurrentLodCount);
 
             LodDataMgrSeaFloorDepth.Bind(_csSWSProps);
 

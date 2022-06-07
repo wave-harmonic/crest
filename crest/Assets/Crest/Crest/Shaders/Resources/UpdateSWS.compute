@@ -113,7 +113,7 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 
 	const float3 uv0 = WorldToUV(worldXZ, _CrestCascadeData[slice0], slice0);
 	const float3 uv1 = WorldToUV(worldXZ, _CrestCascadeData[slice1], slice1);
-
+	//
 	const float wt_0 = (1.0 - lodAlpha) * _CrestCascadeData[slice0]._weight;
 	const float wt_1 = (1.0 - wt_0) * _CrestCascadeData[slice1]._weight;
 

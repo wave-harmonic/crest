@@ -26,6 +26,10 @@ The input simply applies everywhere.
 Painted Mode
 ------------
 
+.. admonition:: Preview
+
+   This feature is in preview and may change in the future.
+
 The painting modality allows the input to be directly hand authored into the world.
 This is flexible and powerful.
 Keep in mind however that this data may need modification or re-authoring if the environment changes.

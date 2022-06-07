@@ -58,7 +58,7 @@ namespace Crest
     {
         public enum InputMode
         {
-            Unset = 0,
+            Autodetect = 0,
             Painted,
             Spline,
             CustomGeometryAndShader,
@@ -67,7 +67,9 @@ namespace Crest
 
         [Header("Mode")]
         [Filtered]
-        public InputMode _inputMode = InputMode.Unset;
+        public InputMode _inputModeUserFacing = InputMode.Autodetect;
+        [HideInInspector]
+        public InputMode _inputMode = InputMode.Autodetect;
 
         public virtual InputMode DefaultMode => InputMode.Painted;
 
@@ -130,21 +132,25 @@ namespace Crest
         {
         }
 
-        public virtual bool AutoDetectMode(out InputMode mode)
+        public virtual void AutoDetectMode(out InputMode mode)
         {
             if (TryGetComponent<Renderer>(out _))
             {
                 mode = InputMode.CustomGeometryAndShader;
-                return true;
             }
-
-            mode = DefaultMode;
-            return false;
+            else
+            {
+                mode = DefaultMode;
+            }
         }
 
         protected virtual void Awake()
         {
-            if (_inputMode == InputMode.Unset)
+            if (_inputModeUserFacing != InputMode.Autodetect)
+            {
+                _inputMode = _inputModeUserFacing;
+            }
+            else
             {
                 AutoDetectMode(out _inputMode);
             }
@@ -153,10 +159,7 @@ namespace Crest
         // Called when component attached in edit mode, or when Reset clicked by user.
         protected void Reset()
         {
-            if (_inputMode == InputMode.Unset)
-            {
-                AutoDetectMode(out _inputMode);
-            }
+            AutoDetectMode(out _inputModeUserFacing);
         }
 
         protected virtual void OnDrawGizmosSelected()
@@ -292,9 +295,10 @@ namespace Crest
                     }
                 }
             }
-            else if (_inputMode == InputMode.Unset)
+            else if (_inputMode == InputMode.Autodetect)
             {
-                Debug.LogError($"Crest: {GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
+                // TODO update message
+                //Debug.LogError($"Crest: {GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
             }
         }
 
@@ -464,15 +468,16 @@ namespace Crest
             }
         }
 
-        public override bool AutoDetectMode(out InputMode mode)
+        public override void AutoDetectMode(out InputMode mode)
         {
             if (TryGetComponent<Spline.Spline>(out _))
             {
                 mode = InputMode.Spline;
-                return true;
             }
-
-            return base.AutoDetectMode(out mode);
+            else
+            {
+                base.AutoDetectMode(out mode);
+            }
         }
 
         protected virtual void CreateSplineMaterial()
@@ -597,16 +602,16 @@ namespace Crest
         {
             var isValid = true;
 
-            if (_inputMode == InputMode.Unset)
-            {
-                showMessage
-                (
-                    "Invalid or unset <i>Input Mode</i> setting.",
-                    $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
-                    ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
-                );
-                isValid = false;
-            }
+            //if (_inputMode == InputMode.Unset)
+            //{
+            //    showMessage
+            //    (
+            //        "Invalid or unset <i>Input Mode</i> setting.",
+            //        $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
+            //        ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
+            //    );
+            //    isValid = false;
+            //}
 
             if (_inputMode == InputMode.CustomGeometryAndShader)
             {

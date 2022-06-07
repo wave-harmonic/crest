@@ -13,7 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Sea Floor Depth Input")]
     [CrestHelpURL("user/ocean-simulation", "sea-floor-depth")]
-    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Painted)]
+    [FilterEnum("_inputModeUserFacing", FilteredAttribute.Mode.Exclude, (int)InputMode.Painted)]
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
         /// <summary>

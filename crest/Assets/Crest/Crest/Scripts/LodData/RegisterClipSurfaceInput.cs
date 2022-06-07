@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     [CrestHelpURL("user/ocean-simulation", "clip-surface")]
-    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Spline)]
+    [FilterEnum("_inputModeUserFacing", FilteredAttribute.Mode.Exclude, (int)InputMode.Spline)]
     public partial class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>, IPaintable
     {
         /// <summary>
@@ -200,8 +200,9 @@ namespace Crest
                 return;
             }
 
-            if (_inputMode == InputMode.Unset)
+            if (_inputMode == InputMode.Autodetect)
             {
+                // TODO update message. This is invalid state.
                 Debug.LogError($"Crest: {GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
                 return;
             }

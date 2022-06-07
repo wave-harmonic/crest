@@ -13,7 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
     [CrestHelpURL("user/water-bodies")]
-    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
+    [FilterEnum("_inputModeUserFacing", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
     public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, IPaintable
     {
         /// <summary>

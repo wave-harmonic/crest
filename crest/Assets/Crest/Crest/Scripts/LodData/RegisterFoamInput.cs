@@ -16,7 +16,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     [CrestHelpURL("user/ocean-simulation", "foam")]
-    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
+    [FilterEnum("_inputModeUserFacing", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
     public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>, IPaintable
     {
         /// <summary>

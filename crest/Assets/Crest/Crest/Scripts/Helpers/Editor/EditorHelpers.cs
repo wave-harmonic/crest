@@ -109,32 +109,32 @@ namespace Crest.EditorHelpers
                 EditorUtility.SetDirty(input);
             };
 
-            foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
-            {
-                if (input._inputMode == RegisterLodDataInputBase.InputMode.Unset)
-                {
-                    var newMode = input.DefaultMode;
-                    input.AutoDetectMode(out newMode);
+            //foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
+            //{
+            //    if (input._inputMode == RegisterLodDataInputBase.InputMode.Unset)
+            //    {
+            //        var newMode = input.DefaultMode;
+            //        input.AutoDetectMode(out newMode);
 
-                    if (newMode != input._inputMode)
-                    {
-                        setInputMode(input, newMode);
-                    }
+            //        if (newMode != input._inputMode)
+            //        {
+            //            setInputMode(input, newMode);
+            //        }
 
-                    continue;
-                }
+            //        continue;
+            //    }
 
-                if (input._inputMode != input.DefaultMode)
-                {
-                    // Don't touch if already set to a non-default mode
-                    continue;
-                }
+            //    if (input._inputMode != input.DefaultMode)
+            //    {
+            //        // Don't touch if already set to a non-default mode
+            //        continue;
+            //    }
 
-                if (input.AutoDetectMode(out var autoMode) && autoMode != input._inputMode)
-                {
-                    setInputMode(input, autoMode);
-                }
-            }
+            //    if (input.AutoDetectMode(out var autoMode) && autoMode != input._inputMode)
+            //    {
+            //        setInputMode(input, autoMode);
+            //    }
+            //}
         }
     }
 }

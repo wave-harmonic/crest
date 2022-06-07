@@ -58,10 +58,25 @@ namespace Crest
     {
         public enum InputMode
         {
+            /// <summary>
+            /// Unset is serialisation default. Code in Awake() and Reset() then change this based on attached components.
+            /// </summary>
             Unset = 0,
+            /// <summary>
+            /// Data hand-painted by user in editor.
+            /// </summary>
             Painted,
+            /// <summary>
+            /// Driven by a user created spline.
+            /// </summary>
             Spline,
+            /// <summary>
+            /// Attached 'Renderer' (mesh or particle or other) and assigned material used to drive data.
+            /// </summary>
             CustomGeometryAndShader,
+            /// <summary>
+            /// Driven by a mathematical primitive such as a cube or sphere.
+            /// </summary>
             Primitive
         }
 
@@ -144,6 +159,9 @@ namespace Crest
 
         protected virtual void Awake()
         {
+            // Select a mode if it is unset. Running this in Awake() means it will
+            // run for components created at runtime ensuring they enter a valid state,
+            // and also helps data migration in edit mode (provided component is enabled).
             if (_inputMode == InputMode.Unset)
             {
                 AutoDetectMode(out _inputMode);
@@ -156,6 +174,7 @@ namespace Crest
         }
 
         // Called when component attached in edit mode, or when Reset clicked by user.
+        // Besides recovering from Unset default value, also does a nice bit of auto-config.
         protected void Reset()
         {
             if (_inputMode == InputMode.Unset)

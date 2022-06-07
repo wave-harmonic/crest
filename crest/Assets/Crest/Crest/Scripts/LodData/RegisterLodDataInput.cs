@@ -142,14 +142,26 @@ namespace Crest
             return false;
         }
 
+        protected virtual void Awake()
+        {
+            if (_inputMode == InputMode.Unset)
+            {
+                if (AutoDetectMode(out var autoMode))
+                {
+                    _inputMode = autoMode;
+                }
+            }
+        }
+
         // Called when component attached in edit mode, or when Reset clicked by user.
         protected void Reset()
         {
-            _inputMode = DefaultMode;
-
-            if (AutoDetectMode(out var autoMode))
+            if (_inputMode == InputMode.Unset)
             {
-                _inputMode = autoMode;
+                if (AutoDetectMode(out var autoMode))
+                {
+                    _inputMode = autoMode;
+                }
             }
         }
 
@@ -439,8 +451,10 @@ namespace Crest
         protected float _splinePointHeightMin;
         protected float _splinePointHeightMax;
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
             if (_inputMode == InputMode.Spline)
             {
                 if (TryGetComponent(out _spline))

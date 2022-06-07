@@ -200,13 +200,9 @@ namespace Crest
                 return;
             }
 
-            if (_inputMode == InputMode.Primitive && _signedDistancedMaterial == null)
+            if (_inputMode == InputMode.Unset)
             {
-                return;
-            }
-
-            if (_inputMode == InputMode.CustomGeometryAndShader && (_renderer == null || _sharedMaterials.Count == 0))
-            {
+                Debug.LogError($"Crest: {GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
                 return;
             }
 
@@ -223,6 +219,11 @@ namespace Crest
             }
             else if (_inputMode == InputMode.Primitive)
             {
+                if (_signedDistancedMaterial != null)
+                {
+                    return;
+                }
+
                 // Need this here or will see NullReferenceException on recompile.
                 if (_mpb == null)
                 {
@@ -248,10 +249,6 @@ namespace Crest
                         buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass);
                     }
                 }
-            }
-            else if (_inputMode == InputMode.Unset)
-            {
-                Debug.LogError($"Crest: {this.GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode.ToString()}. Click this message to highlight the relevant GameObject.", this);
             }
         }
 

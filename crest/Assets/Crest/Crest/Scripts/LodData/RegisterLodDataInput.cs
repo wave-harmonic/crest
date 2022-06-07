@@ -66,8 +66,24 @@ namespace Crest
         }
 
         [Header("Mode")]
-        [Filtered]
-        public InputMode _inputModeUserFacing = InputMode.Autodetect;
+        [Filtered, SerializeField]
+        InputMode _inputModeUserFacing = InputMode.Autodetect;
+
+#if UNITY_EDITOR
+        public InputMode InputModeUserFacing
+        {
+            get => _inputModeUserFacing;
+            set
+            {
+                if (value != _inputModeUserFacing)
+                {
+                    _inputModeUserFacing = value;
+                    EditorUtility.SetDirty(this);
+                }
+            }
+        }
+#endif
+
         [HideInInspector]
         public InputMode _inputMode = InputMode.Autodetect;
 
@@ -226,11 +242,27 @@ namespace Crest
         protected virtual void Update()
         {
 #if UNITY_EDITOR
-            if (!EditorApplication.isPlaying)
+            // Init each frame in edit mode
+            var needsInit = !EditorApplication.isPlaying;
+
+            // Detect if user setting has changed (to something other than autodetect)
+            if (_inputModeUserFacing != InputMode.Autodetect && _inputMode != _inputModeUserFacing)
+            {
+                _inputMode = _inputModeUserFacing;
+                needsInit = true;
+            }
+
+            // Perform autodetection if state is not initialised
+            if (_inputMode == InputMode.Autodetect)
+            {
+                AutoDetectMode(out _inputMode);
+                needsInit = true;
+            }
+
+            if (needsInit)
             {
                 InitRendererAndMaterial(true);
             }
-
 #endif
 
             if (_paintInputMaterial != null)
@@ -601,17 +633,6 @@ namespace Crest
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
-
-            //if (_inputMode == InputMode.Unset)
-            //{
-            //    showMessage
-            //    (
-            //        "Invalid or unset <i>Input Mode</i> setting.",
-            //        $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
-            //        ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
-            //    );
-            //    isValid = false;
-            //}
 
             if (_inputMode == InputMode.CustomGeometryAndShader)
             {

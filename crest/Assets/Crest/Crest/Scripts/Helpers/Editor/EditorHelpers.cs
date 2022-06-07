@@ -105,36 +105,38 @@ namespace Crest.EditorHelpers
             System.Action<RegisterLodDataInputBase, RegisterLodDataInputBase.InputMode> setInputMode = (input, newMode) =>
             {
                 Debug.Log($"Crest: Changing Input Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
-                input._inputMode = newMode;
-                EditorUtility.SetDirty(input);
+                input.InputModeUserFacing = newMode;
             };
 
-            //foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
-            //{
-            //    if (input._inputMode == RegisterLodDataInputBase.InputMode.Unset)
-            //    {
-            //        var newMode = input.DefaultMode;
-            //        input.AutoDetectMode(out newMode);
+            foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
+            {
+                if (input.InputModeUserFacing == RegisterLodDataInputBase.InputMode.Autodetect)
+                {
+                    input.AutoDetectMode(out var newMode);
 
-            //        if (newMode != input._inputMode)
-            //        {
-            //            setInputMode(input, newMode);
-            //        }
+                    // Avoid dirtying unnecessarily
+                    if (newMode != input.InputModeUserFacing)
+                    {
+                        setInputMode(input, newMode);
+                    }
 
-            //        continue;
-            //    }
+                    continue;
+                }
 
-            //    if (input._inputMode != input.DefaultMode)
-            //    {
-            //        // Don't touch if already set to a non-default mode
-            //        continue;
-            //    }
+                if (input.InputModeUserFacing != input.DefaultMode)
+                {
+                    // Don't touch if already set to a non-default mode (to avoid dirtying unnecessarily)
+                    continue;
+                }
 
-            //    if (input.AutoDetectMode(out var autoMode) && autoMode != input._inputMode)
-            //    {
-            //        setInputMode(input, autoMode);
-            //    }
-            //}
+                input.AutoDetectMode(out var autoMode);
+
+                // Avoid dirtying unnecessarily
+                if (autoMode != input._inputMode)
+                {
+                    setInputMode(input, autoMode);
+                }
+            }
         }
     }
 }

@@ -146,10 +146,7 @@ namespace Crest
         {
             if (_inputMode == InputMode.Unset)
             {
-                if (AutoDetectMode(out var autoMode))
-                {
-                    _inputMode = autoMode;
-                }
+                AutoDetectMode(out _inputMode);
             }
         }
 
@@ -158,10 +155,7 @@ namespace Crest
         {
             if (_inputMode == InputMode.Unset)
             {
-                if (AutoDetectMode(out var autoMode))
-                {
-                    _inputMode = autoMode;
-                }
+                AutoDetectMode(out _inputMode);
             }
         }
 

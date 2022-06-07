@@ -163,8 +163,7 @@ namespace Crest
         {
             if (_inputMode == InputMode.CustomGeometryAndShader)
             {
-                MeshFilter mf;
-                if (TryGetComponent(out mf))
+                if (TryGetComponent<MeshFilter>(out var mf))
                 {
                     Gizmos.color = GizmoColor;
                     Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
@@ -173,8 +172,7 @@ namespace Crest
 
             if (_inputMode == InputMode.Painted)
             {
-                var paintable = this as IPaintable;
-                if (paintable != null)
+                if (this is IPaintable paintable)
                 {
                     PaintableEditor.DrawPaintAreaGizmo(paintable, GizmoColor);
                 }
@@ -265,7 +263,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (!(this is IPaintable))
                 {
-                    Debug.LogError($"Crest: {this.GetType().Name} component has invalid Input Mode setting, please set this to a supported option such as {DefaultMode.ToString()}. Click this message to highlight the relevant GameObject.", this);
+                    Debug.LogError($"Crest: {GetType().Name} component has invalid Input Mode setting, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
                 }
 #endif
 
@@ -296,7 +294,7 @@ namespace Crest
             }
             else if (_inputMode == InputMode.Unset)
             {
-                Debug.LogError($"Crest: {this.GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode.ToString()}. Click this message to highlight the relevant GameObject.", this);
+                Debug.LogError($"Crest: {GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
             }
         }
 

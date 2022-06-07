@@ -696,21 +696,10 @@ namespace Crest
                 );
             }
 
-            // Suggest that if a Spline is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
-            if (isValid && _inputMode != InputMode.Spline && TryGetComponent<Spline.Spline>(out _))
-            {
-                showMessage
-                (
-                    "A <i>Spline</i> component is present on this GameObject but will not be used by Crest.",
-                    "Change the mode to <i>Spline</i> to use this renderer as the input.",
-                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, InputMode.Spline)
-                );
-            }
-
             return isValid;
         }
 
-        void FixSetMode(SerializedObject registerInputComponent, InputMode mode)
+        protected void FixSetMode(SerializedObject registerInputComponent, InputMode mode)
         {
             registerInputComponent.FindProperty("_inputMode").enumValueIndex = (int)mode;
         }
@@ -741,7 +730,7 @@ namespace Crest
     {
         public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            bool isValid = base.Validate(ocean, showMessage);
+            var isValid = base.Validate(ocean, showMessage);
 
             if (_inputMode == InputMode.Spline)
             {
@@ -757,6 +746,21 @@ namespace Crest
                 }
 
                 isValid = false;
+            }
+
+            // Don't show the below soft suggestion if there are errors present as it may just be noise.
+            if (isValid)
+            {
+                // Suggest that if a Spline is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+                if (_inputMode != InputMode.Spline && TryGetComponent<Spline.Spline>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Spline</i> component is present on this GameObject but will not be used for this input.",
+                        "Change the mode to <i>Spline</i> to use this renderer as the input.",
+                        ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, InputMode.Spline)
+                    );
+                }
             }
 
             return isValid;

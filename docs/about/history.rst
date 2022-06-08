@@ -37,6 +37,7 @@ Fixed
    -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
    -  Fixed broken/missing documentation links.
    -  Fixed water plane moving in edit mode with *Always Refresh* disabled. `[HDRP]`
+   -  Fixed *Build Processor* deprecated/obsolete warnings.
 
 
 Removed

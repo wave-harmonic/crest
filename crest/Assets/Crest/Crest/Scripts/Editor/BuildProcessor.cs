@@ -145,10 +145,14 @@ namespace Crest
                 // way to get a list of keywords without trying to extract them from shader property names. Lastly,
                 // shader_feature will be returned only if they are enabled.
                 var skipped = data[i].shaderKeywordSet.GetShaderKeywords()
-                    // Ignore Unity keywords.
-                    .Where(x => ShaderKeyword.GetKeywordType(shader, x) == ShaderKeywordType.UserDefined)
+                    // Ignore Unity keywords (I do not think this actually does anything but I feel better with it here).
+                    .Where(x => ShaderKeyword.IsKeywordLocal(x) || ShaderKeyword.GetGlobalKeywordType(x) == ShaderKeywordType.UserDefined)
                     // Ignore keywords from our list above.
+#if UNITY_2021_2_OR_NEWER
+                    .Where(x => !s_ShaderKeywordsToIgnoreStripping.Contains(x.name));
+#else
                     .Where(x => !s_ShaderKeywordsToIgnoreStripping.Contains(ShaderKeyword.GetKeywordName(shader, x)));
+#endif
                 shaderKeywords.UnionWith(skipped);
             }
 
@@ -156,8 +160,12 @@ namespace Crest
             var usedShaderKeywords = new HashSet<ShaderKeyword>();
             foreach (var shaderKeyword in shaderKeywords)
             {
+#if UNITY_2021_2_OR_NEWER
+                var shaderKeywordName = shaderKeyword.name;
+#else
                 // GetKeywordName will work for both global and local keywords.
                 var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
+#endif
 
                 // Mensicus is set on the UnderwaterRenderer component.
                 if (shaderKeywordName.Contains("CREST_MENISCUS"))
@@ -189,7 +197,12 @@ namespace Crest
             var unusedShaderKeyowrds = new HashSet<ShaderKeyword>();
             foreach (var shaderKeyword in shaderKeywords)
             {
+#if UNITY_2021_2_OR_NEWER
+                var shaderKeywordName = shaderKeyword.name;
+#else
+                // GetKeywordName will work for both global and local keywords.
                 var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
+#endif
 
                 // Mensicus is set on the UnderwaterRenderer component.
                 if (shaderKeywordName.Contains("CREST_MENISCUS"))

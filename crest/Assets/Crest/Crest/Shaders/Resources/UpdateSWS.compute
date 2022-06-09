@@ -234,8 +234,14 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 			wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
 			wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
 
-		// TODO Needs sea level offset, not just sea level. Like groundHeight_seaLevelOffset above.
-		float wavey = dispy + _OceanCenterPosWorld.y;
+		// TODO Needs sea level offset, not just sea level. I don't really understand anymore how this will
+		// work. Where will sim origin be placed when sea level is varying? I think at that point sim placement
+		// needs to be manual, not automatic.
+		//float seaLevelOffset =
+		//	wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
+		//	wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
+
+		float wavey = dispy + _OceanCenterPosWorld.y /*+ seaLevelOffset*/;
 		float simH = h + _SimOrigin.y + _GroundHeightSS[id];
 		if(wavey > simH)
 		{

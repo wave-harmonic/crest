@@ -261,6 +261,8 @@ namespace Crest
                         _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMask"), _rtSimulationMask);
                         _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
                         LodDataMgrAnimWaves.Bind(_csSWSProps);
+                        // TODO use sea level offset
+                        //LodDataMgrSeaFloorDepth.Bind(_csSWSProps);
 
                         buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                     }

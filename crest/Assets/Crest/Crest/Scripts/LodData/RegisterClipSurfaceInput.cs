@@ -219,7 +219,7 @@ namespace Crest
             }
             else if (_inputMode == InputMode.Primitive)
             {
-                if (_signedDistancedMaterial != null)
+                if (_signedDistancedMaterial == null)
                 {
                     return;
                 }

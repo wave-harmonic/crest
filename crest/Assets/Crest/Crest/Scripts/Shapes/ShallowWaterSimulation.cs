@@ -110,6 +110,34 @@ namespace Crest
             _matInjectSWSFoam.SetFloat(Shader.PropertyToID("_Resolution"), _resolution);
         }
 
+        void InitSim(CommandBuffer buf)
+        {
+            // Init sim data - water heights and velocities
+            {
+                _csSWSProps.Initialise(buf, _csSWS, _krnlInit);
+
+                _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
+                _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
+                _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
+                _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
+                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
+                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
+                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
+                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+
+                _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_DeltaTime"), _simulationTimeStep);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
+                _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), Mathf.Max(0f, _debugSettings._addAdditionalWater));
+                _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
+                _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
+
+                buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+            }
+        }
+
         void Swap<T>(ref T a, ref T b)
         {
             T temp = a;
@@ -144,12 +172,18 @@ namespace Crest
         {
             buf.BeginSample("SWS");
 
+            // NOTE: Initialisation of everything happens in update because it requires Crest to be initialised for
+            // sea floor depth and numerous other state.
             if (_firstUpdate)
             {
-                Reset(buf);
-            }
+                InitData();
 
-            InitData();
+                PopulateGroundHeight(buf);
+
+                InitSim(buf);
+
+                _firstUpdate = false;
+            }
 
             // Distance culling
             var doUpdate = _debugSettings._doUpdate;
@@ -179,12 +213,11 @@ namespace Crest
                     _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
                 }
 
-                if (_allowDynamicSeabed || _firstUpdate)
+                if (_allowDynamicSeabed)
                 {
                     // Populate ground height every frame to allow dynamic scene
                     PopulateGroundHeight(buf);
                 }
-                _firstUpdate = false;
 
                 // Safety first
                 _simulationTimeStep = Mathf.Max(_simulationTimeStep, 0.001f);
@@ -402,40 +435,8 @@ namespace Crest
             return result;
         }
 
-        public void Reset(CommandBuffer buf)
+        public void Reset()
         {
-            _rtH0 = _rtH1 = _rtVx0 = _rtVx1 = _rtVy0 = _rtVy1 = null;
-
-            InitData();
-
-            // Populate ground height - used for initial water height calculation
-            //PopulateGroundHeight(buf); // now done in update
-
-            // Init sim data - water heights and velocities
-            {
-                _csSWSProps.Initialise(buf, _csSWS, _krnlInit);
-
-                _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_DeltaTime"), _simulationTimeStep);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), Mathf.Max(0f, _debugSettings._addAdditionalWater));
-                _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
-                _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
-
-                buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
-            }
-
             _firstUpdate = true;
         }
 
@@ -619,11 +620,7 @@ namespace Crest
 
             if (GUILayout.Button("Reset"))
             {
-                var buf = new CommandBuffer();
-
-                target.Reset(buf);
-
-                Graphics.ExecuteCommandBuffer(buf);
+                target.Reset();
             }
         }
     }

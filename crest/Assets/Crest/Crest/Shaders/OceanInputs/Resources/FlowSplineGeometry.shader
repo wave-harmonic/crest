@@ -36,7 +36,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
 
             #include "../../OceanGlobals.hlsl"
             #include "../../OceanInputsDriven.hlsl"
-            #include "../../OceanHelpersNew.hlsl"
+            #include "../../OceanHelpers.hlsl"
 
             struct Attributes
             {

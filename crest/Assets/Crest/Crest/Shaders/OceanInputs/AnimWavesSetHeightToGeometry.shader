@@ -26,7 +26,7 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height Using Geometry"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanHelpers.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;

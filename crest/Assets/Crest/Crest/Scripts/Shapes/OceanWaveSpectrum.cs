@@ -15,7 +15,7 @@ namespace Crest
     /// </summary>
     [CreateAssetMenu(fileName = "OceanWaves", menuName = "Crest/Ocean Wave Spectrum", order = 10000)]
     [CrestHelpURL("user/wave-conditions")]
-    public class OceanWaveSpectrum : ScriptableObject
+    public partial class OceanWaveSpectrum : ScriptableObject
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -23,7 +23,7 @@ namespace Crest
         /// </summary>
         [SerializeField, HideInInspector]
 #pragma warning disable 414
-        int _version = 0;
+        int _version = 1;
 #pragma warning restore 414
 
         // These must match corresponding constants in FFTSpectrum.compute
@@ -65,37 +65,6 @@ namespace Crest
 
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
-
-        void Awake()
-        {
-            // For builds and when Shape* component is enabled in play mode.
-            Upgrade();
-        }
-
-        void Reset()
-        {
-            // For when the reset button is used.
-            Upgrade();
-        }
-
-        void Upgrade()
-        {
-            if (_version == 0)
-            {
-                // Auto-upgrade any new data objects directly to v1. This is in lieu of simply
-                // giving _version a default value of 1 to distuingish new data, which we can't do
-                // because _version is not present in the old data at all.
-                // TODO: after a few releases, we can be sure _version will be present in the data.
-                // At this point we can bump _version to a default value of 1 and from that point
-                // onwards know that version is correct, and this auto upgrade path can go away.
-                for (int i = 0; i < _powerLog.Length; i++)
-                {
-                    // This is equivalent to power /= 25, in log10 space
-                    _powerLog[i] -= 1.39794f;
-                }
-                _version = 1;
-            }
-        }
 
 #if UNITY_EDITOR
 #pragma warning disable 414
@@ -196,10 +165,7 @@ namespace Crest
             var a = Mathf.Sqrt(a_2);
 
             // Gerstner fudge - one hack to get Gerstners looking on par with FFT
-            if (_version > 0)
-            {
-                a *= 5f;
-            }
+            a *= 5f;
 
             return a * _multiplier;
         }
@@ -288,6 +254,38 @@ namespace Crest
         }
     }
 
+    // Version handling - perform data migration after data loaded.
+    public partial class OceanWaveSpectrum : ISerializationCallbackReceiver
+    {
+        public void OnBeforeSerialize()
+        {
+            // Intentionally left empty.
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Version 1 (2021.06.23)
+            // - Calibrate spectrum power values to make gerstner waves match FFT.
+            // - Spectrum models consolidated
+            if (_version == 0)
+            {
+                for (int i = 0; i < _powerLog.Length; i++)
+                {
+                    float pow = _powerLog[i];
+                    pow = Mathf.Pow(10f, pow);
+                    pow /= 25f;
+                    pow = Mathf.Log10(pow);
+                    _powerLog[i] = pow;
+                }
+
+                // Spectrum model enum has changed so use "None" to be safe
+                _model = SpectrumModel.None;
+
+                _version = 1;
+            }
+        }
+    }
+
 #if UNITY_EDITOR
     [CustomEditor(typeof(OceanWaveSpectrum))]
     public class OceanWaveSpectrumEditor : Editor, Crest.EditorHelpers.IEmbeddableEditor
@@ -306,36 +304,8 @@ namespace Crest
             _hostComponentType = hostComponentType;
         }
 
-        static void Upgrade(SerializedObject soSpectrum)
-        {
-            var spVer = soSpectrum.FindProperty("_version");
-
-            // Upgrade to version 1: Calibrate spectrum power values to make gerstner waves match FFT.
-            if (spVer.intValue == 0)
-            {
-                var powValues = soSpectrum.FindProperty("_powerLog");
-                for (int i = 0; i < powValues.arraySize; i++)
-                {
-                    float pow = powValues.GetArrayElementAtIndex(i).floatValue;
-                    pow = Mathf.Pow(10f, pow);
-                    pow /= 25f;
-                    pow = Mathf.Log10(pow);
-                    powValues.GetArrayElementAtIndex(i).floatValue = pow;
-                }
-                // Spectrum model enum has changed so use "None" to be safe.
-                soSpectrum.FindProperty("_model").enumValueIndex = 0;
-                spVer.intValue = spVer.intValue + 1;
-            }
-
-            // Future: Upgrade to version 2: ...
-
-            soSpectrum.ApplyModifiedProperties();
-        }
-
         public override void OnInspectorGUI()
         {
-            Upgrade(serializedObject);
-
             // Display a notice if its being edited as a standalone asset (not embedded in a component) because
             // it displays the FFT-interface.
             if (_hostComponentType == null)

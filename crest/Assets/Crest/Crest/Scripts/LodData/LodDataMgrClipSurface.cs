@@ -29,6 +29,11 @@ namespace Crest
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The clipping feature is disabled on this component but is enabled on the ocean material.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Clip Surface Data</i> option on this component to turn it on, or disable the <i>Clipping</i> feature on the ocean material to save performance.";
 
+        public static class ShaderIDs
+        {
+            public static readonly int s_CrestClipByDefault = Shader.PropertyToID("_CrestClipByDefault");
+        }
+
         bool _targetsClear = false;
 
         public override SimSettingsBase SettingsBase => Settings;
@@ -57,6 +62,8 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
+            Shader.SetGlobalFloat(ShaderIDs.s_CrestClipByDefault, (float)Settings._defaultClippingState);
+
             // If there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             if (drawList.Count == 0 && _targetsClear)
@@ -67,7 +74,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
-                var defaultToClip = OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
+                var defaultToClip = Settings._defaultClippingState == SettingsType.DefaultClippingState.EverythingClipped;
                 buf.ClearRenderTarget(false, true, defaultToClip ? Color.white : Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
@@ -90,11 +97,15 @@ namespace Crest
             }
             else
             {
-                properties.SetTexture(ParamIdSampler(), s_nullTexture);
+                BindNullToGraphicsShaders();
             }
         }
 
-        public static void BindNullToGraphicsShaders() => Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
+        public static void BindNullToGraphicsShaders()
+        {
+            Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
+            Shader.SetGlobalFloat(ShaderIDs.s_CrestClipByDefault, (float)SettingsType.DefaultClippingState.NothingClipped);
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()

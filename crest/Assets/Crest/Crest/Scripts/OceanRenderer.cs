@@ -254,15 +254,6 @@ namespace Crest
         [Predicated("_createClipSurfaceData"), Embedded]
         public SimSettingsClipSurface _simSettingsClipSurface;
 
-        public enum DefaultClippingState
-        {
-            NothingClipped,
-            EverythingClipped,
-        }
-        [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
-        [Predicated("_createClipSurfaceData"), DecoratedField]
-        public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
-
         [Tooltip("Albedo - a colour layer composited onto the water surface."), SerializeField]
         bool _createAlbedoData = false;
         public bool CreateAlbedoData => _createAlbedoData;
@@ -428,7 +419,6 @@ namespace Crest
         public static readonly int sp_CrestLodChange = Shader.PropertyToID("_CrestLodChange");
         readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
-        readonly static int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly static int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly static int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         readonly static int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
@@ -968,7 +958,6 @@ namespace Crest
             // Set global shader params
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
-            Shader.SetGlobalFloat(sp_clipByDefault, _defaultClippingState == DefaultClippingState.EverythingClipped ? 1f : 0f);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointFade, _lodAlphaBlackPointFade);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
             Shader.SetGlobalInt(sp_CrestDepthTextureOffset, ViewCamera != null && Helpers.IsMSAAEnabled(ViewCamera) ? 1 : 0);

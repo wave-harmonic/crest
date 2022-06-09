@@ -28,6 +28,15 @@ namespace Crest
         [Tooltip("The render texture format to use for the clip surface simulation. It should only be changed if you need more precision. See the documentation for information.")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R8_UNorm;
 
+        public enum DefaultClippingState
+        {
+            NothingClipped,
+            EverythingClipped,
+        }
+
+        [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
+        public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
+
         public override void AddToSettingsHash(ref int settingsHash)
         {
             base.AddToSettingsHash(ref settingsHash);

@@ -75,8 +75,7 @@ namespace Crest
 
             {
                 _renderMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
-                var shaderPath = "Hidden/Crest/Simulation/Update Shadow";
-                var shader = Shader.Find(shaderPath);
+                var shader = Shader.Find("Hidden/Crest/Simulation/Update Shadow");
                 for (int i = 0; i < _renderMaterial.Length; i++)
                 {
                     _renderMaterial[i] = new PropertyWrapperMaterial(shader);
@@ -382,7 +381,7 @@ namespace Crest
 
                     LodDataMgrSeaFloorDepth.Bind(_renderMaterial[lodIdx]);
 
-                    BufCopyShadowMap.Blit(Texture2D.blackTexture, _targets.Current, _renderMaterial[lodIdx].material, -1, lodIdx);
+                    Helpers.Blit(BufCopyShadowMap, new RenderTargetIdentifier(_targets.Current, 0, CubemapFace.Unknown, lodIdx), _renderMaterial[lodIdx].material, -1);
                 }
 
 #if ENABLE_VR && ENABLE_VR_MODULE

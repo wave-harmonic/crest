@@ -44,7 +44,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
             #include "../../OceanGlobals.hlsl"
             #include "../../OceanInputsDriven.hlsl"
-            #include "../../OceanHelpersNew.hlsl"
+            #include "../../OceanHelpers.hlsl"
 
             struct appdata
             {

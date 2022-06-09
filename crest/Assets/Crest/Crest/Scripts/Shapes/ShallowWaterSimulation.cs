@@ -107,6 +107,14 @@ namespace Crest
             public static readonly int s_Vy0 = Shader.PropertyToID("_Vy0");
             public static readonly int s_Vy1 = Shader.PropertyToID("_Vy1");
             public static readonly int s_SimulationMask = Shader.PropertyToID("_SimulationMask");
+
+            // Shader globals
+            public static readonly int s_swsGroundHeight = Shader.PropertyToID("_swsGroundHeight");
+            public static readonly int s_swsSimulationMask = Shader.PropertyToID("_swsSimulationMask");
+            public static readonly int s_swsH = Shader.PropertyToID("_swsH");
+            public static readonly int s_swsHRender = Shader.PropertyToID("_swsHRender");
+            public static readonly int s_swsVx = Shader.PropertyToID("_swsVx");
+            public static readonly int s_swsVy = Shader.PropertyToID("_swsVy");
         }
 
         void InitData()
@@ -334,13 +342,13 @@ namespace Crest
                 }
             }
 
-            Shader.SetGlobalTexture("_swsGroundHeight", _rtGroundHeight);
-            Shader.SetGlobalTexture("_swsSimulationMask", _rtSimulationMask);
-            Shader.SetGlobalTexture("_swsH", _rtH1);
+            Shader.SetGlobalTexture(ShaderIDs.s_swsGroundHeight, _rtGroundHeight);
+            Shader.SetGlobalTexture(ShaderIDs.s_swsSimulationMask, _rtSimulationMask);
+            Shader.SetGlobalTexture(ShaderIDs.s_swsH, _rtH1);
             // If blurring is enabled, apply the blurred height which was put into H0 until next frame overwrites
-            Shader.SetGlobalTexture("_swsHRender", _debugSettings._blurShapeForRender ? _rtH0 : _rtH1);
-            Shader.SetGlobalTexture("_swsVx", _rtVx1);
-            Shader.SetGlobalTexture("_swsVy", _rtVy1);
+            Shader.SetGlobalTexture(ShaderIDs.s_swsHRender, _debugSettings._blurShapeForRender ? _rtH0 : _rtH1);
+            Shader.SetGlobalTexture(ShaderIDs.s_swsVx, _rtVx1);
+            Shader.SetGlobalTexture(ShaderIDs.s_swsVy, _rtVy1);
 
             buf.EndSample("SWS");
         }

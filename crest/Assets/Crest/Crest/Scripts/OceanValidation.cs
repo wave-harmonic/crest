@@ -134,6 +134,34 @@ namespace Crest
                 return false;
             }
 
+            if (renderer is MeshRenderer)
+            {
+                gameObject.TryGetComponent<MeshFilter>(out var mf);
+                if (mf == null)
+                {
+                    showMessage
+                    (
+                        $"A <i>MeshRenderer</i> component is being used by this input but no <i>MeshFilter</i> component was found so there may not be any valid geometry to render.",
+                        "Attach a <i>MeshFilter</i> component.",
+                        MessageType.Error, gameObject,
+                        FixAttachComponent<MeshFilter>
+                    );
+
+                    return false;
+                }
+                else if (mf.sharedMesh == null)
+                {
+                    showMessage
+                    (
+                        $"A <i>MeshRenderer</i> component is being used by this input but no mesh is assigned to the <i>MeshFilter</i> component.",
+                        "Assign the geometry to be rendered to the <i>MeshFilter</i> component.",
+                        MessageType.Error, gameObject
+                    );
+
+                    return false;
+                }
+            }
+
             if (!ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix, checkShaderPasses, supportsMultiPassShaders))
             {
                 return false;

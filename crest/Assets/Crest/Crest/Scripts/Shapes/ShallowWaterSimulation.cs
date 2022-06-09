@@ -79,6 +79,24 @@ namespace Crest
         public int Resolution => _resolution;
         int _resolution = -1;
 
+        static class ShaderIDs
+        {
+            // Shader properties.
+            public static readonly int s_DomainWidth = Shader.PropertyToID("_DomainWidth");
+            public static readonly int s_SimOrigin = Shader.PropertyToID("_SimOrigin");
+            public static readonly int s_Resolution = Shader.PropertyToID("_Resolution");
+            public static readonly int s_TexelSize = Shader.PropertyToID("_TexelSize");
+            public static readonly int s_Time = Shader.PropertyToID("_Time");
+            public static readonly int s_DeltaTime = Shader.PropertyToID("_DeltaTime");
+            public static readonly int s_AddAdditionalWater = Shader.PropertyToID("_AddAdditionalWater");
+            public static readonly int s_DrainWaterAtBoundaries = Shader.PropertyToID("_DrainWaterAtBoundaries");
+            public static readonly int s_Friction = Shader.PropertyToID("_Friction");
+            public static readonly int s_MaximumVelocity = Shader.PropertyToID("_MaximumVelocity");
+            public static readonly int s_ShallowMinDepth = Shader.PropertyToID("_ShallowMinDepth");
+            public static readonly int s_ShallowMaxDepth = Shader.PropertyToID("_ShallowMaxDepth");
+            public static readonly int s_BlendPushUpStrength = Shader.PropertyToID("_BlendPushUpStrength");
+        }
+
         void InitData()
         {
             if (_debugSettings == null)
@@ -98,16 +116,16 @@ namespace Crest
             if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT("rtGroundHeight");
             if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT("rtSimulationMask");
 
-            _matInjectSWSAnimWaves.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-            _matInjectSWSFlow.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-            _matInjectSWSFoam.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
+            _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
+            _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
+            _matInjectSWSFoam.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
 
             var simOrigin = SimOrigin();
-            _matInjectSWSAnimWaves.SetVector(Shader.PropertyToID("_SimOrigin"), simOrigin);
-            _matInjectSWSFlow.SetVector(Shader.PropertyToID("_SimOrigin"), simOrigin);
-            _matInjectSWSFoam.SetVector(Shader.PropertyToID("_SimOrigin"), simOrigin);
+            _matInjectSWSAnimWaves.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
+            _matInjectSWSFlow.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
+            _matInjectSWSFoam.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
 
-            _matInjectSWSFoam.SetFloat(Shader.PropertyToID("_Resolution"), _resolution);
+            _matInjectSWSFoam.SetFloat(ShaderIDs.s_Resolution, _resolution);
         }
 
         void InitSim(CommandBuffer buf)
@@ -125,13 +143,13 @@ namespace Crest
                 _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
                 _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
 
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_DeltaTime"), _simulationTimeStep);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
-                _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), Mathf.Max(0f, _debugSettings._addAdditionalWater));
-                _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
+                _csSWSProps.SetFloat(ShaderIDs.s_Time, Time.time);
+                _csSWSProps.SetFloat(ShaderIDs.s_DeltaTime, _simulationTimeStep);
+                _csSWSProps.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
+                _csSWSProps.SetFloat(ShaderIDs.s_Resolution, _resolution);
+                _csSWSProps.SetFloat(ShaderIDs.s_TexelSize, _texelSize);
+                _csSWSProps.SetFloat(ShaderIDs.s_AddAdditionalWater, Mathf.Max(0f, _debugSettings._addAdditionalWater));
+                _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
                 _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
 
                 buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
@@ -198,18 +216,18 @@ namespace Crest
             {
                 // Set once per frame stuff
                 {
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Time"), Time.time);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_DeltaTime"), _simulationTimeStep);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_DomainWidth"), _domainWidth);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Res"), _resolution);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_DrainWaterAtBoundaries"), _drainWaterAtBoundaries);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_Friction"), _friction);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_MaximumVelocity"), _maximumVelocity);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
-                    _csSWSProps.SetFloat(Shader.PropertyToID("_BlendPushUpStrength"), _blendPushUpStrength);
-                    _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
+                    _csSWSProps.SetFloat(ShaderIDs.s_Time, Time.time);
+                    _csSWSProps.SetFloat(ShaderIDs.s_DeltaTime, _simulationTimeStep);
+                    _csSWSProps.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
+                    _csSWSProps.SetFloat(ShaderIDs.s_Resolution, _resolution);
+                    _csSWSProps.SetFloat(ShaderIDs.s_DrainWaterAtBoundaries, _drainWaterAtBoundaries);
+                    _csSWSProps.SetFloat(ShaderIDs.s_Friction, _friction);
+                    _csSWSProps.SetFloat(ShaderIDs.s_MaximumVelocity, _maximumVelocity);
+                    _csSWSProps.SetFloat(ShaderIDs.s_TexelSize, _texelSize);
+                    _csSWSProps.SetFloat(ShaderIDs.s_ShallowMinDepth, _blendShallowMinDepth);
+                    _csSWSProps.SetFloat(ShaderIDs.s_ShallowMaxDepth, _blendShallowMaxDepth);
+                    _csSWSProps.SetFloat(ShaderIDs.s_BlendPushUpStrength, _blendPushUpStrength);
+                    _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
                     _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
                 }
 
@@ -448,7 +466,7 @@ namespace Crest
             _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSSRW"), _rtGroundHeight);
             _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
             _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
-            _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
+            _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
             _csSWSProps.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
             _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
             _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);

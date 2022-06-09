@@ -130,6 +130,10 @@ namespace Crest
             }
         }
 
+#if UNITY_EDITOR
+        internal bool _isPrefabStageInstance = false;
+#endif
+
         public class FFTBatch : ILodDataInput
         {
             ShapeFFT _shapeFFT;
@@ -345,11 +349,24 @@ namespace Crest
 
         void Awake()
         {
+#if UNITY_EDITOR
+            // Store whether this instance was created in a prefab stage.
+            var stage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+            _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
+#endif
+
             s_Count++;
         }
 
         void OnDestroy()
         {
+#if UNITY_EDITOR
+            if (_isPrefabStageInstance)
+            {
+                return;
+            }
+#endif
+
             // Since FFTCompute resources are shared we will clear after last ShapeFFT is destroyed.
             if (--s_Count <= 0)
             {
@@ -364,6 +381,13 @@ namespace Crest
 
         private void OnEnable()
         {
+#if UNITY_EDITOR
+            if (_isPrefabStageInstance)
+            {
+                return;
+            }
+#endif
+
             _firstUpdate = true;
 
             // Initialise with spectrum
@@ -390,6 +414,13 @@ namespace Crest
 
         void OnDisable()
         {
+#if UNITY_EDITOR
+            if (_isPrefabStageInstance)
+            {
+                return;
+            }
+#endif
+
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
 
             if (_batches != null)
@@ -527,21 +558,28 @@ namespace Crest
 
         public override void OnInspectorGUI()
         {
+            var target = this.target as ShapeFFT;
+
+            if (target._isPrefabStageInstance)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox(Internal.Constants.k_NoPrefabModeSupportWarning, MessageType.Warning);
+                EditorGUILayout.Space();
+            }
+
             base.OnInspectorGUI();
 
-            var fft = target as ShapeFFT;
-
-            bool bakingEnabled = fft._enableBakedCollision;
+            bool bakingEnabled = target._enableBakedCollision;
 
             if (bakingEnabled)
             {
-                if (fft._spectrum == null)
+                if (target._spectrum == null)
                 {
                     EditorGUILayout.HelpBox("A spectrum must be assigned to enable collision baking.", MessageType.Error);
                     return;
                 }
 
-                BakeHelpBox(fft);
+                BakeHelpBox(target);
             }
 
             GUI.enabled = bakingEnabled;

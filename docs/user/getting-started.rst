@@ -245,3 +245,10 @@ Ocean framerate low in edit mode
    If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
    We provide a simple test shadergraph for debugging purposes - enable the *Apply test material* debug option on the *OceanRenderer* component to apply it.
    If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.
+
+
+Changes made in prefab mode are not reflected in the scene view
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Crest does not support running in prefab mode which means dirty state in prefab mode will not be reflected in the scene view.
+Save the prefab to see the changes.

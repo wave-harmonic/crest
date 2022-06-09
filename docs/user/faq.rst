@@ -19,6 +19,11 @@ Why does the ocean not update smoothly in edit mode?
 ----------------------------------------------------
 .. include:: /user/includes/_animated-materials.rst
 
+Why aren't my prefab mode edits not reflected in the scene view?
+----------------------------------------------------------------
+Crest does not support running in prefab mode which means dirty state in prefab mode will not be reflected in the scene view.
+Save the prefab to see the changes.
+
 Is *Crest* well suited for medium-to-low powered mobile devices?
 ----------------------------------------------------------------
 *Crest* is built to be performant by design and has numerous quality/performance levers.

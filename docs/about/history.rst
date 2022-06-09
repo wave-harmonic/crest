@@ -30,6 +30,13 @@ Preview
       See tooltip on this new option for instructions and more details.
 
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Warn users edits in prefab mode will not be reflected in scene view until prefab is saved.
+
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -38,6 +45,7 @@ Fixed
    -  Fixed broken/missing documentation links.
    -  Fixed water plane moving in edit mode with *Always Refresh* disabled. `[HDRP]`
    -  Fixed *Build Processor* deprecated/obsolete warnings.
+   -  Fixed some components breaking in edit mode after entering/exiting prefab mode.
 
 
 Removed

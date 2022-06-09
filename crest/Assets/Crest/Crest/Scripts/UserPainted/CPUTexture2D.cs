@@ -157,6 +157,12 @@ namespace Crest
         {
             UnityEngine.Profiling.Profiler.BeginSample("Crest:CPUTexture2D.GetGPUTexture");
 
+            // This prevents allocation of null/empty data. If there's no data just use a black texture.
+            if (_data == null || _data.Length == 0)
+            {
+                return Texture2D.blackTexture;
+            }
+
             InitialiseDataIfNeeded(null);
 
             if (_textureGPU == null || _textureGPU.width != _resolution.x || _textureGPU.height != _resolution.y || _textureGPU.graphicsFormat != GraphicsFormat)

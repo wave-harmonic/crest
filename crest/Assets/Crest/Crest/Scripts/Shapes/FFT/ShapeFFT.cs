@@ -121,8 +121,6 @@ namespace Crest
         #endregion
 
         [Header("Spline Mode Settings")]
-        // NOTE - i think this is valid for wave geometry, not just splines. however custom geo is such a distant edge
-        // case at this point esp. with painting. therefore moving into spline settings
         [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
         float _featherWaveStart = 0.1f;
         [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]

@@ -10,6 +10,11 @@ using Crest.Spline;
 
 #if UNITY_EDITOR
 using UnityEditor;
+#if UNITY_2021_2_OR_NEWER
+using UnityEditor.SceneManagement;
+#else
+using UnityEditor.Experimental.SceneManagement;
+#endif
 #endif
 
 namespace Crest
@@ -113,6 +118,10 @@ namespace Crest
                 return s_DefaultSpectrum;
             }
         }
+
+#if UNITY_EDITOR
+        internal bool _isPrefabStageInstance = false;
+#endif
 
         public class GerstnerBatch : ILodDataInput
         {
@@ -699,6 +708,13 @@ namespace Crest
 
         private void OnEnable()
         {
+#if UNITY_EDITOR
+            if (_isPrefabStageInstance)
+            {
+                return;
+            }
+#endif
+
             Instances.Add(transform.GetSiblingIndex(), this);
 
             _firstUpdate = true;
@@ -727,6 +743,13 @@ namespace Crest
 
         void OnDisable()
         {
+#if UNITY_EDITOR
+            if (_isPrefabStageInstance)
+            {
+                return;
+            }
+#endif
+
             Instances.Remove(this);
 
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
@@ -770,11 +793,24 @@ namespace Crest
 
         void Awake()
         {
+#if UNITY_EDITOR
+            // Store whether this instance was created in a prefab stage.
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
+#endif
+
             s_InstanceCount++;
         }
 
         void OnDestroy()
         {
+#if UNITY_EDITOR
+            if (_isPrefabStageInstance)
+            {
+                return;
+            }
+#endif
+
             if (--s_InstanceCount <= 0)
             {
                 if (s_DefaultSpectrum != null)
@@ -849,6 +885,21 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeGerstner))]
-    public class ShapeGerstnerEditor : ValidatedEditor { }
+    public class ShapeGerstnerEditor : ValidatedEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            var target = this.target as ShapeGerstner;
+
+            if (target._isPrefabStageInstance)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox(Internal.Constants.k_NoPrefabModeSupportWarning, MessageType.Warning);
+                EditorGUILayout.Space();
+            }
+
+            base.OnInspectorGUI();
+        }
+    }
 #endif
 }

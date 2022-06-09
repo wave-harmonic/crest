@@ -23,6 +23,7 @@ Changed
    -  Added ability to alpha blend waves (effectively an override) instead of only having additive blend waves.
       Set *Blend Mode* to *Alpha Blend* on the *ShapeFFT* or *ShapeGerstner* to use.
       It's useful for preventing rivers and lakes from receiving ocean waves.
+   -  Warn users that edits in prefab mode will not be reflected in scene view until prefab is saved.
 
 
 Fixed
@@ -31,6 +32,7 @@ Fixed
 
    -  Fixed FFTs incorrectly adding extra foam.
    -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
+   -  Fixed some components breaking in edit mode after entering/exiting prefab mode.
 
 
 4.15.2

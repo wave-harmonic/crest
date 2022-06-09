@@ -43,3 +43,10 @@ There are upcoming features being developed by Unity which will greatly help `Cr
 If you could vote on these features, that would be greatly appreciated:
 
 -  :link:`Post Processing Custom Effects <https://portal.productboard.com/8ufdwj59ehtmsvxenjumxo82/c/37-post-processing-custom-effects>` `[[URP]]`
+
+
+Prefab Mode Not Supported
+-------------------------
+
+Crest does not support running in prefab mode which means dirty state in prefab mode will not be reflected in the scene view.
+Save the prefab to see the changes.

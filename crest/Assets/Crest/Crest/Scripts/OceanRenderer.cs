@@ -494,20 +494,28 @@ namespace Crest
         BufferedData<PerCascadeInstanceData[]> _perCascadeInstanceData;
         public int BufferSize { get; private set; }
 
-        // When leaving the last prefab stage, OnDisabled will be called but GetCurrentPrefabStage will return nothing
-        // which will fail the prefab check and disable the OceanRenderer in the scene. We need to track it ourselves.
-#pragma warning disable 414
-        static bool s_IsPrefabStage = false;
-#pragma warning restore 414
+#if UNITY_EDITOR
+        // The OceanRenderer system (due to Singleton pattern) does not work well with prefab stages as they create
+        // duplicates (one for scene one for prefab stage).
+        // When leaving the last prefab stage, OnDisabled/OnDestroyed will be called but GetCurrentPrefabStage will
+        // return nothing which will fail the prefab check and disable the OceanRenderer in the scene. We need to track
+        // it ourselves.
+        internal bool _isPrefabStageInstance = false;
+
+        void Awake()
+        {
+            // Store whether this instance was created in a prefab stage.
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
+        }
+#endif
 
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            if (_isPrefabStageInstance)
             {
-                s_IsPrefabStage = true;
                 return;
             }
 #endif
@@ -628,17 +636,8 @@ namespace Crest
         private void OnDisable()
         {
 #if UNITY_EDITOR
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            if (_isPrefabStageInstance)
             {
-                // We have just left a prefab scene on the stack and are now in another prefab scene.
-                return;
-            }
-            else if (s_IsPrefabStage)
-            {
-                // We have left the last prefab scene and are now back to a normal scene. We do not want to disable the
-                // OceanRenderer.
-                s_IsPrefabStage = false;
                 return;
             }
 #endif
@@ -918,6 +917,11 @@ namespace Crest
 #if UNITY_EDITOR
             // Don't run immediately if in edit mode - need to count editor frames so this is run through EditorUpdate()
             if (!EditorApplication.isPlaying)
+            {
+                return;
+            }
+
+            if (_isPrefabStageInstance)
             {
                 return;
             }
@@ -1957,11 +1961,19 @@ namespace Crest
 
         public override void OnInspectorGUI()
         {
+            var target = this.target as OceanRenderer;
+
+            if (target._isPrefabStageInstance)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox(Internal.Constants.k_NoPrefabModeSupportWarning, MessageType.Warning);
+                EditorGUILayout.Space();
+            }
+
             var currentAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
 
             base.OnInspectorGUI();
 
-            var target = this.target as OceanRenderer;
 
             // Detect if user changed TP, if so update stack
             var newlyAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;

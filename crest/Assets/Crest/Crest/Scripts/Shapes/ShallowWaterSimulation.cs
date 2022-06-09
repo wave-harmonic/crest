@@ -95,6 +95,18 @@ namespace Crest
             public static readonly int s_ShallowMinDepth = Shader.PropertyToID("_ShallowMinDepth");
             public static readonly int s_ShallowMaxDepth = Shader.PropertyToID("_ShallowMaxDepth");
             public static readonly int s_BlendPushUpStrength = Shader.PropertyToID("_BlendPushUpStrength");
+
+            // Simulation textures
+            public static readonly int s_GroundHeightSS = Shader.PropertyToID("_GroundHeightSS");
+            public static readonly int s_GroundHeightSSRW = Shader.PropertyToID("_GroundHeightSSRW");
+            public static readonly int s_SimulationMaskRW = Shader.PropertyToID("_SimulationMaskRW");
+            public static readonly int s_H0 = Shader.PropertyToID("_H0");
+            public static readonly int s_H1 = Shader.PropertyToID("_H1");
+            public static readonly int s_Vx0 = Shader.PropertyToID("_Vx0");
+            public static readonly int s_Vx1 = Shader.PropertyToID("_Vx1");
+            public static readonly int s_Vy0 = Shader.PropertyToID("_Vy0");
+            public static readonly int s_Vy1 = Shader.PropertyToID("_Vy1");
+            public static readonly int s_SimulationMask = Shader.PropertyToID("_SimulationMask");
         }
 
         void InitData()
@@ -134,14 +146,14 @@ namespace Crest
             {
                 _csSWSProps.Initialise(buf, _csSWS, _krnlInit);
 
-                _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
-                _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+                _csSWSProps.SetTexture(ShaderIDs.s_GroundHeightSS, _rtGroundHeight);
+                _csSWSProps.SetTexture(ShaderIDs.s_SimulationMaskRW, _rtSimulationMask);
+                _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtH0);
+                _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH1);
+                _csSWSProps.SetTexture(ShaderIDs.s_Vx0, _rtVx0);
+                _csSWSProps.SetTexture(ShaderIDs.s_Vx1, _rtVx1);
+                _csSWSProps.SetTexture(ShaderIDs.s_Vy0, _rtVy0);
+                _csSWSProps.SetTexture(ShaderIDs.s_Vy1, _rtVy1);
 
                 _csSWSProps.SetFloat(ShaderIDs.s_Time, Time.time);
                 _csSWSProps.SetFloat(ShaderIDs.s_DeltaTime, _simulationTimeStep);
@@ -258,12 +270,12 @@ namespace Crest
 
                         _csSWSProps.Initialise(buf, _csSWS, _krnlAdvect);
 
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH0);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vx0"), _rtVx0);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vy0"), _rtVy0);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtH0);
+                        _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vx0, _rtVx0);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vx1, _rtVx1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vy0, _rtVy0);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vy1, _rtVy1);
 
                         buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                     }
@@ -273,11 +285,11 @@ namespace Crest
                     {
                         _csSWSProps.Initialise(buf, _csSWS, _krnlUpdateH);
 
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMask"), _rtSimulationMask);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
+                        _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vx1, _rtVx1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vy1, _rtVy1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_SimulationMask, _rtSimulationMask);
+                        _csSWSProps.SetTexture(ShaderIDs.s_GroundHeightSS, _rtGroundHeight);
                         LodDataMgrAnimWaves.Bind(_csSWSProps);
                         // TODO use sea level offset
                         //LodDataMgrSeaFloorDepth.Bind(_csSWSProps);
@@ -290,10 +302,10 @@ namespace Crest
                     {
                         _csSWSProps.Initialise(buf, _csSWS, _krnlUpdateVels);
 
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vx1"), _rtVx1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_Vy1"), _rtVy1);
-                        _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSS"), _rtGroundHeight);
+                        _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vx1, _rtVx1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_Vy1, _rtVy1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_GroundHeightSS, _rtGroundHeight);
 
                         buf.DispatchCompute(_csSWS, _krnlUpdateVels, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
 
@@ -315,8 +327,8 @@ namespace Crest
 
                     _csSWSProps.Initialise(buf, _csSWS, _krnlBlurH);
 
-                    _csSWSProps.SetTexture(Shader.PropertyToID("_H0"), _rtH1);
-                    _csSWSProps.SetTexture(Shader.PropertyToID("_H1"), _rtH0);
+                    _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtH1);
+                    _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH0);
 
                     buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH0.width + 7) / 8, (_rtH0.height + 7) / 8, 1);
                 }
@@ -463,13 +475,13 @@ namespace Crest
         void PopulateGroundHeight(CommandBuffer buf)
         {
             _csSWSProps.Initialise(buf, _csSWS, _krnlInitGroundHeight);
-            _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSSRW"), _rtGroundHeight);
-            _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
+            _csSWSProps.SetTexture(ShaderIDs.s_GroundHeightSSRW, _rtGroundHeight);
+            _csSWSProps.SetTexture(ShaderIDs.s_SimulationMaskRW, _rtSimulationMask);
             _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
             _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
             _csSWSProps.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
-            _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
-            _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
+            _csSWSProps.SetFloat(ShaderIDs.s_ShallowMinDepth, _blendShallowMinDepth);
+            _csSWSProps.SetFloat(ShaderIDs.s_ShallowMaxDepth, _blendShallowMaxDepth);
             _csSWSProps.SetFloat(OceanRenderer.sp_sliceCount, OceanRenderer.Instance.CurrentLodCount);
 
             // TODO extract this out i guess

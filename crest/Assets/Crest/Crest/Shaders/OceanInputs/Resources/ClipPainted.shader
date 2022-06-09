@@ -26,7 +26,7 @@ Shader "Hidden/Crest/Inputs/Clip Surface/Painted"
 
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanHelpersNew.hlsl"
+			#include "../../OceanHelpers.hlsl"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2DArray _WaveBuffer;

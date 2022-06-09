@@ -30,7 +30,7 @@ Shader "Crest/PaintCursor"
 			#include "UnityCG.cginc"
 			#include "../Crest/Crest/Shaders/OceanGlobals.hlsl"
 			#include "../Crest/Crest/Shaders/OceanInputsDriven.hlsl"
-			#include "../Crest/Crest/Shaders/OceanHelpersNew.hlsl"
+			#include "../Crest/Crest/Shaders/OceanHelpers.hlsl"
 			#include "PaintCursorHelper.cginc"
 
 			struct appdata
@@ -81,7 +81,7 @@ Shader "Crest/PaintCursor"
 			#include "UnityCG.cginc"
 			#include "../Crest/Crest/Shaders/OceanGlobals.hlsl"
 			#include "../Crest/Crest/Shaders/OceanInputsDriven.hlsl"
-			#include "../Crest/Crest/Shaders/OceanHelpersNew.hlsl"
+			#include "../Crest/Crest/Shaders/OceanHelpers.hlsl"
 			#include "PaintCursorHelper.cginc"
 
 			struct appdata

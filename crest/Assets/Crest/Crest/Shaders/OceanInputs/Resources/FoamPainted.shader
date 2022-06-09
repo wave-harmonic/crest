@@ -26,7 +26,7 @@ Shader "Hidden/Crest/Inputs/Foam/Painted Foam"
 
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanHelpersNew.hlsl"
+			#include "../../OceanHelpers.hlsl"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2DArray _WaveBuffer;

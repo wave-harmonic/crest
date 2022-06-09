@@ -30,7 +30,7 @@ Shader "Hidden/Crest/Inputs/Sea Floor Depth/Base Water Height Painted"
 
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanHelpersNew.hlsl"
+			#include "../../OceanHelpers.hlsl"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2DArray _WaveBuffer;

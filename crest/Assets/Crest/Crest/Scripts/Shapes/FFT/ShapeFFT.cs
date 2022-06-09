@@ -37,8 +37,7 @@ namespace Crest
         {
             Global,
             Painted,
-            Spline,
-            CustomGeometryAndShader
+            Spline
         }
 
         [Header("Mode")]
@@ -60,7 +59,7 @@ namespace Crest
 
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
         public float _waveDirectionHeadingAngle = 0f;
-        public float WindDirRadForFFT => UsingGeometryToGenerate ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
+        public float WindDirRadForFFT => _inputMode == Mode.Spline ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
@@ -155,12 +154,10 @@ namespace Crest
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => null;
 
-        Mesh MeshForGeneration => _inputMode == Mode.Spline ? _meshForDrawingWavesSpline : (_inputMode == Mode.CustomGeometryAndShader ? _meshForDrawingWavesCustom : null);
-        bool UsingGeometryToGenerate => _inputMode == Mode.Spline || _inputMode == Mode.CustomGeometryAndShader;
+        Mesh MeshForGeneration => _inputMode == Mode.Spline ? _meshForDrawingWavesSpline : null;
 
-        // Will either be spline mesh, or custom geo assigned by user
+        // Spline mesh
         Mesh _meshForDrawingWavesSpline;
-        Mesh _meshForDrawingWavesCustom;
 
         float _windTurbulenceOld;
         float _windSpeedOld;
@@ -289,11 +286,6 @@ namespace Crest
                 mode = Mode.Spline;
                 return true;
             }
-            else if (TryGetComponent<Renderer>(out _))
-            {
-                mode = Mode.CustomGeometryAndShader;
-                return true;
-            }
 
             mode = Mode.Global;
             return false;
@@ -344,7 +336,7 @@ namespace Crest
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
-            var waveDir = UsingGeometryToGenerate ? PrimaryWaveDirection : Vector2.right;
+            var waveDir = _inputMode == Mode.Spline ? PrimaryWaveDirection : Vector2.right;
             mat.SetVector(sp_AxisX, waveDir);
 
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
@@ -433,20 +425,9 @@ namespace Crest
                     }
                 }
             }
-            else if (_inputMode == Mode.CustomGeometryAndShader)
-            {
-                if (TryGetComponent<MeshFilter>(out var mf))
-                {
-                    if (_matGenerateWavesGeometry == null)
-                    {
-                        _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
-                    }
 
-                    _meshForDrawingWavesCustom = mf.sharedMesh;
-                }
-            }
-
-            if (!UsingGeometryToGenerate || MeshForGeneration)
+            var usingGeometryToGenerate = _inputMode == Mode.Spline;
+            if (!usingGeometryToGenerate || MeshForGeneration)
             {
                 // Submit draws to create the FFT waves
                 _batches = new FFTBatch[CASCADE_COUNT];
@@ -534,19 +515,10 @@ namespace Crest
             {
                 PaintableEditor.DrawPaintAreaGizmo(this, Color.green);
             }
-            else if (_inputMode == Mode.CustomGeometryAndShader)
-            {
-                DrawMesh();
-            }
         }
 
         void DrawMesh()
         {
-            if (_inputMode == Mode.CustomGeometryAndShader && _meshForDrawingWavesCustom != null)
-            {
-                Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
-                Gizmos.DrawWireMesh(_meshForDrawingWavesCustom, 0, transform.position, transform.rotation, transform.lossyScale);
-            }
             if (_inputMode == Mode.Spline && _meshForDrawingWavesSpline != null)
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
@@ -602,15 +574,6 @@ namespace Crest
                 }
             }
 
-            if (_inputMode == Mode.CustomGeometryAndShader)
-            {
-                // Check if Renderer component is attached.
-                if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, true, false, "Crest/Inputs/Animated Waves"))
-                {
-                    isValid = false;
-                }
-            }
-
             if (_inputMode == Mode.Spline)
             {
                 if (!TryGetComponent<Spline.Spline>(out _))
@@ -627,20 +590,9 @@ namespace Crest
                 isValid = false;
             }
 
-            // Don't show the below soft suggestions if there are errors present as it may just be noise.
+            // Don't show the below soft suggestion if there are errors present as it may just be noise.
             if (isValid)
             {
-                // Suggest that if a Renderer is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
-                if (_inputMode != Mode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
-                {
-                    showMessage
-                    (
-                        "A <i>Renderer</i> component is present on this GameObject but will not be used by Crest.",
-                        "Change the mode to <i>CustomGeometryAndShader</i> to use this renderer as the input.",
-                        ValidatedHelper.MessageType.Info, this, so => RegisterLodDataInputBase.FixSetMode(so, (int)Mode.CustomGeometryAndShader)
-                    );
-                }
-
                 // Suggest that if a Spline is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
                 if (_inputMode != Mode.Spline && TryGetComponent<Spline.Spline>(out _))
                 {

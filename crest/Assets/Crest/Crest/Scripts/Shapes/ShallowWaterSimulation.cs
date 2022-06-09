@@ -446,7 +446,14 @@ namespace Crest
             _csSWSProps.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
             _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);
             _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
-            _csSWSProps.SetInt(OceanRenderer.sp_sliceCount, OceanRenderer.Instance.CurrentLodCount);
+            _csSWSProps.SetFloat(OceanRenderer.sp_sliceCount, OceanRenderer.Instance.CurrentLodCount);
+
+            // TODO extract this out i guess
+            // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
+            // is applied to LOD0 tiles only through instance data. This global can be used in compute, where we only apply this factor for slice 0.
+            var needToBlendOutShape = OceanRenderer.Instance.ScaleCouldIncrease;
+            var meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+            _csSWSProps.SetFloat(OceanRenderer.sp_meshScaleLerp, meshScaleLerp);
 
             LodDataMgrSeaFloorDepth.Bind(_csSWSProps);
 

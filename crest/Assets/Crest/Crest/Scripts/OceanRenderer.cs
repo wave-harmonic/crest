@@ -427,7 +427,7 @@ namespace Crest
         public static readonly int sp_CrestCascadeDataSource = Shader.PropertyToID("_CrestCascadeDataSource");
         public static readonly int sp_CrestLodChange = Shader.PropertyToID("_CrestLodChange");
         public static readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
-        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        public static readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly static int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly static int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly static int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");

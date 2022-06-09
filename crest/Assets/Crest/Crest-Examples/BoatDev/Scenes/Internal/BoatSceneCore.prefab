@@ -205,7 +205,6 @@ MonoBehaviour:
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
   _simSettingsClipSurface: {fileID: 0}
-  _defaultClippingState: 0
   _createAlbedoData: 0
   _settingsAlbedo: {fileID: 0}
   _surfaceSelfIntersectionFixMode: 2
@@ -792,6 +791,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 0
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -1425,6 +1425,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 0
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -2392,6 +2393,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 0
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -3330,6 +3332,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 0
   _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 02c797a6329139b4aa4f3722248aba4c, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -3342,10 +3345,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 32
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -4032,16 +4043,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 0
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
   _version: 1
-  _mode: 1
   _primitive: 3
   _order: 0
   _inverted: 0
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!1 &4130254971492068901
 GameObject:
   m_ObjectHideFlags: 0
@@ -4150,6 +4169,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 2
   _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 402c1c5b779879e4fb3f59dc73b66299, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -4162,10 +4182,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 32
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0

@@ -358,6 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f48a8051df1bc4580cc98f58f1114b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -365,6 +366,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 1
 --- !u!1 &772653744
 GameObject:
@@ -3278,6 +3287,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f48a8051df1bc4580cc98f58f1114b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -3285,6 +3295,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!1 &2315540288752730351
 GameObject:
@@ -3465,6 +3483,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -3472,6 +3491,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _maxDisplacementVertical: 0
 --- !u!1 &2408248684221728217
 GameObject:
@@ -9996,6 +10023,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de0359979120ac418643020f2918594, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -10003,6 +10031,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!1 &3750062381415952388
 GameObject:
@@ -10676,16 +10712,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 4
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
   _version: 1
-  _mode: 1
   _primitive: 0
   _order: -1
   _inverted: 1
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!1 &3750062381561765166
 GameObject:
   m_ObjectHideFlags: 0
@@ -11217,6 +11261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c5e624660e55f64da5c7e5b19f0dfcc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -11324,6 +11369,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 0
   _windTurbulence: 0.145
   _spectrum: {fileID: 0}
   _spectrumFixedAtRuntime: 0
@@ -11336,10 +11382,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 32
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -11460,6 +11514,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -11770,6 +11825,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f48a8051df1bc4580cc98f58f1114b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -11777,6 +11833,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 1
 --- !u!1 &3750062381893940933
 GameObject:
@@ -12286,6 +12350,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -12717,6 +12782,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfad533f4c23e4346a6eb03e931a7e5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -13951,6 +14017,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e9f0ea32453849028549598223a56a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -14512,6 +14579,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfad533f4c23e4346a6eb03e931a7e5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -15009,6 +15077,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 2
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -15016,6 +15085,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _maxDisplacementVertical: 0
 --- !u!114 &3750062382586808382
 MonoBehaviour:
@@ -15029,6 +15106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de0359979120ac418643020f2918594, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 2
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -15036,6 +15114,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!114 &3750062382586808381
 MonoBehaviour:
@@ -15050,6 +15136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 2
   _windTurbulence: 0.084
   _spectrum: {fileID: 11400000, guid: ce3fa9fd095c4416fb7a019f9b6d254c, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -15062,10 +15149,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 128
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -15291,6 +15386,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -15627,6 +15723,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfad533f4c23e4346a6eb03e931a7e5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -16152,16 +16249,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 4
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
   _version: 1
-  _mode: 1
   _primitive: 3
   _order: 1
   _inverted: 1
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!95 &3750062382909251507
 Animator:
   serializedVersion: 4
@@ -16454,6 +16559,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfad533f4c23e4346a6eb03e931a7e5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -16734,16 +16840,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 4
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
   _version: 1
-  _mode: 1
   _primitive: 0
   _order: 0
   _inverted: 0
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!1 &3750062383056171320
 GameObject:
   m_ObjectHideFlags: 0
@@ -17230,6 +17344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e9f0ea32453849028549598223a56a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -17553,6 +17668,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -18113,6 +18229,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f48a8051df1bc4580cc98f58f1114b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -18120,6 +18237,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 1
 --- !u!1 &3750062383231319213
 GameObject:
@@ -18201,7 +18326,6 @@ MonoBehaviour:
   _createClipSurfaceData: 1
   _simSettingsClipSurface: {fileID: 11400000, guid: 0dd6ed13a808e4e71bba19b046e4d242,
     type: 2}
-  _defaultClippingState: 0
   _createAlbedoData: 1
   _settingsAlbedo: {fileID: 11400000, guid: 8ae488c67f7cd4a32a3eb3b96a8e5d2c, type: 2}
   _surfaceSelfIntersectionFixMode: 2
@@ -18680,6 +18804,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 2
   _windTurbulence: 0.145
   _spectrum: {fileID: 0}
   _spectrumFixedAtRuntime: 1
@@ -18692,10 +18817,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 32
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -18933,16 +19066,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 4
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
   _version: 1
-  _mode: 1
   _primitive: 0
   _order: -1
   _inverted: 1
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!1 &3750062383361227106
 GameObject:
   m_ObjectHideFlags: 0
@@ -19115,6 +19256,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -19874,6 +20016,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 2
   _windTurbulence: 0.145
   _spectrum: {fileID: 0}
   _spectrumFixedAtRuntime: 1
@@ -19886,10 +20029,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 32
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -25243,6 +25394,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c5e624660e55f64da5c7e5b19f0dfcc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -28265,6 +28417,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -28272,6 +28425,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _maxDisplacementVertical: 0
 --- !u!1 &9101794431977686599
 GameObject:
@@ -28829,6 +28990,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 6221417270242909756, guid: d954bade270d6474e8d7b513f76b114c,
+        type: 3}
+      propertyPath: _inputMode
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d954bade270d6474e8d7b513f76b114c, type: 3}

@@ -278,9 +278,10 @@ namespace Crest
                     _powerLog[i] = pow;
                 }
 
+#if UNITY_EDITOR
                 // Spectrum model enum has changed so use "None" to be safe
                 _model = SpectrumModel.None;
-
+#endif
                 _version = 1;
             }
         }

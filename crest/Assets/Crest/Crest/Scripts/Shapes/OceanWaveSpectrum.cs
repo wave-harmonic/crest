@@ -50,7 +50,7 @@ namespace Crest
 
         [HideInInspector, SerializeField]
         internal float[] _powerLog = new float[NUM_OCTAVES]
-            { -5.71f, -5.03f, -4.54f, -3.88f, -3.28f, -2.32f, -1.78f, -1.21f, -0.54f, 0.28f, 0.54f, 1.03f, 1.44f, -8f };
+            { -7.10794f, -6.42794f, -5.93794f, -5.27794f, -4.67794f, -3.71794f, -3.17794f, -2.60794f, -1.93794f, -1.11794f, -0.85794f, -0.36794f, 0.04206f, -8f };
 
         [HideInInspector, SerializeField]
         internal bool[] _powerDisabled = new bool[NUM_OCTAVES];

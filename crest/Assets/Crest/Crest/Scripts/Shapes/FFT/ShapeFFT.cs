@@ -420,25 +420,29 @@ namespace Crest
                 // validation
                 _paintData.PrepareMaterial(_matGenerateWavesPainted, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
             }
-            else
+            else if (_inputMode == Mode.Spline)
             {
-                if (_inputMode == Mode.Spline)
+                if (TryGetComponent<Spline.Spline>(out var splineForWaves))
                 {
-                    if (TryGetComponent<Spline.Spline>(out var splineForWaves))
+                    var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
+                    var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
+                    if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
+                        radius, Vector2.one, ref _meshForDrawingWavesSpline, out _, out _))
                     {
-                        var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
-                        var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
-                        if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
-                            radius, Vector2.one, ref _meshForDrawingWavesSpline, out _, out _))
-                        {
-                            _meshForDrawingWavesSpline.name = gameObject.name + "_mesh";
-                        }
+                        _meshForDrawingWavesSpline.name = gameObject.name + "_mesh";
                     }
                 }
-
-                if (_matGenerateWavesGeometry == null)
+            }
+            else if (_inputMode == Mode.CustomGeometryAndShader)
+            {
+                if (TryGetComponent<MeshFilter>(out var mf))
                 {
-                    _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    if (_matGenerateWavesGeometry == null)
+                    {
+                        _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    }
+
+                    _meshForDrawingWavesCustom = mf.sharedMesh;
                 }
             }
 

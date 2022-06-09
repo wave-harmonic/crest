@@ -547,19 +547,19 @@ namespace Crest
                 var y = 0f;
                 Rect r;
 
-                r = new Rect(200, y, s, s); y += s;
+                r = new Rect(200, y, s, s); y += s + 1;
                 GUI.DrawTexture(r, _rtH1); GUI.Label(r, "_rtH1");
 
-                r = new Rect(200, y, s, s); y += s;
+                r = new Rect(200, y, s, s); y += s + 1;
                 GUI.DrawTexture(r, _rtVx1); GUI.Label(r, "_rtVx1");
 
-                r = new Rect(200, y, s, s); y += s;
+                r = new Rect(200, y, s, s); y += s + 1;
                 GUI.DrawTexture(r, _rtVy1); GUI.Label(r, "_rtVy1");
 
-                r = new Rect(200, y, s, s); y += s;
+                r = new Rect(200, y, s, s); y += s + 1;
                 GUI.DrawTexture(r, _rtGroundHeight); GUI.Label(r, "_rtGroundHeight");
 
-                r = new Rect(200, y, s, s); y += s;
+                r = new Rect(200, y, s, s); y += s + 1;
                 GUI.DrawTexture(r, _rtSimulationMask); GUI.Label(r, "_rtSimulationMask");
             }
         }

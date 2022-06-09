@@ -118,13 +118,12 @@ void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 	const float wt_1 = (1.0 - wt_0) * _CrestCascadeData[slice1]._weight;
 
 	float2 groundHeight_seaLevelOffset =
-		wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).x +
-		wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).x;
+		wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xy +
+		wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xy;
 	float g = groundHeight_seaLevelOffset.x;
 
 	// Mask is directly based off depth at the moment
-	// TODO Needs sea level offset, not just sea level. Like groundHeight_seaLevelOffset above.
-	float depth = _OceanCenterPosWorld.y /* + groundHeight_seaLevelOffset.y*/ - g;
+	float depth = _OceanCenterPosWorld.y + groundHeight_seaLevelOffset.y - g;
 	_SimulationMaskRW[id] = 1.0 - saturate((depth - _ShallowMinDepth) / _ShallowMaxDepth);
 
 	g = max(0.0, g - _SimOrigin.y);

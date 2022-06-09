@@ -416,12 +416,19 @@ namespace Crest
             {
                 if (TryGetComponent<Spline.Spline>(out var splineForWaves))
                 {
+                    // Init mesh
                     var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
                     var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
                     if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
                         radius, Vector2.one, ref _meshForDrawingWavesSpline, out _, out _))
                     {
                         _meshForDrawingWavesSpline.name = gameObject.name + "_mesh";
+                    }
+
+                    // Init material
+                    if (_matGenerateWavesGeometry == null)
+                    {
+                        _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
                     }
                 }
             }

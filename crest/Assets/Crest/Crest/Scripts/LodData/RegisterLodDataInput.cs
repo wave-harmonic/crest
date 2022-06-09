@@ -165,11 +165,6 @@ namespace Crest
             if (_inputMode == InputMode.Unset)
             {
                 AutoDetectMode(out _inputMode);
-
-                // Make sure data change is registered if this runs in edit mode
-#if UNITY_EDITOR
-                EditorUtility.SetDirty(this);
-#endif
             }
         }
 

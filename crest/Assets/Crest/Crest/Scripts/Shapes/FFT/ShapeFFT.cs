@@ -585,14 +585,68 @@ namespace Crest
         {
             var isValid = true;
 
-            if (TryGetComponent<Spline.Spline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
+            if (_inputMode == Mode.Spline)
             {
-                showMessage
-                (
-                    "A <i>Spline</i> component is attached but it has validation errors.",
-                    "Check this component in the Inspector for issues.",
-                    ValidatedHelper.MessageType.Error, this
-                );
+                if (TryGetComponent<Spline.Spline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
+                {
+                    showMessage
+                    (
+                        "A <i>Spline</i> component is attached but it has validation errors.",
+                        "Check this component in the Inspector for issues.",
+                        ValidatedHelper.MessageType.Error, this
+                    );
+                }
+            }
+
+            if (_inputMode == Mode.CustomGeometryAndShader)
+            {
+                // Check if Renderer component is attached.
+                if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, true, false, "Crest/Inputs/Animated Waves"))
+                {
+                    isValid = false;
+                }
+            }
+
+            if (_inputMode == Mode.Spline)
+            {
+                if (!TryGetComponent<Spline.Spline>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Crest Spline</i> component is required to drive this data and none is attached to this ocean input GameObject.",
+                        "Attach a <i>Crest Spline</i> component.",
+                        ValidatedHelper.MessageType.Error, gameObject,
+                        ValidatedHelper.FixAttachComponent<Spline.Spline>
+                    );
+                }
+
+                isValid = false;
+            }
+
+            // Don't show the below soft suggestions if there are errors present as it may just be noise.
+            if (isValid)
+            {
+                // Suggest that if a Renderer is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+                if (_inputMode != Mode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Renderer</i> component is present on this GameObject but will not be used by Crest.",
+                        "Change the mode to <i>CustomGeometryAndShader</i> to use this renderer as the input.",
+                        ValidatedHelper.MessageType.Info, this, so => RegisterLodDataInputBase.FixSetMode(so, (int)Mode.CustomGeometryAndShader)
+                    );
+                }
+
+                // Suggest that if a Spline is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+                if (_inputMode != Mode.Spline && TryGetComponent<Spline.Spline>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Spline</i> component is present on this GameObject but will not be used for this input.",
+                        "Change the mode to <i>Spline</i> to use this renderer as the input.",
+                        ValidatedHelper.MessageType.Info, this, so => RegisterLodDataInputBase.FixSetMode(so, (int)Mode.Spline)
+                    );
+                }
             }
 
 #if !CREST_UNITY_MATHEMATICS

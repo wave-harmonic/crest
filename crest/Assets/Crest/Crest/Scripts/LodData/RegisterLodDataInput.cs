@@ -627,7 +627,7 @@ namespace Crest
                 (
                     "Invalid or unset <i>Input Mode</i> setting.",
                     $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
-                    ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
+                    ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, (int)DefaultMode)
                 );
                 isValid = false;
             }
@@ -668,7 +668,7 @@ namespace Crest
                     (
                         "Invalid or unset <i>Input Mode</i> setting.",
                         $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
-                        ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, DefaultMode)
+                        ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, (int)DefaultMode)
                     );
                     isValid = false;
                 }
@@ -692,16 +692,16 @@ namespace Crest
                 (
                     "A <i>Renderer</i> component is present on this GameObject but will not be used by Crest.",
                     "Change the mode to <i>CustomGeometryAndShader</i> to use this renderer as the input.",
-                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, InputMode.CustomGeometryAndShader)
+                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, (int)InputMode.CustomGeometryAndShader)
                 );
             }
 
             return isValid;
         }
 
-        protected void FixSetMode(SerializedObject registerInputComponent, InputMode mode)
+        public static void FixSetMode(SerializedObject registerInputComponent, int modeValueIndex)
         {
-            registerInputComponent.FindProperty("_inputMode").enumValueIndex = (int)mode;
+            registerInputComponent.FindProperty("_inputMode").enumValueIndex = modeValueIndex;
         }
     }
 
@@ -758,7 +758,7 @@ namespace Crest
                     (
                         "A <i>Spline</i> component is present on this GameObject but will not be used for this input.",
                         "Change the mode to <i>Spline</i> to use this renderer as the input.",
-                        ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, InputMode.Spline)
+                        ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, (int)InputMode.Spline)
                     );
                 }
             }

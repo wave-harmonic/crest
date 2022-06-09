@@ -53,6 +53,9 @@ namespace Crest
         [SerializeField]
         DebugSettings _debugSettings = new DebugSettings();
 
+        public float DomainWidth => _domainWidth;
+        public RenderTexture RTGroundHeight => _rtGroundHeight;
+
         RenderTexture _rtH0, _rtH1;
         RenderTexture _rtVx0, _rtVx1;
         RenderTexture _rtVy0, _rtVy1;
@@ -115,7 +118,7 @@ namespace Crest
         }
 
         // Currently sim will be placed _depth below global sea level
-        Vector3 SimOrigin()
+        public Vector3 SimOrigin()
         {
             var result = transform.position;
 

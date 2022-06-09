@@ -570,20 +570,21 @@ namespace Crest
 
             if (_inputMode == Mode.Spline)
             {
-                if (TryGetComponent<Spline.Spline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
+                if (TryGetComponent<Spline.Spline>(out var spline))
                 {
-                    showMessage
-                    (
-                        "A <i>Spline</i> component is attached but it has validation errors.",
-                        "Check this component in the Inspector for issues.",
-                        ValidatedHelper.MessageType.Error, this
-                    );
-                }
-            }
+                    if (!spline.Validate(ocean, ValidatedHelper.Suppressed))
+                    {
+                        showMessage
+                        (
+                            "A <i>Spline</i> component is attached but it has validation errors.",
+                            "Check this component in the Inspector for issues.",
+                            ValidatedHelper.MessageType.Error, this
+                        );
 
-            if (_inputMode == Mode.Spline)
-            {
-                if (!TryGetComponent<Spline.Spline>(out _))
+                        isValid = false;
+                    }
+                }
+                else
                 {
                     showMessage
                     (
@@ -592,9 +593,9 @@ namespace Crest
                         ValidatedHelper.MessageType.Error, gameObject,
                         ValidatedHelper.FixAttachComponent<Spline.Spline>
                     );
-                }
 
-                isValid = false;
+                    isValid = false;
+                }
             }
 
             // Don't show the below soft suggestion if there are errors present as it may just be noise.

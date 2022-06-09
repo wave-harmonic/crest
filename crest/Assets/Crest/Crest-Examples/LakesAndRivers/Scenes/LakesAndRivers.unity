@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.40652782, g: 0.59053, b: 0.9443165, a: 1}
+  m_IndirectSpecularColor: {r: 0.40657905, g: 0.5909717, b: 0.9444369, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -222,46 +222,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417985, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417985, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _paintData._data.Array.size
-      value: 4096
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417985, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _paintData._centerPosition.x
-      value: -6.532089
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417985, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _paintData._centerPosition.y
-      value: 305.94238
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417991, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417991, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _paintData._data.Array.size
-      value: 4096
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417991, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _paintData._centerPosition.x
-      value: -6.532089
-      objectReference: {fileID: 0}
-    - target: {fileID: 7515463737450417991, guid: f680af2b9d0ed4006be2e7778f465b4d,
-        type: 3}
-      propertyPath: _paintData._centerPosition.y
-      value: 305.94238
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f680af2b9d0ed4006be2e7778f465b4d, type: 3}

@@ -135,6 +135,8 @@ namespace Crest.EditorHelpers
                     setInputMode(input, autoMode);
                 }
             }
+
+            Debug.Log("Crest: Migration complete.");
         }
     }
 }

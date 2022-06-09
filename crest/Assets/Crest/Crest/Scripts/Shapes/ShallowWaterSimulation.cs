@@ -173,7 +173,7 @@ namespace Crest
                     _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMaxDepth"), _blendShallowMaxDepth);
                     _csSWSProps.SetFloat(Shader.PropertyToID("_BlendPushUpStrength"), _blendPushUpStrength);
                     _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
-                    _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.transform.position);
+                    _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
                 }
 
                 if (_allowDynamicSeabed || _firstUpdate)
@@ -428,7 +428,7 @@ namespace Crest
                 _csSWSProps.SetFloat(Shader.PropertyToID("_TexelSize"), _texelSize);
                 _csSWSProps.SetFloat(Shader.PropertyToID("_AddAdditionalWater"), Mathf.Max(0f, _debugSettings._addAdditionalWater));
                 _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
-                _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.transform.position);
+                _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
 
                 buf.DispatchCompute(_csSWS, _krnlInit, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
             }
@@ -441,7 +441,7 @@ namespace Crest
             _csSWSProps.Initialise(buf, _csSWS, _krnlInitGroundHeight);
             _csSWSProps.SetTexture(Shader.PropertyToID("_GroundHeightSSRW"), _rtGroundHeight);
             _csSWSProps.SetTexture(Shader.PropertyToID("_SimulationMaskRW"), _rtSimulationMask);
-            _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.transform.position);
+            _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
             _csSWSProps.SetVector(Shader.PropertyToID("_SimOrigin"), SimOrigin());
             _csSWSProps.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
             _csSWSProps.SetFloat(Shader.PropertyToID("_ShallowMinDepth"), _blendShallowMinDepth);

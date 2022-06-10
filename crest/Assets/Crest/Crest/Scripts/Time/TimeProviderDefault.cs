@@ -50,7 +50,5 @@ namespace Crest
             }
 
         }
-
-        public float DeltaTimeDynamics => DeltaTime;
     }
 }

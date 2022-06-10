@@ -123,6 +123,5 @@ namespace Crest
         }
 
         public override float DeltaTime => Time.deltaTime;
-        public override float DeltaTimeDynamics => DeltaTime;
     }
 }

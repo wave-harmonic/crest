@@ -14,9 +14,6 @@ namespace Crest
     {
         float CurrentTime { get; }
         float DeltaTime { get; }
-
-        // Delta time used for dynamics such as the ripple sim
-        float DeltaTimeDynamics { get; }
     }
 
     [CrestHelpURL("user/time-providers")]
@@ -24,7 +21,6 @@ namespace Crest
     {
         public abstract float CurrentTime { get; }
         public abstract float DeltaTime { get; }
-        public abstract float DeltaTimeDynamics { get; }
     }
 
 #if UNITY_EDITOR

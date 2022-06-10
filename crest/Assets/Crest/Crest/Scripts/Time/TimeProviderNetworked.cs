@@ -35,7 +35,6 @@ namespace Crest
 
         public override float CurrentTime => _tpDefault.CurrentTime + TimeOffsetToServer;
         public override float DeltaTime => _tpDefault.DeltaTime;
-        public override float DeltaTimeDynamics => DeltaTime;
     }
 
 #if UNITY_EDITOR

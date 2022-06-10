@@ -179,8 +179,8 @@ namespace Crest
         void LateUpdateComputeVel(OceanRenderer ocean)
         {
             // Compue vel using finite difference
-            _velocity = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
-            if (ocean.DeltaTimeDynamics < 0.0001f)
+            _velocity = (transform.position - _posLast) / ocean.DeltaTime;
+            if (ocean.DeltaTime < 0.0001f)
             {
                 _velocity = Vector3.zero;
             }

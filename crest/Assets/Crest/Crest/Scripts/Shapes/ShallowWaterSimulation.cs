@@ -136,17 +136,6 @@ namespace Crest
             if (_rtVy1 == null) _rtVy1 = CreateSWSRT("rtVy1", true);
             if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT("rtGroundHeight");
             if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT("rtSimulationMask");
-
-            _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
-            _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
-            _matInjectSWSFoam.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
-
-            var simOrigin = SimOrigin();
-            _matInjectSWSAnimWaves.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
-            _matInjectSWSFlow.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
-            _matInjectSWSFoam.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
-
-            _matInjectSWSFoam.SetFloat(ShaderIDs.s_Resolution, _resolution);
         }
 
         void InitSim(CommandBuffer buf)
@@ -256,6 +245,17 @@ namespace Crest
                     _csSWSProps.SetFloat(ShaderIDs.s_BlendPushUpStrength, _blendPushUpStrength);
                     _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
                     _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, ocean.Root.position);
+
+                    _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
+                    _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
+                    _matInjectSWSFoam.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
+
+                    var simOrigin = SimOrigin();
+                    _matInjectSWSAnimWaves.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
+                    _matInjectSWSFlow.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
+                    _matInjectSWSFoam.SetVector(ShaderIDs.s_SimOrigin, simOrigin);
+
+                    _matInjectSWSFoam.SetFloat(ShaderIDs.s_Resolution, _resolution);
                 }
 
                 if (_allowDynamicSeabed)

@@ -42,6 +42,26 @@ Shader "Crest/Debugging/SWSProbe"
                 float4 positionCS : SV_POSITION;
 			};
 
+			float CalculatePositionY(float2 worldXZ)
+			{
+				float2 uv = (worldXZ - _SimOrigin.xz) / _DomainWidth + 0.5;
+
+				float h = _swsHRender.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
+				float g = _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
+
+				float y;
+#if _FINALHEIGHT_ON
+				y = h + g + _SimOrigin.y;
+#elif _GROUNDHEIGHT_ON
+				y = g + _SimOrigin.y;
+#endif
+
+#if _ANIMATE_ON
+				y += sin(worldXZ.x - 5.0 * _Time.w) * 0.02;
+#endif
+				return y;
+			}
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -49,20 +69,8 @@ Shader "Crest/Debugging/SWSProbe"
 				o.positionCS = UnityObjectToClipPos(float4(v.positionOS, 1.0));
 				float3 positionWS = mul(UNITY_MATRIX_M, float4(v.positionOS, 1.0)).xyz;
 
-				float2 uv = (positionWS.xz - _SimOrigin.xz) / _DomainWidth + 0.5;
-
-				float h = _swsHRender.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
-				float g = _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
-
-#if _FINALHEIGHT_ON
-				positionWS.y = h + g + _SimOrigin.y;
-#elif _GROUNDHEIGHT_ON
-				positionWS.y = g + _SimOrigin.y;
-#endif
-
-#if _ANIMATE_ON
-				positionWS.y += sin(positionWS.x - 5.0 * _Time.w) * 0.02;
-#endif
+				float y = CalculatePositionY(positionWS.xz);
+				positionWS.y = y;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
 

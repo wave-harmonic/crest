@@ -52,7 +52,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 float2 axis : TEXCOORD0;
                 float invNormDistToShoreline : TEXCOORD1;
 				float weight : TEXCOORD2;
-	};
+			};
 
             struct v2f
             {

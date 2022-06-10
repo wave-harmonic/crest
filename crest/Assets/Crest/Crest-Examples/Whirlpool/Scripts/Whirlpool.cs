@@ -77,7 +77,7 @@ namespace Crest
             UpdateMaterials();
         }
 
-        void AddInput<RegisterInputType>(Material material, float radius) where RegisterInputType : Component
+        void AddInput<RegisterInputType>(Material material, float radius) where RegisterInputType : RegisterLodDataInputBase
         {
             var input = GameObject.CreatePrimitive(PrimitiveType.Quad);
             Destroy(input.GetComponent<Collider>());
@@ -87,7 +87,8 @@ namespace Crest
             input.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
             input.transform.localScale = new Vector3(radius, radius, 1f);
             input.GetComponent<Renderer>().material = material;
-            input.AddComponent<RegisterInputType>();
+            var registerInput = input.AddComponent<RegisterInputType>();
+            registerInput._inputMode = RegisterLodDataInputBase.InputMode.CustomGeometryAndShader;
         }
 
         void Update()

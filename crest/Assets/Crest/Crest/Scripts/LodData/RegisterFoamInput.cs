@@ -4,6 +4,10 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
+
 namespace Crest
 {
     /// <summary>
@@ -12,7 +16,8 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     [CrestHelpURL("user/ocean-simulation", "foam")]
-    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
+    public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>, IPaintable
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -36,6 +41,42 @@ namespace Crest
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Foam/Spline Geometry";
         protected override Vector2 DefaultCustomData => Vector2.right;
 
+        #region Painting
+        [Header("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
+        public CPUTexture2DPaintable_R16_AddBlend _paintData;
+        public IPaintedData PaintedData => _paintData;
+        public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");
+
+        protected override void PreparePaintInputMaterial(Material mat)
+        {
+            base.PreparePaintInputMaterial(mat);
+            if (_paintData == null) return;
+
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
+
+        protected override void UpdatePaintInputMaterial(Material mat)
+        {
+            base.UpdatePaintInputMaterial(mat);
+            if (_paintData == null) return;
+
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
+
+        public void ClearData() => _paintData.Clear(this, 0f);
+        public void MakeDirty() => _paintData.MakeDirty();
+
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintData.CenterPosition3 = transform.position;
+
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, _paintData.BrushRadius, _paintData._brushStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
+        }
+        #endregion
+
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = false;
 
@@ -51,4 +92,12 @@ namespace Crest
         protected override string MaterialFeatureDisabledFix => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
+
+#if UNITY_EDITOR
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(RegisterFoamInput))]
+    public class RegisterFoamInputPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -12,7 +13,8 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
     [CrestHelpURL("user/water-bodies")]
-    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
+    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, IPaintable
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -37,9 +39,57 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => true;
 
-        [Header("Height Input Settings")]
+        #region Painting
+        [Header("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
+        public CPUTexture2DPaintable_R16_AddBlend _paintData;
+        public IPaintedData PaintedData => _paintData;
+        public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Sea Floor Depth/Base Water Height Painted");
+
+        protected override void PreparePaintInputMaterial(Material mat)
+        {
+            base.PreparePaintInputMaterial(mat);
+            if (_paintData == null) return;
+
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
+
+        protected override void UpdatePaintInputMaterial(Material mat)
+        {
+            base.UpdatePaintInputMaterial(mat);
+            if (_paintData == null) return;
+
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnOneChannel);
+        }
+
+        public void ClearData() => _paintData.Clear(this, 0f);
+        public void MakeDirty() => _paintData.MakeDirty();
+
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintData.CenterPosition3 = transform.position;
+
+            return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, remove ? 0.01f : 0.02f, _paintData.BrushRadius, _paintData._brushStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendFloat, remove);
+        }
+        #endregion
+
+        [Header("Other Settings")]
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
+
+        protected override bool GetQueue(out int queue)
+        {
+            // Make this apply strictly after spline height, because spline height stomps (necessarily i think - needs to write its height not add it).
+            if (_inputMode == InputMode.Spline)
+            {
+                queue = -1000;
+                return true;
+            }
+
+            return base.GetQueue(out queue);
+        }
 
         protected override void Update()
         {
@@ -50,22 +100,33 @@ namespace Crest
                 return;
             }
 
+            UpdateMaxDisplacementReporting();
+        }
+
+        void UpdateMaxDisplacementReporting()
+        {
             var maxDispVert = _maxDisplacementVertical;
 
-            // let ocean system know how far from the sea level this shape may displace the surface
-            if (_renderer != null)
+            // Let ocean system know how far from the sea level this shape may displace the surface
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
-                var minY = _renderer.bounds.min.y;
-                var maxY = _renderer.bounds.max.y;
-                var seaLevel = OceanRenderer.Instance.SeaLevel;
-                maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
+                if (_renderer != null)
+                {
+                    var minY = _renderer.bounds.min.y;
+                    var maxY = _renderer.bounds.max.y;
+                    var seaLevel = OceanRenderer.Instance.SeaLevel;
+                    maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
+                }
             }
-            else if (_splineMaterial != null &&
-                ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
+            else if (_inputMode == InputMode.Spline)
             {
-                var seaLevel = OceanRenderer.Instance.SeaLevel;
-                maxDispVert = Mathf.Max(maxDispVert,
-                    Mathf.Abs(seaLevel - _splinePointHeightMin), Mathf.Abs(seaLevel - _splinePointHeightMax));
+                if (_splineMaterial != null &&
+                    ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
+                {
+                    var seaLevel = OceanRenderer.Instance.SeaLevel;
+                    maxDispVert = Mathf.Max(maxDispVert,
+                        Mathf.Abs(seaLevel - _splinePointHeightMin), Mathf.Abs(seaLevel - _splinePointHeightMax));
+                }
             }
 
             if (maxDispVert > 0f)
@@ -79,4 +140,12 @@ namespace Crest
         protected override bool FeatureEnabled(OceanRenderer ocean) => true;
 #endif // UNITY_EDITOR
     }
+
+#if UNITY_EDITOR
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(RegisterHeightInput))]
+    public class RegisterHeightInputPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

@@ -20,6 +20,9 @@ Breaking
    -  Set minimum Unity version to 2021.3.3.
    -  Moved *Default Clipping State* from *Ocean Renderer* into *Sim Settings Clip Surface* asset.
       There is no migration available for this setting so if *Everything Clipped* is needed then this will need to be configured in the *Sim Settings Clip Surface* asset.
+   -  Added new *Input Mode* setting to FFT component and to all *RegisterInput* components to support more diverse authoring workflows.
+      This option may need to be configured on existing components.
+      A migration tool to fix up existing inputs is available via the *Run 2022 Migration on Ocean Inputs* button in the *OceanRenderer* inspector.
 
 
 Preview
@@ -28,6 +31,14 @@ Preview
 
    -  Added option to the Animated Waves settings to increase wave resolution to fix quality issues that appear especially in flowing water.
       See tooltip on this new option for instructions and more details.
+   -  Painting workflow added for flexible water authoring. See new *Authoring Input Modes* section of documentation.
+
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Warn users edits in prefab mode will not be reflected in scene view until prefab is saved.
 
 
 Fixed
@@ -38,6 +49,7 @@ Fixed
    -  Fixed broken/missing documentation links.
    -  Fixed water plane moving in edit mode with *Always Refresh* disabled. `[HDRP]`
    -  Fixed *Build Processor* deprecated/obsolete warnings.
+   -  Fixed some components breaking in edit mode after entering/exiting prefab mode.
 
 
 Removed

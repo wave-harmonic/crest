@@ -98,17 +98,6 @@ namespace Crest
             mat.SetInt(intParam, value);
         }
 
-        static void FixRemoveRenderer(SerializedObject componentOrGameObject)
-        {
-            // We will either get the component or the GameObject it is attached to.
-            var gameObject = componentOrGameObject.targetObject is GameObject
-                ? componentOrGameObject.targetObject as GameObject
-                : (componentOrGameObject.targetObject as Component).gameObject;
-            var renderer = gameObject.GetComponent<MeshRenderer>();
-            Undo.DestroyObjectImmediate(renderer);
-            EditorUtility.SetDirty(gameObject);
-        }
-
         public static void FixAddMissingMathPackage(SerializedObject componentOrGameObject)
         {
             PackageManagerHelpers.AddMissingPackage("com.unity.mathematics");
@@ -119,71 +108,69 @@ namespace Crest
             PackageManagerHelpers.AddMissingPackage("com.unity.burst");
         }
 
-        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, string shaderPrefix) where T : Renderer
-        {
-            return ValidateRenderer<T>(gameObject, showMessage, isRendererRequired: true, isRendererOptional: false, shaderPrefix);
-        }
-
-        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, bool isRendererRequired, bool isRendererOptional, string shaderPrefix = null) where T : Renderer
+        public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, bool checkShaderPasses, bool supportsMultiPassShaders, string shaderPrefix = null) where T : Renderer
         {
             gameObject.TryGetComponent<T>(out var renderer);
 
-            if (isRendererRequired)
+            if (renderer == null)
             {
-                if (renderer == null)
+                var type = typeof(T);
+                var name = type.Name;
+
+                // Give users a hint as to what "Renderer" really means.
+                if (type == typeof(Renderer))
                 {
-                    // If renderer is optional, then a different error message with all the optionals should be presented.
-                    if (isRendererOptional)
-                    {
-                        return true;
-                    }
+                    name += " (Mesh, Trail etc)";
+                }
 
-                    var type = typeof(T);
-                    var name = type.Name;
+                showMessage
+                (
+                    $"A <i>{name}</i> component is required but none is attached to ocean input.",
+                    "Attach a <i>MeshRenderer</i> component.",
+                    MessageType.Error, gameObject,
+                    FixAttachComponent<MeshRenderer>
+                );
 
-                    // Give users a hint as to what "Renderer" really means.
-                    if (type == typeof(Renderer))
-                    {
-                        name += " (Mesh, Trail etc)";
-                    }
+                return false;
+            }
 
+            if (renderer is MeshRenderer)
+            {
+                gameObject.TryGetComponent<MeshFilter>(out var mf);
+                if (mf == null)
+                {
                     showMessage
                     (
-                        $"A <i>{name}</i> component is required but none is attached to ocean input.",
-                        "Attach a <i>MeshRenderer</i> component.",
+                        $"A <i>MeshRenderer</i> component is being used by this input but no <i>MeshFilter</i> component was found so there may not be any valid geometry to render.",
+                        "Attach a <i>MeshFilter</i> component.",
                         MessageType.Error, gameObject,
-                        FixAttachComponent<MeshRenderer>
+                        FixAttachComponent<MeshFilter>
                     );
 
                     return false;
                 }
-                else if (!ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix))
+                else if (mf.sharedMesh == null)
                 {
+                    showMessage
+                    (
+                        $"A <i>MeshRenderer</i> component is being used by this input but no mesh is assigned to the <i>MeshFilter</i> component.",
+                        "Assign the geometry to be rendered to the <i>MeshFilter</i> component.",
+                        MessageType.Error, gameObject
+                    );
+
                     return false;
                 }
             }
-            else
+
+            if (!ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix, checkShaderPasses, supportsMultiPassShaders))
             {
-                if (renderer)
-                {
-                    showMessage
-                    (
-                        "A <i>MeshRenderer</i> is present but is unused and should be removed.",
-                        "Remove the <i>MeshRenderer</i> component.",
-                        MessageType.Warning, gameObject,
-                        FixRemoveRenderer
-                    );
-
-                    return false;
-                }
-
-                return true;
+                return false;
             }
 
             return true;
         }
 
-        public static bool ValidateMaterial(GameObject gameObject, ShowMessage showMessage, Material material, string shaderPrefix)
+        public static bool ValidateMaterial(GameObject gameObject, ShowMessage showMessage, Material material, string shaderPrefix, bool checkShaderPasses, bool supportsMultiPassShaders)
         {
             if (shaderPrefix == null && material == null)
             {
@@ -207,6 +194,17 @@ namespace Crest
                 );
 
                 return false;
+            }
+
+            if (checkShaderPasses && material.passCount > 1 && !supportsMultiPassShaders)
+            {
+                showMessage
+                (
+                    $"The shader <i>{material.shader.name}</i> for material <i>{material.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
+                    "See documentation for more information on what multi-pass shaders work or",
+                    "use a shader with a single pass.",
+                    ValidatedHelper.MessageType.Warning, gameObject
+                );
             }
 
             return true;

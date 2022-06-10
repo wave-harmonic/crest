@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de0359979120ac418643020f2918594, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 1
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -160,6 +161,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!4 &37614132
 Transform:
@@ -1997,6 +2006,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4222089630553679698, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _inputMode
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 5927363740371920092, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -2292,6 +2306,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f48a8051df1bc4580cc98f58f1114b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -2299,6 +2314,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _followHorizontalMotion: 0
 --- !u!23 &1095088193
 MeshRenderer:
@@ -3024,16 +3047,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 3
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
   _version: 1
-  _mode: 0
   _primitive: 3
   _order: 0
   _inverted: 0
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
 --- !u!33 &1682259865
 MeshFilter:
   m_ObjectHideFlags: 0

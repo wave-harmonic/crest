@@ -15,5 +15,7 @@ namespace Crest.Internal
         public const string MENU_PREFIX_DEBUG = MENU_SCRIPTS + "Debug/" + PREFIX;
         public const string MENU_PREFIX_SPLINE = MENU_SCRIPTS + "Spline/" + PREFIX;
         public const string MENU_PREFIX_EXAMPLE = MENU_SCRIPTS + "Example/" + PREFIX;
+
+        public const string k_NoPrefabModeSupportWarning = "Crest does not support prefab mode. Changes made in prefab mode will not be reflected in the scene view. Save this prefab to see changes.";
     }
 }

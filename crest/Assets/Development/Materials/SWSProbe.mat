@@ -11,6 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 613caf76dccc3ea45b0501b731a55ec2, type: 3}
   m_ValidKeywords:
   - _ANIMATE_ON
+  - _FINALHEIGHT_ON
   - _GROUNDHEIGHT_ON
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -65,7 +66,7 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _FinalHeight: 0
+    - _FinalHeight: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1

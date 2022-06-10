@@ -12,6 +12,7 @@ namespace Crest
     /// Runs a shallow water simulation at global sea level in a domain around its transform,
     /// and injects the results of the sim into the water data.
     /// </summary>
+    [ExecuteAlways]
     public partial class ShallowWaterSimulation : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
     {
         [Header("Settings")]
@@ -210,6 +211,9 @@ namespace Crest
         {
             buf.BeginSample("SWS");
 
+            var ocean = OceanRenderer.Instance;
+            if (ocean == null) return;
+
             // NOTE: Initialisation of everything happens in update because it requires Crest to be initialised for
             // sea floor depth and numerous other state.
             if (_firstUpdate)
@@ -228,7 +232,7 @@ namespace Crest
             if (_enableDistanceCulling)
             {
                 var cullRadius = _domainWidth / 2f + _cullDistance;
-                var offset = OceanRenderer.Instance.Viewpoint.position - transform.position;
+                var offset = ocean.Viewpoint.position - transform.position;
                 doUpdate = doUpdate && (offset.sqrMagnitude < cullRadius * cullRadius);
             }
 
@@ -251,7 +255,7 @@ namespace Crest
                     _csSWSProps.SetFloat(ShaderIDs.s_ShallowMaxDepth, _blendShallowMaxDepth);
                     _csSWSProps.SetFloat(ShaderIDs.s_BlendPushUpStrength, _blendPushUpStrength);
                     _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
-                    _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
+                    _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, ocean.Root.position);
                 }
 
                 if (_allowDynamicSeabed)
@@ -264,7 +268,7 @@ namespace Crest
                 _simulationTimeStep = Mathf.Max(_simulationTimeStep, 0.001f);
 
                 // Compute substeps
-                _timeToSimulate += Time.deltaTime;
+                _timeToSimulate += ocean.DeltaTime;
                 int steps = _timeToSimulate > 0f ? Mathf.CeilToInt(_timeToSimulate / _simulationTimeStep) : 0;
                 _timeToSimulate -= steps * _simulationTimeStep;
 

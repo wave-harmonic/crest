@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// Debug helper - designed to be used in conjunction with the SWSProbe shader to visualise simulation state.
     /// </summary>
+    [ExecuteAlways]
     public class ShallowWaterSimulationProbe : MonoBehaviour
     {
         [SerializeField] ShallowWaterSimulation _shallowWaterSimulation;

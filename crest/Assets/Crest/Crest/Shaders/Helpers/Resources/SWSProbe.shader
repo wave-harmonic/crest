@@ -40,6 +40,7 @@ Shader "Crest/Debugging/SWSProbe"
             struct v2f
             {
                 float4 positionCS : SV_POSITION;
+				float3 normalWS : TEXCOORD0;
 			};
 
 			float CalculatePositionY(float2 worldXZ)
@@ -49,7 +50,7 @@ Shader "Crest/Debugging/SWSProbe"
 				float h = _swsHRender.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
 				float g = _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
 
-				float y;
+				float y = 0.0;
 #if _FINALHEIGHT_ON
 				y = h + g + _SimOrigin.y;
 #elif _GROUNDHEIGHT_ON
@@ -72,14 +73,22 @@ Shader "Crest/Debugging/SWSProbe"
 				float y = CalculatePositionY(positionWS.xz);
 				positionWS.y = y;
 
+				float dx = 0.01;
+				float y_dx = CalculatePositionY(positionWS.xz + float2(dx, 0.0));
+				float y_dz = CalculatePositionY(positionWS.xz + float2(0.0, dx));
+
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
 
-                return o;
+				o.normalWS = float3((y - y_dx) / dx, 1.0, (y - y_dz) / dx);
+
+				return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
-            {
-                return float4(1.0, 0.5, 0.5, 1.0);
+			fixed4 frag(v2f i) : SV_Target
+			{
+				i.normalWS = normalize(i.normalWS);
+
+				return float4(i.normalWS, 1.0);
             }
             ENDCG
         }

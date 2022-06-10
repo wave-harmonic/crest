@@ -133,7 +133,7 @@ namespace Crest
         // These two params have been around the houses. It doesn't really make sense to put them here, but it was awful having them shared across all
         // input types, and having them as statics so they'd get lost after code changes. Perhaps they belong in a dictionary based on data type,
         // with recovery after recompiles.
-        [Range(0f, 50f)]
+        [Range(0f, 100f)]
         public float _brushRadius = 2f;
         public float BrushRadius => _brushRadius;
 

@@ -597,7 +597,7 @@ namespace Crest
 
             // Ensure Flow is enabled
             if (!OceanRenderer.ValidateFeatureEnabled(ocean, showMessage, ocean => ocean.CreateFlowSim,
-                    LodDataMgrFlow.FEATURE_TOGGLE_NAME, LodDataMgrFlow.FEATURE_TOGGLE_LABEL, LodDataMgrFlow.MATERIAL_KEYWORD, LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY,
+                    LodDataMgrFlow.FEATURE_TOGGLE_LABEL, LodDataMgrFlow.FEATURE_TOGGLE_NAME, LodDataMgrFlow.MATERIAL_KEYWORD, LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY,
                     LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX))
             {
                 isValid = false;

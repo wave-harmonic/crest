@@ -58,8 +58,8 @@ namespace Crest
         bool _spectrumFixedAtRuntime = true;
 
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
+        [Predicated("_inputMode", inverted: false, Mode.Painted), DecoratedField]
         public float _waveDirectionHeadingAngle = 0f;
-        public float WindDirRadForFFT => _inputMode == Mode.Spline ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
@@ -338,7 +338,7 @@ namespace Crest
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
-            var waveDir = _inputMode == Mode.Spline ? PrimaryWaveDirection : Vector2.right;
+            var waveDir = (_inputMode == Mode.Spline || _inputMode == Mode.Painted) ? PrimaryWaveDirection : Vector2.right;
             mat.SetVector(sp_AxisX, waveDir);
 
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
@@ -539,6 +539,20 @@ namespace Crest
                 }
 
                 _batches = null;
+            }
+        }
+
+        public float WindDirRadForFFT
+        {
+            get
+            {
+                // These input types use a wave direction provided by geometry or the painted user direction
+                if (_inputMode == Mode.Spline || _inputMode == Mode.Painted)
+                {
+                    return 0f;
+                }
+
+                return _waveDirectionHeadingAngle * Mathf.Deg2Rad;
             }
         }
 

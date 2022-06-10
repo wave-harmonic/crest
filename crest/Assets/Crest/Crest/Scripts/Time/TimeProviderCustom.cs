@@ -84,6 +84,5 @@ namespace Crest
 
         // Either use override, or the default TP which works in edit mode
         public override float DeltaTime => _overrideDeltaTime ? _deltaTime : _tpDefault.DeltaTime;
-        public override float DeltaTimeDynamics => DeltaTime;
     }
 }

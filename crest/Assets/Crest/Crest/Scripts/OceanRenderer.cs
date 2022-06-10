@@ -151,7 +151,6 @@ namespace Crest
 
         public float CurrentTime => TimeProvider.CurrentTime;
         public float DeltaTime => TimeProvider.DeltaTime;
-        public float DeltaTimeDynamics => TimeProvider.DeltaTimeDynamics;
 
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;

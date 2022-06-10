@@ -18,7 +18,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
     [CrestHelpURL("user/wave-conditions")]
-    public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
+    public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable, IPaintable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -32,6 +32,18 @@ namespace Crest
 #pragma warning disable 414
         int _version = 0;
 #pragma warning restore 414
+
+        public enum Mode
+        {
+            Global,
+            Painted,
+            Spline
+        }
+
+        [Header("Mode")]
+        public Mode _inputMode = Mode.Global;
+
+        public bool ShowPaintingUI => _inputMode == Mode.Painted;
 
         [Header("Wave Conditions")]
         [Tooltip("Impacts how aligned waves are with wind.")]
@@ -47,7 +59,7 @@ namespace Crest
 
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
         public float _waveDirectionHeadingAngle = 0f;
-        public float WindDirRadForFFT => _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
+        public float WindDirRadForFFT => _inputMode == Mode.Spline ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
@@ -79,16 +91,45 @@ namespace Crest
         bool _debugDrawSlicesInEditor = false;
 #pragma warning restore 414
 
-        [Header("Spline Settings")]
-        [SerializeField]
+        #region Painting
+        [Header("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, Mode.Painted), DecoratedField]
+        public CPUTexture2DPaintable_RG16_AddBlend _paintData;
+        void PreparePaintInputMaterial(Material mat)
+        {
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+        void UpdatePaintInputMaterial(Material mat)
+        {
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+
+        public Vector2 WorldSize => _paintData.WorldSize;
+        public Transform Transform => transform;
+
+        public void ClearData() => _paintData.Clear(this, Vector2.zero);
+        public void MakeDirty() => _paintData.MakeDirty();
+
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintData.CenterPosition3 = transform.position;
+
+            return _paintData.PaintSmoothstep(this, paintPosition3, 0.0125f * paintWeight, paintDir, _paintData.BrushRadius, _paintData._brushStrength, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendSaturateVector2, remove);
+        }
+        #endregion
+
+        [Header("Spline Mode Settings")]
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
+        float _featherWaveStart = 0.1f;
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 50f;
         [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
 
-        [SerializeField]
-        float _featherWaveStart = 0.1f;
 
         [Header("Culling")]
         [Tooltip("Maximum amount surface will be displaced vertically from sea level. Increase this if gaps appear at bottom of screen."), SerializeField]
@@ -108,7 +149,13 @@ namespace Crest
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
 
-        Mesh _meshForDrawingWaves;
+        public IPaintedData PaintedData => _paintData;
+        public Shader PaintedInputShader => null;
+
+        Mesh MeshForGeneration => _inputMode == Mode.Spline ? _meshForDrawingWavesSpline : null;
+
+        // Spline mesh
+        Mesh _meshForDrawingWavesSpline;
 
         float _windTurbulenceOld;
         float _windSpeedOld;
@@ -158,6 +205,8 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
+            public Material Material => _material;
+
             public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 var finalWeight = weight * _shapeFFT._weight;
@@ -167,6 +216,7 @@ namespace Crest
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
+
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
                     {
@@ -187,11 +237,22 @@ namespace Crest
         // Used to populate data on first frame
         bool _firstUpdate = true;
 
-        // Active material.
-        Material _matGenerateWaves;
-        // Cache material options.
+        // Various material options
         Material _matGenerateWavesGlobal;
+        Material _matGenerateWavesPainted;
+        // This is used both by spline and by user provided geo.. so left here
         Material _matGenerateWavesGeometry;
+
+        Material MaterialForGeneration
+        {
+            get
+            {
+                if (_inputMode == Mode.Global) return _matGenerateWavesGlobal;
+                if (_inputMode == Mode.Painted) return _matGenerateWavesPainted;
+                if (_inputMode == Mode.Spline) return _matGenerateWavesGeometry;
+                return _matGenerateWavesGeometry;
+            }
+        }
 
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
@@ -219,6 +280,27 @@ namespace Crest
             //return texelSize * samplesPerWave;
         }
 
+        public bool AutoDetectMode(out Mode mode)
+        {
+            // Ease of use - set mode based on attached components
+            if (TryGetComponent<Spline.Spline>(out _))
+            {
+                mode = Mode.Spline;
+                return true;
+            }
+
+            mode = Mode.Global;
+            return false;
+        }
+
+        private void Reset()
+        {
+            if (AutoDetectMode(out var mode))
+            {
+                _inputMode = mode;
+            }
+        }
+
         public void CrestUpdate(CommandBuffer buf)
         {
 #if UNITY_EDITOR
@@ -229,22 +311,35 @@ namespace Crest
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif
+
+            var mat = MaterialForGeneration;
+
+            bool needToRefreshMaterials = _batches == null || mat == null || _batches.Length < 1 || _batches[0].Material != mat;
+
             // Ensure batches assigned to correct slots
-            if (_firstUpdate || updateDataEachFrame)
+            if (_firstUpdate || updateDataEachFrame || needToRefreshMaterials)
             {
                 InitBatches();
+
+                mat = MaterialForGeneration;
 
                 _firstUpdate = false;
             }
 
-            _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
-            _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
-            _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+
+            mat.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
+            mat.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
+            mat.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+
+            if (_inputMode == Mode.Painted)
+            {
+                UpdatePaintInputMaterial(mat);
+            }
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
-            var waveDir = _meshForDrawingWaves != null ? PrimaryWaveDirection : Vector2.right;
-            _matGenerateWaves.SetVector(sp_AxisX, waveDir);
+            var waveDir = _inputMode == Mode.Spline ? PrimaryWaveDirection : Vector2.right;
+            mat.SetVector(sp_AxisX, waveDir);
 
             // If geometry is being used, the ocean input shader will rotate the waves to align to geo
             var windDirRad = WindDirRadForFFT;
@@ -263,7 +358,7 @@ namespace Crest
             _windDirRadOld = windDirRad;
             _windSpeedOld = windSpeedMPS;
             _spectrumOld = _spectrum;
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
+            mat.SetTexture(sp_WaveBuffer, waveData);
 
             ReportMaxDisplacement();
         }
@@ -279,12 +374,6 @@ namespace Crest
             if (_activeSpectrum == null)
             {
                 _activeSpectrum = DefaultSpectrum;
-            }
-
-            // Unassign mesh
-            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _))
-            {
-                _meshForDrawingWaves = null;
             }
         }
 #endif
@@ -307,43 +396,57 @@ namespace Crest
                 }
             }
 
-            if (TryGetComponent<Spline.Spline>(out var splineForWaves))
-            {
-                var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
-                var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
-                    radius, Vector2.one, ref _meshForDrawingWaves, out _, out _))
-                {
-                    _meshForDrawingWaves.name = gameObject.name + "_mesh";
-                }
-            }
-
-            if (_meshForDrawingWaves == null)
+            if (_inputMode == Mode.Global)
             {
                 if (_matGenerateWavesGlobal == null)
                 {
-                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
                 }
-
-                _matGenerateWaves = _matGenerateWavesGlobal;
             }
-            else
+            else if (_inputMode == Mode.Painted)
             {
-                if (_matGenerateWavesGeometry == null)
+                if (_matGenerateWavesPainted == null)
                 {
-                    _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    _matGenerateWavesPainted = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
                 }
 
-                _matGenerateWaves = _matGenerateWavesGeometry;
+                // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
+                // validation
+                _paintData.PrepareMaterial(_matGenerateWavesPainted, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+            }
+            else if (_inputMode == Mode.Spline)
+            {
+                if (TryGetComponent<Spline.Spline>(out var splineForWaves))
+                {
+                    // Init mesh
+                    var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
+                    var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
+                    if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs,
+                        radius, Vector2.one, ref _meshForDrawingWavesSpline, out _, out _))
+                    {
+                        _meshForDrawingWavesSpline.name = gameObject.name + "_mesh";
+                    }
+
+                    // Init material
+                    if (_matGenerateWavesGeometry == null)
+                    {
+                        _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                    }
+                }
             }
 
-            // Submit draws to create the FFT waves
-            _batches = new FFTBatch[CASCADE_COUNT];
-            for (int i = 0; i < CASCADE_COUNT; i++)
+            var usingGeometryToGenerate = _inputMode == Mode.Spline;
+            if (!usingGeometryToGenerate || MeshForGeneration)
             {
-                if (i == -1) break;
-                _batches[i] = new FFTBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
-                registered.Add(0, _batches[i]);
+                // Submit draws to create the FFT waves
+                _batches = new FFTBatch[CASCADE_COUNT];
+                var generationMaterial = MaterialForGeneration;
+                for (int i = 0; i < CASCADE_COUNT; i++)
+                {
+                    if (i == -1) break;
+                    _batches[i] = new FFTBatch(this, MinWavelength(i), i, generationMaterial, MeshForGeneration);
+                    registered.Add(0, _batches[i]);
+                }
             }
         }
 
@@ -444,15 +547,18 @@ namespace Crest
 
         private void OnDrawGizmosSelected()
         {
-            DrawMesh();
+            if (_inputMode == Mode.Painted)
+            {
+                PaintableEditor.DrawPaintAreaGizmo(this, Color.green);
+            }
         }
 
         void DrawMesh()
         {
-            if (_meshForDrawingWaves != null)
+            if (_inputMode == Mode.Spline && _meshForDrawingWavesSpline != null)
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
-                Gizmos.DrawWireMesh(_meshForDrawingWaves, 0, transform.position, transform.rotation, transform.lossyScale);
+                Gizmos.DrawWireMesh(_meshForDrawingWavesSpline, 0, transform.position, transform.rotation, transform.lossyScale);
             }
         }
 
@@ -484,20 +590,56 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
+    // Validation
     public partial class ShapeFFT : IValidated
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
 
-            if (TryGetComponent<Spline.Spline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
+            if (_inputMode == Mode.Spline)
             {
-                showMessage
-                (
-                    "A <i>Spline</i> component is attached but it has validation errors.",
-                    "Check this component in the Inspector for issues.",
-                    ValidatedHelper.MessageType.Error, this
-                );
+                if (TryGetComponent<Spline.Spline>(out var spline))
+                {
+                    if (!spline.Validate(ocean, ValidatedHelper.Suppressed))
+                    {
+                        showMessage
+                        (
+                            "A <i>Spline</i> component is attached but it has validation errors.",
+                            "Check this component in the Inspector for issues.",
+                            ValidatedHelper.MessageType.Error, this
+                        );
+
+                        isValid = false;
+                    }
+                }
+                else
+                {
+                    showMessage
+                    (
+                        "A <i>Crest Spline</i> component is required to drive this data and none is attached to this ocean input GameObject.",
+                        "Attach a <i>Crest Spline</i> component.",
+                        ValidatedHelper.MessageType.Error, gameObject,
+                        ValidatedHelper.FixAttachComponent<Spline.Spline>
+                    );
+
+                    isValid = false;
+                }
+            }
+
+            // Don't show the below soft suggestion if there are errors present as it may just be noise.
+            if (isValid)
+            {
+                // Suggest that if a Spline is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+                if (_inputMode != Mode.Spline && TryGetComponent<Spline.Spline>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Spline</i> component is present on this GameObject but will not be used for this input.",
+                        "Change the mode to <i>Spline</i> to use this renderer as the input.",
+                        ValidatedHelper.MessageType.Info, this, so => RegisterLodDataInputBase.FixSetMode(so, (int)Mode.Spline)
+                    );
+                }
             }
 
 #if !CREST_UNITY_MATHEMATICS
@@ -519,7 +661,7 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeFFT))]
-    public class ShapeFFTEditor : ValidatedEditor
+    public class ShapeFFTEditor : PaintableEditor
     {
 #if CREST_UNITY_MATHEMATICS
         /// <summary>
@@ -636,5 +778,11 @@ namespace Crest
         }
 #endif // CREST_UNITY_MATHEMATICS
     }
-#endif
+
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(ShapeFFT))]
+    public class ShapeFFTPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

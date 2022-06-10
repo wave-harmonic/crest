@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
-using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -1516,40 +1515,40 @@ namespace Crest
             ocean.Validate(ocean, ValidatedHelper.DebugLog);
 
             // ShapeGerstner
-            foreach (var component in FindObjectsOfType<ShapeGerstner>())
+            foreach (var component in FindObjectsOfType<ShapeGerstner>(true))
             {
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             // ShapeFFT
-            foreach (var component in FindObjectsOfType<ShapeFFT>())
+            foreach (var component in FindObjectsOfType<ShapeFFT>(true))
             {
                 component.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             // OceanDepthCache
-            var depthCaches = FindObjectsOfType<OceanDepthCache>();
+            var depthCaches = FindObjectsOfType<OceanDepthCache>(true);
             foreach (var depthCache in depthCaches)
             {
                 depthCache.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             // FloatingObjectBase
-            var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
+            var floatingObjects = FindObjectsOfType<FloatingObjectBase>(true);
             foreach (var floatingObject in floatingObjects)
             {
                 floatingObject.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             // Inputs
-            var inputs = FindObjectsOfType<RegisterLodDataInputBase>();
+            var inputs = FindObjectsOfType<RegisterLodDataInputBase>(true);
             foreach (var input in inputs)
             {
                 input.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             // WaterBody
-            var waterBodies = FindObjectsOfType<WaterBody>();
+            var waterBodies = FindObjectsOfType<WaterBody>(true);
             foreach (var waterBody in waterBodies)
             {
                 waterBody.Validate(ocean, ValidatedHelper.DebugLog);
@@ -1588,8 +1587,8 @@ namespace Crest
             }
 
             // Shape*
-            var gerstners = FindObjectsOfType<ShapeGerstner>();
-            var ffts = FindObjectsOfType<ShapeFFT>();
+            var gerstners = FindObjectsOfType<ShapeGerstner>(true);
+            var ffts = FindObjectsOfType<ShapeFFT>(true);
             if (gerstners.Length == 0 && ffts.Length == 0)
             {
                 showMessage
@@ -1984,6 +1983,11 @@ namespace Crest
                 {
                     target.PushTimeProvider(newlyAssignedTP as TimeProviderBase);
                 }
+            }
+
+            if (!EditorApplication.isPlaying && GUILayout.Button("Run 2022 Migration on Ocean Inputs"))
+            {
+                EditorHelpers.EditorHelpers.Run2022Migration();
             }
 
             if (GUILayout.Button("Validate Setup"))

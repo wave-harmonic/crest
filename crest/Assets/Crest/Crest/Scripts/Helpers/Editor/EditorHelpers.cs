@@ -4,8 +4,6 @@
 
 #if UNITY_EDITOR
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -67,6 +65,78 @@ namespace Crest.EditorHelpers
             }
 
             return null;
+        }
+
+        public static void Run2022Migration()
+        {
+            System.Action<ShapeFFT, ShapeFFT.Mode> setFFTMode = (input, newMode) =>
+            {
+                Debug.Log($"Crest: Changing Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
+                input._inputMode = newMode;
+                EditorUtility.SetDirty(input);
+            };
+
+            foreach (var fft in GameObject.FindObjectsOfType<ShapeFFT>(true))
+            {
+                if (fft._inputMode == ShapeFFT.Mode.Painted)
+                {
+                    fft.AutoDetectMode(out var newMode);
+
+                    if (newMode != fft._inputMode)
+                    {
+                        setFFTMode(fft, newMode);
+                    }
+
+                    continue;
+                }
+
+                if (fft._inputMode != ShapeFFT.Mode.Global)
+                {
+                    // Don't touch if already set to a non-default mode
+                    continue;
+                }
+
+                if (fft.AutoDetectMode(out var autoMode) && autoMode != fft._inputMode)
+                {
+                    setFFTMode(fft, autoMode);
+                }
+            }
+
+            System.Action<RegisterLodDataInputBase, RegisterLodDataInputBase.InputMode> setInputMode = (input, newMode) =>
+            {
+                Debug.Log($"Crest: Changing Input Mode of {input.GetType().Name} component on GameObject {input.gameObject.name} from {input._inputMode.ToString()} to {newMode}. Click this message to highlight this GameObject.", input);
+                input._inputMode = newMode;
+                EditorUtility.SetDirty(input);
+            };
+
+            foreach (var input in GameObject.FindObjectsOfType<RegisterLodDataInputBase>(true))
+            {
+                if (input._inputMode == RegisterLodDataInputBase.InputMode.Unset)
+                {
+                    var newMode = input.DefaultMode;
+                    input.AutoDetectMode(out newMode);
+
+                    if (newMode != input._inputMode)
+                    {
+                        setInputMode(input, newMode);
+                    }
+
+                    continue;
+                }
+
+                if (input._inputMode != input.DefaultMode)
+                {
+                    // Don't touch if already set to a non-default mode
+                    continue;
+                }
+
+                if (input.AutoDetectMode(out var autoMode) && autoMode != input._inputMode)
+                {
+                    setInputMode(input, autoMode);
+                }
+            }
+
+            Debug.Log("Crest: Migration complete.");
         }
     }
 }

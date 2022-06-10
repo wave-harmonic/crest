@@ -56,13 +56,46 @@ namespace Crest
     [ExecuteAlways]
     public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
+        public enum InputMode
+        {
+            /// <summary>
+            /// Unset is serialisation default. Code in Awake() and Reset() then change this based on attached components.
+            /// </summary>
+            Unset = 0,
+            /// <summary>
+            /// Data hand-painted by user in editor.
+            /// </summary>
+            Painted,
+            /// <summary>
+            /// Driven by a user created spline.
+            /// </summary>
+            Spline,
+            /// <summary>
+            /// Attached 'Renderer' (mesh or particle or other) and assigned material used to drive data.
+            /// </summary>
+            CustomGeometryAndShader,
+            /// <summary>
+            /// Driven by a mathematical primitive such as a cube or sphere.
+            /// </summary>
+            Primitive
+        }
+
+        [Header("Mode")]
+        [Filtered]
+        public InputMode _inputMode = InputMode.Unset;
+
+        public virtual InputMode DefaultMode => InputMode.Painted;
+
+        public bool ShowPaintingUI => _inputMode == InputMode.Painted;
+
 #if UNITY_EDITOR
+        [Header("Custom Geometry And Shader Mode Settings")]
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
-        [Predicated(typeof(Renderer)), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
         bool _checkShaderName = true;
 
         [SerializeField, Tooltip("Check that the shader applied to this object has only a single pass as only the first pass is executed for most inputs.")]
-        [Predicated(typeof(Renderer)), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
         bool _checkShaderPasses = true;
 #endif
 
@@ -81,6 +114,8 @@ namespace Crest
 
         protected abstract string ShaderPrefix { get; }
 
+        protected abstract Color GizmoColor { get; }
+
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
 
@@ -95,30 +130,110 @@ namespace Crest
         }
 
         internal Renderer _renderer;
-        protected Material _material;
+        protected Material _paintInputMaterial;
         // We pass this to GetSharedMaterials to avoid allocations.
         protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
-        // If this is true, then the renderer should not be there as input source is from something else.
-        protected virtual bool RendererRequired => true;
         protected virtual bool SupportsMultiPassShaders => false;
+
+        protected virtual void OnEnable()
+        {
+        }
+
+        protected virtual void OnDisable()
+        {
+        }
+
+        public virtual bool AutoDetectMode(out InputMode mode)
+        {
+            if (TryGetComponent<Renderer>(out _))
+            {
+                mode = InputMode.CustomGeometryAndShader;
+                return true;
+            }
+
+            mode = DefaultMode;
+            return false;
+        }
+
+        protected virtual void Awake()
+        {
+            // Select a mode if it is unset. Running this in Awake() means it will
+            // run for components created at runtime ensuring they enter a valid state,
+            // and also helps data migration in edit mode (provided component is enabled).
+            if (_inputMode == InputMode.Unset)
+            {
+                AutoDetectMode(out _inputMode);
+            }
+        }
+
+        // Called when component attached in edit mode, or when Reset clicked by user.
+        // Besides recovering from Unset default value, also does a nice bit of auto-config.
+        protected void Reset()
+        {
+            if (_inputMode == InputMode.Unset)
+            {
+                AutoDetectMode(out _inputMode);
+            }
+        }
+
+#if UNITY_EDITOR
+        protected virtual void OnDrawGizmosSelected()
+        {
+            if (_inputMode == InputMode.CustomGeometryAndShader)
+            {
+                if (TryGetComponent<MeshFilter>(out var mf))
+                {
+                    Gizmos.color = GizmoColor;
+                    Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+                }
+            }
+
+            if (_inputMode == InputMode.Painted)
+            {
+                if (this is IPaintable paintable)
+                {
+                    PaintableEditor.DrawPaintAreaGizmo(paintable, GizmoColor);
+                }
+            }
+        }
+#endif
 
         void InitRendererAndMaterial(bool verifyShader)
         {
-            _renderer = GetComponent<Renderer>();
-
-            if (RendererRequired && _renderer != null)
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
-#if UNITY_EDITOR
-                if (Application.isPlaying && verifyShader)
-                {
-                    ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, _checkShaderName ? ShaderPrefix : String.Empty);
-                }
-#endif
+                _renderer = GetComponent<Renderer>();
 
-                _material = _renderer.sharedMaterial;
+                if (_renderer != null)
+                {
+#if UNITY_EDITOR
+                    if (Application.isPlaying && verifyShader)
+                    {
+                        ValidatedHelper.ValidateRenderer<Renderer>(gameObject, ValidatedHelper.DebugLog, false, SupportsMultiPassShaders, _checkShaderName ? ShaderPrefix : String.Empty);
+                    }
+#endif
+                }
             }
+            else if (_inputMode == InputMode.Painted)
+            {
+                var paintable = this as IPaintable;
+                var paintedInputShader = paintable?.PaintedInputShader;
+                if (paintedInputShader)
+                {
+                    _paintInputMaterial = new Material(paintedInputShader);
+                    PreparePaintInputMaterial(_paintInputMaterial);
+                }
+            }
+        }
+
+        protected virtual void PreparePaintInputMaterial(Material mat)
+        {
+        }
+
+        protected virtual void UpdatePaintInputMaterial(Material mat)
+        {
         }
 
         protected virtual void Start()
@@ -133,42 +248,74 @@ namespace Crest
             {
                 InitRendererAndMaterial(true);
             }
+
 #endif
+
+            if (_paintInputMaterial != null)
+            {
+                UpdatePaintInputMaterial(_paintInputMaterial);
+            }
         }
 
         public virtual void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
-            if (_renderer && _material && weight > 0f)
+            if (weight == 0f)
             {
-                buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                return;
+            }
 
-                if (!FollowHorizontalMotion)
-                {
-                    // This can be called multiple times per frame - one for each LOD potentially
-                    _sampleHelper.Init(transform.position, 0f, true, this);
-                    _sampleHelper.Sample(out Vector3 displacement, out _, out _);
-                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, displacement);
-                }
-                else
-                {
-                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                }
+            buf.SetGlobalFloat(sp_Weight, weight);
+            buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-                _renderer.GetSharedMaterials(_sharedMaterials);
-                for (var i = 0; i < _sharedMaterials.Count; i++)
+            if (!FollowHorizontalMotion)
+            {
+                // This can be called multiple times per frame - one for each LOD potentially
+                _sampleHelper.Init(transform.position, 0f, true, this);
+                _sampleHelper.Sample(out Vector3 displacement, out _, out _);
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, displacement);
+            }
+            else
+            {
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+            }
+
+            if (_inputMode == InputMode.Painted)
+            {
+#if UNITY_EDITOR
+                if (!(this is IPaintable))
                 {
-                    // Empty material slots is a user error, but skip so we do not spam errors.
-                    if (_sharedMaterials[i] == null)
+                    Debug.LogError($"Crest: {GetType().Name} component has invalid Input Mode setting, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
+                }
+#endif
+
+                if (_paintInputMaterial)
+                {
+                    buf.DrawProcedural(Matrix4x4.identity, _paintInputMaterial, 0, MeshTopology.Triangles, 3);
+                }
+            }
+            else if (_inputMode == InputMode.CustomGeometryAndShader)
+            {
+                if (_renderer)
+                {
+                    _renderer.GetSharedMaterials(_sharedMaterials);
+                    for (var i = 0; i < _sharedMaterials.Count; i++)
                     {
-                        continue;
-                    }
+                        // Empty material slots is a user error, but skip so we do not spam errors.
+                        if (_sharedMaterials[i] == null)
+                        {
+                            continue;
+                        }
 
-                    // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
-                    // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
-                    // Submesh count generally must equal number of materials.
-                    buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass: 0);
+                        // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
+                        // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
+                        // Submesh count generally must equal number of materials.
+                        buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass: 0);
+                    }
                 }
+            }
+            else if (_inputMode == InputMode.Unset)
+            {
+                Debug.LogError($"Crest: {GetType().Name} has component does not have an Input Mode set, please set this to a supported option such as {DefaultMode}. Click this message to highlight the relevant GameObject.", this);
             }
         }
 
@@ -203,10 +350,8 @@ namespace Crest
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
 
-        [SerializeField, Predicated(typeof(Renderer)), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
         bool _disableRenderer = true;
-
-        protected abstract Color GizmoColor { get; }
 
         int _registeredQueueValue = int.MinValue;
 
@@ -222,8 +367,10 @@ namespace Crest
             return false;
         }
 
-        protected virtual void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             if (_disableRenderer)
             {
                 var rend = GetComponent<Renderer>();
@@ -250,8 +397,10 @@ namespace Crest
             _registeredQueueValue = q;
         }
 
-        protected virtual void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             var registrar = GetRegistrar(typeof(LodDataType));
             if (registrar != null)
             {
@@ -279,16 +428,6 @@ namespace Crest
             }
 #endif
         }
-
-        protected void OnDrawGizmosSelected()
-        {
-            var mf = GetComponent<MeshFilter>();
-            if (mf)
-            {
-                Gizmos.color = GizmoColor;
-                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
-            }
-        }
     }
 
     public abstract class RegisterLodDataInputWithSplineSupport<LodDataType>
@@ -307,12 +446,12 @@ namespace Crest
         where LodDataType : LodDataMgr
         where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
-        [Header("Spline settings")]
-        [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField]
+        [Header("Spline Mode Settings")]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Spline), DecoratedField]
         bool _overrideSplineSettings = false;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField]
+        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 20f;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
 
         protected Material _splineMaterial;
@@ -322,25 +461,39 @@ namespace Crest
         protected abstract string SplineShaderName { get; }
         protected abstract Vector2 DefaultCustomData { get; }
 
-        protected override bool RendererRequired => _spline == null;
-
         protected float _splinePointHeightMin;
         protected float _splinePointHeightMax;
 
-        void Awake()
+        protected override void Awake()
         {
-            if (TryGetComponent(out _spline))
-            {
-                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
-                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
-                    ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+            base.Awake();
 
-                if (_splineMaterial == null)
+            if (_inputMode == InputMode.Spline)
+            {
+                if (TryGetComponent(out _spline))
                 {
-                    CreateSplineMaterial();
+                    var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                    var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
+                        ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+
+                    if (_splineMaterial == null)
+                    {
+                        CreateSplineMaterial();
+                    }
                 }
             }
+        }
+
+        public override bool AutoDetectMode(out InputMode mode)
+        {
+            if (TryGetComponent<Spline.Spline>(out _))
+            {
+                mode = InputMode.Spline;
+                return true;
+            }
+
+            return base.AutoDetectMode(out mode);
         }
 
         protected virtual void CreateSplineMaterial()
@@ -352,12 +505,15 @@ namespace Crest
         {
             if (weight <= 0f) return;
 
-            if (_splineMesh != null && _splineMaterial != null)
+            if (_inputMode == InputMode.Spline)
             {
-                buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
+                if (_splineMesh != null && _splineMaterial != null)
+                {
+                    buf.SetGlobalFloat(sp_Weight, weight);
+                    buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                    buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
+                }
             }
             else
             {
@@ -391,34 +547,50 @@ namespace Crest
             // Check for spline and rebuild spline mesh each frame in edit mode
             if (!EditorApplication.isPlaying)
             {
-                if (_spline == null)
+                if (_inputMode == InputMode.Spline)
                 {
-                    TryGetComponent(out _spline);
-                }
-
-                if (_spline != null)
-                {
-                    var radius = _overrideSplineSettings ? _radius : _spline.Radius;
-                    var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
-                        ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
-
-                    if (_splineMaterial == null)
-                    {
-                        CreateSplineMaterial();
-                    }
-                }
-                else
-                {
-                    _splineMesh = null;
+                    UpdateSpline();
                 }
             }
         }
 
-        protected new void OnDrawGizmosSelected()
+        void UpdateSpline()
         {
-            Gizmos.color = GizmoColor;
-            Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+            if (_spline == null)
+            {
+                TryGetComponent(out _spline);
+            }
+
+            if (_spline != null)
+            {
+                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
+                    ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+
+                if (_splineMaterial == null)
+                {
+                    CreateSplineMaterial();
+                }
+            }
+            else
+            {
+                _splineMesh = null;
+            }
+        }
+
+        protected override void OnDrawGizmosSelected()
+        {
+            base.OnDrawGizmosSelected();
+
+            if (_inputMode == InputMode.Spline)
+            {
+                if (_splineMesh != null)
+                {
+                    Gizmos.color = GizmoColor;
+                    Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+                }
+            }
         }
 
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)
@@ -431,9 +603,6 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
-        // Whether there is an alternative methods than a renderer (like splines).
-        protected virtual bool RendererOptional => false;
-
         protected virtual string FeatureToggleLabel => null;
         protected virtual string FeatureToggleName => null;
         protected virtual bool FeatureEnabled(OceanRenderer ocean) => true;
@@ -447,37 +616,62 @@ namespace Crest
 
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            var isValid = ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, RendererRequired, RendererOptional, _checkShaderName ? ShaderPrefix : String.Empty);
+            var isValid = true;
 
-            if (_checkShaderPasses && _material != null && _material.passCount > 1 && !SupportsMultiPassShaders)
+            if (_inputMode == InputMode.Unset)
             {
                 showMessage
                 (
-                    $"The shader <i>{_material.shader.name}</i> for material <i>{_material.name}</i> has multiple passes which might not work as expected as only the first pass is executed. " +
-                    "See documentation for more information on what multi-pass shaders work or",
-                    "use a shader with a single pass.",
-                    ValidatedHelper.MessageType.Warning, this
+                    "Invalid or unset <i>Input Mode</i> setting.",
+                    $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
+                    ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, (int)DefaultMode)
                 );
+                isValid = false;
             }
 
-            if (_renderer != null)
+            if (_inputMode == InputMode.CustomGeometryAndShader)
             {
-                _renderer.GetSharedMaterials(_sharedMaterials);
-                for (var i = 0; i < _sharedMaterials.Count; i++)
+                // Check if Renderer component is attached.
+                if (!ValidatedHelper.ValidateRenderer<Renderer>(gameObject, showMessage, _checkShaderPasses, SupportsMultiPassShaders, _checkShaderName ? ShaderPrefix : String.Empty))
                 {
-                    // Empty material slots is a user error. Unity complains about it so we should too.
-                    if (_sharedMaterials[i] == null)
+                    isValid = false;
+                }
+
+                // Check for empty material slots
+                if (_renderer != null)
+                {
+                    _renderer.GetSharedMaterials(_sharedMaterials);
+                    for (var i = 0; i < _sharedMaterials.Count; i++)
                     {
-                        showMessage
-                        (
-                            $"<i>{_renderer.GetType().Name}</i> used by this input (<i>{GetType().Name}</i>) has empty material slots.",
-                            "Remove these slots or fill them with a material.",
-                            ValidatedHelper.MessageType.Warning, _renderer
-                        );
+                        // Empty material slots is a user error. Unity complains about it so we should too.
+                        if (_sharedMaterials[i] == null)
+                        {
+                            showMessage
+                            (
+                                $"<i>{_renderer.GetType().Name}</i> used by this input (<i>{GetType().Name}</i>) has empty material slots.",
+                                "Remove these slots or fill them with a material.",
+                                ValidatedHelper.MessageType.Warning, _renderer
+                            );
+                        }
                     }
                 }
             }
 
+            if (_inputMode == InputMode.Painted)
+            {
+                if (!(this is IPaintable))
+                {
+                    showMessage
+                    (
+                        "Invalid or unset <i>Input Mode</i> setting.",
+                        $"Select a valid <i>Input Mode</i> such as {DefaultMode.ToString()} to use this input.",
+                        ValidatedHelper.MessageType.Error, this, so => FixSetMode(so, (int)DefaultMode)
+                    );
+                    isValid = false;
+                }
+            }
+
+            // Validate that any water feature required for this input is enabled, if any
             if (ocean != null)
             {
                 if (!OceanRenderer.ValidateFeatureEnabled(ocean, showMessage, FeatureEnabled,
@@ -488,12 +682,28 @@ namespace Crest
                 }
             }
 
+            // Suggest that if a Renderer is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+            if (isValid && _inputMode != InputMode.CustomGeometryAndShader && TryGetComponent<Renderer>(out _))
+            {
+                showMessage
+                (
+                    "A <i>Renderer</i> component is present on this GameObject but will not be used by Crest.",
+                    "Change the mode to <i>CustomGeometryAndShader</i> to use this renderer as the input.",
+                    ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, (int)InputMode.CustomGeometryAndShader)
+                );
+            }
+
             return isValid;
+        }
+
+        public static void FixSetMode(SerializedObject registerInputComponent, int modeValueIndex)
+        {
+            registerInputComponent.FindProperty("_inputMode").enumValueIndex = modeValueIndex;
         }
     }
 
     [CustomEditor(typeof(RegisterLodDataInputBase), true), CanEditMultipleObjects]
-    class RegisterLodDataInputBaseEditor : ValidatedEditor
+    class RegisterLodDataInputBaseEditor : PaintableEditor
     {
         public override void OnInspectorGUI()
         {
@@ -515,22 +725,39 @@ namespace Crest
 
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
     {
-        protected override bool RendererOptional => true;
-
         public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            bool isValid = base.Validate(ocean, showMessage);
+            var isValid = base.Validate(ocean, showMessage);
 
-            // Is there a renderer? Check spline explicitly as the renderer may not be created (eg GO is inactive).
-            if (RendererRequired && !TryGetComponent<Renderer>(out _) && !TryGetComponent<Spline.Spline>(out _))
+            if (_inputMode == InputMode.Spline)
             {
-                showMessage
-                (
-                    "A <i>Crest Spline</i> component is required to drive this data. Alternatively a <i>Renderer</i> can be added. Neither is currently attached to ocean input.",
-                    "Attach a <i>Crest Spline</i> component.",
-                    ValidatedHelper.MessageType.Error, gameObject,
-                    ValidatedHelper.FixAttachComponent<Spline.Spline>
-                );
+                if (!TryGetComponent<Spline.Spline>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Crest Spline</i> component is required to drive this data and none is attached to this ocean input GameObject.",
+                        "Attach a <i>Crest Spline</i> component.",
+                        ValidatedHelper.MessageType.Error, gameObject,
+                        ValidatedHelper.FixAttachComponent<Spline.Spline>
+                    );
+                }
+
+                isValid = false;
+            }
+
+            // Don't show the below soft suggestion if there are errors present as it may just be noise.
+            if (isValid)
+            {
+                // Suggest that if a Spline is present, perhaps mode should be changed to use it (but only make suggestions if no errors)
+                if (_inputMode != InputMode.Spline && TryGetComponent<Spline.Spline>(out _))
+                {
+                    showMessage
+                    (
+                        "A <i>Spline</i> component is present on this GameObject but will not be used for this input.",
+                        "Change the mode to <i>Spline</i> to use this renderer as the input.",
+                        ValidatedHelper.MessageType.Info, this, so => FixSetMode(so, (int)InputMode.Spline)
+                    );
+                }
             }
 
             return isValid;

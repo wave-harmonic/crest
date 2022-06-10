@@ -246,7 +246,11 @@ namespace Crest
                 _drawCacheQuad.name = "DepthCache_" + gameObject.name + "_NOSAVE";
                 _drawCacheQuad.transform.SetParent(transform, false);
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-                _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>()._assignOceanDepthMaterial = false;
+
+                var registerComp = _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
+                registerComp._inputMode = RegisterLodDataInputBase.InputMode.CustomGeometryAndShader;
+                registerComp._assignOceanDepthMaterial = false;
+
                 qr = _drawCacheQuad.GetComponent<Renderer>();
                 qr.sharedMaterial = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
             }

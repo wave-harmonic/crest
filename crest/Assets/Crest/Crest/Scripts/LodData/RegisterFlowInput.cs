@@ -4,6 +4,10 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
+
 namespace Crest
 {
     /// <summary>
@@ -12,7 +16,8 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     [CrestHelpURL("user/ocean-simulation", "flow")]
-    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
+    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>, IPaintable
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -36,6 +41,42 @@ namespace Crest
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Flow/Spline Geometry";
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
 
+        #region Painting
+        [Header("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
+        public CPUTexture2DPaintable_RG16_AddBlend _paintData;
+        public IPaintedData PaintedData => _paintData;
+        public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Flow/Painted");
+
+        protected override void PreparePaintInputMaterial(Material mat)
+        {
+            base.PreparePaintInputMaterial(mat);
+            if (_paintData == null) return;
+
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.PrepareMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+
+        protected override void UpdatePaintInputMaterial(Material mat)
+        {
+            base.UpdatePaintInputMaterial(mat);
+            if (_paintData == null) return;
+
+            _paintData.CenterPosition3 = transform.position;
+            _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+        }
+
+        public void ClearData() => _paintData.Clear(this, Vector2.zero);
+        public void MakeDirty() => _paintData.MakeDirty();
+
+        public bool Paint(Vector3 paintPosition3, Vector2 paintDir, float paintWeight, bool remove)
+        {
+            _paintData.CenterPosition3 = transform.position;
+
+            return _paintData.PaintSmoothstep(this, paintPosition3, 0.0125f * paintWeight, paintDir, _paintData.BrushRadius, _paintData._brushStrength, CPUTexturePaintHelpers.PaintFnAdditivePlusRemoveBlendVector2, remove);
+        }
+        #endregion
+
         [Header("Other Settings")]
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
@@ -53,4 +94,12 @@ namespace Crest
         protected override string MaterialFeatureDisabledFix => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
+
+#if UNITY_EDITOR
+    // Ensure preview works (preview does not apply to derived classes so done per type)
+    [CustomPreview(typeof(RegisterFlowInput))]
+    public class RegisterFlowInputPreview : UserPaintedDataPreview
+    {
+    }
+#endif // UNITY_EDITOR
 }

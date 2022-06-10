@@ -236,6 +236,9 @@ namespace Crest
             {
                 // Set once per frame stuff
                 {
+                    // Init prop wrapper. Use any kernel as the below value types don't require a kernel.
+                    _csSWSProps.Initialise(buf, _csSWS, 0);
+
                     _csSWSProps.SetFloat(ShaderIDs.s_Time, Time.time);
                     _csSWSProps.SetFloat(ShaderIDs.s_DeltaTime, _simulationTimeStep);
                     _csSWSProps.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
@@ -541,7 +544,7 @@ namespace Crest
 #if UNITY_EDITOR
         private void OnGUI()
         {
-            if (_debugSettings._showSimulationData)
+            if (_debugSettings._showSimulationData && _rtH1 != null)
             {
                 var s = 200f;
                 var y = 0f;

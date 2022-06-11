@@ -8,8 +8,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 {
 	SubShader
 	{
-		// Additive blend everywhere
-		Blend One One
+		// Alpha blend works well as default, additive would be nice option?
+		Blend SrcAlpha OneMinusSrcAlpha
 		ZWrite Off
 		ZTest Always
 		Cull Off
@@ -113,8 +113,12 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 				if (all(_PaintedDataSize > 0.0))
 				{
 					float2 paintUV = (input.worldPosXZ - _PaintedDataPosition) / _PaintedDataSize + 0.5;
+
+					float featherBoundaries = max(abs(paintUV.x - 0.5), abs(paintUV.y - 0.5));
+					wt *= smoothstep(0.5, 0.4, featherBoundaries);
+
 					// Check if in bounds
-					if (all(saturate(paintUV) == paintUV))
+					if (wt > 0.0)
 					{
 						float2 axis = _PaintedData.Sample(LODData_linear_clamp_sampler, paintUV).xy;
 						float axisLen2 = dot(axis, axis);
@@ -154,7 +158,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 					disp.xz = disp.x * _AxisX + disp.z * float2(-_AxisX.y, _AxisX.x);
 				}
 
-				return half4(wt * disp, 1.0);
+				return half4(disp, wt);
 			}
 			ENDCG
 		}

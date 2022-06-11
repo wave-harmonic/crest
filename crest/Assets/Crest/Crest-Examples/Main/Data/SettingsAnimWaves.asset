@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: SettingsAnimWaves
   m_EditorClassIdentifier: 
   _version: 0
+  _waveResolutionMultiplier: 2
   _attenuationInShallows: 0.85
   _shallowsMaxDepth: 1000
   _collisionSource: 2

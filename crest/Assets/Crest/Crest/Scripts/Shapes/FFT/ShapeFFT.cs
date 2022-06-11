@@ -457,6 +457,24 @@ namespace Crest
             var usingGeometryToGenerate = _inputMode == Mode.Spline;
             if (!usingGeometryToGenerate || MeshForGeneration)
             {
+                // Queue determines draw order of this input
+                int queue = 0;
+                if (MeshForGeneration != null)
+                {
+                    // Use the queue if local waves.
+                    queue = _queue;
+                }
+                else if (_inputMode == Mode.Painted)
+                {
+                    // Painted input comes later after global, and also sorted by siblings (transform order)
+                    queue = transform.GetSiblingIndex();
+                }
+                else
+                {
+                    // Global comes first
+                    queue = int.MinValue;
+                }
+
                 // Submit draws to create the FFT waves
                 _batches = new FFTBatch[CASCADE_COUNT];
                 var generationMaterial = MaterialForGeneration;
@@ -464,8 +482,8 @@ namespace Crest
                 {
                     if (i == -1) break;
                     _batches[i] = new FFTBatch(this, MinWavelength(i), i, generationMaterial, MeshForGeneration);
-                    // Use the queue if local waves.
-                    registered.Add(MeshForGeneration != null ? _queue : int.MinValue, _batches[i]);
+
+                    registered.Add(queue, _batches[i]);
                 }
             }
         }

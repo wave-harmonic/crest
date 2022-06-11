@@ -71,11 +71,11 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
-        [Predicated("_mode", inverted: false, Mode.Spline), DecoratedField]
+        [Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
         [Tooltip("If enabled, waves are additive. Otherwise waves are blended.")]
         public bool _additive = true;
 
-        [Predicated("_mode", inverted: false, Mode.Spline), DecoratedField]
+        [Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
         [Tooltip("Order this input will render.")]
         public int _queue = 0;
 

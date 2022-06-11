@@ -71,11 +71,11 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
-        [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
+        [Predicated("_mode", inverted: false, Mode.Spline), DecoratedField]
         [Tooltip("If enabled, waves are additive. Otherwise waves are blended.")]
         public bool _additive = true;
 
-        [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
+        [Predicated("_mode", inverted: false, Mode.Spline), DecoratedField]
         [Tooltip("Order this input will render.")]
         public int _queue = 0;
 
@@ -593,12 +593,6 @@ namespace Crest
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)
         {
             DrawMesh();
-        }
-
-        // Called by Predicated attribute. Signature must not be changed.
-        bool IsLocalWaves(Component component)
-        {
-            return TryGetComponent<MeshRenderer>(out _) || TryGetComponent<Spline.Spline>(out _);
         }
 #endif
 

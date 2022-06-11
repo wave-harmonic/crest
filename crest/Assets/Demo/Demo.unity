@@ -321,6 +321,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 2
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -328,6 +329,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _maxDisplacementVertical: 0
 --- !u!114 &1421509819
 MonoBehaviour:
@@ -342,6 +351,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 2
   _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: bb5a8dffa70cd46cc8eabbff9c911831, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -356,10 +366,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 128
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -538,6 +556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 0
   _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 9486aa323c29e4c9ab7e5c5988804ca5, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -552,10 +571,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 128
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -575,6 +602,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 0
   _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 2492ab8ac0f17430cb8093602c48f121, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -589,10 +617,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 128
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -833,7 +869,6 @@ MonoBehaviour:
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 0
   _simSettingsClipSurface: {fileID: 0}
-  _defaultClippingState: 0
   _createAlbedoData: 0
   _settingsAlbedo: {fileID: 0}
   _surfaceSelfIntersectionFixMode: 2
@@ -980,6 +1015,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputMode: 2
   _checkShaderName: 1
   _checkShaderPasses: 1
   _disableRenderer: 1
@@ -987,6 +1023,14 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
   _maxDisplacementVertical: 0
 --- !u!114 &2101440704
 MonoBehaviour:
@@ -1001,6 +1045,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _inputMode: 2
   _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: c68486e0c9c9e4f6d87062c2fe4b6dc7, type: 2}
   _spectrumFixedAtRuntime: 1
@@ -1015,10 +1060,18 @@ MonoBehaviour:
   _randomSeed: 0
   _resolution: 128
   _debugDrawSlicesInEditor: 0
+  _paintData:
+    _data: []
+    _dataChangeFlag: 0
+    _worldSize: {x: 128, y: 128}
+    _centerPosition: {x: 0, y: 0}
+    _resolution: {x: 64, y: 64}
+    _brushRadius: 2
+    _brushStrength: 1
+  _featherWaveStart: 0.1
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
-  _featherWaveStart: 0.1
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0

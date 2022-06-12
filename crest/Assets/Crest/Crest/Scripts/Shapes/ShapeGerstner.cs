@@ -636,13 +636,11 @@ namespace Crest
 
         void InitBatches()
         {
-            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
-
             if (_batches != null)
             {
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
             }
 
@@ -677,13 +675,16 @@ namespace Crest
                 _matGenerateWaves = _matGenerateWavesGeometry;
             }
 
+            var queue = 0;
+            var subQueue = transform.GetSiblingIndex();
+            
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[CASCADE_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
                 _batches[i] = new GerstnerBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
-                registered.Add(0, _batches[i]);
+                RegisterLodDataInput<LodDataMgrAnimWaves>.RegisterInput(_batches[i], queue, subQueue);
             }
         }
 
@@ -737,10 +738,9 @@ namespace Crest
 
             if (_batches != null)
             {
-                var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
 
                 _batches = null;

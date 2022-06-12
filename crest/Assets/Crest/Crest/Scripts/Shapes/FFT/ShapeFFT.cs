@@ -76,7 +76,7 @@ namespace Crest
         public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
 
         [Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
-        [Tooltip("Order this input will render.")]
+        [Tooltip("Order this input will render. Queue is <i>Queue + SiblingIndex</i>")]
         public int _queue = 0;
 
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
@@ -464,17 +464,13 @@ namespace Crest
             var usingGeometryToGenerate = _inputMode == Mode.Spline;
             if (!usingGeometryToGenerate || MeshForGeneration)
             {
-                // Queue determines draw order of this input
-                var queue = int.MinValue;
-                if (MeshForGeneration != null)
+                // Queue determines draw order of this input. GetSiblingIndex gives intuitive ordering.
+                var queue = _queue + transform.GetSiblingIndex();
+
+                if (_inputMode == Mode.Global)
                 {
-                    // Use the queue if local waves.
-                    queue = _queue;
-                }
-                else if (_inputMode == Mode.Painted)
-                {
-                    // Painted input comes later after global, and also sorted by siblings (transform order)
-                    queue += 1 + transform.GetSiblingIndex();
+                    // Global waves should be rendered first. They are additive so not order dependent.
+                    queue = int.MinValue;
                 }
 
                 // Submit draws to create the FFT waves

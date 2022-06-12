@@ -40,6 +40,7 @@ Changed
 .. bullet_list::
 
    -  Warn users edits in prefab mode will not be reflected in scene view until prefab is saved.
+   -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
 
 
 Fixed

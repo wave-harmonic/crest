@@ -405,13 +405,11 @@ namespace Crest
 
         void InitBatches()
         {
-            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
-
             if (_batches != null)
             {
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
             }
 
@@ -464,14 +462,9 @@ namespace Crest
             var usingGeometryToGenerate = _inputMode == Mode.Spline;
             if (!usingGeometryToGenerate || MeshForGeneration)
             {
-                // Queue determines draw order of this input. GetSiblingIndex gives intuitive ordering.
-                var queue = _queue + transform.GetSiblingIndex();
-
-                if (_inputMode == Mode.Global)
-                {
-                    // Global waves should be rendered first. They are additive so not order dependent.
-                    queue = int.MinValue;
-                }
+                // Queue determines draw order of this input. Global waves should be rendered first. They are additive
+                // so not order dependent.
+                var queue = _inputMode == Mode.Global ? int.MinValue : _queue;
 
                 // Submit draws to create the FFT waves
                 _batches = new FFTBatch[CASCADE_COUNT];
@@ -480,8 +473,8 @@ namespace Crest
                 {
                     if (i == -1) break;
                     _batches[i] = new FFTBatch(this, MinWavelength(i), i, generationMaterial, MeshForGeneration);
-                    // Use the queue if local waves.
-                    registered.Add(queue, _batches[i]);
+
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.RegisterInput(_batches[i], queue, transform.GetSiblingIndex());
                 }
             }
         }
@@ -564,10 +557,9 @@ namespace Crest
 
             if (_batches != null)
             {
-                var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
 
                 _batches = null;

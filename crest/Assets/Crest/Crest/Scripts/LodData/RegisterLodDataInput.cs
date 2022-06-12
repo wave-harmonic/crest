@@ -367,6 +367,24 @@ namespace Crest
             return false;
         }
 
+        public static void RegisterInput(ILodDataInput input, int queueSortIndex, int subSortIndex)
+        {
+            var registrar = GetRegistrar(typeof(LodDataType));
+            registrar.Remove(input);
+
+            // Allow sorting within a queue. Callers can pass in things like sibling index to get deterministic sorting
+            int maxSubIndex = 1000;
+            int finalSortIndex = queueSortIndex * maxSubIndex + Mathf.Min(subSortIndex, maxSubIndex - 1);
+
+            registrar.Add(finalSortIndex, input);
+        }
+
+        public static void DeregisterInput(ILodDataInput input)
+        {
+            var registrar = GetRegistrar(typeof(LodDataType));
+            registrar.Remove(input);
+        }
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -391,9 +409,7 @@ namespace Crest
             }
 
             GetQueue(out var q);
-
-            var registrar = GetRegistrar(typeof(LodDataType));
-            registrar.Add(q, this);
+            RegisterInput(this, q, transform.GetSiblingIndex());
             _registeredQueueValue = q;
         }
 
@@ -401,11 +417,7 @@ namespace Crest
         {
             base.OnDisable();
 
-            var registrar = GetRegistrar(typeof(LodDataType));
-            if (registrar != null)
-            {
-                registrar.Remove(this);
-            }
+            DeregisterInput(this);
         }
 
         protected override void Update()
@@ -419,9 +431,7 @@ namespace Crest
                 {
                     if (q != _registeredQueueValue)
                     {
-                        var registrar = GetRegistrar(typeof(LodDataType));
-                        registrar.Remove(this);
-                        registrar.Add(q, this);
+                        RegisterInput(this, q, transform.GetSiblingIndex());
                         _registeredQueueValue = q;
                     }
                 }

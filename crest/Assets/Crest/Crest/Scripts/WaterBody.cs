@@ -92,7 +92,7 @@ namespace Crest
 
             if (_clipInput != null)
             {
-                RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface)).Remove(_clipInput);
+                RegisterLodDataInput<LodDataMgrClipSurface>.DeregisterInput(_clipInput);
 
                 _clipInput = null;
             }
@@ -122,12 +122,11 @@ namespace Crest
                 {
                     _clipInput = new ClipInput(this);
 
-                    var registrar = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface));
-                    registrar.Add(0, _clipInput);
+                    RegisterLodDataInput<LodDataMgrClipSurface>.RegisterInput(_clipInput, 0, transform.GetSiblingIndex());
                 }
                 else
                 {
-                    RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrClipSurface)).Remove(_clipInput);
+                    RegisterLodDataInput<LodDataMgrClipSurface>.DeregisterInput(_clipInput);
 
                     _clipInput = null;
                 }

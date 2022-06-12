@@ -238,14 +238,12 @@ namespace Crest
 
         void OnEnable()
         {
-            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrDynWaves));
-            registered.Remove(this);
-            registered.Add(0, this);
+            RegisterLodDataInput<LodDataMgrDynWaves>.RegisterInput(this, 0, transform.GetSiblingIndex());
         }
 
         void OnDisable()
         {
-            RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrDynWaves)).Remove(this);
+            RegisterLodDataInput<LodDataMgrDynWaves>.DeregisterInput(this);
         }
 
         private void OnDrawGizmosSelected()

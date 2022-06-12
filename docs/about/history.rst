@@ -13,9 +13,11 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: TODO
+Changed
+^^^^^^^
+.. bullet_list::
 
-   This section is a work in progress.
+   -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
 
 
 4.15.2

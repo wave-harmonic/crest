@@ -71,9 +71,9 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
-        [Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
-        [Tooltip("If enabled, waves are additive. Otherwise waves are blended.")]
-        public bool _additive = true;
+        [Predicated("_inputMode", inverted: false, Mode.Global), DecoratedField]
+        [Tooltip("How the waves are blended into the wave buffer. Use <i>AlphaBlend</i> to override waves.")]
+        public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
 
         [Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
         [Tooltip("Order this input will render.")]
@@ -112,6 +112,7 @@ namespace Crest
         {
             _paintData.CenterPosition3 = transform.position;
             _paintData.UpdateMaterial(mat, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+            Helpers.SetBlendFromPreset(mat, _blendMode);
         }
 
         public Vector2 WorldSize => _paintData.WorldSize;
@@ -346,9 +347,12 @@ namespace Crest
 
             if (_inputMode == Mode.Spline && _matGenerateWavesGeometry != null)
             {
-                _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendSrcMode, (int)(_additive ? BlendMode.One : BlendMode.SrcAlpha));
-                _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendDstMode, (int)(_additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));
-                _matGenerateWavesGeometry.SetKeyword("_ADDITIVE", _additive);
+                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
+            }
+
+            if (_inputMode == Mode.Global && _matGenerateWavesGlobal != null)
+            {
+                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
             }
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
@@ -411,12 +415,15 @@ namespace Crest
                 }
             }
 
+
             if (_inputMode == Mode.Global)
             {
                 if (_matGenerateWavesGlobal == null)
                 {
                     _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Generate Waves"));
                 }
+
+                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
             }
             else if (_inputMode == Mode.Painted)
             {
@@ -428,6 +435,8 @@ namespace Crest
                 // This should probably warn or error on multiple input types (GetComponents<IUserAuthoredInput>().length > 1) in
                 // validation
                 _paintData.PrepareMaterial(_matGenerateWavesPainted, CPUTexture2DHelpers.ColorConstructFnTwoChannel);
+
+                Helpers.SetBlendFromPreset(_matGenerateWavesPainted, _blendMode);
             }
             else if (_inputMode == Mode.Spline)
             {
@@ -448,9 +457,7 @@ namespace Crest
                         _matGenerateWavesGeometry = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
                     }
 
-                    _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendSrcMode, (int)(_additive ? BlendMode.One : BlendMode.SrcAlpha));
-                    _matGenerateWavesGeometry.SetInt(Helpers.ShaderIDs.s_BlendDstMode, (int)(_additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));
-                    _matGenerateWavesGeometry.SetKeyword("_ADDITIVE", _additive);
+                    Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
                 }
             }
 

@@ -8,8 +8,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 {
 	SubShader
 	{
-		// Additive blend everywhere
-		Blend One One
+		Blend [_BlendSrcMode] [_BlendDstMode]
 		ZWrite Off
 		ZTest Always
 		Cull Off
@@ -154,7 +153,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 					disp.xz = disp.x * _AxisX + disp.z * float2(-_AxisX.y, _AxisX.x);
 				}
 
-				return half4(wt * disp, 1.0);
+				return float4(disp, wt);
 			}
 			ENDCG
 		}

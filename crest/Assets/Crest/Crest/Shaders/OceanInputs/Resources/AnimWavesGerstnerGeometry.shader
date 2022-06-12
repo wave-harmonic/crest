@@ -24,10 +24,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
         // Can be set to 0 to make waves ignore shallow water
         _RespectShallowWaterAttenuation( "Respect Shallow Water Attenuation", Range( 0, 1 ) ) = 1
 
-        _BlendSrcMode("Blend Source Mode", Float) = 0
-        _BlendDstMode("Blend Destination Mode", Float) = 0
-
-        [Toggle] _Additive("Additive Blend", Float) = 0
+        _BlendSrcMode("Blend Source Mode", Float) = 5
+        _BlendDstMode("Blend Destination Mode", Float) = 1
     }
 
     SubShader
@@ -44,8 +42,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             #pragma vertex vert
             #pragma fragment frag
             // #pragma enable_d3d11_debug_symbols
-
-            #pragma multi_compile_local __ _ADDITIVE
 
             #include "UnityCG.cginc"
 
@@ -151,10 +147,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 disp1.xz = disp1.x * axisX1 + disp1.z * axisZ1;
                 const float alpha = rem / dTheta;
                 float3 disp = lerp( disp0, disp1, alpha );
-
-#if !_ADDITIVE
-                disp *= wt;
-#endif
 
                 return float4(disp, wt);
             }

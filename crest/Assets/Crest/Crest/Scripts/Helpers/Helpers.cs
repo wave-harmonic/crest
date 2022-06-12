@@ -49,6 +49,42 @@ namespace Crest
             ClearStencil,
         }
 
+        public enum BlendPreset
+        {
+            /// <summary>
+            /// BlendMode SrcAlpha One
+            /// </summary>
+            AdditiveBlend,
+            /// <summary>
+            /// SrcAlpha OneMinusSrcAlpha
+            /// </summary>
+            AlphaBlend,
+        }
+
+        /// <summary>
+        /// Sets the Blend render state using BlendPreset.
+        /// </summary>
+        public static void SetBlendFromPreset(Material material, BlendPreset preset)
+        {
+            var source = 0;
+            var destination = 0;
+
+            switch (preset)
+            {
+                case BlendPreset.AdditiveBlend:
+                    source = (int)BlendMode.SrcAlpha;
+                    destination = (int)BlendMode.One;
+                    break;
+                case BlendPreset.AlphaBlend:
+                    source =  (int)BlendMode.SrcAlpha;
+                    destination = (int)BlendMode.OneMinusSrcAlpha;
+                    break;
+            }
+
+            material.SetInt(ShaderIDs.s_BlendSrcMode, source);
+            material.SetInt(ShaderIDs.s_BlendDstMode, destination);
+        }
+
 #if UNITY_EDITOR
         public static bool IsPreviewOfGameCamera(Camera camera)
         {

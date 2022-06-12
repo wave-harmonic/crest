@@ -358,20 +358,21 @@ namespace Crest
                 }
             }
 
-            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
-
 #if UNITY_EDITOR
             // Unregister after switching modes in the editor.
             if (_batches != null)
             {
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
             }
 #endif
 
             if (rend == null) return;
+
+            var queue = 0;
+            var subQueue = transform.GetSiblingIndex();
 
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
@@ -385,7 +386,7 @@ namespace Crest
 
             foreach (var batch in _batches)
             {
-                registered.Add(0, batch);
+                RegisterLodDataInput<LodDataMgrAnimWaves>.RegisterInput(batch, queue, subQueue);
             }
         }
 
@@ -562,10 +563,9 @@ namespace Crest
 
             if (_batches != null)
             {
-                var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
 
                 _batches = null;

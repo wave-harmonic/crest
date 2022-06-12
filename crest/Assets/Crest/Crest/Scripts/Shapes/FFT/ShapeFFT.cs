@@ -292,13 +292,11 @@ namespace Crest
 
         void InitBatches()
         {
-            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
-
             if (_batches != null)
             {
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
             }
 
@@ -336,9 +334,14 @@ namespace Crest
             _batches = new FFTBatch[CASCADE_COUNT];
             for (int i = 0; i < CASCADE_COUNT; i++)
             {
+                // Queue determines draw order of this input. Global waves should be rendered first. They are additive
+                // so not order dependent.
+                var queue = 0;
+                var subQueue = transform.GetSiblingIndex();
+
                 if (i == -1) break;
                 _batches[i] = new FFTBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
-                registered.Add(0, _batches[i]);
+                RegisterLodDataInput<LodDataMgrAnimWaves>.RegisterInput(_batches[i], queue, subQueue);
             }
         }
 
@@ -393,10 +396,9 @@ namespace Crest
 
             if (_batches != null)
             {
-                var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
 
                 _batches = null;

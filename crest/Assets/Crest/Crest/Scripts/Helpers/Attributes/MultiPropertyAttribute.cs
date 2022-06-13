@@ -290,4 +290,24 @@ namespace Crest
             _property = property;
         }
     }
+
+    /// <summary>
+    /// Drop-in replacement for Header. Use when hiding property with Predicated.
+    /// </summary>
+    public class HeadingAttribute : DecoratorAttribute
+    {
+        readonly string _heading;
+
+        public HeadingAttribute(string heading)
+        {
+            _heading = heading;
+        }
+
+        internal override void Decorate(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
+        {
+            // Register margin with IMGUI so subsequent spacing is correct.
+            EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 0.5f);
+            GUI.Label(EditorGUILayout.GetControlRect(true), _heading, EditorStyles.boldLabel);
+        }
+    }
 }

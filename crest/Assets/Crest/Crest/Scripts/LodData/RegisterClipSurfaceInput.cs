@@ -44,29 +44,31 @@ namespace Crest
         // Primitive is the best default for clipping, so override the default defined in the base class.
         public override InputMode DefaultMode => InputMode.Primitive;
 
-        [Header("Primitive Mode Settings")]
+        [Heading("Primitive Mode Settings")]
 
         [Tooltip("The primitive to render (signed distance) into the simulation.")]
-        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive, hide: true), DecoratedField]
         Primitive _primitive = Primitive.Cube;
 
         // Only needed for Primitive as non-primitive uses queue from shader.
         [Tooltip("Order (ascending) that this input will be rendered into the clip surface data.")]
-        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive, hide: true), DecoratedField]
         int _order = 0;
 
         // Only Mode.Primitive SDF supports inverted.
         [Tooltip("Removes clip surface data instead of adding it.")]
-        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Primitive, hide: true), DecoratedField]
         bool _inverted = false;
 
-        [Header("3D Clipping Options")]
+        [Heading("3D Clipping Options")]
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
-        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = false;
+        [SerializeField, Predicated("_inputMode", inverted: false, InputMode.Painted, hide: true), Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
+        bool _disableClipSurfaceWhenTooFarFromSurface = false;
 
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
-        [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;
+        [SerializeField, Predicated("_inputMode", inverted: false, InputMode.Painted, hide: true), DecoratedField]
+        uint _animatedWavesDisplacementSamplingIterations = 4;
 
         public override float Wavelength => 0f;
 
@@ -78,8 +80,8 @@ namespace Crest
         protected override bool FollowHorizontalMotion => true;
 
         #region Painting
-        [Header("Paint Mode Settings")]
-        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
+        [Heading("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted, hide: true), DecoratedField]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Clip Surface/Painted");
@@ -267,7 +269,7 @@ namespace Crest
             }
 
             // Prevents possible conflicts since overlapping doesn't work for every case for convex null.
-            if (_disableClipSurfaceWhenTooFarFromSurface)
+            if (_inputMode == InputMode.CustomGeometryAndShader && _disableClipSurfaceWhenTooFarFromSurface)
             {
                 var position = transform.position;
                 _sampleHeightHelper.Init(position, 0f);

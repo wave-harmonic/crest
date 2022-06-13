@@ -89,13 +89,13 @@ namespace Crest
         public bool ShowPaintingUI => _inputMode == InputMode.Painted;
 
 #if UNITY_EDITOR
-        [Header("Custom Geometry And Shader Mode Settings")]
+        [Heading("Custom Geometry And Shader Mode Settings")]
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
-        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader, hide: true), DecoratedField]
         bool _checkShaderName = true;
 
         [SerializeField, Tooltip("Check that the shader applied to this object has only a single pass as only the first pass is executed for most inputs.")]
-        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
+        [Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader, hide: true), DecoratedField]
         bool _checkShaderPasses = true;
 #endif
 
@@ -350,7 +350,7 @@ namespace Crest
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
 
-        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.CustomGeometryAndShader, hide: true), DecoratedField]
         bool _disableRenderer = true;
 
         int _registeredQueueValue = int.MinValue;
@@ -456,12 +456,12 @@ namespace Crest
         where LodDataType : LodDataMgr
         where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
-        [Header("Spline Mode Settings")]
-        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Spline), DecoratedField]
+        [Heading("Spline Mode Settings")]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Spline, hide: true), DecoratedField]
         bool _overrideSplineSettings = false;
-        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Spline, hide: true), Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 20f;
-        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
+        [SerializeField, Predicated("_inputMode", inverted: true, InputMode.Spline, hide: true), Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
 
         protected Material _splineMaterial;

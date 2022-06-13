@@ -13,7 +13,7 @@ namespace Crest
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Sea Floor Depth Input")]
     [CrestHelpURL("user/ocean-simulation", "sea-floor-depth")]
-    [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Painted)]
+    [FilterEnum("_inputMode", FilteredAttribute.Mode.Include, (int)InputMode.CustomGeometryAndShader)]
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
         /// <summary>
@@ -28,6 +28,8 @@ namespace Crest
         public override bool Enabled => true;
 
         public override InputMode DefaultMode => InputMode.CustomGeometryAndShader;
+
+        [Header("Other Settings")]
 
         public bool _assignOceanDepthMaterial = true;
 

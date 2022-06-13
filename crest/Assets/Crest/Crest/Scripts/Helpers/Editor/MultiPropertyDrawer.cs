@@ -39,8 +39,10 @@ namespace Crest.EditorHelpers
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            // Make original control rectangle be invisible because we always create our own.
-            return 0;
+            // Make original control rectangle be invisible because we always create our own. Zero still adds a little
+            // height which becomes noticeable once multiple properties are hidden. This could be some GUI style
+            // property but could not find which one.
+            return -2f;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -49,14 +51,24 @@ namespace Crest.EditorHelpers
             var originalColor = GUI.color;
             var originalEnabled = GUI.enabled;
 
+            // Execute all non visual attributes like Predicated.
             for (var index = 0; index < Decorators.Count; index++)
             {
                 var attribute = (DecoratorAttribute)Decorators[index];
+                if (attribute is not PredicatedAttribute) continue;
                 attribute.Decorate(position, property, attribute.BuildLabel(label), this);
             }
 
             if (!s_HideInInspector)
             {
+                // Execute all visual attributes.
+                for (var index = 0; index < Decorators.Count; index++)
+                {
+                    var attribute = (DecoratorAttribute)Decorators[index];
+                    if (attribute is PredicatedAttribute) continue;
+                    attribute.Decorate(position, property, attribute.BuildLabel(label), this);
+                }
+
                 var a = (DecoratedPropertyAttribute) attribute;
                 try
                 {

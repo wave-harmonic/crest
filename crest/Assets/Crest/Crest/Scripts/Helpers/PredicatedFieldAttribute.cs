@@ -23,17 +23,21 @@ namespace Crest
         readonly Type _type;
         readonly MethodInfo _method;
 
+        readonly bool _hide;
+
         /// <summary>
         /// The field with this attribute will be drawn enabled/disabled based on return of method.
         /// </summary>
         /// <param name="type">The type to call the method on. Must be either a static type or the type the field is defined on.</param>
         /// <param name="method">Method name. Method must match signature: bool MethodName(Component component). Can be any visibility and static or instance.</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
-        public PredicatedAttribute(Type type, string method, bool inverted = false)
+        /// <param name="hide">Hide this component in the inspector.</param>
+        public PredicatedAttribute(Type type, string method, bool inverted = false, bool hide = false)
         {
             _type = type;
             _method = _type.GetMethod(method, Helpers.s_AnyMethod);
             _inverted = inverted;
+            _hide = hide;
         }
 
         /// <summary>
@@ -42,10 +46,12 @@ namespace Crest
         /// </summary>
         /// <param name="requiredComponentType">If a component of this type is not attached to this GameObject, disable the GUI (or enable if inverted is true).</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
-        public PredicatedAttribute(Type requiredComponentType, bool inverted = false)
+        /// <param name="hide">Hide this component in the inspector.</param>
+        public PredicatedAttribute(Type requiredComponentType, bool inverted = false, bool hide = false)
         {
             _requiredComponentType = requiredComponentType;
             _inverted = inverted;
+            _hide = hide;
         }
 
         /// <summary>
@@ -55,10 +61,12 @@ namespace Crest
         /// <param name="propertyName">The name of the other property whose value dictates whether this field is enabled or not.</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
         /// <param name="disableIfValueIs">If the field has this value, disable the GUI (or enable if inverted is true).</param>
-        public PredicatedAttribute(string propertyName, bool inverted = false, object disableIfValueIs = null)
+        /// <param name="hide">Hide this component in the inspector.</param>
+        public PredicatedAttribute(string propertyName, bool inverted = false, object disableIfValueIs = null, bool hide = false)
         {
             _propertyName = propertyName;
             _inverted = inverted;
+            _hide = hide;
             _disableIfValueIs = disableIfValueIs;
         }
 
@@ -70,11 +78,13 @@ namespace Crest
         /// <param name="requiredComponentType">If a component of this type is not attached to this GameObject, disable the GUI (or enable if inverted is true).</param>
         /// <param name="inverted">Flip behaviour - for example disable if a bool field is set to true (instead of false).</param>
         /// <param name="disableIfValueIs">If the field has this value, disable the GUI (or enable if inverted is true).</param>
-        public PredicatedAttribute(string propertyName, Type requiredComponentType, bool inverted = false, object disableIfValueIs = null)
+        /// <param name="hide">Hide this component in the inspector.</param>
+        public PredicatedAttribute(string propertyName, Type requiredComponentType, bool inverted = false, object disableIfValueIs = null, bool hide = false)
         {
             _propertyName = propertyName;
             _requiredComponentType = requiredComponentType;
             _inverted = inverted;
+            _hide = hide;
             _disableIfValueIs = disableIfValueIs;
         }
 
@@ -121,6 +131,12 @@ namespace Crest
 
         internal override void Decorate(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
+            // Keep the previous disabled state but do not hide using previous disabled state so exit early.
+            if (!GUI.enabled)
+            {
+                return;
+            }
+
             var enabled = true;
 
             if (_propertyName != null)
@@ -157,6 +173,9 @@ namespace Crest
             }
 
             GUI.enabled = enabled;
+
+            // Keep previous hidden state.
+            DecoratedDrawer.s_HideInInspector = DecoratedDrawer.s_HideInInspector || (_hide && !enabled);
         }
 #endif
     }

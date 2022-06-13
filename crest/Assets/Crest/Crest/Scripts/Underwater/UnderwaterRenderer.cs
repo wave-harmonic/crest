@@ -93,13 +93,13 @@ namespace Crest
         }
 
 
-        [Header("Geometry")]
+        [Heading("Geometry")]
 
-        [SerializeField, Predicated("_mode", inverted: false, Mode.FullScreen), DecoratedField]
+        [SerializeField, Predicated("_mode", inverted: false, Mode.FullScreen, hide: true), DecoratedField]
         [Tooltip("Mesh to use to render the underwater effect.")]
         internal MeshFilter _volumeGeometry;
 
-        [SerializeField, Predicated("_mode", inverted: true, Mode.Portal), DecoratedField]
+        [SerializeField, Predicated("_mode", inverted: false, Mode.FullScreen, hide: true), Predicated("_mode", inverted: true, Mode.Portal), DecoratedField]
         [Tooltip("If enabled, the back faces of the mesh will be used instead of the front faces.")]
         bool _invertCulling = false;
 

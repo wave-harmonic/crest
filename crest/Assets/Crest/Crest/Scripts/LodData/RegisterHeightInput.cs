@@ -40,8 +40,8 @@ namespace Crest
         protected override bool FollowHorizontalMotion => true;
 
         #region Painting
-        [Header("Paint Mode Settings")]
-        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
+        [Heading("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted, hide: true), DecoratedField]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Sea Floor Depth/Base Water Height Painted");

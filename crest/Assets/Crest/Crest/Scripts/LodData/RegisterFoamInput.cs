@@ -42,8 +42,8 @@ namespace Crest
         protected override Vector2 DefaultCustomData => Vector2.right;
 
         #region Painting
-        [Header("Paint Mode Settings")]
-        [Predicated("_inputMode", inverted: true, InputMode.Painted), DecoratedField]
+        [Heading("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, InputMode.Painted, hide: true), DecoratedField]
         public CPUTexture2DPaintable_R16_AddBlend _paintData;
         public IPaintedData PaintedData => _paintData;
         public Shader PaintedInputShader => Shader.Find("Hidden/Crest/Inputs/Foam/Painted Foam");
@@ -76,6 +76,8 @@ namespace Crest
             return _paintData.PaintSmoothstep(this, paintPosition3, paintWeight, 0.03f, _paintData.BrushRadius, _paintData._brushStrength, CPUTexturePaintHelpers.PaintFnAdditiveBlendSaturateFloat, remove);
         }
         #endregion
+
+        [Header("Other Settings")]
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = false;

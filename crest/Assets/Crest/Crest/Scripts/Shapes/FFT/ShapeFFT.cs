@@ -91,9 +91,15 @@ namespace Crest
         bool _debugDrawSlicesInEditor = false;
 #pragma warning restore 414
 
+        [Header("Culling")]
+        [Tooltip("Maximum amount surface will be displaced vertically from sea level. Increase this if gaps appear at bottom of screen."), SerializeField]
+        float _maxVerticalDisplacement = 10f;
+        [Tooltip("Maximum amount a point on the surface will be displaced horizontally by waves from its rest position. Increase this if gaps appear at sides of screen."), SerializeField]
+        float _maxHorizontalDisplacement = 15f;
+
         #region Painting
-        [Header("Paint Mode Settings")]
-        [Predicated("_inputMode", inverted: true, Mode.Painted), DecoratedField]
+        [Heading("Paint Mode Settings")]
+        [Predicated("_inputMode", inverted: true, Mode.Painted, hide: true), DecoratedField]
         public CPUTexture2DPaintable_RG16_AddBlend _paintData;
         void PreparePaintInputMaterial(Material mat)
         {
@@ -120,31 +126,28 @@ namespace Crest
         }
         #endregion
 
-        [Header("Spline Mode Settings")]
-        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
+        [Heading("Spline Mode Settings")]
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline, hide: true), DecoratedField]
         float _featherWaveStart = 0.1f;
-        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline, hide: true), DecoratedField]
         bool _overrideSplineSettings = false;
-        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline, hide: true), Predicated("_overrideSplineSettings"), DecoratedField]
         float _radius = 50f;
-        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
+        [SerializeField, Predicated("_inputMode", inverted: true, Mode.Spline, hide: true), Predicated("_overrideSplineSettings"), Delayed]
         int _subdivisions = 1;
 
-
-        [Header("Culling")]
-        [Tooltip("Maximum amount surface will be displaced vertically from sea level. Increase this if gaps appear at bottom of screen."), SerializeField]
-        float _maxVerticalDisplacement = 10f;
-        [Tooltip("Maximum amount a point on the surface will be displaced horizontally by waves from its rest position. Increase this if gaps appear at sides of screen."), SerializeField]
-        float _maxHorizontalDisplacement = 15f;
-
-        [Header("Collision Data Baking")]
+        [Heading("Collision Data Baking")]
+        [Predicated("_inputMode", inverted: true, Mode.Global, hide: true), DecoratedField]
         [Tooltip("Enable running this FFT with baked data. This makes the FFT periodic (repeating in time).")]
         public bool _enableBakedCollision = false;
-        [Tooltip("Frames per second of baked data. Larger values may help the collision track the surface closely at the cost of more frames and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
+        [Predicated("_inputMode", inverted: true, Mode.Global, hide: true), Predicated("_enableBakedCollision"), DecoratedField]
+        [Tooltip("Frames per second of baked data. Larger values may help the collision track the surface closely at the cost of more frames and increase baked data size.")]
         public int _timeResolution = 4;
-        [Tooltip("Smallest wavelength required in collision. To preview the effect of this, disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size."), DecoratedField, Predicated("_enableBakedCollision")]
+        [Predicated("_inputMode", inverted: true, Mode.Global, hide: true), Predicated("_enableBakedCollision"), DecoratedField]
+        [Tooltip("Smallest wavelength required in collision. To preview the effect of this, disable power sliders in spectrum for smaller values than this number. Smaller values require more resolution and increase baked data size.")]
         public float _smallestWavelengthRequired = 2f;
-        [Tooltip("FFT waves will loop with a period of this many seconds. Smaller values decrease data size but can make waves visibly repetitive."), Predicated("_enableBakedCollision"), Range(4f, 128f)]
+        [Predicated("_inputMode", inverted: true, Mode.Global, hide: true), Predicated("_enableBakedCollision"), Range(4f, 128f)]
+        [Tooltip("FFT waves will loop with a period of this many seconds. Smaller values decrease data size but can make waves visibly repetitive.")]
         public float _timeLoopLength = 32f;
 
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
@@ -724,6 +727,12 @@ namespace Crest
             }
 
             base.OnInspectorGUI();
+
+            // Only global supports baking.
+            if (target._inputMode != ShapeFFT.Mode.Global)
+            {
+                return;
+            }
 
             bool bakingEnabled = target._enableBakedCollision;
 

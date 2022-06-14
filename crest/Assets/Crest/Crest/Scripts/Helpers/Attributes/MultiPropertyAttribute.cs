@@ -192,9 +192,23 @@ namespace Crest
             Exclude,
         }
 
+        readonly bool _hasUnset = false;
+        readonly int _unset = -1;
+
+        public FilteredAttribute()
+        {
+        }
+
+        public FilteredAttribute(int unset)
+        {
+            _unset = unset;
+            _hasUnset = true;
+        }
+
 #if UNITY_EDITOR
         string[] _labels;
         int[] _values;
+        bool _unsetHidden = false;
 
         internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
@@ -218,15 +232,28 @@ namespace Crest
                 drawer.fieldInfo.FieldType, property.name);
 
             var attribute = attributes.First();
+            var hideUnset = property.intValue != _unset;
 
-            if (_labels == null || _values == null)
+            if (_labels == null || _values == null || (_hasUnset && _unsetHidden != hideUnset))
             {
                 var labels = Enum.GetNames(drawer.fieldInfo.FieldType).ToList();
                 var values = ((int[])Enum.GetValues(drawer.fieldInfo.FieldType)).ToList();
 
+                _unsetHidden = false;
+
                 // Filter enum entries.
                 for (var i = 0; i < labels.Count; i++)
                 {
+                    // If this enum has an "unset" value, and "unset" is not the current value, filter it out.
+                    if (_hasUnset && values[i] == _unset && property.intValue != _unset)
+                    {
+                        labels.RemoveAt(i);
+                        values.RemoveAt(i);
+                        i--;
+                        _unsetHidden = true;
+                        continue;
+                    }
+
                     if (attribute._mode == Mode.Exclude && attribute._values.Contains(values[i]) ||
                         attribute._mode == Mode.Include && !attribute._values.Contains(values[i]))
                     {

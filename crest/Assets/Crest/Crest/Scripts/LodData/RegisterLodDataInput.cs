@@ -81,7 +81,7 @@ namespace Crest
         }
 
         [Header("Mode")]
-        [Filtered]
+        [Filtered((int)InputMode.Unset)]
         public InputMode _inputMode = InputMode.Unset;
 
         public virtual InputMode DefaultMode => InputMode.Painted;

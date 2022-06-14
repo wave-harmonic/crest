@@ -159,7 +159,7 @@ namespace Crest
             var root = new GameObject("Root");
             Debug.Assert(root != null, "Crest: The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
 
-            root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
+            root.hideFlags = ocean._debug._showOceanTileGameObjects ? HideFlags.DontSave : HideFlags.HideAndDontSave;
             root.transform.parent = ocean.transform;
             root.transform.localPosition = Vector3.zero;
             root.transform.localRotation = Quaternion.identity;
@@ -377,7 +377,7 @@ namespace Crest
             float horizScale = Mathf.Pow(2f, lodIndex);
 
             bool isBiggestLOD = lodIndex == lodCount - 1;
-            bool generateSkirt = isBiggestLOD && !ocean._disableSkirt;
+            bool generateSkirt = isBiggestLOD && !ocean._debug._disableSkirt;
 
             Vector2[] offsets;
             PatchType[] patchTypes;
@@ -439,7 +439,7 @@ namespace Crest
 
             // debug toggle to force all patches to be the same. they'll be made with a surrounding skirt to make sure patches
             // overlap
-            if (ocean._uniformTiles)
+            if (ocean._debug._uniformTiles)
             {
                 for (int i = 0; i < patchTypes.Length; i++)
                 {

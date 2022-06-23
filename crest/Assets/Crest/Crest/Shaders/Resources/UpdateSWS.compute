@@ -181,17 +181,28 @@ void Advect(uint3 id : SV_DispatchThreadID)
 		const float2 worldXZAdvected_prediction = worldXZ - _DeltaTime * float2(SampleVx0(worldXZ), SampleVy0(worldXZ));
 
 		float2 worldXZAdvected = worldXZAdvected_prediction;
+		const float vxSemiLagrangian = SampleVx0(worldXZAdvected);
+		float vxAdvected = vxSemiLagrangian;
 		if (_McCormackAdvection)
 		{
 			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
 			
 			// Advect forwards to predict original position
-			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), SampleVy0(worldXZAdvected_prediction));
+			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(vxSemiLagrangian, SampleVy0(worldXZAdvected_prediction));
 
 			worldXZAdvected += (worldXZ - worldXZ_prediction) / 2.0;
-		}
 
-		float vxAdvected = SampleVx0(worldXZAdvected);
+			float vxAdvectedNew = SampleVx0(worldXZAdvected);
+
+			const float4 vxsUsedForFirstSLStep = _Vx0.Gather(linear_clamp_sampler, WorldXZToUv_Vx(worldXZ));
+			const float vxMin = min(min(vxsUsedForFirstSLStep[0], vxsUsedForFirstSLStep[1]), min(vxsUsedForFirstSLStep[2], vxsUsedForFirstSLStep[3]));
+			const float vxMax = max(max(vxsUsedForFirstSLStep[0], vxsUsedForFirstSLStep[1]), max(vxsUsedForFirstSLStep[2], vxsUsedForFirstSLStep[3]));
+
+			if (vxAdvectedNew >= vxMin && vxAdvectedNew <= vxMax)
+			{
+				vxAdvected = vxAdvectedNew;
+			}
+		}
 
 		const float h_vx = SampleH(worldXZAdvected);
 		const float friction = _Friction * _DeltaTime / max(0.001f, pow(h_vx, 1.333333f));
@@ -211,17 +222,28 @@ void Advect(uint3 id : SV_DispatchThreadID)
 		const float2 worldXZAdvected_prediction = worldXZ - _DeltaTime * float2(SampleVx0(worldXZ), SampleVy0(worldXZ));
 
 		float2 worldXZAdvected = worldXZAdvected_prediction;
+		const float vySemiLagrangian = SampleVy0(worldXZAdvected);
+		float vyAdvected = vySemiLagrangian;
 		if (_McCormackAdvection)
 		{
 			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
-			
+
 			// Advect forwards to predict original position
-			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), SampleVy0(worldXZAdvected_prediction));
+			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), vySemiLagrangian);
 
 			worldXZAdvected += (worldXZ - worldXZ_prediction) / 2.0;
-		}
 
-		float vyAdvected = SampleVy0(worldXZAdvected);
+			float vyAdvectedNew = SampleVy0(worldXZAdvected);
+
+			const float4 vysUsedForFirstSLStep = _Vy0.Gather(linear_clamp_sampler, WorldXZToUv_Vy(worldXZ));
+			const float vyMin = min(min(vysUsedForFirstSLStep[0], vysUsedForFirstSLStep[1]), min(vysUsedForFirstSLStep[2], vysUsedForFirstSLStep[3]));
+			const float vyMax = max(max(vysUsedForFirstSLStep[0], vysUsedForFirstSLStep[1]), max(vysUsedForFirstSLStep[2], vysUsedForFirstSLStep[3]));
+
+			if (vyAdvectedNew >= vyMin && vyAdvectedNew <= vyMax)
+			{
+				vyAdvected = vyAdvectedNew;
+			}
+		}
 
 		const float h_vy = SampleH(worldXZAdvected);
 		const float friction = _Friction * _DeltaTime / max(0.001f, pow(h_vy, 1.333333f));
@@ -344,11 +366,6 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 			vx = 0.0;
 		}
 
-		/*if (abs(vx) > maxVel)
-		{
-			vx = sign(vx) * maxVel;
-		}*/
-
 		_Vx1[id] = vx;
 	}
 
@@ -375,11 +392,6 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 		{
 			vy = 0.0;
 		}
-
-		/*if (abs(vx) > maxVel)
-		{
-			vx = sign(vx) * maxVel;
-		}*/
 
 		_Vy1[id] = vy;
 	}

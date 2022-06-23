@@ -98,7 +98,8 @@ namespace Crest
             public static readonly int s_BlendPushUpStrength = Shader.PropertyToID("_BlendPushUpStrength");
             public static readonly int s_MacCormackAdvection = Shader.PropertyToID("_MacCormackAdvection");
             public static readonly int s_MacCormackAdvectionForHeight = Shader.PropertyToID("_MacCormackAdvectionForHeight");
-
+            public static readonly int s_UpwindHeight = Shader.PropertyToID("_UpwindHeight");
+            
             // Simulation textures
             public static readonly int s_GroundHeightSS = Shader.PropertyToID("_GroundHeightSS");
             public static readonly int s_GroundHeightSSRW = Shader.PropertyToID("_GroundHeightSSRW");
@@ -250,7 +251,8 @@ namespace Crest
 
                     _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvection, _debugSettings._macCormackScheme ? 1 : 0);
                     _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvectionForHeight, _debugSettings._macCormackSchemeForHeight ? 1 : 0);
-
+                    _csSWSProps.SetInt(ShaderIDs.s_UpwindHeight, _debugSettings._upwindHeight ? 1 : 0);
+                    
                     _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
                     _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
                     _matInjectSWSFoam.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
@@ -306,8 +308,11 @@ namespace Crest
                     // Update H
                     if (_debugSettings._doUpdateH)
                     {
+                        Swap(ref _rtH0, ref _rtH1);
+
                         _csSWSProps.Initialise(buf, _csSWS, _krnlUpdateH);
 
+                        _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtH0);
                         _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH1);
                         _csSWSProps.SetTexture(ShaderIDs.s_Vx1, _rtVx1);
                         _csSWSProps.SetTexture(ShaderIDs.s_Vy1, _rtVy1);
@@ -397,6 +402,7 @@ namespace Crest
             public bool _advectHeights = true;
             public bool _macCormackScheme = false;
             public bool _macCormackSchemeForHeight = false;
+            public bool _upwindHeight = true;
 
             [Header("Output (editor only)")]
             [Tooltip("Add the resulting shape to the water system.")]

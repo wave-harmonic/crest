@@ -41,6 +41,7 @@ float _TexelSize;
 
 int _MacCormackAdvection;
 int _MacCormackAdvectionForHeight;
+int _UpwindHeight;
 
 float _ShallowMinDepth;
 float _ShallowMaxDepth;
@@ -263,7 +264,7 @@ void Advect(uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void UpdateH(uint2 id : SV_DispatchThreadID)
 {
-	float h = _H1[id];
+	float h = _H0[id];
 
 	const uint x = id.x;
 	const uint y = id.y;
@@ -320,8 +321,20 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const float divergence = dx + dy;
 
 	// Update height based on total flow in minus total flow out
-	const float hvel = -h * divergence;
+	float hvel = -h * divergence;
 	//hvel = clamp(hvel, -32.0f, 32.0f);
+
+	if (_UpwindHeight)
+	{
+		float2 hx = vxp <= 0.0
+			? float2(_H0[id], _H0[id + uint2(1, 0)]) // forward diffs
+			: float2(_H0[id - uint2(1, 0)], _H0[id]); // backward diffs
+		float2 hy = vyp <= 0.0
+			? float2(_H0[id], _H0[id + uint2(0, 1)]) // forward diffs
+			: float2(_H0[id - uint2(0, 1)], _H0[id]); // backward diffs
+
+		hvel = -(vxp * hx[1] - vxm * hx[0] + vyp * hy[1] - vym * hy[0]) / _TexelSize;
+	}
 
 	h += _DeltaTime * hvel + pump;
 	h = max(h, 0.0);

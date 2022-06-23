@@ -30,8 +30,8 @@ namespace Crest
         float _drainWaterAtBoundaries = -0.01f;
         [Tooltip("Friction applied to water to prevent dampen velocities."), SerializeField]
         float _friction = 0.02f;
-        [Tooltip("Maximum velocity that simulation is allowed to contain (m/s)."), SerializeField]
-        float _maximumVelocity = 100.0f;
+        [Tooltip("Stability measure - limits velocities. Default 0.5."), SerializeField]
+        float _courantNumber = 0.5f;
         [Tooltip("Recompute ground heights every frame. Only enable this if terrain used by water system changes at runtime."), SerializeField]
         bool _allowDynamicSeabed = false;
 
@@ -239,7 +239,7 @@ namespace Crest
                     _csSWSProps.SetFloat(ShaderIDs.s_Resolution, _resolution);
                     _csSWSProps.SetFloat(ShaderIDs.s_DrainWaterAtBoundaries, _drainWaterAtBoundaries);
                     _csSWSProps.SetFloat(ShaderIDs.s_Friction, _friction);
-                    _csSWSProps.SetFloat(ShaderIDs.s_MaximumVelocity, _maximumVelocity);
+                    _csSWSProps.SetFloat(ShaderIDs.s_MaximumVelocity, _courantNumber * (_domainWidth / _resolution) / _simulationTimeStep);
                     _csSWSProps.SetFloat(ShaderIDs.s_TexelSize, _texelSize);
                     _csSWSProps.SetFloat(ShaderIDs.s_ShallowMinDepth, _blendShallowMinDepth);
                     _csSWSProps.SetFloat(ShaderIDs.s_ShallowMaxDepth, _blendShallowMaxDepth);

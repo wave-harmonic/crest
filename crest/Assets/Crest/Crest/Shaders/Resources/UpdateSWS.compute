@@ -170,7 +170,8 @@ void Advect(uint3 id : SV_DispatchThreadID)
 			// Advect forwards to predict original position
 			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(vxSemiLagrangian, SampleVy0(worldXZAdvected_prediction));
 
-			worldXZAdvected += (worldXZ - worldXZ_prediction) / 2.0;
+			// Remove half of prediction error to yield average of both
+			worldXZAdvected -= (worldXZ_prediction - worldXZ) / 2.0;
 
 			float vxAdvectedNew = SampleVx0(worldXZAdvected);
 
@@ -211,7 +212,8 @@ void Advect(uint3 id : SV_DispatchThreadID)
 			// Advect forwards to predict original position
 			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), vySemiLagrangian);
 
-			worldXZAdvected += (worldXZ - worldXZ_prediction) / 2.0;
+			// Remove half of prediction error to yield average of both
+			worldXZAdvected -= (worldXZ_prediction - worldXZ) / 2.0;
 
 			float vyAdvectedNew = SampleVy0(worldXZAdvected);
 

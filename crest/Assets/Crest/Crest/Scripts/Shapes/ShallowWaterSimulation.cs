@@ -97,6 +97,7 @@ namespace Crest
             public static readonly int s_ShallowMaxDepth = Shader.PropertyToID("_ShallowMaxDepth");
             public static readonly int s_BlendPushUpStrength = Shader.PropertyToID("_BlendPushUpStrength");
             public static readonly int s_MacCormackAdvection = Shader.PropertyToID("_MacCormackAdvection");
+            public static readonly int s_MacCormackAdvectionForHeight = Shader.PropertyToID("_MacCormackAdvectionForHeight");
 
             // Simulation textures
             public static readonly int s_GroundHeightSS = Shader.PropertyToID("_GroundHeightSS");
@@ -248,6 +249,7 @@ namespace Crest
                     _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, ocean.Root.position);
 
                     _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvection, _debugSettings._macCormackScheme ? 1 : 0);
+                    _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvectionForHeight, _debugSettings._macCormackSchemeForHeight ? 1 : 0);
 
                     _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
                     _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
@@ -282,9 +284,12 @@ namespace Crest
                     // Advect
                     if (_debugSettings._doAdvect)
                     {
-                        Swap(ref _rtH0, ref _rtH1);
                         Swap(ref _rtVx0, ref _rtVx1);
                         Swap(ref _rtVy0, ref _rtVy1);
+                        if (_debugSettings._advectHeights)
+                        {
+                            Swap(ref _rtH0, ref _rtH1);
+                        }
 
                         _csSWSProps.Initialise(buf, _csSWS, _krnlAdvect);
 
@@ -295,7 +300,7 @@ namespace Crest
                         _csSWSProps.SetTexture(ShaderIDs.s_Vy0, _rtVy0);
                         _csSWSProps.SetTexture(ShaderIDs.s_Vy1, _rtVy1);
 
-                        buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 3);
+                        buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, _debugSettings._advectHeights ? 3 : 2);
                     }
 
                     // Update H
@@ -389,7 +394,9 @@ namespace Crest
             public bool _doUpdateH = true;
             public bool _doUpdateVels = true;
 
+            public bool _advectHeights = true;
             public bool _macCormackScheme = false;
+            public bool _macCormackSchemeForHeight = false;
 
             [Header("Output (editor only)")]
             [Tooltip("Add the resulting shape to the water system.")]

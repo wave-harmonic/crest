@@ -38,7 +38,9 @@ float _Friction;
 float _MaximumVelocity;
 float _AddAdditionalWater;
 float _TexelSize;
+
 int _MacCormackAdvection;
+int _MacCormackAdvectionForHeight;
 
 float _ShallowMinDepth;
 float _ShallowMaxDepth;
@@ -150,30 +152,8 @@ void Init(uint2 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void Advect(uint3 id : SV_DispatchThreadID)
 {
-	// H
-	if (id.z == 0)
-	{
-		const float2 worldXZ = IdToWorldXZ_H(id.xy);
-
-		// Advect forwards to predict advected position
-		const float2 worldXZAdvected_prediction = worldXZ - _DeltaTime * float2(SampleVx0(worldXZ), SampleVy0(worldXZ));
-
-		float2 worldXZAdvected = worldXZAdvected_prediction;
-		if (_McCormackAdvection)
-		{
-			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
-			
-			// Advect forwards to predict original position
-			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), SampleVy0(worldXZAdvected_prediction));
-
-			worldXZAdvected += (worldXZ - worldXZ_prediction) / 2.0;
-		}
-
-		_H1[id.xy] = SampleH(worldXZAdvected);
-	}
-
 	// Vx
-	if (id.z == 1)
+	if (id.z == 0)
 	{
 		const float2 worldXZ = IdToWorldXZ_Vx(id.xy);
 
@@ -214,7 +194,7 @@ void Advect(uint3 id : SV_DispatchThreadID)
 	}
 
 	// Vy
-	if (id.z == 2)
+	if (id.z == 1)
 	{
 		const float2 worldXZ = IdToWorldXZ_Vy(id.xy);
 		
@@ -252,6 +232,29 @@ void Advect(uint3 id : SV_DispatchThreadID)
 		vyAdvected = clamp(vyAdvected, -_MaximumVelocity, _MaximumVelocity);
 
 		_Vy1[id.xy] = vyAdvected;
+	}
+
+	// H
+	if (id.z == 2)
+	{
+		const float2 worldXZ = IdToWorldXZ_H(id.xy);
+
+		// Advect forwards to predict advected position
+		const float2 worldXZAdvected_prediction = worldXZ - _DeltaTime * float2(SampleVx0(worldXZ), SampleVy0(worldXZ));
+
+		float2 worldXZAdvected = worldXZAdvected_prediction;
+		if (_MacCormackAdvectionForHeight)
+		{
+			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
+
+			// Advect forwards to predict original position
+			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), SampleVy0(worldXZAdvected_prediction));
+
+			// Remove half of prediction error to yield average of both
+			worldXZAdvected -= (worldXZ_prediction - worldXZ) / 2.0;
+		}
+
+		_H1[id.xy] = SampleH(worldXZAdvected);
 	}
 }
 

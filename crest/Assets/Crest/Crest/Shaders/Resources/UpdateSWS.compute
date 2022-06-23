@@ -147,23 +147,25 @@ void Init(uint2 id : SV_DispatchThreadID)
 }
 
 [numthreads(8, 8, 1)]
-void Advect(uint2 id : SV_DispatchThreadID)
+void Advect(uint3 id : SV_DispatchThreadID)
 {
 	// H
+	if(id.z == 0)
 	{
-		const float2 worldXZ_H = IdToWorldXZ_H(id);
+		const float2 worldXZ_H = IdToWorldXZ_H(id.xy);
 
 		const float vx = SampleVx0(worldXZ_H);
 		const float vy = SampleVy0(worldXZ_H);
 
 		const float2 worldXZAdvected = worldXZ_H - _DeltaTime * float2(vx, vy);
 
-		_H1[id] = SampleH(worldXZAdvected);
+		_H1[id.xy] = SampleH(worldXZAdvected);
 	}
 
 	// Vx
+	if (id.z == 1)
 	{
-		const float2 worldXZ_Vx = IdToWorldXZ_Vx(id);
+		const float2 worldXZ_Vx = IdToWorldXZ_Vx(id.xy);
 		
 		const float vx = SampleVx0(worldXZ_Vx); // Can be load
 		const float vy = SampleVy0(worldXZ_Vx);
@@ -177,12 +179,13 @@ void Advect(uint2 id : SV_DispatchThreadID)
 
 		vxAdvected = clamp(vxAdvected, -_MaximumVelocity, _MaximumVelocity);
 
-		_Vx1[id] = vxAdvected;
+		_Vx1[id.xy] = vxAdvected;
 	}
 
 	// Vy
+	if (id.z == 2)
 	{
-		const float2 worldXZ_Vy = IdToWorldXZ_Vy(id);
+		const float2 worldXZ_Vy = IdToWorldXZ_Vy(id.xy);
 		
 		const float vx = SampleVx0(worldXZ_Vy);
 		const float vy = SampleVy0(worldXZ_Vy); // Can be load
@@ -196,7 +199,7 @@ void Advect(uint2 id : SV_DispatchThreadID)
 
 		vyAdvected = clamp(vyAdvected, -_MaximumVelocity, _MaximumVelocity);
 
-		_Vy1[id] = vyAdvected;
+		_Vy1[id.xy] = vyAdvected;
 	}
 }
 

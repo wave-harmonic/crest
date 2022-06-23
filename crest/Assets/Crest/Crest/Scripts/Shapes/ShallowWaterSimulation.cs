@@ -292,7 +292,7 @@ namespace Crest
                         _csSWSProps.SetTexture(ShaderIDs.s_Vy0, _rtVy0);
                         _csSWSProps.SetTexture(ShaderIDs.s_Vy1, _rtVy1);
 
-                        buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                        buf.DispatchCompute(_csSWS, _krnlAdvect, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 3);
                     }
 
                     // Update H

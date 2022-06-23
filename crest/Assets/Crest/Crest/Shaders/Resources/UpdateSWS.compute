@@ -38,7 +38,7 @@ float _Friction;
 float _MaximumVelocity;
 float _AddAdditionalWater;
 float _TexelSize;
-int _McCormackAdvection;
+int _MacCormackAdvection;
 
 float _ShallowMinDepth;
 float _ShallowMaxDepth;
@@ -183,7 +183,7 @@ void Advect(uint3 id : SV_DispatchThreadID)
 		float2 worldXZAdvected = worldXZAdvected_prediction;
 		const float vxSemiLagrangian = SampleVx0(worldXZAdvected);
 		float vxAdvected = vxSemiLagrangian;
-		if (_McCormackAdvection)
+		if (_MacCormackAdvection)
 		{
 			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
 			
@@ -224,7 +224,7 @@ void Advect(uint3 id : SV_DispatchThreadID)
 		float2 worldXZAdvected = worldXZAdvected_prediction;
 		const float vySemiLagrangian = SampleVy0(worldXZAdvected);
 		float vyAdvected = vySemiLagrangian;
-		if (_McCormackAdvection)
+		if (_MacCormackAdvection)
 		{
 			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
 

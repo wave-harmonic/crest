@@ -96,6 +96,7 @@ namespace Crest
             public static readonly int s_ShallowMinDepth = Shader.PropertyToID("_ShallowMinDepth");
             public static readonly int s_ShallowMaxDepth = Shader.PropertyToID("_ShallowMaxDepth");
             public static readonly int s_BlendPushUpStrength = Shader.PropertyToID("_BlendPushUpStrength");
+            public static readonly int s_MacCormackAdvection = Shader.PropertyToID("_MacCormackAdvection");
 
             // Simulation textures
             public static readonly int s_GroundHeightSS = Shader.PropertyToID("_GroundHeightSS");
@@ -246,7 +247,7 @@ namespace Crest
                     _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
                     _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, ocean.Root.position);
 
-                    _csSWSProps.SetInt(Shader.PropertyToID("_McCormackAdvection"), _debugSettings._mccormackScheme ? 1 : 0);
+                    _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvection, _debugSettings._macCormackScheme ? 1 : 0);
 
                     _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
                     _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
@@ -388,7 +389,7 @@ namespace Crest
             public bool _doUpdateH = true;
             public bool _doUpdateVels = true;
 
-            public bool _mccormackScheme = false;
+            public bool _macCormackScheme = false;
 
             [Header("Output (editor only)")]
             [Tooltip("Add the resulting shape to the water system.")]

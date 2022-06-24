@@ -42,6 +42,7 @@ float _TexelSize;
 int _MacCormackAdvection;
 int _MacCormackAdvectionForHeight;
 int _UpwindHeight;
+int _DepthLimiter;
 
 float _ShallowMinDepth;
 float _ShallowMaxDepth;
@@ -261,6 +262,19 @@ void Advect(uint3 id : SV_DispatchThreadID)
 	}
 }
 
+float HAdjustment(uint2 id)
+{
+	const float gravity = 9.81f;
+	float hn = _H0[id + uint2(0, 1)];
+	float hs = _H0[id - uint2(0, 1)];
+	float he = _H0[id + uint2(1, 0)];
+	float hw = _H0[id - uint2(1, 0)];
+	float h_avg = 0.25 * (hn + hs + he + hw);
+	float beta = 2.0;
+	float minThickness = beta * _TexelSize / (gravity * _DeltaTime);
+	return max(0.0, h_avg - minThickness);
+}
+
 [numthreads(8,8,1)]
 void UpdateH(uint2 id : SV_DispatchThreadID)
 {
@@ -321,9 +335,8 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	const float divergence = dx + dy;
 
 	// Update height based on total flow in minus total flow out
-	float hvel = -h * divergence;
-	//hvel = clamp(hvel, -32.0f, 32.0f);
 
+	float hvel;
 	if (_UpwindHeight)
 	{
 		float2 hx = vxp <= 0.0
@@ -333,7 +346,25 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 			? float2(_H0[id], _H0[id + uint2(0, 1)]) // forward diffs
 			: float2(_H0[id - uint2(0, 1)], _H0[id]); // backward diffs
 
+		if (_DepthLimiter)
+		{
+			float h_adj = HAdjustment(id);
+			hx -= h_adj;
+			hy -= h_adj;
+		}
+
 		hvel = -(vxp * hx[1] - vxm * hx[0] + vyp * hy[1] - vym * hy[0]) / _TexelSize;
+	}
+	else
+	{
+		if (_DepthLimiter)
+		{
+			hvel = -(h - HAdjustment(id)) * divergence;
+		}
+		else
+		{
+			hvel = -h * divergence;
+		}
 	}
 
 	h += _DeltaTime * hvel + pump;

@@ -99,6 +99,7 @@ namespace Crest
             public static readonly int s_MacCormackAdvection = Shader.PropertyToID("_MacCormackAdvection");
             public static readonly int s_MacCormackAdvectionForHeight = Shader.PropertyToID("_MacCormackAdvectionForHeight");
             public static readonly int s_UpwindHeight = Shader.PropertyToID("_UpwindHeight");
+            public static readonly int s_DepthLimiter = Shader.PropertyToID("_DepthLimiter");
             
             // Simulation textures
             public static readonly int s_GroundHeightSS = Shader.PropertyToID("_GroundHeightSS");
@@ -249,9 +250,10 @@ namespace Crest
                     _csSWSProps.SetVector(ShaderIDs.s_SimOrigin, SimOrigin());
                     _csSWSProps.SetVector(OceanRenderer.sp_oceanCenterPosWorld, ocean.Root.position);
 
-                    _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvection, _debugSettings._macCormackScheme ? 1 : 0);
-                    _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvectionForHeight, _debugSettings._macCormackSchemeForHeight ? 1 : 0);
-                    _csSWSProps.SetInt(ShaderIDs.s_UpwindHeight, _debugSettings._upwindHeight ? 1 : 0);
+                    _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvection, (_debugSettings._enableStabilityImprovements && _debugSettings._macCormackScheme) ? 1 : 0);
+                    _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvectionForHeight, (_debugSettings._enableStabilityImprovements && _debugSettings._macCormackSchemeForHeight) ? 1 : 0);
+                    _csSWSProps.SetInt(ShaderIDs.s_UpwindHeight, (_debugSettings._enableStabilityImprovements && _debugSettings._upwindHeight) ? 1 : 0);
+                    _csSWSProps.SetInt(ShaderIDs.s_DepthLimiter, (_debugSettings._enableStabilityImprovements && _debugSettings._depthLimiter) ? 1 : 0);
                     
                     _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
                     _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
@@ -396,14 +398,17 @@ namespace Crest
             [Header("Simulation Stages")]
             public bool _doUpdate = true;
             public bool _doAdvect = true;
+            public bool _advectHeights = true;
             public bool _doUpdateH = true;
             public bool _doUpdateVels = true;
 
-            public bool _advectHeights = true;
+            [Header("Stability Improvements")]
+            public bool _enableStabilityImprovements = true;
             public bool _macCormackScheme = false;
             public bool _macCormackSchemeForHeight = false;
             public bool _upwindHeight = true;
-
+            public bool _depthLimiter = true;
+            
             [Header("Output (editor only)")]
             [Tooltip("Add the resulting shape to the water system.")]
             public bool _injectShape = true;

@@ -70,12 +70,8 @@ Shader "Hidden/Crest/Inputs/Foam/Inject SWS"
 			float WaterHeight(float2 uv)
 			{
 				float h = _swsH.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
-
-				if (h < 0.001) return 0.0;
-
 				// Add ground height to water height to get height of surface
 				h += _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, uv, 0.0).x;
-
 				return h;
 			}
 

@@ -62,6 +62,7 @@ namespace Crest
         RenderTexture _rtVy0, _rtVy1;
         RenderTexture _rtGroundHeight;
         RenderTexture _rtSimulationMask;
+        RenderTexture _rtSimulationMask0;
 
         PropertyWrapperCompute _csSWSProps;
 
@@ -70,8 +71,10 @@ namespace Crest
         int _krnlInitGroundHeight;
         int _krnlAdvect;
         int _krnlUpdateH;
+        int _krnlHOvershootReduction;
         int _krnlUpdateVels;
         int _krnlBlurH;
+        int _krnlBlur;
 
         float _timeToSimulate = 0f;
 
@@ -100,7 +103,8 @@ namespace Crest
             public static readonly int s_MacCormackAdvectionForHeight = Shader.PropertyToID("_MacCormackAdvectionForHeight");
             public static readonly int s_UpwindHeight = Shader.PropertyToID("_UpwindHeight");
             public static readonly int s_DepthLimiter = Shader.PropertyToID("_DepthLimiter");
-            
+            public static readonly int s_OvershootReductionStrength = Shader.PropertyToID("_OvershootReductionStrength");
+
             // Simulation textures
             public static readonly int s_GroundHeightSS = Shader.PropertyToID("_GroundHeightSS");
             public static readonly int s_GroundHeightSSRW = Shader.PropertyToID("_GroundHeightSSRW");
@@ -140,6 +144,7 @@ namespace Crest
             if (_rtVy1 == null) _rtVy1 = CreateSWSRT("rtVy1", true);
             if (_rtGroundHeight == null) _rtGroundHeight = CreateSWSRT("rtGroundHeight");
             if (_rtSimulationMask == null) _rtSimulationMask = CreateSWSRT("rtSimulationMask");
+            if (_rtSimulationMask0 == null) _rtSimulationMask0 = CreateSWSRT("rtSimulationMask0");
         }
 
         void InitSim(CommandBuffer buf)
@@ -149,7 +154,6 @@ namespace Crest
                 _csSWSProps.Initialise(buf, _csSWS, _krnlInit);
 
                 _csSWSProps.SetTexture(ShaderIDs.s_GroundHeightSS, _rtGroundHeight);
-                _csSWSProps.SetTexture(ShaderIDs.s_SimulationMaskRW, _rtSimulationMask);
                 _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtH0);
                 _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH1);
                 _csSWSProps.SetTexture(ShaderIDs.s_Vx0, _rtVx0);
@@ -254,7 +258,8 @@ namespace Crest
                     _csSWSProps.SetInt(ShaderIDs.s_MacCormackAdvectionForHeight, (_debugSettings._enableStabilityImprovements && _debugSettings._macCormackSchemeForHeight) ? 1 : 0);
                     _csSWSProps.SetInt(ShaderIDs.s_UpwindHeight, (_debugSettings._enableStabilityImprovements && _debugSettings._upwindHeight) ? 1 : 0);
                     _csSWSProps.SetInt(ShaderIDs.s_DepthLimiter, (_debugSettings._enableStabilityImprovements && _debugSettings._depthLimiter) ? 1 : 0);
-                    
+                    _csSWSProps.SetFloat(ShaderIDs.s_OvershootReductionStrength, _debugSettings._overshootReductionStrength);
+
                     _matInjectSWSAnimWaves.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
                     _matInjectSWSFlow.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
                     _matInjectSWSFoam.SetFloat(ShaderIDs.s_DomainWidth, _domainWidth);
@@ -327,6 +332,20 @@ namespace Crest
                         buf.DispatchCompute(_csSWS, _krnlUpdateH, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
                     }
 
+                    // H overshoot reduction
+                    if (_debugSettings._overshootReduction)
+                    {
+                        Swap(ref _rtH0, ref _rtH1);
+
+                        _csSWSProps.Initialise(buf, _csSWS, _krnlHOvershootReduction);
+
+                        _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtH0);
+                        _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH1);
+                        _csSWSProps.SetTexture(ShaderIDs.s_GroundHeightSS, _rtGroundHeight);
+
+                        buf.DispatchCompute(_csSWS, _krnlHOvershootReduction, (_rtH1.width + 7) / 8, (_rtH1.height + 7) / 8, 1);
+                    }
+
                     // Update vels
                     if (_debugSettings._doUpdateVels)
                     {
@@ -359,6 +378,7 @@ namespace Crest
 
                     _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtH1);
                     _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtH0);
+                    _csSWSProps.SetTexture(ShaderIDs.s_GroundHeightSS, _rtGroundHeight);
 
                     buf.DispatchCompute(_csSWS, _krnlBlurH, (_rtH0.width + 7) / 8, (_rtH0.height + 7) / 8, 1);
                 }
@@ -408,7 +428,16 @@ namespace Crest
             public bool _macCormackSchemeForHeight = false;
             public bool _upwindHeight = true;
             public bool _depthLimiter = true;
-            
+            public bool _overshootReduction = true;
+            [UnityEngine.Range(0.1f, 0.5f)]
+            public float _overshootReductionStrength = 0.25f;
+
+            [Header("Quality Improvements")]
+            [Tooltip("Filters the shape prior to rendering to smooth out sharp features.")]
+            public bool _blurShapeForRender = true;
+            [UnityEngine.Range(0, 64)]
+            public int _blurSimulationMaskIterations = 10;
+
             [Header("Output (editor only)")]
             [Tooltip("Add the resulting shape to the water system.")]
             public bool _injectShape = true;
@@ -416,8 +445,6 @@ namespace Crest
             public bool _injectFlow = true;
             [Tooltip("Add the resulting foam to the water system.")]
             public bool _injectFoam = true;
-            [Tooltip("Filters the shape prior to rendering to smooth out sharp features.")]
-            public bool _blurShapeForRender = true;
 
             [Header("Debug Overlay")]
             public bool _showSimulationData = false;
@@ -438,8 +465,10 @@ namespace Crest
                 _krnlInitGroundHeight = _csSWS.FindKernel("InitGroundHeight");
                 _krnlAdvect = _csSWS.FindKernel("Advect");
                 _krnlUpdateH = _csSWS.FindKernel("UpdateH");
+                _krnlHOvershootReduction = _csSWS.FindKernel("HOvershootReduction");
                 _krnlUpdateVels = _csSWS.FindKernel("UpdateVels");
                 _krnlBlurH = _csSWS.FindKernel("BlurH");
+                _krnlBlur = _csSWS.FindKernel("Blur");
             }
 
             {
@@ -532,6 +561,16 @@ namespace Crest
             LodDataMgrSeaFloorDepth.Bind(_csSWSProps);
 
             buf.DispatchCompute(_csSWS, _krnlInitGroundHeight, (_rtGroundHeight.width + 7) / 8, (_rtGroundHeight.height + 7) / 8, 1);
+
+            // Blur simulation mask
+            for (int i = 0; i < _debugSettings._blurSimulationMaskIterations; i++)
+            {
+                Swap(ref _rtSimulationMask0, ref _rtSimulationMask);
+                _csSWSProps.Initialise(buf, _csSWS, _krnlBlur);
+                _csSWSProps.SetTexture(ShaderIDs.s_H0, _rtSimulationMask0);
+                _csSWSProps.SetTexture(ShaderIDs.s_H1, _rtSimulationMask);
+                buf.DispatchCompute(_csSWS, _krnlBlur, (_rtSimulationMask.width + 7) / 8, (_rtSimulationMask.height + 7) / 8, 1);
+            }
         }
 
         public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)

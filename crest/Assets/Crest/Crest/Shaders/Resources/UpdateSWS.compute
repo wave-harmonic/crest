@@ -6,8 +6,10 @@
 #pragma kernel InitGroundHeight
 #pragma kernel Advect
 #pragma kernel UpdateH
+#pragma kernel HOvershootReduction
 #pragma kernel UpdateVels
 #pragma kernel BlurH
+#pragma kernel Blur
 
 #include "HLSLSupport.cginc"
 
@@ -43,6 +45,7 @@ int _MacCormackAdvection;
 int _MacCormackAdvectionForHeight;
 int _UpwindHeight;
 int _DepthLimiter;
+float _OvershootReductionStrength;
 
 float _ShallowMinDepth;
 float _ShallowMaxDepth;
@@ -107,6 +110,9 @@ float SampleVy0(float2 worldXZ)
 	return _Vy0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vy(worldXZ), 0.0).x;
 }
 
+////////////////////////////////////////////
+// INIT
+
 [numthreads(8, 8, 1)]
 void InitGroundHeight(uint2 id : SV_DispatchThreadID)
 {
@@ -150,6 +156,9 @@ void Init(uint2 id : SV_DispatchThreadID)
 	_Vx1[id.xy] = 0.0;
 	_Vy1[id.xy] = 0.0;
 }
+
+////////////////////////////////////////////
+// ADVECT
 
 [numthreads(8, 8, 1)]
 void Advect(uint3 id : SV_DispatchThreadID)
@@ -261,6 +270,9 @@ void Advect(uint3 id : SV_DispatchThreadID)
 		_H1[id.xy] = SampleH(worldXZAdvected);
 	}
 }
+
+////////////////////////////////////////////
+// UPDATE H
 
 float HAdjustment(uint2 id)
 {
@@ -376,6 +388,59 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 	_H1[id] = h;
 }
 
+////////////////////////////////////////////
+// H OVERSHOOT REDUCTION
+
+[numthreads(8, 8, 1)]
+void HOvershootReduction(uint2 id : SV_DispatchThreadID)
+{
+	float h = _H0[id];
+
+	if (any(id == 0) || any(id == _Resolution - 1))
+	{
+		// Don't do this at boundary
+		_H1[id] = h;
+		return;
+	}
+
+	float y = _H0[id] + _GroundHeightSS[id];
+	float hn = _H0[id + uint2(1, 0)];
+	float hs = _H0[id - uint2(1, 0)];
+	float he = _H0[id + uint2(1, 0)];
+	float hw = _H0[id - uint2(1, 0)];
+	float yn = hn + _GroundHeightSS[id + uint2(1, 0)];
+	float ys = hs + _GroundHeightSS[id - uint2(1, 0)];
+	float ye = he + _GroundHeightSS[id + uint2(1, 0)];
+	float yw = hw + _GroundHeightSS[id - uint2(1, 0)];
+
+	float lambda_edge = 2.0 * _TexelSize;
+
+	// X axis
+	if ((y - yw) > lambda_edge && y > ye)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + he)) - h);
+	}
+	if ((y - ye) > lambda_edge && y > yw)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + hw)) - h);
+	}
+
+	// Z axis
+	if ((y - ys) > lambda_edge && y > yn)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + hn)) - h);
+	}
+	if ((y - yn) > lambda_edge && y > ys)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + hs)) - h);
+	}
+
+	_H1[id] = h;
+}
+
+////////////////////////////////////////////
+// UPDATE VELS
+
 [numthreads(8, 8, 1)]
 void UpdateVels(uint2 id : SV_DispatchThreadID)
 {
@@ -406,16 +471,25 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 
 		vx += _DeltaTime * accel;
 
-		if (accel < 0 && h1 < 0.001)
+		// Kill velocity if totally dry
+		if (h0 < 0.001 && h1 < 0.001)
 		{
+			vx = 0.0;
+		}
+		else if (accel < 0 && h1 < 0.001)
+		{
+			// Don't produce acceleration from water flowing in from a dry cell
 			vx = 0.0;
 		}
 		else if (accel > 0 && h0 < 0.001)
 		{
+			// Don't produce acceleration from water flowing in from a dry cell
 			vx = 0.0;
 		}
 
 		_Vx1[id] = vx;
+
+		if (h0 < 0.001 && h1 < 0.001) _Vx1[id] = 0.0;
 	}
 
 	// Vy
@@ -433,12 +507,19 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 
 		vy += _DeltaTime * accel;
 
-		if (accel < 0 && h1 < 0.001)
+		// Kill velocity if totally dry
+		if (h0 < 0.001 && h1 < 0.001)
 		{
+			vy = 0.0;
+		}
+		else if (accel < 0 && h1 < 0.001)
+		{
+			// Don't produce acceleration from water flowing in from a dry cell
 			vy = 0.0;
 		}
 		else if (accel > 0 && h0 < 0.001)
 		{
+			// Don't produce acceleration from water flowing in from a dry cell
 			vy = 0.0;
 		}
 
@@ -446,12 +527,15 @@ void UpdateVels(uint2 id : SV_DispatchThreadID)
 	}
 }
 
+////////////////////////////////////////////
+// BLUR H
+
 [numthreads(8, 8, 1)]
 void BlurH(int2 id : SV_DispatchThreadID)
 {
 	float result = 0.0;
 	float twt = 0.0;
-	const int rad = 2;
+	const int rad = 1;
 
 	float hcenter = _H0[id];
 	if (hcenter < 0.001)
@@ -469,11 +553,50 @@ void BlurH(int2 id : SV_DispatchThreadID)
 			idx.y = clamp(id.y + y, 0, _Resolution - 1);
 
 			float h = _H0[idx];
-			float wt = h >= 0.001 ? 1.0 : 0.0;
-			result += wt * h;
-			twt += wt;
+			if (h >= 0.001)
+			{
+				result += h + _GroundHeightSS[idx];
+				twt += 1.0;
+			}
 		}
 	}
 
-	_H1[id] = twt > 0.0 ? result / twt : hcenter;
+	if (twt > 0.0)
+	{
+		float blurredY = result / twt;
+		_H1[id] = max(blurredY - _GroundHeightSS[id], 0.0);
+	}
+	else
+	{
+		_H1[id] = hcenter;
+	}
+}
+
+
+////////////////////////////////////////////
+// BLUR
+
+[numthreads(8, 8, 1)]
+void Blur(int2 id : SV_DispatchThreadID)
+{
+	float result = 0.0;
+	const int rad = 2;
+
+	for (int y = -rad; y <= rad; y++)
+	{
+		for (int x = -rad; x <= rad; x++)
+		{
+			int2 idx;
+			idx.x = clamp(id.x + x, 0, _Resolution - 1);
+			idx.y = clamp(id.y + y, 0, _Resolution - 1);
+
+			result += _H0[idx];
+		}
+	}
+
+	float sampleCount = 2.0 * rad + 1.0;
+	sampleCount *= sampleCount;
+	_H1[id] = result / sampleCount;
+
+	//_H1[id] = _H0[id];
 }

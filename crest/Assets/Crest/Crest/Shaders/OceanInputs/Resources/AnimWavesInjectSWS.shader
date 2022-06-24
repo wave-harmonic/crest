@@ -87,7 +87,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				h -= _OceanCenterPosWorld.y;
 
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
-
+				
 				// Fade out when approaching dry. Does .. something.
 				alpha *= saturate(heightRaw / 0.02);
 

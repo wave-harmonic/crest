@@ -73,9 +73,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 				float wt = _Weight;
 
 				float h = _swsHRender.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
-				float heightRaw = h;
 
-				if (h < 0.001) h = 0.0;// -= 0.1;
+				clip(h - 0.001);
 
 				// Add ground height to water height to get world height of surface
 				h += _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
@@ -88,9 +87,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				float alpha = _swsSimulationMask.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 				
-				// Fade out when approaching dry. Does .. something.
-				alpha *= saturate(heightRaw / 0.02);
-
 				// Fade out at edge of domain
 				float2 offset = abs(input.uv - 0.5);
 				float maxOff = max(offset.x, offset.y);

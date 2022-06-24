@@ -74,7 +74,9 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Inject SWS"
 
 				float h = _swsHRender.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;
 
-				clip(h - 0.001);
+				// Clip doesn't work if ground is below sea level - it will make the water pop back up to sea level/anim waves.
+				// Same for multiplying down alpha blend weight. This does something reasonable - yanks down water when almost dry..
+				h -= 0.1 * (1.0 - saturate(h / 0.02));
 
 				// Add ground height to water height to get world height of surface
 				h += _swsGroundHeight.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0).x;

@@ -332,7 +332,14 @@ void UpdateH(uint2 id : SV_DispatchThreadID)
 		float simH = h + _SimOrigin.y + _GroundHeightSS[id];
 		if(wavey > simH)
 		{
-			pump += _BlendPushUpStrength * _SimulationMask[id] * (wavey - simH);
+			// This is tricksy. Don't apply forces from waves in deep, but also don't apply in very shallow.
+			// The latter will mean that the SWS is held at sea level instead of being allowed to drop below.
+			// I tried asserting disp.y > somevalue but that led to a whole different set of issues. Therefore
+			// settle for a y=4x(1-x) weight that chooses the mid point of the mask blend. Seems to work.
+			float maskWeight = _SimulationMask[id];
+			maskWeight *= 4.0 * (1.0 - maskWeight);
+
+			pump += _BlendPushUpStrength * maskWeight * (wavey - simH);
 		}
 	}
 

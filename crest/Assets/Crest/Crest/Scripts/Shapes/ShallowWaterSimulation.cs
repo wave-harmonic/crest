@@ -40,7 +40,7 @@ namespace Crest
         float _blendShallowMinDepth = 0f;
         [Tooltip("The maximum depth for blending (m). When the water depth is greater than this value, this simulation will not contribute at all, water shape will come purely from the normal ocean waves. Negative depths are valid and occur when surfaces are above sea level."), SerializeField, UnityEngine.Range(-10f, 10f)]
         float _blendShallowMaxDepth = 4f;
-        [Tooltip("The intensity at which ocean waves inject water into the simulation."), SerializeField, UnityEngine.Range(0f, 1f)]
+        [Tooltip("The intensity at which ocean waves inject water into the simulation."), SerializeField, UnityEngine.Range(0f, 0.1f)]
         float _blendPushUpStrength = 0.1f;
 
         [Header("Distance Culling")]

@@ -192,8 +192,10 @@ namespace Crest
             Exclude,
         }
 
+#if UNITY_EDITOR
         readonly bool _hasUnset = false;
         readonly int _unset = -1;
+#endif
 
         public FilteredAttribute()
         {
@@ -201,8 +203,10 @@ namespace Crest
 
         public FilteredAttribute(int unset)
         {
+#if UNITY_EDITOR
             _unset = unset;
             _hasUnset = true;
+#endif
         }
 
 #if UNITY_EDITOR
@@ -296,18 +300,24 @@ namespace Crest
     /// </summary>
     public class HeadingAttribute : DecoratorAttribute
     {
+#if UNITY_EDITOR
         readonly string _heading;
+#endif
 
         public HeadingAttribute(string heading)
         {
+#if UNITY_EDITOR
             _heading = heading;
+#endif
         }
 
+#if UNITY_EDITOR
         internal override void Decorate(Rect position, SerializedProperty property, GUIContent label, DecoratedDrawer drawer)
         {
             // Register margin with IMGUI so subsequent spacing is correct.
             EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 0.5f);
             GUI.Label(EditorGUILayout.GetControlRect(true), _heading, EditorStyles.boldLabel);
         }
+#endif
     }
 }

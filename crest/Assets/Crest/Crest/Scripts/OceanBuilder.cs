@@ -6,6 +6,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -458,6 +459,13 @@ namespace Crest
                 patch.transform.localPosition = horizScale * new Vector3(pos.x, 0f, pos.y);
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
+
+#if UNITY_EDITOR
+                if (!ocean._debug._makeOceanTileGameObjectsPickable)
+                {
+                    SceneVisibilityManager.instance.DisablePicking(patch, true);
+                }
+#endif
 
                 {
                     var oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();

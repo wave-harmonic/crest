@@ -312,6 +312,8 @@ namespace Crest
             public bool _attachDebugGUI = false;
             [Tooltip("Move ocean with viewpoint.")]
             public bool _disableFollowViewpoint = false;
+            [Tooltip("Whether ocean surface tiles are pickable in editor.")]
+            public bool _makeOceanTileGameObjectsPickable = false;
             [Tooltip("Set the ocean surface tiles hidden by default to clean up the hierarchy.")]
             public bool _showOceanTileGameObjects = false;
             [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
@@ -931,6 +933,7 @@ namespace Crest
             Hashy.AddBool(_debug._forceBatchMode, ref settingsHash);
             Hashy.AddBool(_debug._forceNoGPU, ref settingsHash);
             Hashy.AddBool(_debug._showOceanTileGameObjects, ref settingsHash);
+            Hashy.AddBool(_debug._makeOceanTileGameObjectsPickable, ref settingsHash);
 
 #pragma warning disable 0618
             Hashy.AddObject(_layerName, ref settingsHash);

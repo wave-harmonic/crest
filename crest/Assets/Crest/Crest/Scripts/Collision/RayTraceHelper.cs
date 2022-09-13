@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -12,8 +13,8 @@ namespace Crest
     /// </summary>
     public class RayTraceHelper
     {
-        Vector3[] _queryPos;
-        Vector3[] _queryResult;
+        NativeArray<Vector3> _queryPos;
+        NativeArray<Vector3> _queryResult;
 
         float _rayLength;
         float _rayStepSize;
@@ -41,8 +42,17 @@ namespace Crest
                 Debug.LogWarning($"Crest: RayTraceHelper: ray steps exceed maximum ({maxStepCount}), step size increased to {_rayStepSize} to reduce step count.");
             }
 
-            _queryPos = new Vector3[stepCount];
-            _queryResult = new Vector3[stepCount];
+            if (_queryPos.IsCreated)
+            {
+                _queryPos.Dispose();
+            }
+            _queryPos = new NativeArray<Vector3>(stepCount, Allocator.Persistent);
+            if (_queryResult.IsCreated)
+            {
+                _queryResult.Dispose();
+            }
+
+            _queryResult = new NativeArray<Vector3>(stepCount, Allocator.Persistent);
         }
 
         /// <summary>
@@ -57,12 +67,6 @@ namespace Crest
                 _queryPos[i] = i_rayOrigin + i * _rayStepSize * i_rayDirection;
             }
 
-            var rect = new Rect();
-            rect.xMin = Mathf.Min(_queryPos[0].x, _queryPos[_queryPos.Length - 1].x);
-            rect.yMin = Mathf.Min(_queryPos[0].z, _queryPos[_queryPos.Length - 1].z);
-            rect.xMax = Mathf.Max(_queryPos[0].x, _queryPos[_queryPos.Length - 1].x);
-            rect.yMax = Mathf.Max(_queryPos[0].z, _queryPos[_queryPos.Length - 1].z);
-
             // Waves go max double along min length. Thats too much - only allow half of a wave per step.
             _minLength = _rayStepSize * 4f;
         }
@@ -76,7 +80,9 @@ namespace Crest
         {
             o_distance = -1f;
 
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
+            var norms = default(NativeArray<Vector3>);
+            var vels = default(NativeArray<Vector3>);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, ref _queryPos, ref _queryResult, ref norms, ref vels, false);
 
             if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {

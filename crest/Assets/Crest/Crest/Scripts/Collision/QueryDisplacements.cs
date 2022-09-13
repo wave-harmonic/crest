@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -28,21 +29,27 @@ namespace Crest
             ShaderProcessQueries.SetBuffer(_kernelHandle, OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
         }
 
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash,
+            float i_minSpatialLength,
+            ref NativeArray<Vector3> i_queryPoints,
+            ref NativeArray<float> o_resultHeights,
+            ref NativeArray<Vector3> o_resultNorms,
+            ref NativeArray<Vector3> o_resultVels)
         {
             var result = (int)QueryStatus.OK;
+            var useNormals = o_resultNorms.Length > 0;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, useNormals ? i_queryPoints : default, useNormals))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResults(i_ownerHash, null, o_resultHeights, o_resultNorms))
+            if (!RetrieveResults(i_ownerHash, default, o_resultHeights, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
 
-            if (o_resultVels != null)
+            if (o_resultVels.Length > 0)
             {
                 result |= CalculateVelocities(i_ownerHash, o_resultVels);
             }

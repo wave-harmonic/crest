@@ -5,6 +5,7 @@
 // Shout out to @holdingjason who posted a first version of this script here: https://github.com/huwb/crest-oceanrender/pull/100
 
 using System;
+using Unity.Collections;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
@@ -83,9 +84,9 @@ namespace Crest
 
         float _totalWeight;
 
-        Vector3[] _queryPoints;
-        Vector3[] _queryResultDisps;
-        Vector3[] _queryResultVels;
+        NativeArray<Vector3> _queryPoints;
+        NativeArray<Vector3> _queryResultDisps;
+        NativeArray<Vector3> _queryResultVels;
 
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
@@ -102,9 +103,9 @@ namespace Crest
 
             CalcTotalWeight();
 
-            _queryPoints = new Vector3[_forcePoints.Length + 1];
-            _queryResultDisps = new Vector3[_forcePoints.Length + 1];
-            _queryResultVels = new Vector3[_forcePoints.Length + 1];
+            _queryPoints = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+            _queryResultDisps = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+            _queryResultVels = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
         }
 
         void CalcTotalWeight()
@@ -165,7 +166,8 @@ namespace Crest
             }
             _queryPoints[_forcePoints.Length] = transform.position;
 
-            collProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _queryResultDisps, null, _queryResultVels);
+            var oResultNorms = new NativeArray<Vector3>();
+            collProvider.Query(GetHashCode(), ObjectWidth, ref _queryPoints, ref _queryResultDisps, ref oResultNorms, ref _queryResultVels, false);
 
             if (_debug._drawQueries)
             {

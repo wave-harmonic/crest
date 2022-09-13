@@ -72,7 +72,9 @@ namespace Crest
             /// position data will be created. This will force any running jobs to complete. The jobs will be kicked off in LateUpdate,
             /// so this should be called before the kick-off, such as from Update.
             /// </summary>
-            public int RegisterQueryPoints(int ownerHash, Vector3[] queryPoints, int dataToWriteThisFrame)
+            public int RegisterQueryPoints(int ownerHash,
+                ref NativeArray<Vector3> queryPoints,
+                int dataToWriteThisFrame)
             {
                 var numQuads = (queryPoints.Length + 3) / 4;
 
@@ -222,7 +224,7 @@ namespace Crest
             }
         }
 
-        bool RetrieveHeights(int i_ownerHash, float[] o_resultHeights)
+        bool RetrieveHeights(int i_ownerHash, NativeArray<float> o_resultHeights)
         {
             // Return data - get segment from finished jobs
             if (o_resultHeights != null && _queryDataHeights._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
@@ -238,7 +240,7 @@ namespace Crest
             return false;
         }
 
-        bool RetrieveDisps(int i_ownerHash, Vector3[] o_resultDisps)
+        bool RetrieveDisps(int i_ownerHash, NativeArray<Vector3> o_resultDisps)
         {
             // Return data - get segment from finished jobs
             if (o_resultDisps != null && _queryDataDisps._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
@@ -258,7 +260,7 @@ namespace Crest
             return false;
         }
 
-        bool RetrieveNorms(int i_ownerHash, Vector3[] o_resultNorms)
+        bool RetrieveNorms(int i_ownerHash, NativeArray<Vector3> o_resultNorms)
         {
             if (o_resultNorms != null && _queryDataNorms._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
             {
@@ -277,7 +279,7 @@ namespace Crest
             return false;
         }
 
-        bool RetrieveVels(int i_ownerHash, Vector3[] o_resultVels)
+        bool RetrieveVels(int i_ownerHash, NativeArray<Vector3> o_resultVels)
         {
             if (o_resultVels != null && _queryDataVels._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
             {
@@ -294,14 +296,12 @@ namespace Crest
             return false;
         }
 
-        public int Query(
-            int i_ownerHash,
+        public int Query(int i_ownerHash,
             float i_minSpatialLength,
-            Vector3[] i_queryPoints,
-            float[] o_resultHeights,
-            Vector3[] o_resultNorms,
-            Vector3[] o_resultVels
-            )
+            ref NativeArray<Vector3> i_queryPoints,
+            ref NativeArray<float> o_resultHeights,
+            ref NativeArray<Vector3> o_resultNorms,
+            ref NativeArray<Vector3> o_resultVels)
         {
             var dataCopiedOutHeights = RetrieveHeights(i_ownerHash, o_resultHeights);
             var dataCopiedOutNorms = RetrieveNorms(i_ownerHash, o_resultNorms);
@@ -309,15 +309,15 @@ namespace Crest
 
             if (o_resultHeights != null)
             {
-                _queryDataHeights.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
+                _queryDataHeights.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultNorms != null)
             {
-                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
+                _queryDataNorms.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultVels != null)
             {
-                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
+                _queryDataVels.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
             }
 
             var allCopied = (dataCopiedOutHeights || o_resultHeights == null)
@@ -327,14 +327,13 @@ namespace Crest
             return allCopied ? (int)QueryStatus.Success : (int)QueryStatus.ResultsNotReadyYet;
         }
 
-        public int Query(
-            int i_ownerHash,
+        public int Query(int i_ownerHash,
             float i_minSpatialLength,
-            Vector3[] i_queryPoints,
-            Vector3[] o_resultDisps,
-            Vector3[] o_resultNorms,
-            Vector3[] o_resultVels
-            )
+            ref NativeArray<Vector3> i_queryPoints,
+            ref NativeArray<Vector3> o_resultDisps,
+            ref NativeArray<Vector3> o_resultNorms,
+            ref NativeArray<Vector3> o_resultVels,
+            bool useNormals)
         {
             var dataCopiedOutDisps = RetrieveDisps(i_ownerHash, o_resultDisps);
             var dataCopiedOutNorms = RetrieveNorms(i_ownerHash, o_resultNorms);
@@ -342,15 +341,15 @@ namespace Crest
 
             if (o_resultDisps != null)
             {
-                _queryDataDisps.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
+                _queryDataDisps.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultNorms != null)
             {
-                _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
+                _queryDataNorms.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
             }
             if (o_resultVels != null)
             {
-                _queryDataVels.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
+                _queryDataVels.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
             }
 
             var allCopied = (dataCopiedOutDisps || o_resultDisps == null)

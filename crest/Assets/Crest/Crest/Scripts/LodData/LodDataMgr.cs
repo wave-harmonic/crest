@@ -223,12 +223,13 @@ namespace Crest
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             foreach (var draw in drawList)
             {
-                if (!draw.Value.Enabled)
+                var value = draw.Value;
+                if (!value.Enabled)
                 {
                     continue;
                 }
 
-                draw.Value.Draw(this, buf, 1f, 0, lodIdx);
+                value.Draw(this, buf, 1f, 0, lodIdx);
             }
         }
 

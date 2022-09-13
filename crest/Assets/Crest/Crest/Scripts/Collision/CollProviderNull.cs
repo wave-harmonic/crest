@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -11,7 +12,13 @@ namespace Crest
     /// </summary>
     public class CollProviderNull : ICollProvider
     {
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash,
+            float i_minSpatialLength,
+            ref NativeArray<Vector3> i_queryPoints,
+            ref NativeArray<Vector3> o_resultDisps,
+            ref NativeArray<Vector3> o_resultNorms,
+            ref NativeArray<Vector3> o_resultVels,
+            bool useNormals)
         {
             if (o_resultDisps != null)
             {
@@ -40,7 +47,12 @@ namespace Crest
             return 0;
         }
 
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash,
+            float i_minSpatialLength,
+            ref NativeArray<Vector3> i_queryPoints,
+            ref NativeArray<float> o_resultHeights,
+            ref NativeArray<Vector3> o_resultNorms,
+            ref NativeArray<Vector3> o_resultVels)
         {
             if (o_resultHeights != null)
             {

@@ -2,7 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using Crest;
+using Unity.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -26,12 +28,21 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
     public float _minGridSize = 0f;
 
     GameObject[] _markerObjects = new GameObject[3];
-    Vector3[] _markerPos = new Vector3[3];
-    Vector3[] _resultDisps = new Vector3[3];
-    Vector3[] _resultNorms = new Vector3[3];
-    Vector3[] _resultVels = new Vector3[3];
+    NativeArray<Vector3> _markerPos;
+    NativeArray<Vector3> _resultDisps;
+    NativeArray<Vector3> _resultNorms;
+    NativeArray<Vector3> _resultVels;
 
     float _samplesRadius = 5f;
+
+    private void Start()
+    {
+        _markerPos = new NativeArray<Vector3>(3, Allocator.Persistent);
+        _resultDisps = new NativeArray<Vector3>(3, Allocator.Persistent);
+        _resultNorms = new NativeArray<Vector3>(3, Allocator.Persistent);
+        _resultVels = new NativeArray<Vector3>(3, Allocator.Persistent);
+
+    }
 
     void Update()
     {
@@ -52,7 +63,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 
         var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-        var status = collProvider.Query(GetHashCode(), _minGridSize, _markerPos, _resultDisps, _resultNorms, _resultVels);
+        var status = collProvider.Query(GetHashCode(), _minGridSize, ref _markerPos, ref _resultDisps, ref _resultNorms, ref _resultVels, true);
 
         if (collProvider.RetrieveSucceeded(status))
         {

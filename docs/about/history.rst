@@ -13,6 +13,14 @@ Release Notes
 |version|
 ---------
 
+.. admonition:: TODO
+
+   This section is a work in progress.
+
+
+4.15.2
+------
+
 Changed
 ^^^^^^^
 .. bullet_list::

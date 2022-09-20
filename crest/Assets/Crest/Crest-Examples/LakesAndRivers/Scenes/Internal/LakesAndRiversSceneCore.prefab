@@ -233,7 +233,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 2
+  _flowVelocity: 0
 --- !u!1 &8569238538489450203
 GameObject:
   m_ObjectHideFlags: 0
@@ -728,7 +728,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _weight: 1
+  _weight: 0.5
 --- !u!1 &8569238538649164060
 GameObject:
   m_ObjectHideFlags: 0
@@ -1957,13 +1957,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _windTurbulence: 0.103
+  _windTurbulence: 1
   _spectrum: {fileID: 11400000, guid: 82bb9342c0d18d041a4c57c38a096e9f, type: 2}
   _spectrumFixedAtRuntime: 1
   _waveDirectionHeadingAngle: 90
   _overrideGlobalWindSpeed: 0
   _windSpeed: 20
   _weight: 1
+  _blendMode: 1
+  _queue: 1
   _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
@@ -2316,6 +2318,7 @@ GameObject:
   - component: {fileID: 8569238539655344393}
   - component: {fileID: 8569238539655344394}
   - component: {fileID: 8569238539655344396}
+  - component: {fileID: 4788129997343208191}
   m_Layer: 0
   m_Name: Lake
   m_TagString: Untagged
@@ -2398,6 +2401,43 @@ MonoBehaviour:
   _subdivisions: 1
   _version: 0
   _followHorizontalMotion: 0
+--- !u!114 &4788129997343208191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8569238539655344398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a57126133720c243a7af00a156c9ee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _version: 0
+  _windTurbulence: 0.145
+  _spectrum: {fileID: 11400000, guid: d881c615fb1c1e74a9ed7c32696cc459, type: 2}
+  _spectrumFixedAtRuntime: 1
+  _waveDirectionHeadingAngle: 0
+  _overrideGlobalWindSpeed: 0
+  _windSpeed: 20
+  _weight: 0.5
+  _blendMode: 1
+  _queue: 1
+  _respectShallowWaterAttenuation: 1
+  _componentsPerOctave: 8
+  _randomSeed: 0
+  _resolution: 128
+  _debugDrawSlicesInEditor: 0
+  _overrideSplineSettings: 0
+  _radius: 50
+  _subdivisions: 1
+  _featherWaveStart: 0.1
+  _maxVerticalDisplacement: 10
+  _maxHorizontalDisplacement: 15
+  _enableBakedCollision: 0
+  _timeResolution: 4
+  _smallestWavelengthRequired: 2
+  _timeLoopLength: 32
 --- !u!1 &8569238539701281965
 GameObject:
   m_ObjectHideFlags: 0
@@ -2724,6 +2764,7 @@ MonoBehaviour:
   _showOceanProxyPlane: 0
   _editModeFPS: 30
   _followSceneCamera: 1
+  _heightQueries: 1
   _forceBatchMode: 0
   _forceNoGPU: 0
   _attachDebugGUI: 0
@@ -2818,6 +2859,7 @@ GameObject:
   - component: {fileID: 8569238539812410628}
   - component: {fileID: 8569238539812410629}
   - component: {fileID: 8569238539812410630}
+  - component: {fileID: 4006470565730113483}
   m_Layer: 0
   m_Name: SplinePoint
   m_TagString: Untagged
@@ -2880,6 +2922,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _version: 0
   _flowVelocity: 0
+--- !u!114 &4006470565730113483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8569238539812410744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 195788a19db58f145908f7b22a193f41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _version: 0
+  _weight: 1
 --- !u!1 &8569238539817769114
 GameObject:
   m_ObjectHideFlags: 0
@@ -3182,6 +3238,7 @@ GameObject:
   - component: {fileID: 8569238539967241771}
   - component: {fileID: 8569238539967241772}
   - component: {fileID: 8569238539967241773}
+  - component: {fileID: 4095344463160103186}
   m_Layer: 0
   m_Name: SplinePoint
   m_TagString: Untagged
@@ -3244,6 +3301,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _version: 0
   _flowVelocity: 2
+--- !u!114 &4095344463160103186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8569238539967241775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 195788a19db58f145908f7b22a193f41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _version: 0
+  _weight: 1
 --- !u!1 &8569238539980583356
 GameObject:
   m_ObjectHideFlags: 0
@@ -3403,6 +3474,8 @@ MonoBehaviour:
   _overrideGlobalWindSpeed: 1
   _windSpeed: 3.6
   _weight: 1
+  _blendMode: 0
+  _queue: 0
   _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
@@ -3581,7 +3654,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _weight: 0.5
+  _weight: 0.25
 --- !u!114 &8569238540202253579
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3595,7 +3668,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _flowVelocity: 2
+  _flowVelocity: 0
 --- !u!1 &8569238540204902295
 GameObject:
   m_ObjectHideFlags: 0

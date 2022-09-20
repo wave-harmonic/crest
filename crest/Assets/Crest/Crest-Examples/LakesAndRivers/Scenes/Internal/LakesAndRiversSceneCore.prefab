@@ -1957,7 +1957,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
-  _windTurbulence: 1
+  _windTurbulence: 0.5
   _spectrum: {fileID: 11400000, guid: 82bb9342c0d18d041a4c57c38a096e9f, type: 2}
   _spectrumFixedAtRuntime: 1
   _waveDirectionHeadingAngle: 90

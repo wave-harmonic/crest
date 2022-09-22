@@ -59,6 +59,7 @@ namespace Crest
             /// SrcAlpha OneMinusSrcAlpha
             /// </summary>
             AlphaBlend,
+            PremultipliedBlend,
         }
 
         /// <summary>
@@ -77,6 +78,10 @@ namespace Crest
                     break;
                 case BlendPreset.AlphaBlend:
                     source =  (int)BlendMode.SrcAlpha;
+                    destination = (int)BlendMode.OneMinusSrcAlpha;
+                    break;
+                case BlendPreset.PremultipliedBlend:
+                    source = (int)BlendMode.One;
                     destination = (int)BlendMode.OneMinusSrcAlpha;
                     break;
             }

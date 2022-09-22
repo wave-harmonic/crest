@@ -121,6 +121,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Generate Waves"
 					{
 						float2 axis = _PaintedData.Sample(LODData_linear_clamp_sampler, paintUV).xy;
 						float axisLen2 = dot(axis, axis);
+						wt = saturate(axisLen2);
+
 						if (axisLen2 > 0.00001)
 						{
 							// Quantize wave direction and interpolate waves

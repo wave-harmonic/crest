@@ -75,7 +75,7 @@ namespace Crest
         [Tooltip("How the waves are blended into the wave buffer. Use <i>AlphaBlend</i> to override waves.")]
         public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
 
-        [Predicated("_inputMode", inverted: true, Mode.Spline), DecoratedField]
+        [Predicated("_inputMode", inverted: false, Mode.Global), DecoratedField]
         [Tooltip("Order this input will render. Queue is <i>Queue + SiblingIndex</i>")]
         public int _queue = 0;
 
@@ -345,9 +345,9 @@ namespace Crest
             mat.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             mat.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
-            if (_inputMode == Mode.Painted)
+            if (_inputMode == Mode.Painted && _matGenerateWavesPainted != null)
             {
-                UpdatePaintInputMaterial(mat);
+                UpdatePaintInputMaterial(_matGenerateWavesPainted);
             }
 
 #if UNITY_EDITOR

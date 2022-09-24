@@ -91,7 +91,14 @@ namespace Crest
                     }
                     else
                     {
-                        Debug.LogError("Crest: Compute shader queries not supported in headless/batch mode. To resolve, assign an Animated Wave Settings asset to the OceanRenderer component and set the Collision Source to be a CPU option.");
+#if UNITY_EDITOR
+                        // If running a build, do not assert any requirements at all. Requirements are for the runtime,
+                        // not for making builds.
+                        if (!BuildPipeline.isBuildingPlayer)
+#endif
+                        {
+                            Debug.LogError("Crest: Compute shader queries not supported in headless/batch mode. To resolve, assign an Animated Wave Settings asset to the OceanRenderer component and set the Collision Source to be a CPU option.");
+                        }
                     }
                     break;
 #if CREST_UNITY_MATHEMATICS

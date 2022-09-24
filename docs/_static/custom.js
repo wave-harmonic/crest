@@ -25,7 +25,7 @@ const isLatest = window.location.pathname.startsWith("/en/latest/") || isLocalHo
 const isStable = window.location.pathname.startsWith("/en/stable/")
 const version = isLocalHost ? "latest" : window.location.pathname.split("/").filter(x => x)[1]
 // NOTE: regex could be expanded to support pre-release versions (eg 1.0-alpha).
-const isVersion = !isLatest && !isStable && /\d+(?:\.\d+)*/.test(version)
+const isVersion = !isLatest && !isStable && /^[\dX]+(?:\.[\dX]+)*$/i.test(version)
 
 function updateLinksWithRenderPipeline(renderPipeline) {
     $("a.reference.internal").attr("href", (_, href) => {

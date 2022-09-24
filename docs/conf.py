@@ -197,7 +197,7 @@ rst_prolog = rst_prolog + """
 .. set:: UnityDocScriptLink {UnityDocsLinkBase}/ScriptReference
 .. set:: UnityIssueLink https://issuetracker.unity3d.com/product/unity/issues/guid
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
-.. set:: DocLinkBase https://crest.readthedocs.io/en
+.. set:: DocLinkBase https://crest.readthedocs.io/en/{AssetVersion}
 .. set:: GitHubLink \https://github.com/wave-harmonic/crest
 .. set:: WikiLink \{GitHubLink}/wiki
 .. set:: RoadmapLink \https://trello.com/b/L7iejCPI
@@ -211,7 +211,7 @@ rst_prolog = rst_prolog + """
 .. set:: BIRP :abbr:`{BIRPNameShort} ({BIRPNameLong} Render Pipeline)`
 .. set:: BIRPMinVersion `RPMinVersion`
 .. set:: BIRPDocLink {UnityDocLink}/
-.. set:: BIRPAssetDocLink {DocLinkBase}/{AssetVersion}?rp={BIRPNameSlug}
+.. set:: BIRPAssetDocLink {DocLinkBase}?rp={BIRPNameSlug}
 
 .. set:: [URP] :guilabel:`URP`
 .. set:: URPNameLong Universal
@@ -221,7 +221,7 @@ rst_prolog = rst_prolog + """
 .. set:: URPMinVersion `RPMinVersion`
 .. set:: URPDocLink {RPDocLinkBase}universal@{URPMinVersion}/manual
 .. set:: URPAssetLink {AssetStoreLinkBase}/crest-ocean-system-urp-141674
-.. set:: URPAssetDocLink {DocLinkBase}/{AssetVersion}?rp={URPNameSlug}
+.. set:: URPAssetDocLink {DocLinkBase}/?rp={URPNameSlug}
 
 .. set:: [HDRP] :guilabel:`HDRP`
 .. set:: HDRPNameLong High Definition
@@ -231,7 +231,7 @@ rst_prolog = rst_prolog + """
 .. set:: HDRPMinVersion `RPMinVersion`
 .. set:: HDRPDocLink {RPDocLinkBase}high-definition@{HDRPMinVersion}/manual
 .. set:: HDRPAssetLink {AssetStoreLinkBase}/crest-ocean-system-hdrp-164158
-.. set:: HDRPAssetDocLink {DocLinkBase}/{AssetVersion}?rp={HDRPNameSlug}
+.. set:: HDRPAssetDocLink {DocLinkBase}/?rp={HDRPNameSlug}
 
 .. set:: Crest *Crest*
 

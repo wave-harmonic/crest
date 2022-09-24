@@ -234,6 +234,21 @@ Fixed
       -  Reduce cost of populating the ocean depth cache. `[HDRP]`
 
 
+.. only:: latex
+
+   \
+
+   .. attention::
+
+      The history has been trimmed but the :link:`full history <{DocLinkBase}/about/history.html>` can be viewed online.
+
+
+.. Trim the history for PDFs.
+.. raw:: latex
+
+   \iffalse
+
+
 4.14
 ----
 
@@ -1181,3 +1196,7 @@ Fixed
    ^^^^^
    -  Made more robust against VR screen depth bug, resolves odd shapes appearing on surface
    -  :issue:`279`
+
+.. raw:: latex
+
+   \fi

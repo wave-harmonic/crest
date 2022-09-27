@@ -77,6 +77,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				const float3 uv_nextLod = WorldToUV(worldPosXZ, cascadeData1, _LD_SliceIndex + 1);
 
 				float3 result = 0.0;
+				float variance = 0.0;
 
 				// Sample in waves for this cascade.
 #if CREST_FLOW_ON_INTERNAL
@@ -88,10 +89,12 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 				const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
 				const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);
-				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result);
-				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result);
+				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, variance);
+				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, variance);
 #else
-				result = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0).xyz;
+				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
+				result = data.xyz;
+				variance = data.w;
 #endif // CREST_FLOW_ON_INTERNAL
 
 				float arrayDepth;
@@ -103,8 +106,9 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				// Waves to combine down from the next lod up the chain.
 				if ((float)_LD_SliceIndex < arrayDepth - 1.0)
 				{
-					float3 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0).xyz;
-					result += dataNextLod;
+					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
+					result += dataNextLod.xyz;
+					// Do not combine variance. Variance is already cumulative - from low cascades up
 				}
 
 #if CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
@@ -134,7 +138,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				}
 #endif // CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
 
-				return half4(result, 0.0);
+				return half4(result, variance);
 			}
 			ENDCG
 		}

@@ -92,13 +92,15 @@ Shader "Crest/Ocean Surface Alpha"
 				float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				{
 					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_smallerLod, worldPos);
+					half variance = 0.0;
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_smallerLod, worldPos, variance);
 				}
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 				{
 					// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_biggerLod, worldPos);
+					half variance = 0.0;
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_biggerLod, worldPos, variance);
 				}
 
 				// Data that needs to be sampled at the displaced position.

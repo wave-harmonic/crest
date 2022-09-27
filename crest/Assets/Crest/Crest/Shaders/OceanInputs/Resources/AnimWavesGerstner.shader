@@ -8,7 +8,8 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 {
 	SubShader
 	{
-		Blend [_BlendSrcMode] [_BlendDstMode]
+		// Additive blend everywhere
+		Blend One One
 		ZWrite Off
 		ZTest Always
 		Cull Off

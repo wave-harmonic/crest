@@ -64,9 +64,15 @@ namespace Crest
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
+        public enum BlendMode
+        {
+            Additive,
+            Blend,
+        }
+
         [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
-        [Tooltip("How the waves are blended into the wave buffer. Use <i>AlphaBlend</i> to override waves.")]
-        public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
+        [Tooltip("How the waves are blended into the wave buffer. Use <i>Blend</i> to override waves.")]
+        public BlendMode _blendMode = BlendMode.Additive;
 
         [Predicated(typeof(ShapeFFT), "IsLocalWaves"), DecoratedField]
         [Tooltip("Order this input will render. Queue is <i>Queue + SiblingIndex</i>")]
@@ -156,6 +162,9 @@ namespace Crest
 
             int _waveBufferSliceIndex;
 
+            public static Component _previousShapeComponent;
+            public static int _previousLodIndex = -1;
+
             public FFTBatch(ShapeFFT shapeFFT, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeFFT = shapeFFT;
@@ -179,13 +188,33 @@ namespace Crest
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+
+                    // If the component has changed or the LOD slice then this is a new batch of cascades. We use this
+                    // to add alpha blending without changing much of the architecture. It requires an extra pass which
+                    // is not very lean performance wise. Use blend states when breaking change can be introduced.
+                    var isBlending = false;
+                    if (_shapeFFT._blendMode == BlendMode.Blend && (_previousShapeComponent != _shapeFFT || _previousLodIndex != lodIdx))
+                    {
+                        isBlending = true;
+                        _previousShapeComponent = _shapeFFT;
+                        _previousLodIndex = lodIdx;
+                    }
+
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
                     {
+                        if (isBlending)
+                        {
+                            buf.DrawProcedural(Matrix4x4.identity, _shapeFFT._blendMaterial, 0, MeshTopology.Triangles, 3);
+                        }
                         buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                     }
                     else if (_material != null)
                     {
+                        if (isBlending)
+                        {
+                            buf.DrawMesh(_mesh, _shapeFFT.transform.localToWorldMatrix, _shapeFFT._blendMaterial);
+                        }
                         buf.DrawMesh(_mesh, _shapeFFT.transform.localToWorldMatrix, _material);
                     }
                 }
@@ -204,6 +233,9 @@ namespace Crest
         // Cache material options.
         Material _matGenerateWavesGlobal;
         Material _matGenerateWavesGeometry;
+
+        // We do not have alpha channel available for blending so use separate shader to do a blend pass.
+        Material _blendMaterial;
 
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
@@ -253,9 +285,10 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
 
-#if UNITY_EDITOR
-            Helpers.SetBlendFromPreset(_matGenerateWaves, _meshForDrawingWaves ? _blendMode : Helpers.BlendPreset.AdditiveBlend);
-#endif
+            if (_blendMaterial != null)
+            {
+                _blendMaterial.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            }
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
             // to the geo rotation. If not, the wind direction is already used in the FFT gen.
@@ -346,6 +379,11 @@ namespace Crest
                 CreateOrUpdateSplineMesh();
             }
 
+            if (_blendMaterial == null)
+            {
+                _blendMaterial = new Material(Shader.Find("Crest/Inputs/Animated Waves/Spline Blending"));
+            }
+
             // Queue determines draw order of this input. Global waves should be rendered first. They are additive
             // so not order dependent.
             var queue = int.MinValue;
@@ -359,7 +397,6 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGlobal;
-                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
             }
             else
             {
@@ -369,7 +406,6 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGeometry;
-                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
                 queue = _queue;
             }
 

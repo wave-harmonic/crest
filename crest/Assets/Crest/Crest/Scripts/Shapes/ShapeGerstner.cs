@@ -61,7 +61,7 @@ namespace Crest
 
         [Predicated(typeof(ShapeGerstner), "IsLocalWaves"), DecoratedField]
         [Tooltip("How the waves are blended into the wave buffer. Use <i>AlphaBlend</i> to override waves.")]
-        public Helpers.BlendPreset _blendMode = Helpers.BlendPreset.AdditiveBlend;
+        public ShapeFFT.BlendMode _blendMode = ShapeFFT.BlendMode.Additive;
 
         [Predicated(typeof(ShapeGerstner), "IsLocalWaves"), DecoratedField]
         [Tooltip("Order this input will render.")]
@@ -156,13 +156,32 @@ namespace Crest
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
 
+                    // If the component has changed or the LOD slice then this is a new batch of cascades. We use this
+                    // to add alpha blending without changing much of the architecture. It requires an extra pass which
+                    // is not very lean performance wise. Use blend states when breaking change can be introduced.
+                    var isBlending = false;
+                    if (_gerstner._blendMode == ShapeFFT.BlendMode.Blend && (ShapeFFT.FFTBatch._previousShapeComponent != _gerstner || ShapeFFT.FFTBatch._previousLodIndex != lodIdx))
+                    {
+                        isBlending = true;
+                        ShapeFFT.FFTBatch._previousShapeComponent = _gerstner;
+                        ShapeFFT.FFTBatch._previousLodIndex = lodIdx;
+                    }
+
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
                     {
+                        if (isBlending)
+                        {
+                            buf.DrawProcedural(Matrix4x4.identity, _gerstner._blendMaterial, 0, MeshTopology.Triangles, 3);
+                        }
                         buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                     }
                     else if (_material != null)
                     {
+                        if (isBlending)
+                        {
+                            buf.DrawMesh(_mesh, _gerstner.transform.localToWorldMatrix, _gerstner._blendMaterial);
+                        }
                         buf.DrawMesh(_mesh, _gerstner.transform.localToWorldMatrix, _material);
                     }
                 }
@@ -229,6 +248,9 @@ namespace Crest
         // Cache material options.
         Material _matGenerateWavesGlobal;
         Material _matGenerateWavesGeometry;
+
+        // We do not have alpha channel available for blending so use separate shader to do a blend pass.
+        Material _blendMaterial;
 
         readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
@@ -336,17 +358,10 @@ namespace Crest
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
-#if UNITY_EDITOR
-            if (_meshForDrawingWaves != null && _matGenerateWavesGeometry != null)
+            if (_blendMaterial != null)
             {
-                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
+                _blendMaterial.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
             }
-
-            if (_meshForDrawingWaves == null && _matGenerateWavesGlobal != null)
-            {
-                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
-            }
-#endif
 
             ReportMaxDisplacement();
 
@@ -403,7 +418,8 @@ namespace Crest
 
         void SliceUpWaves(float windSpeed)
         {
-            _firstCascade = _lastCascade = -1;
+            // Do not filter cascades if blending as the blend operation might be skipped.
+            _firstCascade = _blendMode == ShapeFFT.BlendMode.Blend ? 0 : _lastCascade = -1;
 
             var cascadeIdx = 0;
             var componentIdx = 0;
@@ -515,7 +531,7 @@ namespace Crest
                 }
             }
 
-            _lastCascade = cascadeIdx;
+            _lastCascade = _blendMode == ShapeFFT.BlendMode.Blend ? CASCADE_COUNT - 1 : cascadeIdx;
 
             {
                 // Fill remaining elements of current vector4 with 0s
@@ -694,6 +710,11 @@ namespace Crest
                 CreateOrUpdateSplineMesh();
             }
 
+            if (_blendMaterial == null)
+            {
+                _blendMaterial = new Material(Shader.Find("Crest/Inputs/Animated Waves/Spline Blending"));
+            }
+
             if (_meshForDrawingWaves == null)
             {
                 if (_matGenerateWavesGlobal == null)
@@ -702,8 +723,6 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGlobal;
-
-                Helpers.SetBlendFromPreset(_matGenerateWavesGlobal, Helpers.BlendPreset.AdditiveBlend);
             }
             else
             {
@@ -713,8 +732,6 @@ namespace Crest
                 }
 
                 _matGenerateWaves = _matGenerateWavesGeometry;
-
-                Helpers.SetBlendFromPreset(_matGenerateWavesGeometry, _blendMode);
             }
 
             // Queue determines draw order of this input. Global waves should be rendered first. They are additive

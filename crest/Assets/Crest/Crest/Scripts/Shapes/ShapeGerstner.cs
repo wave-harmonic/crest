@@ -359,6 +359,20 @@ namespace Crest
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }
 
+        void CreateOrUpdateSplineMesh()
+        {
+            if (TryGetComponent<Spline.Spline>(out var spline))
+            {
+                var radius = _overrideSplineSettings ? _radius : spline.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : spline.Subdivisions;
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(spline, transform,
+                    subdivs, radius, Vector2.one, ref _meshForDrawingWaves, out _, out _))
+                {
+                    _meshForDrawingWaves.name = gameObject.name + "_mesh";
+                }
+            }
+        }
+
 #if UNITY_EDITOR
         void UpdateEditorOnly()
         {
@@ -656,16 +670,9 @@ namespace Crest
                 }
             }
 
-            if (TryGetComponent<Spline.Spline>(out var splineForWaves))
+            if (_firstUpdate)
             {
-                var radius = _overrideSplineSettings ? _radius : splineForWaves.Radius;
-                var subdivs = _overrideSplineSettings ? _subdivisions : splineForWaves.Subdivisions;
-
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(splineForWaves, transform, subdivs, radius, Vector2.one,
-                    ref _meshForDrawingWaves, out _, out _))
-                {
-                    _meshForDrawingWaves.name = gameObject.name + "_mesh";
-                }
+                CreateOrUpdateSplineMesh();
             }
 
             if (_meshForDrawingWaves == null)
@@ -823,7 +830,19 @@ namespace Crest
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
+            // Restrict this call as it is costly.
+            if (Selection.activeGameObject == gameObject)
+            {
+                CreateOrUpdateSplineMesh();
+            }
+
             DrawMesh();
+        }
+
+        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        {
+            CreateOrUpdateSplineMesh();
+            OnDrawGizmosSelected();
         }
 
         void DrawMesh()
@@ -841,11 +860,6 @@ namespace Crest
             {
                 OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f);
             }
-        }
-
-        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
-        {
-            DrawMesh();
         }
 #endif
 

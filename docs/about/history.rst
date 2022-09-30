@@ -35,6 +35,7 @@ Fixed
    -  Fixed some components breaking in edit mode after entering/exiting prefab mode.
    -  Fixed *Build Processor* deprecated/obsolete warnings.
    -  Fixed spurious "headless/batch mode" error during builds.
+   -  Greatly improve spline performance in the editor.
 
 
 4.15.2

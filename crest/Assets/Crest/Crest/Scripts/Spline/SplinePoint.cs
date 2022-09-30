@@ -47,7 +47,13 @@ namespace Crest.Spline
 
         void OnDrawGizmosSelected()
         {
-            if (transform.parent.TryGetComponent(out IReceiveSplinePointOnDrawGizmosSelectedMessages receiver))
+            // Reduces spam. May have edge cases where spline will not update but that is fine for now.
+            if (gameObject != Selection.activeGameObject)
+            {
+                return;
+            }
+
+            foreach (var receiver in transform.parent.GetComponents<IReceiveSplinePointOnDrawGizmosSelectedMessages>())
             {
                 receiver.OnSplinePointDrawGizmosSelected(this);
             }

@@ -339,17 +339,25 @@ namespace Crest
 
         void Awake()
         {
-            if (TryGetComponent(out _spline))
-            {
-                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
-                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
-                    ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+            CreateOrUpdateSplineMesh();
+        }
 
-                if (_splineMaterial == null)
-                {
-                    CreateSplineMaterial();
-                }
+        void CreateOrUpdateSplineMesh()
+        {
+            if (_spline == null && !TryGetComponent(out _spline))
+            {
+                _splineMesh = null;
+                return;
+            }
+
+            var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+            var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+            ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs,
+                radius, DefaultCustomData, ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
+
+            if (_splineMaterial == null)
+            {
+                _splineMaterial = new Material(Shader.Find(SplineShaderName));
             }
         }
 
@@ -394,45 +402,21 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        protected override void Update()
-        {
-            base.Update();
-
-            // Check for spline and rebuild spline mesh each frame in edit mode
-            if (!EditorApplication.isPlaying)
-            {
-                if (_spline == null)
-                {
-                    TryGetComponent(out _spline);
-                }
-
-                if (_spline != null)
-                {
-                    var radius = _overrideSplineSettings ? _radius : _spline.Radius;
-                    var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs, radius, DefaultCustomData,
-                        ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax);
-
-                    if (_splineMaterial == null)
-                    {
-                        CreateSplineMaterial();
-                    }
-                }
-                else
-                {
-                    _splineMesh = null;
-                }
-            }
-        }
-
         protected new void OnDrawGizmosSelected()
         {
+            // Restrict this call as it is costly.
+            if (Selection.activeGameObject == gameObject)
+            {
+                CreateOrUpdateSplineMesh();
+            }
+
             Gizmos.color = GizmoColor;
             Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
         }
 
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)
         {
+            CreateOrUpdateSplineMesh();
             OnDrawGizmosSelected();
         }
 #endif // UNITY_EDITOR

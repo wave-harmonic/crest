@@ -34,6 +34,7 @@ Fixed
    -  Fixed *Build Processor* deprecated/obsolete warnings.
    -  Fixed spurious "headless/batch mode" error during builds.
    -  Greatly improve spline performance in the editor.
+   -  Fixed PSSL compiler errors.
 
 
 4.15.2

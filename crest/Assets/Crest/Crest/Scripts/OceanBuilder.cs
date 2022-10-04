@@ -452,6 +452,8 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject($"Tile_L{lodIndex}_{patchTypes[i]}");
+                // Also applying the hide flags to the chunk will prevent it from being pickable in the editor.
+                patch.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
                 patch.layer = oceanLayer;
                 patch.transform.parent = parent;
                 Vector2 pos = offsets[i];

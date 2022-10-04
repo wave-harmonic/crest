@@ -35,6 +35,7 @@ Fixed
    -  Fixed spurious "headless/batch mode" error during builds.
    -  Greatly improve spline performance in the editor.
    -  Fixed PSSL compiler errors.
+   -  Fixed ocean tiles being pickable in the editor.
 
 
 4.15.2

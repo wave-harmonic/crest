@@ -35,6 +35,7 @@ Fixed
    -  Fixed spurious "headless/batch mode" error during builds.
    -  Greatly improve spline performance in the editor.
    -  Fixed PSSL compiler errors.
+   -  Fixed incompatibility with EasySave3 and similar assets where water tiles would be orphaned when exiting play mode.
    -  Fixed ocean tiles being pickable in the editor.
 
 

@@ -37,6 +37,7 @@ Fixed
    -  Fixed PSSL compiler errors.
    -  Fixed incompatibility with EasySave3 and similar assets where water tiles would be orphaned when exiting play mode.
    -  Fixed ocean tiles being pickable in the editor.
+   -  Fixed several memory leaks.
 
 
 4.15.2

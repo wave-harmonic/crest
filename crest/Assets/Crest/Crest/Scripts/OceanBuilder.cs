@@ -127,6 +127,29 @@ namespace Crest
             Count,
         }
 
+        // Keep references to meshes so they can be cleaned up later.
+        static Mesh[] s_Meshes;
+
+        /// <summary>
+        /// Destroy tiles and any resources.
+        /// </summary>
+        public static void CleanUp(OceanRenderer ocean)
+        {
+            // Not every mesh is assigned to a chunk thus we should destroy all of them here.
+            for (int i = 0; i < s_Meshes.Length; i++)
+            {
+                Helpers.Destroy(s_Meshes[i]);
+            }
+
+            ocean.Tiles.Clear();
+
+            // May not be present when entering play mode.
+            if (ocean.Root)
+            {
+                Helpers.Destroy(ocean.Root.gameObject);
+            }
+        }
+
         public static Transform GenerateMesh(OceanRenderer ocean, List<OceanChunkRenderer> tiles, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
@@ -154,8 +177,6 @@ namespace Crest
             sw.Start();
 #endif
 
-            ClearOutTiles(ocean, tiles);
-
             var root = new GameObject("Root");
             Debug.Assert(root != null, "Crest: The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
 
@@ -168,18 +189,18 @@ namespace Crest
             if (!OceanRenderer.RunningHeadless && !OceanRenderer.RunningWithoutGPU)
             {
                 // create mesh data
-                Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
+                s_Meshes = new Mesh[(int)PatchType.Count];
                 Bounds[] meshBounds = new Bounds[(int)PatchType.Count];
                 // 4 tiles across a LOD, and support lowering density by a factor
                 var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
                 for (int i = 0; i < (int)PatchType.Count; i++)
                 {
-                    meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
+                    s_Meshes[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
                 }
 
                 for (int i = 0; i < lodCount; i++)
                 {
-                    CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                    CreateLOD(ocean, tiles, root.transform, i, lodCount, s_Meshes, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
                 }
             }
 
@@ -189,48 +210,6 @@ namespace Crest
 #endif
 
             return root.transform;
-        }
-
-        public static void ClearOutTiles(OceanRenderer ocean, List<OceanChunkRenderer> tiles)
-        {
-            tiles.Clear();
-
-            if (ocean.Root == null)
-            {
-                return;
-            }
-
-            // Remove existing LODs
-            for (int i = 0; i < ocean.Root.childCount; i++)
-            {
-                var child = ocean.Root.GetChild(i);
-                if (child.name.StartsWith("Tile_L"))
-                {
-                    DestroyGO(child);
-
-                    i--;
-                }
-            }
-
-            DestroyGO(ocean.Root);
-        }
-
-        static void DestroyGO(Transform go)
-        {
-            go.parent = null;
-
-#if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPlaying)
-            {
-                Object.Destroy(go.gameObject);
-            }
-            else
-            {
-                Object.DestroyImmediate(go.gameObject);
-            }
-#else
-            Object.Destroy(go.gameObject);
-#endif
         }
 
         static Mesh BuildOceanPatch(PatchType pt, float vertDensity, out Bounds bounds)

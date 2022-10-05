@@ -1421,18 +1421,8 @@ namespace Crest
             }
             _lodDatas.Clear();
 
-#if UNITY_EDITOR
-            if (!EditorApplication.isPlaying && Root != null)
-            {
-                DestroyImmediate(Root.gameObject);
-            }
-            else
-#endif
-            if (Root != null)
-            {
-                Destroy(Root.gameObject);
-            }
-
+            // Clean up everything created through the Ocean Builder.
+            OceanBuilder.CleanUp(Instance);
             Root = null;
 
             _lodTransform = null;

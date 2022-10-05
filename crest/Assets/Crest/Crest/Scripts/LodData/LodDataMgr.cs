@@ -285,6 +285,8 @@ namespace Crest
                 x.Release();
                 Helpers.Destroy(x);
             });
+
+            Helpers.Destroy(_defaultSettings);
         }
     }
 }

@@ -87,6 +87,11 @@ namespace Crest
             Helpers.Destroy(_waveBuffers);
             _combineBuffer.Release();
             Helpers.Destroy(_combineBuffer);
+
+            for (int index = 0; index < _combineMaterial.Length; index++)
+            {
+                Helpers.Destroy(_combineMaterial[index].material);
+            }
         }
 
         protected override void InitData()

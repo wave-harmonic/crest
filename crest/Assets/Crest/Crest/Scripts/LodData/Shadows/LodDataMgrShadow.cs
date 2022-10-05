@@ -127,6 +127,11 @@ namespace Crest
             }
 
             CleanUpShadowCommandBuffers();
+
+            for (var index = 0; index < _renderMaterial.Length; index++)
+            {
+                Helpers.Destroy(_renderMaterial[index].material);
+            }
         }
 
         protected override void InitData()

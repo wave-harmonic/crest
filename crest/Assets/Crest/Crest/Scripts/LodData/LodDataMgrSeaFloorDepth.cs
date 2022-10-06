@@ -101,8 +101,7 @@ namespace Crest
 
         static void InitNullTexture()
         {
-            // Depth textures use HDR values
-            var texture = TextureArrayHelpers.CreateTexture2D(s_nullColor, UnityEngine.TextureFormat.RGB9e5Float);
+            var texture = TextureArrayHelpers.CreateTexture2D(s_nullColor, TextureFormat.RFloat);
             texture.name = "Sea Floor Depth Null Texture2D";
             s_nullTexture = TextureArrayHelpers.CreateTexture2DArray(texture);
             s_nullTexture.name = "Sea Floor Depth Null Texture2DArray";

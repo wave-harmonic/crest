@@ -39,6 +39,7 @@ Fixed
    -  Fixed incompatibility with EasySave3 and similar assets where water tiles would be orphaned when exiting play mode.
    -  Fixed ocean tiles being pickable in the editor.
    -  Fixed several memory leaks.
+   -  Fixed *Sea Floor Depth Data* disabled state as it was still attenuating waves when disabled.
 
 
 4.15.2

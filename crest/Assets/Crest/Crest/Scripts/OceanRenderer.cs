@@ -1596,6 +1596,9 @@ namespace Crest
 
             isValid = ValidateObsolete(ocean, showMessage);
 
+            isValid = isValid && ValidatedHelper.ValidateNoRotation(this, transform, showMessage);
+            isValid = isValid && ValidatedHelper.ValidateNoScale(this, transform, showMessage);
+
             if (_material == null)
             {
                 showMessage
@@ -1772,16 +1775,6 @@ namespace Crest
             if (_simSettingsAnimatedWaves)
             {
                 _simSettingsAnimatedWaves.Validate(ocean, showMessage);
-            }
-
-            if (transform.eulerAngles.magnitude > 0.0001f)
-            {
-                showMessage
-                (
-                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
-                    "Clear this rotation from the GameObject.",
-                    ValidatedHelper.MessageType.Error, ocean
-                );
             }
 
             // For safety.

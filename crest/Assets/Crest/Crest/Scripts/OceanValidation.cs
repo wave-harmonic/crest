@@ -119,6 +119,42 @@ namespace Crest
             PackageManagerHelpers.AddMissingPackage("com.unity.burst");
         }
 
+        public static bool ValidateNoScale(Object @object, Transform transform, ShowMessage showMessage)
+        {
+            if (transform.lossyScale != Vector3.one)
+            {
+                showMessage
+                (
+                    $"There must be no scale on the <i>{@object.GetType().Name}</i> Transform or any of its parents." +
+                    $"The current scale is <i>{transform.lossyScale}</i>.",
+                    "Reset the scale on this Transform and all parents to one.",
+                    MessageType.Error, @object
+                );
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool ValidateNoRotation(Object @object, Transform transform, ShowMessage showMessage)
+        {
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the <i>{@object.GetType().Name}</i> Transform or any of its parents." +
+                    $"The current rotation is <i>{transform.eulerAngles}.</i>",
+                    "Reset the rotation on this Transform and all parents to zero.",
+                    MessageType.Error, @object
+                );
+
+                return false;
+            }
+
+            return true;
+        }
+
         public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, string shaderPrefix) where T : Renderer
         {
             return ValidateRenderer<T>(gameObject, showMessage, isRendererRequired: true, isRendererOptional: false, shaderPrefix);

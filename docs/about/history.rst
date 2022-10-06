@@ -22,6 +22,7 @@ Changed
       Set *Blend Mode* to *Alpha Blend* on the *ShapeFFT* or *ShapeGerstner* to use.
       It's useful for preventing rivers and lakes from receiving ocean waves.
    -  Warn users that edits in prefab mode will not be reflected in scene view until prefab is saved.
+   -  Validate that no scale can be applied to the *OceanRenderer*.
 
 
 Fixed

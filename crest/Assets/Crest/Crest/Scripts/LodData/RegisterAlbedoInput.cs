@@ -9,7 +9,6 @@ namespace Crest
     /// <summary>
     /// Registers a custom input to the albedo data. Attach this GameObjects that you want to influence the surface colour.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Albedo Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#albedo")]
     public class RegisterAlbedoInput : RegisterLodDataInput<LodDataMgrAlbedo>

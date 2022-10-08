@@ -10,7 +10,6 @@ namespace Crest.Examples
     using UnityEngine;
     using UnityEngine.Rendering;
 
-    [ExecuteAlways]
     public class MaskFill : MonoBehaviour
     {
         [SerializeField]
@@ -97,6 +96,13 @@ namespace Crest.Examples
 
             buffer.DisableShaderKeyword("_SHADOW_PASS");
         }
+
+#if UNITY_EDITOR
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+#endif
     }
 }
 

@@ -15,7 +15,6 @@ namespace Crest
     /// Renders terrain height / ocean depth once into a render target to cache this off and avoid rendering it every frame.
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
-    [ExecuteAlways]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "shallows-and-shorelines.html" + Internal.Constants.HELP_URL_RP)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Depth Cache")]
     public partial class OceanDepthCache : MonoBehaviour
@@ -444,6 +443,11 @@ namespace Crest
 
     public partial class OceanDepthCache : IValidated
     {
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+
         bool IsCacheOutdated()
         {
             return _camDepthCache.orthographicSize != CalculateCacheCameraOrthographicSize() ||

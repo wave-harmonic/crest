@@ -24,7 +24,6 @@ namespace Crest
     ///
     /// For convenience, all shader material settings are copied from the main ocean shader.
     /// </summary>
-    [ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Renderer")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "underwater.html" + Internal.Constants.HELP_URL_RP)]
@@ -391,6 +390,11 @@ namespace Crest
     // Edit Mode.
     public partial class UnderwaterRenderer
     {
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+
         void EnableEditMode()
         {
             Camera.onPreRender -= OnBeforeRender;

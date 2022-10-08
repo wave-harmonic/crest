@@ -10,7 +10,6 @@ namespace Crest
     /// Debug draw crosses in an area around the GameObject on the water surface.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Visualise Collision Area")]
-    [ExecuteAlways]
     public class VisualiseCollisionArea : MonoBehaviour
     {
         /// <summary>
@@ -42,6 +41,14 @@ namespace Crest
         Vector3[] _resultNorms;
 
         Vector3[] _samplePositions;
+
+#if UNITY_EDITOR
+        void OnValidate()
+        {
+            // Using this instead of ExecuteAlways prevents execution during builds.
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+#endif
 
         void Update()
         {

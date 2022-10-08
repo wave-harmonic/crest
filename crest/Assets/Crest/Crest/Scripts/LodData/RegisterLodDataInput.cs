@@ -53,7 +53,6 @@ namespace Crest
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
-    [ExecuteAlways]
     public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
 #if UNITY_EDITOR
@@ -197,7 +196,6 @@ namespace Crest
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
-    [ExecuteAlways]
     public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {
@@ -307,7 +305,6 @@ namespace Crest
     {
     }
 
-    [ExecuteAlways]
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
         : RegisterLodDataInput<LodDataType>
         , ISplinePointCustomDataSetup
@@ -438,6 +435,11 @@ namespace Crest
 
         protected virtual string MaterialFeatureDisabledError => null;
         protected virtual string MaterialFeatureDisabledFix => null;
+
+        protected virtual void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
 
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {

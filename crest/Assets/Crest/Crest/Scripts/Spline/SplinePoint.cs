@@ -15,7 +15,6 @@ namespace Crest.Spline
     /// <summary>
     /// Spline point, intended to be child of Spline object
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline Point")]
     public class SplinePoint : MonoBehaviour
     {
@@ -29,6 +28,11 @@ namespace Crest.Spline
 #pragma warning restore 414
 
 #if UNITY_EDITOR
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+
         void OnDrawGizmos()
         {
             // We could not get gizmos or handles to work well when 3D Icons is enabled. problems included

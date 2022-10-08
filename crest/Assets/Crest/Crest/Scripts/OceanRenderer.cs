@@ -26,7 +26,7 @@ namespace Crest
     /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initializes the various data types and systems
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
-    [ExecuteAlways, SelectionBase]
+    [SelectionBase]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
     [HelpURL(Constants.HELP_URL_GENERAL)]
     public partial class OceanRenderer : MonoBehaviour
@@ -850,15 +850,6 @@ namespace Crest
 
         bool VerifyRequirements()
         {
-#if UNITY_EDITOR
-            // If running a build, don't assert any requirements at all. Requirements are for
-            // the runtime, not for making builds.
-            if (BuildPipeline.isBuildingPlayer)
-            {
-                return true;
-            }
-#endif
-
             if (!RunningWithoutGPU)
             {
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
@@ -1841,6 +1832,9 @@ namespace Crest
 
         void OnValidate()
         {
+            // Using this instead of ExecuteAlways prevents execution during builds.
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+
             // Must be at least 0.25, and must be on a power of 2
             _minScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_minScale, 0.25f), 2f)));
 

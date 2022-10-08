@@ -974,7 +974,7 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (_followViewpoint && Viewpoint != null)
+            if (_followViewpoint && ViewCamera != null)
             {
                 LateUpdatePosition();
                 LateUpdateViewerHeight();
@@ -985,7 +985,7 @@ namespace Crest
 
             LateUpdateLods();
 
-            if (Viewpoint != null)
+            if (ViewCamera != null)
             {
                 LateUpdateTiles();
             }

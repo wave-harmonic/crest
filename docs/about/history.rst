@@ -23,6 +23,7 @@ Changed
       It's useful for preventing rivers and lakes from receiving ocean waves.
    -  Warn users that edits in prefab mode will not be reflected in scene view until prefab is saved.
    -  Validate that no scale can be applied to the *OceanRenderer*.
+   -  Viewpoint validation has been removed as it was unnecessary and spammed the logs.
 
 
 Fixed

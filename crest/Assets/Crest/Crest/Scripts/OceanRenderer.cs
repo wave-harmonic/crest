@@ -606,8 +606,6 @@ namespace Crest
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
-            ValidateViewpoint();
-
             if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
                 gameObject.AddComponent<OceanDebugGUI>().hideFlags = HideFlags.DontSave;
@@ -897,14 +895,6 @@ namespace Crest
             return true;
         }
 
-        void ValidateViewpoint()
-        {
-            if (Viewpoint == null)
-            {
-                Debug.LogError("Crest: Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
-            }
-        }
-
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()
         {
@@ -983,8 +973,6 @@ namespace Crest
             var needToBlendOutShape = ScaleCouldIncrease;
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
-
-            ValidateViewpoint();
 
             if (_followViewpoint && Viewpoint != null)
             {

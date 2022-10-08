@@ -9,7 +9,6 @@ namespace Crest
     /// <summary>
     /// Registers a custom input to the wave shape. Attach this GameObjects that you want to render into the displacmeent textures to affect ocean shape.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Animated Waves Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves")]
     public class RegisterAnimWavesInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAnimWaves>

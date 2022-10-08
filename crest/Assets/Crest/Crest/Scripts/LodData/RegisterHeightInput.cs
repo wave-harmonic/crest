@@ -9,7 +9,6 @@ namespace Crest
     /// <summary>
     /// Registers a custom input to affect the water height.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
     public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>
     {

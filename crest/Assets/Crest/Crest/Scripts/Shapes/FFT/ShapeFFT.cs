@@ -20,7 +20,6 @@ namespace Crest
     /// <summary>
     /// FFT ocean wave shape
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
@@ -509,6 +508,8 @@ namespace Crest
 #if UNITY_EDITOR
         private void OnValidate()
         {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+
             _resolution = Mathf.ClosestPowerOfTwo(_resolution);
             _resolution = Mathf.Max(_resolution, 16);
         }

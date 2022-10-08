@@ -9,7 +9,6 @@ namespace Crest
     /// <summary>
     /// Registers a custom input to the flow data. Attach this GameObjects that you want to influence the horizontal flow of the water volume.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#flow")]
     public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>

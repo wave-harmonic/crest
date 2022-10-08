@@ -11,7 +11,6 @@ using UnityEngine.SceneManagement;
 
 namespace Crest
 {
-    [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Ocean Debug GUI")]
     public class OceanDebugGUI : MonoBehaviour
     {
@@ -462,5 +461,12 @@ namespace Crest
             // Init here from 2019.3 onwards
             s_simNames.Clear();
         }
+
+#if UNITY_EDTIOR
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+#endif
     }
 }

@@ -22,7 +22,6 @@ namespace Crest
     /// <summary>
     /// Gerstner ocean waves.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeGerstner : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
@@ -915,6 +914,11 @@ namespace Crest
 #if UNITY_EDITOR
     public partial class ShapeGerstner : IValidated
     {
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;

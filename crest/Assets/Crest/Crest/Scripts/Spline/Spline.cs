@@ -15,7 +15,6 @@ namespace Crest.Spline
     /// <summary>
     /// Simple spline object. Spline points are child GameObjects.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines")]
     public partial class Spline : MonoBehaviour, ISplinePointCustomDataSetup
@@ -87,6 +86,11 @@ namespace Crest.Spline
 #if UNITY_EDITOR
     public partial class Spline : IValidated
     {
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+
         public void OnDrawGizmos()
         {
             var points = GetComponentsInChildren<SplinePoint>();

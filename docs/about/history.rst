@@ -41,6 +41,7 @@ Fixed
    -  Fixed ocean tiles being pickable in the editor.
    -  Fixed several memory leaks.
    -  Fixed *Sea Floor Depth Data* disabled state as it was still attenuating waves when disabled.
+   -  No longer execute when building which caused several issues.
 
 
 4.15.2

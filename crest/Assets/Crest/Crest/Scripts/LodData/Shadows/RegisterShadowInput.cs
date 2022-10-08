@@ -9,7 +9,6 @@ namespace Crest
     /// <summary>
     /// Registers a custom input for shadow data. Attach this to GameObjects that you want use to override shadows.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Shadow Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#shadows")]
     public class RegisterShadowInput : RegisterLodDataInput<LodDataMgrShadow>

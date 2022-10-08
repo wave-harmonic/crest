@@ -11,7 +11,6 @@ namespace Crest
     /// <summary>
     /// This time provider feeds a Timeline time to the ocean system, using a Playable Director
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Cutscene Time Provider")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "time-providers.html" + Internal.Constants.HELP_URL_RP + "#timelines-and-cutscenes")]
     public class TimeProviderCutscene : TimeProviderBase
@@ -100,6 +99,11 @@ namespace Crest
             {
                 Initialise(false);
             }
+        }
+
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
         }
 #endif
 

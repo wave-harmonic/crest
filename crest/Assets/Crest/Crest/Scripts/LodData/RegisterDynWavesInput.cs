@@ -9,7 +9,6 @@ namespace Crest
     /// <summary>
     /// Registers a custom input to the dynamic wave simulation. Attach this GameObjects that you want to influence the sim to add ripples etc.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Dynamic Waves Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#dynamic-waves")]
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>

@@ -15,7 +15,6 @@ namespace Crest
     /// Demarcates an AABB area where water is present in the world. If present, ocean tiles will be
     /// culled if they don't overlap any WaterBody.
     /// </summary>
-    [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Water Body")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-bodies.html")]
     public partial class WaterBody : MonoBehaviour
@@ -196,6 +195,11 @@ namespace Crest
 #if UNITY_EDITOR
     public partial class WaterBody : IValidated
     {
+        void OnValidate()
+        {
+            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+        }
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;

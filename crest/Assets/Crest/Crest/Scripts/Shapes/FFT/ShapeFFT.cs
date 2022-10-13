@@ -22,7 +22,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
-    public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
+    public partial class ShapeFFT : CustomMonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
@@ -506,9 +506,9 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        private void OnValidate()
+        protected override void OnValidate()
         {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+            base.OnValidate();
 
             _resolution = Mathf.ClosestPowerOfTwo(_resolution);
             _resolution = Mathf.Max(_resolution, 16);

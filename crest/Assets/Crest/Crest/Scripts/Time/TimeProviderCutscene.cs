@@ -100,11 +100,6 @@ namespace Crest
                 Initialise(false);
             }
         }
-
-        void OnValidate()
-        {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
 #endif
 
         // If there is a playable director which is playing, return its time, otherwise

@@ -15,7 +15,7 @@ namespace Crest
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_INTERNAL + "Ocean Chunk Renderer")]
-    public class OceanChunkRenderer : MonoBehaviour
+    public class OceanChunkRenderer : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -200,11 +200,6 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        void OnValidate()
-        {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
-
         private void OnDrawGizmos()
         {
             if (_drawRenderBounds)

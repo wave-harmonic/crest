@@ -10,7 +10,7 @@ namespace Crest
     /// Debug draw crosses in an area around the GameObject on the water surface.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Visualise Collision Area")]
-    public class VisualiseCollisionArea : MonoBehaviour
+    public class VisualiseCollisionArea : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -41,14 +41,6 @@ namespace Crest
         Vector3[] _resultNorms;
 
         Vector3[] _samplePositions;
-
-#if UNITY_EDITOR
-        void OnValidate()
-        {
-            // Using this instead of ExecuteAlways prevents execution during builds.
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
-#endif
 
         void Update()
         {

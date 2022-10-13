@@ -20,7 +20,7 @@ namespace Crest
     }
 
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "time-providers.html" + Internal.Constants.HELP_URL_RP)]
-    public abstract class TimeProviderBase : MonoBehaviour, ITimeProvider
+    public abstract class TimeProviderBase : CustomMonoBehaviour, ITimeProvider
     {
         public abstract float CurrentTime { get; }
         public abstract float DeltaTime { get; }

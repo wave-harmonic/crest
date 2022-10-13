@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Water Body")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-bodies.html")]
-    public partial class WaterBody : MonoBehaviour
+    public partial class WaterBody : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -195,11 +195,6 @@ namespace Crest
 #if UNITY_EDITOR
     public partial class WaterBody : IValidated
     {
-        void OnValidate()
-        {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
-
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;

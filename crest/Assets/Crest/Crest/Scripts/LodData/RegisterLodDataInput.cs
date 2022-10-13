@@ -53,7 +53,7 @@ namespace Crest
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
-    public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
+    public abstract partial class RegisterLodDataInputBase : CustomMonoBehaviour, ILodDataInput
     {
 #if UNITY_EDITOR
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
@@ -435,11 +435,6 @@ namespace Crest
 
         protected virtual string MaterialFeatureDisabledError => null;
         protected virtual string MaterialFeatureDisabledFix => null;
-
-        protected virtual void OnValidate()
-        {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
 
         public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {

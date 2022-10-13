@@ -27,7 +27,7 @@ namespace Crest
     [RequireComponent(typeof(Camera))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Renderer")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "underwater.html" + Internal.Constants.HELP_URL_RP)]
-    public partial class UnderwaterRenderer : MonoBehaviour
+    public partial class UnderwaterRenderer : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -390,11 +390,6 @@ namespace Crest
     // Edit Mode.
     public partial class UnderwaterRenderer
     {
-        void OnValidate()
-        {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
-
         void EnableEditMode()
         {
             Camera.onPreRender -= OnBeforeRender;

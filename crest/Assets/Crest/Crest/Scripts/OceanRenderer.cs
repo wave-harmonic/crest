@@ -29,7 +29,7 @@ namespace Crest
     [SelectionBase]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
     [HelpURL(Constants.HELP_URL_GENERAL)]
-    public partial class OceanRenderer : MonoBehaviour
+    public partial class OceanRenderer : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -1830,10 +1830,9 @@ namespace Crest
             return isValid;
         }
 
-        void OnValidate()
+        protected override void OnValidate()
         {
-            // Using this instead of ExecuteAlways prevents execution during builds.
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
+            base.OnValidate();
 
             // Must be at least 0.25, and must be on a power of 2
             _minScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_minScale, 0.25f), 2f)));

@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "shallows-and-shorelines.html" + Internal.Constants.HELP_URL_RP)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Depth Cache")]
-    public partial class OceanDepthCache : MonoBehaviour
+    public partial class OceanDepthCache : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -443,11 +443,6 @@ namespace Crest
 
     public partial class OceanDepthCache : IValidated
     {
-        void OnValidate()
-        {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
-
         bool IsCacheOutdated()
         {
             return _camDepthCache.orthographicSize != CalculateCacheCameraOrthographicSize() ||

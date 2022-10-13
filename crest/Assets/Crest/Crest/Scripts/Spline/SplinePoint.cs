@@ -16,7 +16,7 @@ namespace Crest.Spline
     /// Spline point, intended to be child of Spline object
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline Point")]
-    public class SplinePoint : MonoBehaviour
+    public class SplinePoint : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -28,11 +28,6 @@ namespace Crest.Spline
 #pragma warning restore 414
 
 #if UNITY_EDITOR
-        void OnValidate()
-        {
-            runInEditMode = !UnityEditor.BuildPipeline.isBuildingPlayer;
-        }
-
         void OnDrawGizmos()
         {
             // We could not get gizmos or handles to work well when 3D Icons is enabled. problems included

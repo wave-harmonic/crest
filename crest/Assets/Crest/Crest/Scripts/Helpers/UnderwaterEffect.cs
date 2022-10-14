@@ -11,11 +11,6 @@ using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Collections.Generic;
-#if UNITY_2021_2_OR_NEWER
-using UnityEditor.SceneManagement;
-#else
-using UnityEditor.Experimental.SceneManagement;
-#endif
 #endif
 
 namespace Crest
@@ -24,6 +19,7 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
+    [ExecuteDuringEditMode]
     [System.Obsolete("No longer supported. UnderwaterEffect has been replaced with UnderwaterRenderer.")]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Effect")]
     public partial class UnderwaterEffect : CustomMonoBehaviour
@@ -64,6 +60,8 @@ namespace Crest
 
         bool isMeniscus;
 
+        bool _hasCopiedMaterial;
+
         private void Start()
         {
             _rend = GetComponent<Renderer>();
@@ -78,7 +76,7 @@ namespace Crest
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
-            isMeniscus = _rend.material.shader.name.Contains("Meniscus");
+            isMeniscus = _rend.sharedMaterial.shader.name.Contains("Meniscus");
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
@@ -100,15 +98,45 @@ namespace Crest
             Shader.DisableKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT");
         }
 
+#if UNITY_EDITOR
+        bool _hasBeenVisible;
+
+        // OnBecameVisible stops working after a build is triggered.
+        void OnWillRenderObject()
+        {
+            _hasBeenVisible = true;
+        }
+#endif
+
         void ConfigureMaterial()
         {
-            if (OceanRenderer.Instance == null) return;
-
-            // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
-            if (!isMeniscus)
+#if UNITY_EDITOR
+            // If CopyPropertiesFromMaterial is called before the mesh has become visible, then it will corrupt the
+            // shader/material. It will always be visible except when loading the editor and only the scene view is
+            // active and the mesh is not in view of the scene camera. This is not a problem in standalone.
+            if (!_hasBeenVisible)
             {
-                _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                return;
             }
+#endif
+
+            if (!_copyParamsEachFrame && _hasCopiedMaterial)
+            {
+                return;
+            }
+
+            if (isMeniscus)
+            {
+                return;
+            }
+
+            if (OceanRenderer.Instance.OceanMaterial == null)
+            {
+                return;
+            }
+
+            _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            _hasCopiedMaterial = true;
         }
 
         private void LateUpdate()
@@ -137,11 +165,7 @@ namespace Crest
 
             if (_rend.enabled)
             {
-                // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
-                if (!isMeniscus && _copyParamsEachFrame)
-                {
-                    _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
-                }
+                ConfigureMaterial();
 
                 Shader.EnableKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT");
 

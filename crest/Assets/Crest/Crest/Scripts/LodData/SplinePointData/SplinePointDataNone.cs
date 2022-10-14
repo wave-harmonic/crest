@@ -12,7 +12,7 @@ namespace Crest
     /// in the code when no data is required.
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataNone : MonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataNone : CustomMonoBehaviour, ISplinePointCustomData
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

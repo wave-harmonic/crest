@@ -15,6 +15,7 @@ namespace Crest
     /// Renders terrain height / ocean depth once into a render target to cache this off and avoid rendering it every frame.
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
+    [ExecuteDuringEditMode]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "shallows-and-shorelines.html" + Internal.Constants.HELP_URL_RP)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Depth Cache")]
     public partial class OceanDepthCache : CustomMonoBehaviour
@@ -349,13 +350,14 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(OceanDepthCache))]
-    public class OceanDepthCacheEditor : ValidatedEditor
+    public class OceanDepthCacheEditor : CustomBaseEditor
     {
         readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layers", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug" };
 
         public override void OnInspectorGUI()
         {
             // We won't just use default inspector because we want to show some of the params conditionally based on cache type
+            RenderBeforeInspectorGUI();
 
             // First show standard 'Script' field
             GUI.enabled = false;

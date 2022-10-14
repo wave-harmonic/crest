@@ -16,7 +16,7 @@ namespace Crest
     /// spheres can be used to model the interaction of a non-spherical shape.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Sphere Water Interaction")]
-    public partial class SphereWaterInteraction : MonoBehaviour, ILodDataInput
+    public partial class SphereWaterInteraction : CustomMonoBehaviour, ILodDataInput
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -300,9 +300,6 @@ namespace Crest
 
             return isValid;
         }
-
-        [CustomEditor(typeof(SphereWaterInteraction), true), CanEditMultipleObjects]
-        class SphereWaterInteractionEditor : ValidatedEditor { }
     }
 #endif
 }

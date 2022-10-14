@@ -14,7 +14,7 @@ using UnityEditor;
 /// Emits useful events (UnityEvents) based on the sampled height of the ocean surface.
 /// </summary>
 [AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ocean Sample Height Events")]
-public class OceanSampleHeightEvents : MonoBehaviour
+public class OceanSampleHeightEvents : CustomMonoBehaviour
 {
     /// <summary>
     /// The version of this asset. Can be used to migrate across versions. This value should
@@ -104,7 +104,7 @@ public class OceanSampleHeightEvents : MonoBehaviour
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(OceanSampleHeightEvents))]
-    public class OceanSampleHeightEventsEditor : Editor
+    public class OceanSampleHeightEventsEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

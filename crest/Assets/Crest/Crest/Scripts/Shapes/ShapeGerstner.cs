@@ -22,6 +22,7 @@ namespace Crest
     /// <summary>
     /// Gerstner ocean waves.
     /// </summary>
+    [ExecuteDuringEditMode(ExecuteDuringEditModeAttribute.Include.None)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeGerstner : CustomMonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
@@ -117,10 +118,6 @@ namespace Crest
                 return s_DefaultSpectrum;
             }
         }
-
-#if UNITY_EDITOR
-        internal bool _isPrefabStageInstance = false;
-#endif
 
         public class GerstnerBatch : ILodDataInput
         {
@@ -750,13 +747,6 @@ namespace Crest
 
         private void OnEnable()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             Instances.Add(transform.GetSiblingIndex(), this);
 
             _firstUpdate = true;
@@ -785,13 +775,6 @@ namespace Crest
 
         void OnDisable()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             Instances.Remove(this);
 
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
@@ -835,24 +818,11 @@ namespace Crest
 
         void Awake()
         {
-#if UNITY_EDITOR
-            // Store whether this instance was created in a prefab stage.
-            var stage = PrefabStageUtility.GetCurrentPrefabStage();
-            _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
-#endif
-
             s_InstanceCount++;
         }
 
         void OnDestroy()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             if (--s_InstanceCount <= 0)
             {
                 if (s_DefaultSpectrum != null)
@@ -929,25 +899,6 @@ namespace Crest
             }
 
             return isValid;
-        }
-    }
-
-    // Here for the help boxes
-    [CustomEditor(typeof(ShapeGerstner))]
-    public class ShapeGerstnerEditor : ValidatedEditor
-    {
-        public override void OnInspectorGUI()
-        {
-            var target = this.target as ShapeGerstner;
-
-            if (target._isPrefabStageInstance)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox(Internal.Constants.k_NoPrefabModeSupportWarning, MessageType.Warning);
-                EditorGUILayout.Space();
-            }
-
-            base.OnInspectorGUI();
         }
     }
 #endif

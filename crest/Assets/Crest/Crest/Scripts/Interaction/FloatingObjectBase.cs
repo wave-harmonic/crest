@@ -13,7 +13,7 @@ namespace Crest
     /// <summary>
     /// Base class for objects that float on water.
     /// </summary>
-    public abstract partial class FloatingObjectBase : MonoBehaviour
+    public abstract partial class FloatingObjectBase : CustomMonoBehaviour
     {
         public abstract float ObjectWidth { get; }
         public abstract bool InWater { get; }
@@ -54,8 +54,5 @@ namespace Crest
             return isValid;
         }
     }
-
-    [CustomEditor(typeof(FloatingObjectBase), true), CanEditMultipleObjects]
-    class FloatingObjectBaseEditor : ValidatedEditor { }
 #endif
 }

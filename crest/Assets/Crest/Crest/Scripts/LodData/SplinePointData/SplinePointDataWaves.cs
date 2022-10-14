@@ -11,7 +11,7 @@ namespace Crest
     /// Custom spline point data for waves
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataWaves : MonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataWaves : CustomMonoBehaviour, ISplinePointCustomData
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

@@ -257,6 +257,11 @@ namespace Crest
 
         public void ShowValidationMessages()
         {
+            if (!(this.target is IValidated))
+            {
+                return;
+            }
+
             IValidated target = (IValidated)this.target;
 
             // Enable rich text in help boxes. Store original so we can revert since this might be a "hack".

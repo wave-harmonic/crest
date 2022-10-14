@@ -9,11 +9,6 @@ using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
-#if UNITY_2021_2_OR_NEWER
-using UnityEditor.SceneManagement;
-#else
-using UnityEditor.Experimental.SceneManagement;
-#endif
 #endif
 
 #if !UNITY_2020_3_OR_NEWER
@@ -26,6 +21,7 @@ namespace Crest
     /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initializes the various data types and systems
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
+    [ExecuteDuringEditMode(ExecuteDuringEditModeAttribute.Include.None)]
     [SelectionBase]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
     [HelpURL(Constants.HELP_URL_GENERAL)]
@@ -494,32 +490,9 @@ namespace Crest
         BufferedData<PerCascadeInstanceData[]> _perCascadeInstanceData;
         public int BufferSize { get; private set; }
 
-#if UNITY_EDITOR
-        // The OceanRenderer system (due to Singleton pattern) does not work well with prefab stages as they create
-        // duplicates (one for scene one for prefab stage).
-        // When leaving the last prefab stage, OnDisabled/OnDestroyed will be called but GetCurrentPrefabStage will
-        // return nothing which will fail the prefab check and disable the OceanRenderer in the scene. We need to track
-        // it ourselves.
-        internal bool _isPrefabStageInstance = false;
-
-        void Awake()
-        {
-            // Store whether this instance was created in a prefab stage.
-            var stage = PrefabStageUtility.GetCurrentPrefabStage();
-            _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
-        }
-#endif
-
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             _isFirstFrameSinceEnabled = true;
 
             // Setup a default time provider, and add the override one (from the inspector)
@@ -633,13 +606,6 @@ namespace Crest
 
         private void OnDisable()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             CleanUp();
 
             Instance = null;
@@ -898,11 +864,6 @@ namespace Crest
 #if UNITY_EDITOR
             // Don't run immediately if in edit mode - need to count editor frames so this is run through EditorUpdate()
             if (!EditorApplication.isPlaying)
-            {
-                return;
-            }
-
-            if (_isPrefabStageInstance)
             {
                 return;
             }
@@ -1898,7 +1859,7 @@ namespace Crest
     }
 
     [CustomEditor(typeof(OceanRenderer))]
-    public class OceanRendererEditor : ValidatedEditor
+    public class OceanRendererEditor : CustomBaseEditor
     {
         OceanRenderer _target;
         MaterialEditor _materialEditor;
@@ -1926,13 +1887,6 @@ namespace Crest
         public override void OnInspectorGUI()
         {
             var target = this.target as OceanRenderer;
-
-            if (target._isPrefabStageInstance)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox(Internal.Constants.k_NoPrefabModeSupportWarning, MessageType.Warning);
-                EditorGUILayout.Space();
-            }
 
             var currentAssignedTP = serializedObject.FindProperty("_timeProvider").objectReferenceValue;
 

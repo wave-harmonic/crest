@@ -67,7 +67,7 @@ namespace Crest.Spline
     }
 
     [CustomEditor(typeof(SplinePoint))]
-    public class SplinePointEditor : Editor
+    public class SplinePointEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

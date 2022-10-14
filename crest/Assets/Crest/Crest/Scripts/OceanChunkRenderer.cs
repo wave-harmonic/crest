@@ -14,6 +14,7 @@ namespace Crest
     /// <summary>
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
+    [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_INTERNAL + "Ocean Chunk Renderer")]
     public class OceanChunkRenderer : CustomMonoBehaviour
     {
@@ -265,7 +266,7 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(OceanChunkRenderer)), CanEditMultipleObjects]
-    public class OceanChunkRendererEditor : Editor
+    public class OceanChunkRendererEditor : CustomBaseEditor
     {
         Renderer renderer;
         public override void OnInspectorGUI()

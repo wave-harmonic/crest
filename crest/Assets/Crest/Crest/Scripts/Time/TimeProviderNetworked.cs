@@ -40,7 +40,7 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(TimeProviderNetworked))]
-    class TimeProviderNetworkedEditor : Editor
+    class TimeProviderNetworkedEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

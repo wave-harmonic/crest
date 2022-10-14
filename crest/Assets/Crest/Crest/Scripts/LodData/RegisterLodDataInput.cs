@@ -53,6 +53,7 @@ namespace Crest
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
+    [ExecuteDuringEditMode]
     public abstract partial class RegisterLodDataInputBase : CustomMonoBehaviour, ILodDataInput
     {
 #if UNITY_EDITOR
@@ -312,7 +313,7 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
         where LodDataType : LodDataMgr
-        where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
+        where SplinePointCustomData : CustomMonoBehaviour, ISplinePointCustomData
     {
         [Header("Spline settings")]
         [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField]
@@ -492,7 +493,7 @@ namespace Crest
     }
 
     [CustomEditor(typeof(RegisterLodDataInputBase), true), CanEditMultipleObjects]
-    class RegisterLodDataInputBaseEditor : ValidatedEditor
+    class RegisterLodDataInputBaseEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

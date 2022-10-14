@@ -19,6 +19,7 @@ namespace Crest
         float DeltaTimeDynamics { get; }
     }
 
+    [ExecuteDuringEditMode]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "time-providers.html" + Internal.Constants.HELP_URL_RP)]
     public abstract class TimeProviderBase : CustomMonoBehaviour, ITimeProvider
     {
@@ -26,9 +27,4 @@ namespace Crest
         public abstract float DeltaTime { get; }
         public abstract float DeltaTimeDynamics { get; }
     }
-
-#if UNITY_EDITOR
-    [CustomEditor(typeof(TimeProviderBase), editorForChildClasses: true), CanEditMultipleObjects]
-    class TimeProviderBaseEditor : Editor { }
-#endif
 }

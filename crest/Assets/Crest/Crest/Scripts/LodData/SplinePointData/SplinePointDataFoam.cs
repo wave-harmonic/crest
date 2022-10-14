@@ -11,7 +11,7 @@ namespace Crest
     /// Foam tweakable param on spline points
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataFoam : MonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataFoam : CustomMonoBehaviour, ISplinePointCustomData
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

@@ -14,7 +14,7 @@ namespace Crest
     /// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Object Water Interaction")]
-    public partial class ObjectWaterInteraction : MonoBehaviour
+    public partial class ObjectWaterInteraction : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -239,9 +239,6 @@ namespace Crest
 
             return isValid;
         }
-
-        [CustomEditor(typeof(ObjectWaterInteraction), true), CanEditMultipleObjects]
-        class ObjectWaterInteractionEditor : ValidatedEditor { }
     }
 #endif
 }

@@ -10,6 +10,7 @@ namespace Crest.Examples
     using UnityEngine;
     using UnityEngine.Rendering;
 
+    [ExecuteDuringEditMode]
     public class MaskFill : CustomMonoBehaviour
     {
         [SerializeField]

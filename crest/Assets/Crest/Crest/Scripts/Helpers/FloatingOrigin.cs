@@ -42,7 +42,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Floating Origin")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "other-features.html" + Internal.Constants.HELP_URL_RP + "#floating-origin")]
-    public class FloatingOrigin : MonoBehaviour
+    public class FloatingOrigin : CustomMonoBehaviour
     {
         const string k_Keyword = "CREST_FLOATING_ORIGIN";
 
@@ -188,12 +188,16 @@ namespace Crest
             }
         }
 
-        void OnValidate()
+#if UNITY_EDITOR
+        protected override void OnValidate()
         {
+            base.OnValidate();
+
             // Must be power of two to avoid popping.
             _threshold = Mathf.Pow(2f, Mathf.Round(Mathf.Log(_threshold, 2f)));
             _threshold = Mathf.Max(_threshold, k_MinimumThreshold);
         }
+#endif
 
         void OnEnable()
         {
@@ -368,7 +372,7 @@ namespace Crest.CrestEditor
     using UnityEditor;
 
     [CustomEditor(typeof(FloatingOrigin))]
-    class FloatingOriginEditor : Editor
+    class FloatingOriginEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Crest
 {
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_EXAMPLE + "Whirlpool")]
-    public class Whirlpool : MonoBehaviour
+    public class Whirlpool : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -102,9 +102,4 @@ namespace Crest
             UpdateMaterials();
         }
     }
-
-#if UNITY_EDITOR
-    [CustomEditor(typeof(Whirlpool))]
-    public class WhirlpoolEditor : Editor { }
-#endif
 }

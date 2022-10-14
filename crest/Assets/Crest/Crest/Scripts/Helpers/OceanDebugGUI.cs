@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace Crest
 {
+    [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Ocean Debug GUI")]
     public class OceanDebugGUI : CustomMonoBehaviour
     {

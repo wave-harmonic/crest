@@ -16,6 +16,7 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
+    [ExecuteDuringEditMode(ExecuteDuringEditModeAttribute.Include.None)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner Batched")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
     public partial class ShapeGerstnerBatched : CustomMonoBehaviour, ICollProvider, IFloatingOrigin
@@ -846,7 +847,7 @@ namespace Crest
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(ShapeGerstnerBatched)), CanEditMultipleObjects]
-    public class ShapeGerstnerBatchedEditor : ValidatedEditor
+    public class ShapeGerstnerBatchedEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

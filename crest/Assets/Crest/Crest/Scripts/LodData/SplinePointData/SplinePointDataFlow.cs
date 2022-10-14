@@ -11,7 +11,7 @@ namespace Crest
     /// Custom spline point data for flow
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataFlow : MonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataFlow : CustomMonoBehaviour, ISplinePointCustomData
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

@@ -78,7 +78,7 @@ namespace Crest
     /// Attach to a camera to generate a reflection texture which can be sampled in the ocean shader.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Planar Reflections")]
-    public class OceanPlanarReflection : MonoBehaviour
+    public class OceanPlanarReflection : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

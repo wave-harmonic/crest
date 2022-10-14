@@ -15,6 +15,7 @@ namespace Crest
     /// Demarcates an AABB area where water is present in the world. If present, ocean tiles will be
     /// culled if they don't overlap any WaterBody.
     /// </summary>
+    [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Water Body")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-bodies.html")]
     public partial class WaterBody : CustomMonoBehaviour
@@ -229,8 +230,5 @@ namespace Crest
             return isValid;
         }
     }
-
-    [CustomEditor(typeof(WaterBody), true), CanEditMultipleObjects]
-    class WaterBodyEditor : ValidatedEditor { }
 #endif
 }

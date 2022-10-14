@@ -7,7 +7,7 @@ namespace Crest.Examples
     using UnityEditor;
     using UnityEngine;
 
-    public class ExamplesController : MonoBehaviour
+    public class ExamplesController : CustomMonoBehaviour
     {
         [SerializeField, Predicated(typeof(ExamplesController), "IsController"), DecoratedField]
         KeyCode _previous = KeyCode.Comma;
@@ -99,7 +99,7 @@ namespace Crest.Examples
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(ExamplesController))]
-    public class ExamplesControllerEditor : Editor
+    public class ExamplesControllerEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

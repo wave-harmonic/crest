@@ -9,7 +9,7 @@ namespace Crest.Examples
     /// <summary>
     /// Moves this transform.
     /// </summary>
-    public class SimpleMotion : MonoBehaviour
+    public class SimpleMotion : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

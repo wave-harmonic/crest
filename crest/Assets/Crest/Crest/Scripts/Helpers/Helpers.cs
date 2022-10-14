@@ -16,6 +16,11 @@ namespace Crest
         public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
             BindingFlags.Static;
 
+        public static T GetCustomAttribute<T>(System.Type type) where T : System.Attribute
+        {
+            return (T)System.Attribute.GetCustomAttribute(type, typeof(T));
+        }
+
         static WaitForEndOfFrame s_WaitForEndOfFrame = new WaitForEndOfFrame();
         public static WaitForEndOfFrame WaitForEndOfFrame => s_WaitForEndOfFrame;
 

@@ -15,6 +15,7 @@ namespace Crest.Spline
     /// <summary>
     /// Simple spline object. Spline points are child GameObjects.
     /// </summary>
+    [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines")]
     public partial class Spline : CustomMonoBehaviour, ISplinePointCustomDataSetup
@@ -180,7 +181,7 @@ namespace Crest.Spline
     }
 
     [CustomEditor(typeof(Spline))]
-    public class SplineEditor : ValidatedEditor
+    public class SplineEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {

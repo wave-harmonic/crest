@@ -9,14 +9,6 @@ namespace Crest
     using UnityEngine;
     using UnityEngine.Rendering;
 
-#if UNITY_EDITOR
-#if UNITY_2021_2_OR_NEWER
-    using UnityEditor.SceneManagement;
-#else
-    using UnityEditor.Experimental.SceneManagement;
-#endif
-#endif
-
     /// <summary>
     /// Underwater Renderer. If a camera needs to go underwater it needs to have this script attached. This adds
     /// fullscreen passes and should only be used if necessary. This effect disables itself when camera is not close to
@@ -24,6 +16,7 @@ namespace Crest
     ///
     /// For convenience, all shader material settings are copied from the main ocean shader.
     /// </summary>
+    [ExecuteDuringEditMode(ExecuteDuringEditModeAttribute.Include.None)]
     [RequireComponent(typeof(Camera))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Renderer")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "underwater.html" + Internal.Constants.HELP_URL_RP)]
@@ -189,26 +182,8 @@ namespace Crest
             }
         }
 
-#if UNITY_EDITOR
-        internal bool _isPrefabStageInstance = false;
-
-        void Awake()
-        {
-            // Store whether this instance was created in a prefab stage.
-            var stage = PrefabStageUtility.GetCurrentPrefabStage();
-            _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
-        }
-#endif
-
         void OnEnable()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             if (_camera == null)
             {
                 _camera = GetComponent<Camera>();
@@ -235,13 +210,6 @@ namespace Crest
 
         void OnDisable()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             Disable();
             Instance = null;
         }
@@ -288,13 +256,6 @@ namespace Crest
 
         void LateUpdate()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             Helpers.SetGlobalKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT", _enableShaderAPI);
 
             if (_enableShaderAPI != _currentEnableShaderAPI && _underwaterEffectCommandBuffer != null)
@@ -312,13 +273,6 @@ namespace Crest
 
         void OnPreRender()
         {
-#if UNITY_EDITOR
-            if (_isPrefabStageInstance)
-            {
-                return;
-            }
-#endif
-
             if (!IsActive)
             {
                 if (Instance != null)
@@ -554,18 +508,11 @@ namespace Crest
     }
 
     [CustomEditor(typeof(UnderwaterRenderer)), CanEditMultipleObjects]
-    public class UnderwaterRendererEditor : ValidatedEditor
+    public class UnderwaterRendererEditor : CustomBaseEditor
     {
         public override void OnInspectorGUI()
         {
             var target = this.target as UnderwaterRenderer;
-
-            if (target._isPrefabStageInstance)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox(Internal.Constants.k_NoPrefabModeSupportWarning, MessageType.Warning);
-                EditorGUILayout.Space();
-            }
 
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox("Scene view rendering can be enabled/disabled with the scene view fog toggle in the scene view command bar.", MessageType.Info);

@@ -13,7 +13,7 @@ namespace Crest
     [RequireComponent(typeof(Renderer))]
     [RequireComponent(typeof(MeshFilter))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Render Alpha On Surface")]
-    public class RenderAlphaOnSurface : MonoBehaviour
+    public class RenderAlphaOnSurface : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

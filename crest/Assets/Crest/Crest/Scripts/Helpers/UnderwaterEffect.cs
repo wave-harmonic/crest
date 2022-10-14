@@ -26,7 +26,7 @@ namespace Crest
     /// </summary>
     [System.Obsolete("No longer supported. UnderwaterEffect has been replaced with UnderwaterRenderer.")]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Underwater Effect")]
-    public partial class UnderwaterEffect : MonoBehaviour
+    public partial class UnderwaterEffect : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -66,13 +66,6 @@ namespace Crest
 
         private void Start()
         {
-#if UNITY_EDITOR
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                return;
-            }
-#endif
             _rend = GetComponent<Renderer>();
 
             if (_rend == null)
@@ -120,14 +113,6 @@ namespace Crest
 
         private void LateUpdate()
         {
-#if UNITY_EDITOR
-            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
-            {
-                return;
-            }
-#endif
-
             if (OceanRenderer.Instance == null || _rend == null || !ShowEffect())
             {
                 if (_rend != null)
@@ -347,10 +332,5 @@ namespace Crest
             return isValid;
         }
     }
-
-#pragma warning disable 0618
-    [CustomEditor(typeof(UnderwaterEffect)), CanEditMultipleObjects]
-    class UnderwaterEffectEditor : ValidatedEditor { }
-#pragma warning restore 0618
 #endif
 }

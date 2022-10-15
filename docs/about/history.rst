@@ -43,6 +43,7 @@ Fixed
    -  Fixed *Sea Floor Depth Data* disabled state as it was still attenuating waves when disabled.
    -  No longer execute when building which caused several issues.
    -  Fixed self-intersecting polygon (and warning) on Ferry model.
+   -  Fixed *Examples* scene UI not scaling and thus looking incorrect for non 4K resolution.
 
 
 4.15.2

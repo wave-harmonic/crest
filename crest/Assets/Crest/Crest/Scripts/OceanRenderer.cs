@@ -1628,7 +1628,11 @@ namespace Crest
                 else
                 {
                     // We need a cubemap if using custom reflections.
+#if UNITY_2022_1_OR_NEWER
+                    if (RenderSettings.customReflectionTexture == null)
+#else
                     if (RenderSettings.customReflection == null)
+#endif
                     {
                         showMessage
                         (

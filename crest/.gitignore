@@ -3,6 +3,8 @@
 .vsconfig/
 .vscode/
 
+/[Pp]ackages/com.unity.asset-store-tools
+
 # Start generated .gitignore file.
 
 /[Ll]ibrary/

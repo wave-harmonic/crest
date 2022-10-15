@@ -300,6 +300,7 @@ MonoBehaviour:
   _innerSphereOffset: 0.109
   _velocityOffset: 0.46
   _compensateForWaveMotion: 0.5
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -356,6 +357,7 @@ MonoBehaviour:
   _innerSphereOffset: 0.109
   _velocityOffset: 0.391
   _compensateForWaveMotion: 0.5
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -412,6 +414,7 @@ MonoBehaviour:
   _innerSphereOffset: 0.109
   _velocityOffset: 0.46
   _compensateForWaveMotion: 1
+  _boostLargeWaves: 0
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -440,8 +443,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2989439222087732126}
-  m_LocalRotation: {x: -0, y: -0.99999875, z: 0, w: -0.0016056981}
-  m_LocalPosition: {x: -106.7, y: 0, z: 54.4}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2693951726185438587}
@@ -454,7 +457,7 @@ Transform:
   - {fileID: 2719601275937381647}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: -180.184, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4847581547824080183
 GameObject:
   m_ObjectHideFlags: 0

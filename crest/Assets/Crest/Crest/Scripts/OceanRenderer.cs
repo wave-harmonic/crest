@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
 using Crest.Internal;
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -1461,60 +1462,10 @@ namespace Crest
         {
             ocean.Validate(ocean, ValidatedHelper.DebugLog);
 
-            // ShapeGerstnerBatched
-            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            foreach (var gerstner in gerstners)
+            foreach (var component in FindObjectsOfType<MonoBehaviour>().OfType<IValidated>())
             {
-                gerstner.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
-            // ShapeGerstner
-            foreach (var component in FindObjectsOfType<ShapeGerstner>())
-            {
+                if (component is OceanRenderer) continue;
                 component.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
-            // ShapeFFT
-            foreach (var component in FindObjectsOfType<ShapeFFT>())
-            {
-                component.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
-#pragma warning disable 0618
-            // UnderwaterEffect
-            var underwaters = FindObjectsOfType<UnderwaterEffect>();
-            foreach (var underwater in underwaters)
-            {
-                underwater.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-#pragma warning restore 0618
-
-            // OceanDepthCache
-            var depthCaches = FindObjectsOfType<OceanDepthCache>();
-            foreach (var depthCache in depthCaches)
-            {
-                depthCache.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
-            // FloatingObjectBase
-            var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
-            foreach (var floatingObject in floatingObjects)
-            {
-                floatingObject.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
-            // Inputs
-            var inputs = FindObjectsOfType<RegisterLodDataInputBase>();
-            foreach (var input in inputs)
-            {
-                input.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
-            // WaterBody
-            var waterBodies = FindObjectsOfType<WaterBody>();
-            foreach (var waterBody in waterBodies)
-            {
-                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             Debug.Log("Crest: Validation complete!", ocean);

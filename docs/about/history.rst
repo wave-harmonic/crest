@@ -25,6 +25,7 @@ Changed
    -  Validate that no scale can be applied to the *OceanRenderer*.
    -  Viewpoint validation has been removed as it was unnecessary and spammed the logs.
    -  Whirlpool now executes in edit mode.
+   -  *Visualise Ray Trace* now executes in edit mode.
 
 
 Fixed

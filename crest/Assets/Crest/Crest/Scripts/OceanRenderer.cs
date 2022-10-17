@@ -1507,12 +1507,12 @@ namespace Crest
             var gerstnerBatches = FindObjectsOfType<ShapeGerstnerBatched>();
             var gerstners = FindObjectsOfType<ShapeGerstner>();
             var ffts = FindObjectsOfType<ShapeFFT>();
-            if (gerstnerBatches.Length == 0 && gerstners.Length == 0 && ffts.Length == 0)
+            if (showMessage == ValidatedHelper.HelpBox && gerstnerBatches.Length == 0 && gerstners.Length == 0 && ffts.Length == 0)
             {
                 showMessage
                 (
-                    "No ShapeGerstnerBatched component found, so ocean will appear flat (no waves).",
-                    "Assign a ShapeGerstnerBatched component to a GameObject.",
+                    "No Shape* component (ShapeFFT, ShapeGerstner, ShapeGerstnerBatched) found, so ocean will appear flat (no waves).",
+                    "Assign a Shape* component to a GameObject.",
                     ValidatedHelper.MessageType.Info, ocean
                 );
             }

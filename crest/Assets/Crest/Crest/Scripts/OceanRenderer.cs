@@ -168,6 +168,9 @@ namespace Crest
         internal Material _material = null;
         public Material OceanMaterial { get => _material; set => _material = value; }
 
+        [Tooltip("Use prefab for water tiles. The only requirements are that the prefab must contain a MeshRenderer at the root and not a MeshFilter or OceanChunkRenderer. MR values will be overwritten where necessary and the prefabs are linked in edit mode.")]
+        public GameObject _waterTilePrefab;
+
         [System.Obsolete("Use the _layer field instead."), HideInInspector, SerializeField]
         string _layerName = "";
         [System.Obsolete("Use the Layer property instead.")]
@@ -885,6 +888,7 @@ namespace Crest
             Hashy.AddBool(_forceBatchMode, ref settingsHash);
             Hashy.AddBool(_forceNoGPU, ref settingsHash);
             Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);
+            Hashy.AddObject(_waterTilePrefab, ref settingsHash);
 
 #pragma warning disable 0618
             Hashy.AddObject(_layerName, ref settingsHash);

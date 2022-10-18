@@ -48,6 +48,18 @@ namespace Crest
             ClearStencil,
         }
 
+        /// <summary>
+        /// Uses PrefabUtility.InstantiatePrefab in editor and GameObject.Instantiate in standalone.
+        /// </summary>
+        public static GameObject InstantiatePrefab(GameObject prefab)
+        {
+#if UNITY_EDITOR
+            return (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab);
+#else
+            return GameObject.Instantiate(prefab);
+#endif
+        }
+
 #if UNITY_EDITOR
         public static bool IsPreviewOfGameCamera(Camera camera)
         {

@@ -21,6 +21,7 @@ Changed
    -  Added ability to alpha blend waves (effectively an override) instead of only having additive blend waves.
       Set *Blend Mode* to *Alpha Blend* on the *ShapeFFT* or *ShapeGerstner* to use.
       It's useful for preventing rivers and lakes from receiving ocean waves.
+   -  Added *Water Tile Prefab* field to *Ocean Renderer* to provide more control over water tile mesh renderers like reflection probes settings.
    -  Warn users that edits in prefab mode will not be reflected in scene view until prefab is saved.
    -  Validate that no scale can be applied to the *OceanRenderer*.
    -  Viewpoint validation has been removed as it was unnecessary and spammed the logs.

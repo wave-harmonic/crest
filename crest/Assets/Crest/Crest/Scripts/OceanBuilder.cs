@@ -430,7 +430,10 @@ namespace Crest
             for (int i = 0; i < offsets.Length; i++)
             {
                 // instantiate and place patch
-                var patch = new GameObject($"Tile_L{lodIndex}_{patchTypes[i]}");
+                var patch = ocean._waterTilePrefab
+                    ? Helpers.InstantiatePrefab(OceanRenderer.Instance._waterTilePrefab)
+                    : new GameObject();
+                patch.name = $"Tile_L{lodIndex}_{patchTypes[i]}";
                 // Also applying the hide flags to the chunk will prevent it from being pickable in the editor.
                 patch.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
                 patch.layer = oceanLayer;
@@ -448,7 +451,15 @@ namespace Crest
                     tiles.Add(oceanChunkRenderer);
                 }
 
-                var mr = patch.AddComponent<MeshRenderer>();
+                if (!patch.TryGetComponent<MeshRenderer>(out var mr))
+                {
+                    mr = patch.AddComponent<MeshRenderer>();
+                    // I don't think one would use light probes for a purely specular water surface? (although diffuse
+                    // foam shading would benefit).
+                    mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+                    // Arbitrary - could be turned on if desired.
+                    mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
 
                 // Sorting order to stop unity drawing it back to front. make the innermost 4 tiles draw first, followed by
                 // the rest of the tiles by LOD index. all this happens before layer 0 - the sorting layer takes priority over the
@@ -456,10 +467,9 @@ namespace Crest
                 // ocean rendering way early, so transparent objects will by default render afterwards, which is typical for water rendering.
                 mr.sortingOrder = -lodCount + (patchTypes[i] == PatchType.Interior ? -1 : lodIndex);
 
-                // I don't think one would use light probes for a purely specular water surface? (although diffuse foam shading would benefit)
-                mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
-                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired
-                mr.receiveShadows = false; // this setting is ignored by unity for the transparent ocean shader
+                // This setting is ignored by Unity for the transparent ocean shader.
+                mr.receiveShadows = false;
+                // Currently not supported in built-in renderer ocean shader.
                 mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
                 mr.material = ocean.OceanMaterial;
 

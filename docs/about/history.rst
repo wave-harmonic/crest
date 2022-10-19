@@ -51,6 +51,7 @@ Fixed
    -  No longer execute when building which caused several issues.
    -  Fixed self-intersecting polygon (and warning) on Ferry model.
    -  Fixed *Examples* scene UI not scaling and thus looking incorrect for non 4K resolution.
+   -  Fixed build failure for *main* scene if reflection probe is added that excluded the *Water* layer.
 
 
 4.15.2

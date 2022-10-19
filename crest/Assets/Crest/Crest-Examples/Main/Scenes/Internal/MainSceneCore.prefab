@@ -278,7 +278,7 @@ GameObject:
   - component: {fileID: 1367125207235463481}
   - component: {fileID: 1132221723987805653}
   - component: {fileID: 1976205943932006336}
-  m_Layer: 0
+  m_Layer: 4
   m_Name: CrestLogo
   m_TagString: Untagged
   m_Icon: {fileID: 0}

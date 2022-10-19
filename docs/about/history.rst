@@ -27,6 +27,7 @@ Changed
    -  Viewpoint validation has been removed as it was unnecessary and spammed the logs.
    -  Whirlpool now executes in edit mode.
    -  *Visualise Ray Trace* now executes in edit mode.
+   -  *Render Alpha On Surface* now executes in edit mode.
    -  Only report no Shape component validation as help boxes (ie no more console logs).
    -  Remove outdated lighting validation.
 

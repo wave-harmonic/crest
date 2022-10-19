@@ -31,6 +31,7 @@ Changed
    -  Only report no Shape component validation as help boxes (ie no more console logs).
    -  Remove outdated lighting validation.
    -  Validate layers to warn users of potential build failures if *Crest* related renderers are not on the same layer as the *OceanRenderer.Layer*.
+   -  No longer log info level validation to the console.
 
 
 Fixed

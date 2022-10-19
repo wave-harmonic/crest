@@ -54,6 +54,12 @@ namespace Crest
 
         public static void DebugLog(string message, string fixDescription, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
+            // Never log info validation to console.
+            if (type == MessageType.Info)
+            {
+                return;
+            }
+
             message = $"Crest Validation: {message} {fixDescription} Click this message to highlight the problem object.";
 
             switch (type)

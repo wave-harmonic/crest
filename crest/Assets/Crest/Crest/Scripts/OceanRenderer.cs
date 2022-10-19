@@ -1543,6 +1543,18 @@ namespace Crest
                 );
             }
 
+            // We need to find hidden probes too, but do not include assets.
+            if (Resources.FindObjectsOfTypeAll<ReflectionProbe>().Where(x => !EditorUtility.IsPersistent(x)).Count() > 0)
+            {
+                showMessage
+                (
+                    "There are reflection probes in the scene. These can cause tiling to appear on the water surface if not set up correctly.",
+                    "For reflections probes that affect the water, they will either need to cover the visible water tiles or water tiles need to ignore reflection probes (can done done with <i>Water Tile Prefab</i> field). " +
+                    $"For all reflection probles that include the <i>{LayerMask.LayerToName(Layer)}</i> layer, make sure they are above the water surface as underwater reflections are not supported.",
+                    ValidatedHelper.MessageType.Info, ocean
+                );
+            }
+
             // Validate scene view effects options.
             if (SceneView.lastActiveSceneView != null && !EditorApplication.isPlaying)
             {

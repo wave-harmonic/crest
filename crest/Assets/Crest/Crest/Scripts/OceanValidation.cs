@@ -155,6 +155,27 @@ namespace Crest
             return true;
         }
 
+        public static bool ValidateRendererLayer(GameObject gameObject, ShowMessage showMessage, OceanRenderer ocean)
+        {
+            if (ocean != null && gameObject.layer != ocean.Layer)
+            {
+                var layerName = LayerMask.LayerToName(ocean.Layer);
+                showMessage
+                (
+                    $"The layer is not the same as the <i>OceanRenderer.Layer ({layerName})</i> which can cause problems if the <i>{layerName}</i> layer is excluded from any culling masks.",
+                    $"Set layer to <i>{layerName}</i>.",
+                    MessageType.Warning, gameObject, x =>
+                    {
+                        Undo.RecordObject(gameObject, $"Change Layer to {layerName}");
+                        gameObject.layer = ocean.Layer;
+                    }
+                );
+            }
+
+            // Is valid as not outright invalid but could be.
+            return true;
+        }
+
         public static bool ValidateRenderer<T>(GameObject gameObject, ShowMessage showMessage, string shaderPrefix) where T : Renderer
         {
             return ValidateRenderer<T>(gameObject, showMessage, isRendererRequired: true, isRendererOptional: false, shaderPrefix);

@@ -100,7 +100,7 @@ namespace Crest
         protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
-        // If this is true, then the renderer should not be there as input source is from something else.
+        // If this is false, then the renderer should not be there as input source is from something else.
         protected virtual bool RendererRequired => true;
         protected virtual bool SupportsMultiPassShaders => false;
 
@@ -197,7 +197,7 @@ namespace Crest
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
-    public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
+    public abstract partial class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {
         protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
@@ -330,7 +330,7 @@ namespace Crest
         protected abstract string SplineShaderName { get; }
         protected abstract Vector2 DefaultCustomData { get; }
 
-        protected override bool RendererRequired => _spline == null;
+        protected override bool RendererRequired => !TryGetComponent<Spline.Spline>(out _);
 
         protected float _splinePointHeightMin;
         protected float _splinePointHeightMax;
@@ -513,6 +513,22 @@ namespace Crest
         }
     }
 
+    public abstract partial class RegisterLodDataInput<LodDataType>
+    {
+        public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = base.Validate(ocean, showMessage);
+
+            // If we have a renderer then validate the layer.
+            if (RendererRequired && TryGetComponent<Renderer>(out _) && !_disableRenderer)
+            {
+                ValidatedHelper.ValidateRendererLayer(gameObject, showMessage, ocean);
+            }
+
+            return isValid;
+        }
+    }
+
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
     {
         protected override bool RendererOptional => true;
@@ -521,8 +537,7 @@ namespace Crest
         {
             bool isValid = base.Validate(ocean, showMessage);
 
-            // Is there a renderer? Check spline explicitly as the renderer may not be created (eg GO is inactive).
-            if (RendererRequired && !TryGetComponent<Renderer>(out _) && !TryGetComponent<Spline.Spline>(out _))
+            if (RendererRequired && !TryGetComponent<Renderer>(out _))
             {
                 showMessage
                 (

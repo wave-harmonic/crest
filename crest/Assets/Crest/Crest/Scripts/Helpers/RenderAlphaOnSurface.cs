@@ -14,7 +14,7 @@ namespace Crest
     [RequireComponent(typeof(Renderer))]
     [RequireComponent(typeof(MeshFilter))]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Render Alpha On Surface")]
-    public class RenderAlphaOnSurface : CustomMonoBehaviour
+    public partial class RenderAlphaOnSurface : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -91,4 +91,15 @@ namespace Crest
             }
         }
     }
+
+#if UNITY_EDITOR
+    public partial class RenderAlphaOnSurface : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            ValidatedHelper.ValidateRendererLayer(gameObject, showMessage, ocean);
+            return true;
+        }
+    }
+#endif
 }

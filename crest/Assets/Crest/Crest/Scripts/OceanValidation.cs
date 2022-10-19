@@ -76,11 +76,7 @@ namespace Crest
         internal static void FixAttachComponent<ComponentType>(SerializedObject componentOrGameObject)
             where ComponentType : Component
         {
-            // We will either get the component or the GameObject it is attached to.
-            var gameObject = componentOrGameObject.targetObject is GameObject
-                ? componentOrGameObject.targetObject as GameObject
-                : (componentOrGameObject.targetObject as Component).gameObject;
-            Undo.AddComponent<ComponentType>(gameObject);
+            Undo.AddComponent<ComponentType>(EditorHelpers.EditorHelpers.GetGameObject(componentOrGameObject));
         }
 
         internal static void FixSetMaterialOptionEnabled(SerializedObject material, string keyword, string floatParam, bool enabled)
@@ -101,9 +97,7 @@ namespace Crest
         static void FixRemoveRenderer(SerializedObject componentOrGameObject)
         {
             // We will either get the component or the GameObject it is attached to.
-            var gameObject = componentOrGameObject.targetObject is GameObject
-                ? componentOrGameObject.targetObject as GameObject
-                : (componentOrGameObject.targetObject as Component).gameObject;
+            var gameObject = EditorHelpers.EditorHelpers.GetGameObject(componentOrGameObject);
             var renderer = gameObject.GetComponent<MeshRenderer>();
             Undo.DestroyObjectImmediate(renderer);
             EditorUtility.SetDirty(gameObject);

@@ -68,6 +68,14 @@ namespace Crest.EditorHelpers
 
             return null;
         }
+
+        public static GameObject GetGameObject(SerializedObject serializedObject)
+        {
+            // We will either get the component or the GameObject it is attached to.
+            return serializedObject.targetObject is GameObject
+                ? serializedObject.targetObject as GameObject
+                : (serializedObject.targetObject as Component).gameObject;
+        }
     }
 }
 

@@ -30,6 +30,7 @@ Changed
    -  *Render Alpha On Surface* now executes in edit mode.
    -  Only report no Shape component validation as help boxes (ie no more console logs).
    -  Remove outdated lighting validation.
+   -  Validate layers to warn users of potential build failures if *Crest* related renderers are not on the same layer as the *OceanRenderer.Layer*.
 
 
 Fixed

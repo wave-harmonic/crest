@@ -892,6 +892,11 @@ namespace Crest
                 );
             }
 
+            if (_mode == GerstnerMode.Geometry)
+            {
+                ValidatedHelper.ValidateRendererLayer(gameObject, showMessage, ocean);
+            }
+
             if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
             {
                 showMessage

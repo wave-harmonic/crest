@@ -304,6 +304,8 @@ namespace Crest
                 isValid = false;
             }
 
+            ValidatedHelper.ValidateRendererLayer(gameObject, showMessage, ocean);
+
             // Check that underwater effect has correct material assigned.
             var shaderPrefix = "Crest/Underwater";
             var renderer = GetComponent<Renderer>();

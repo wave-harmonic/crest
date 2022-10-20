@@ -55,6 +55,11 @@ Fixed
    -  Fixed *Examples* scene UI not scaling and thus looking incorrect for non 4K resolution.
    -  Fixed build failure for *main* scene if reflection probe is added that excluded the *Water* layer.
 
+.. only:: hdrp
+
+   -  Fixed ocean moving in edit mode when *Always Refresh* is disabled. `[HDRP]`
+   -  Fixed *Clip Surface* adding negative alpha values when *Alpha Clipping* is disabled on the ocean material. `[HDRP]`
+
 
 4.15.2
 ------

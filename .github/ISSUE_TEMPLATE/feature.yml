@@ -1,0 +1,10 @@
+name: Feature Request
+description: Suggest an idea for this project.
+labels: [Enhancement, Needs Triage]
+body:
+- type: textarea
+  attributes:
+    label: Description
+    description: Please describe the desired feature/behaviour. Supporting images/mockups, or reference videos are very helpful to communicate ideas.
+  validations:
+    required: true

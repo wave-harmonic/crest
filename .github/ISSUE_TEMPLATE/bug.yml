@@ -1,0 +1,106 @@
+name: Bug Report
+description: Create a report to help us resolve the issue.
+labels: [Bug, Needs Triage]
+body:
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue for this?
+    description: Please search to see if an issue already exists for the bug you encountered.
+    options:
+    - label: I have searched the existing issues.
+      required: true
+- type: checkboxes
+  attributes:
+    label: Have you checked the documentation to resolve your problem?
+    description: |
+      Please check the following resources as they may help with your issue:
+      - [Frequent Issues](https://crest.readthedocs.io/en/stable/user/getting-started.html#frequent-setup-issues)
+      - [Frequently Asked Questions](https://crest.readthedocs.io/en/stable/user/faq.html)
+    options:
+    - label: I have read the linked documentation and could not resolve my issue.
+      required: true
+- type: textarea
+  attributes:
+    label: Current Behavior
+    description: A concise description of what you're experiencing. **Screenshots or videos** are very helpful.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Expected Behavior
+    description: A concise description of what you expected to happen. **Screenshots or videos** are very helpful.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Steps To Reproduce
+    description: Steps to reproduce the behavior. Reproducing the issue in one of our **example scenes** will help a lot.
+    placeholder: |
+      1. Open main.unity...
+      2. Do this...
+      3. Enter play mode...
+      4. See error...
+  validations:
+    required: false
+- type: input
+  attributes:
+    label: Unity Version
+    description: Provide the **full version number**, including the patch portion, i.e. 2019.1.0f2.
+    placeholder: 2020.3.0f0
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: Crest Version
+    description: You can find the version in *Constants.cs*.
+  validations:
+    required: true
+- type: dropdown
+  attributes:
+    label: Render Pipeline
+    description: Choose the render pipeline you are currently using even if not relevant.
+    options:
+    - Built-In
+    - High Definition
+    - Universal
+    - Custom
+  validations:
+    required: true
+- type: dropdown
+  attributes:
+    label: Editor or Standalone
+    description: Choose when the issue occurs. Select all that apply.
+    multiple: true
+    options:
+    - Editor (Edit Mode)
+    - Editor (Play Mode)
+    - Standalone
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Environment
+    description: |
+      Provide as much information as necessary.
+      Examples:
+        - **OS**: Windows 10
+        - **GPU**: GTX 1080
+        - **Graphics API**: Vulkan
+        - **Target Platform**: Android
+    value: |
+        - OS:
+        - GPU:
+        - Graphics API:
+        - Target Platform:
+    render: markdown
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Anything else?
+    description: |
+      Links? References? Anything that will give us more context about the issue you are encountering!
+
+      Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+  validations:
+    required: false

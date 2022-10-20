@@ -3,7 +3,7 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2020.3.10 and later.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2020.3.40 and later.
 The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
@@ -43,7 +43,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 * Unity version:
   * The SRP assets on the Asset Store specify the minimum version required.
-  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2020.3.10 or later is the minimum version. See further down for 2018.4 support.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2020.3.40 or later is the minimum version.
 * *Crest* example content:
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime
@@ -52,16 +52,12 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 # Installation
 
-***You can download the latest version from [here](https://github.com/wave-harmonic/crest/archive/master.zip).***
+Grab the latest stable release from the top of the [tags](https://github.com/wave-harmonic/crest/tags) page.
 
-Another way to obtain *Crest* is to fork/clone this repository.
+Extract the files and copy anything under *crest/Assets/Crest* into an existing project.
 
-The files that should be copied into an existing project are under *crest/Assets/Crest*.
-
-Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
-
-**Releases**: Currently we do not prepare release packages. However, we do tag each asset store version, so the zip corresponding to each version can be downloaded by clicking the desired version on the [Releases page](https://github.com/wave-harmonic/crest/releases). Once the zip is downloaded, the steps are as above.
-
+> **Note**
+> <br> *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
 # Notes and Issues
 
@@ -71,7 +67,6 @@ There are a few issues worth calling out here:
 
 * Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/wave-harmonic/crest/wiki) for examples.
 * *Crest* does not support OpenGL or WebGL backends
-* Unity 2018 support - There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 
 # Donations
 

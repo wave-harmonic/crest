@@ -51,8 +51,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 float4 vertex : POSITION;
                 float2 axis : TEXCOORD0;
                 float invNormDistToShoreline : TEXCOORD1;
-				float weight : TEXCOORD2;
-	};
+                float weight : TEXCOORD2;
+            };
 
             struct v2f
             {
@@ -95,7 +95,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 o.worldPosScaled = worldPos / waveBufferSize;
 
                 o.invNormDistToShoreline_weight.x = v.invNormDistToShoreline;
-				o.invNormDistToShoreline_weight.y = v.weight * _Weight;
+                o.invNormDistToShoreline_weight.y = v.weight * _Weight;
 
                 // Rotate forward axis around y-axis into world space
                 o.axis = dot( v.axis, _AxisX ) * unity_ObjectToWorld._m00_m20 + dot( v.axis, float2(-_AxisX.y, _AxisX.x) ) * unity_ObjectToWorld._m02_m22;

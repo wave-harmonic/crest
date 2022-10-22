@@ -90,7 +90,7 @@ namespace Crest
 
                 // Generate multi-res FFT into a texture array
                 var fftWaveDataTA = FFTCompute.GenerateDisplacements(buf, fftWaves._resolution, loopPeriod,
-                    fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeedForFFT, t,
+                    fftWaves._windTurbulence, fftWaves.WindDirRadForFFT, fftWaves.WindSpeed, t,
                     fftWaves._spectrum, true);
 
                 // Compute shader generates the final waves
@@ -134,7 +134,7 @@ namespace Crest
                 fftWaves._resolution,
                 firstLod,
                 lodCount,
-                fftWaves.WindSpeedForFFT,
+                fftWaves.WindSpeed,
                 frames.Length,
                 new half(framesAsFloats.Min()),
                 new half(framesAsFloats.Max()),

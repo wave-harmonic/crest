@@ -888,7 +888,10 @@ namespace Crest
             Hashy.AddBool(_forceBatchMode, ref settingsHash);
             Hashy.AddBool(_forceNoGPU, ref settingsHash);
             Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);
-            Hashy.AddObject(_waterTilePrefab, ref settingsHash);
+            if (_waterTilePrefab != null)
+            {
+                Hashy.AddObject(_waterTilePrefab, ref settingsHash);
+            }
 
 #pragma warning disable 0618
             Hashy.AddObject(_layerName, ref settingsHash);

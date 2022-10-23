@@ -185,7 +185,7 @@ namespace Crest
         void SliceUpWaves(float windSpeed)
         {
             // Do not filter cascades if blending as the blend operation might be skipped.
-            _firstCascade = _blendMode == BlendMode.Blend ? 0 : _lastCascade = -1;
+            _firstCascade = BlendMode == ShapeBlendMode.Blend ? 0 : _lastCascade = -1;
 
             var cascadeIdx = 0;
             var componentIdx = 0;
@@ -297,7 +297,7 @@ namespace Crest
                 }
             }
 
-            _lastCascade = _blendMode == BlendMode.Blend ? CASCADE_COUNT - 1 : cascadeIdx;
+            _lastCascade = BlendMode == ShapeBlendMode.Blend ? CASCADE_COUNT - 1 : cascadeIdx;
 
             {
                 // Fill remaining elements of current vector4 with 0s

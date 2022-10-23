@@ -48,8 +48,9 @@ namespace Crest
 
         [Predicated(typeof(ShapeWaves), "IsLocalWaves"), DecoratedField]
         [Tooltip("How the waves are blended into the wave buffer. Use <i>Blend</i> to override waves.")]
-        public BlendMode _blendMode = BlendMode.Additive;
-        public enum BlendMode
+        public ShapeBlendMode _blendMode = ShapeBlendMode.Additive;
+        public ShapeBlendMode BlendMode => _meshForDrawingWaves ? _blendMode : ShapeBlendMode.Additive;
+        public enum ShapeBlendMode
         {
             Additive,
             Blend,
@@ -139,33 +140,24 @@ namespace Crest
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
 
-                    // If the component has changed or the LOD slice then this is a new batch of cascades. We use this
-                    // to add alpha blending without changing much of the architecture. It requires an extra pass which
-                    // is not very lean performance wise. Use blend states when breaking change can be introduced.
-                    var isBlending = false;
-                    if (_shapeWaves._blendMode == BlendMode.Blend && (_previousShapeComponent != _shapeWaves || _previousLodIndex != lodIdx))
-                    {
-                        isBlending = true;
-                        _previousShapeComponent = _shapeWaves;
-                        _previousLodIndex = lodIdx;
-                    }
-
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
                     {
-                        if (isBlending)
-                        {
-                            buf.DrawProcedural(Matrix4x4.identity, _shapeWaves._blendMaterial, 0, MeshTopology.Triangles, 3);
-                        }
                         buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                     }
                     else if (_material != null)
                     {
-                        if (isBlending)
+                        // If the component has changed or the LOD slice then this is a new batch of cascades. We use this
+                        // to add alpha blending without changing much of the architecture. It requires an extra pass which
+                        // is not very lean performance wise. Use blend states when breaking change can be introduced.
+                        if (_shapeWaves._blendMode == ShapeBlendMode.Blend && (_previousShapeComponent != _shapeWaves || _previousLodIndex != lodIdx))
                         {
-                            buf.DrawMesh(_mesh, _shapeWaves.transform.localToWorldMatrix, _shapeWaves._blendMaterial);
+                            _previousShapeComponent = _shapeWaves;
+                            _previousLodIndex = lodIdx;
+                            buf.DrawMesh(_mesh, _shapeWaves.transform.localToWorldMatrix, _material, submeshIndex: 0, shaderPass: 1);
                         }
-                        buf.DrawMesh(_mesh, _shapeWaves.transform.localToWorldMatrix, _material);
+
+                        buf.DrawMesh(_mesh, _shapeWaves.transform.localToWorldMatrix, _material, submeshIndex: 0, shaderPass: 0);
                     }
                 }
             }
@@ -185,9 +177,6 @@ namespace Crest
         // Cache material options.
         Material _matGenerateWavesGlobal;
         Material _matGenerateWavesGeometry;
-
-        // We do not have alpha channel available for blending so use separate shader to do a blend pass.
-        Material _blendMaterial;
 
         protected static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         protected static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
@@ -236,11 +225,6 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-
-            if (_blendMaterial != null)
-            {
-                _blendMaterial.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
-            }
         }
 
         void CreateOrUpdateSplineMesh()
@@ -270,11 +254,6 @@ namespace Crest
             if (_firstUpdate)
             {
                 CreateOrUpdateSplineMesh();
-            }
-
-            if (_blendMaterial == null)
-            {
-                _blendMaterial = new Material(Shader.Find("Crest/Inputs/Animated Waves/Spline Blending"));
             }
 
             // Queue determines draw order of this input. Global waves should be rendered first. They are additive

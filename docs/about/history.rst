@@ -33,6 +33,7 @@ Changed
    -  Validate layers to warn users of potential build failures if *Crest* related renderers are not on the same layer as the *OceanRenderer.Layer*.
    -  No longer log info level validation to the console.
    -  Add info validation for tips on using reflection probes when found in a scene.
+   -  Set *Ocean Renderer* *Wind Speed* default value to the maxmimum to reduce UX friction for new users.
 
 
 Fixed

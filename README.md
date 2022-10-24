@@ -59,6 +59,13 @@ Extract the files and copy anything under *crest/Assets/Crest* into an existing 
 > **Note**
 > <br> *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
+## Older Unity Versions
+
+If you are using any of the following *Unity* versions, then use the provided *Crest* version:
+
+- 2019.4: [4.11](https://github.com/wave-harmonic/crest/releases/tag/4.11)
+- 2018.4: [4.2](https://github.com/wave-harmonic/crest/releases/tag/4.2)
+
 # Notes and Issues
 
 If you encounter an issue, please search the [Issues page](https://github.com/wave-harmonic/crest/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.

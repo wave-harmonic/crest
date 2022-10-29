@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "GUID:5b35af79ebbe89647a157055d52c59d3",
-        "GUID:d8b63aba1907145bea998dd612889d6b"
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:69448af7b92c7f342b298e06a37122aa"
     ],
     "includePlatforms": [
         "Editor"
@@ -19,6 +20,11 @@
             "name": "com.unity.mathematics",
             "expression": "1.0.0",
             "define": "CREST_UNITY_MATHEMATICS"
+        },
+        {
+            "name": "com.unity.addressables",
+            "expression": "1.0.0",
+            "define": "CREST_UNITY_ADDRESSABLES"
         }
     ],
     "noEngineReferences": false

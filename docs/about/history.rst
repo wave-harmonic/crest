@@ -34,6 +34,7 @@ Changed
    -  No longer log info level validation to the console.
    -  Add info validation for tips on using reflection probes when found in a scene.
    -  Set *Ocean Renderer* *Wind Speed* default value to the maxmimum to reduce UX friction for new users.
+   -  Also search *Addressables* and *Resources* for ocean materials when stripping keywords from underwater shader.
 
 
 Fixed

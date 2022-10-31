@@ -178,6 +178,9 @@ namespace Crest
         Material _matGenerateWavesGlobal;
         Material _matGenerateWavesGeometry;
 
+        MeshRenderer _renderer;
+        Spline.Spline _spline;
+
         protected static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         protected static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
         protected static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
@@ -229,11 +232,11 @@ namespace Crest
 
         void CreateOrUpdateSplineMesh()
         {
-            if (TryGetComponent<Spline.Spline>(out var spline))
+            if (TryGetComponent(out _spline))
             {
-                var radius = _overrideSplineSettings ? _radius : spline.Radius;
-                var subdivs = _overrideSplineSettings ? _subdivisions : spline.Subdivisions;
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(spline, transform,
+                var radius = _overrideSplineSettings ? _radius : _spline.Radius;
+                var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(_spline, transform,
                     subdivs, radius, Vector2.one, ref _meshForDrawingWaves, out _, out _))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
@@ -254,6 +257,15 @@ namespace Crest
             if (_firstUpdate)
             {
                 CreateOrUpdateSplineMesh();
+
+                if (!_spline && TryGetComponent(out _renderer) && TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh)
+                {
+                    _meshForDrawingWaves = meshFilter.sharedMesh;
+                }
+                else
+                {
+                    _renderer = null;
+                }
             }
 
             // Queue determines draw order of this input. Global waves should be rendered first. They are additive
@@ -261,16 +273,7 @@ namespace Crest
             var queue = int.MinValue;
             var subQueue = transform.GetSiblingIndex();
 
-            if (_meshForDrawingWaves == null)
-            {
-                if (_matGenerateWavesGlobal == null)
-                {
-                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
-                }
-
-                _matGenerateWaves = _matGenerateWavesGlobal;
-            }
-            else
+            if (_spline)
             {
                 if (_matGenerateWavesGeometry == null)
                 {
@@ -279,6 +282,20 @@ namespace Crest
 
                 _matGenerateWaves = _matGenerateWavesGeometry;
                 queue = _queue;
+            }
+            else if (_renderer)
+            {
+                _matGenerateWaves = _renderer.sharedMaterial;
+                queue = _queue;
+            }
+            else
+            {
+                if (_matGenerateWavesGlobal == null)
+                {
+                    _matGenerateWavesGlobal = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                }
+
+                _matGenerateWaves = _matGenerateWavesGlobal;
             }
 
             // Submit draws to create the FFT waves
@@ -381,7 +398,7 @@ namespace Crest
             }
 
             // Unassign mesh
-            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _))
+            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _) && !TryGetComponent<MeshRenderer>(out _))
             {
                 _meshForDrawingWaves = null;
             }
@@ -441,6 +458,16 @@ namespace Crest
                 (
                     "A <i>Spline</i> component is attached but it has validation errors.",
                     "Check this component in the Inspector for issues.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+            }
+
+            if (BlendMode == ShapeBlendMode.Blend && _matGenerateWaves && _matGenerateWaves.shader.passCount < 2)
+            {
+                showMessage
+                (
+                    "Using Blend requires two shader passes - the second pass reduces the waves to implement alpha blending.",
+                    "Add a second pass to the shader. See AnimWavesGerstnerGeometry.shader",
                     ValidatedHelper.MessageType.Error, this
                 );
             }

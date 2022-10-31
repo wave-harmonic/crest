@@ -75,3 +75,14 @@ If the *Spline* component is attached to the same GameObject as a *ShapeFFT* com
 This allows for quick experimentation with placing and orienting waves in different areas of the environment.
 
 The *Spline* component can also be combined with the *RegisterHeightInput* to make the water level follow the spline, and with the *RegisterFlowInput* to make water move along the spline.
+
+
+Custom Shader
+-------------
+
+Shape components can receive input from a *Mesh Renderer* which allows for a custom shader.
+It is recommended to use an upwards facing quad.
+
+The *Crest/Inputs/Shape Waves/Sample Spectrum* shader is provided to sample from the spectrum using a texture.
+The RG channels are the wave direction and together they make the magnitude.
+The values are 0-1 where 0.5 is zero magnitude (ie no waves).

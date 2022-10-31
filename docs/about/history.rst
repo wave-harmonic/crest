@@ -17,6 +17,8 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  ShapeFFT/Gerstner can now take a mesh renderer as an input.
+      Also added *Crest/Inputs/Shape Waves/Sample Spectrum* shader which samples the spectrum using a texture.
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
    -  Added ability to alpha blend waves (effectively an override) instead of only having additive blend waves.
       Set *Blend Mode* to *Alpha Blend* on the *ShapeFFT* or *ShapeGerstner* to use.

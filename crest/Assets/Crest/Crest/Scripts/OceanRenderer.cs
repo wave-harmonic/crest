@@ -211,6 +211,10 @@ namespace Crest
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
+        [Tooltip("Applied to the extents' far vertices to make the larger. Increase if the extents do not reach the horizon or you see the underwater effect at the horizon.")]
+        [SerializeField, Delayed]
+        internal float _extentsSizeMultiplier = 100f;
+
 
         [Header("Simulation Params")]
 
@@ -885,6 +889,7 @@ namespace Crest
             Hashy.AddInt(_lodDataResolution, ref settingsHash);
             Hashy.AddInt(_geometryDownSampleFactor, ref settingsHash);
             Hashy.AddInt(_lodCount, ref settingsHash);
+            Hashy.AddFloat(_extentsSizeMultiplier, ref settingsHash);
             Hashy.AddBool(_forceBatchMode, ref settingsHash);
             Hashy.AddBool(_forceNoGPU, ref settingsHash);
             Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);

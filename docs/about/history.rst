@@ -37,6 +37,7 @@ Changed
    -  Add info validation for tips on using reflection probes when found in a scene.
    -  Set *Ocean Renderer* *Wind Speed* default value to the maxmimum to reduce UX friction for new users.
    -  Also search *Addressables* and *Resources* for ocean materials when stripping keywords from underwater shader.
+   -  Added *Ocean Renderer > Extents Size Multiplier* to adjust the extents so they can be increased in size to meet the horizon in cases where they do not.
 
 
 Fixed

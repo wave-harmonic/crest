@@ -195,7 +195,7 @@ namespace Crest
                 var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
                 for (int i = 0; i < (int)PatchType.Count; i++)
                 {
-                    s_Meshes[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
+                    s_Meshes[i] = BuildOceanPatch(ocean, (PatchType)i, tileResolution, out meshBounds[i]);
                 }
 
                 for (int i = 0; i < lodCount; i++)
@@ -212,7 +212,7 @@ namespace Crest
             return root.transform;
         }
 
-        static Mesh BuildOceanPatch(PatchType pt, float vertDensity, out Bounds bounds)
+        static Mesh BuildOceanPatch(OceanRenderer ocean, PatchType pt, float vertDensity, out Bounds bounds)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();
@@ -253,7 +253,7 @@ namespace Crest
 
                 // push outermost edge out to horizon
                 if (pt == PatchType.FatXZOuter && j == sideLength_verts_z - 1f)
-                    z *= 100f;
+                    z *= ocean._extentsSizeMultiplier;
 
                 for (float i = 0; i < sideLength_verts_x; i++)
                 {
@@ -262,7 +262,7 @@ namespace Crest
 
                     // push outermost edge out to horizon
                     if (i == sideLength_verts_x - 1f && (pt == PatchType.FatXOuter || pt == PatchType.FatXZOuter))
-                        x *= 100f;
+                        x *= ocean._extentsSizeMultiplier;
 
                     // could store something in y, although keep in mind this is a shared mesh that is shared across multiple lods
                     verts.Add(new Vector3(x, 0f, z));

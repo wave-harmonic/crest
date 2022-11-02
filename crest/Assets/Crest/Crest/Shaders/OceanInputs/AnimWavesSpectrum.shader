@@ -99,7 +99,8 @@ Shader "Crest/Inputs/Shape Waves/Sample Spectrum"
 				output.worldPosScaled_axis.xy = worldPosXZ / waveBufferSize;
 
 				// Object and wind axis.
-				output.worldPosScaled_axis.zw = unity_ObjectToWorld._m00_m20.x * _AxisX + unity_ObjectToWorld._m00_m20.y * float2(-_AxisX.y, _AxisX.x);
+				float2 rotation = normalize(unity_ObjectToWorld._m00_m20.xy);
+				output.worldPosScaled_axis.zw = rotation.x * _AxisX + rotation.y * float2(-_AxisX.y, _AxisX.x);
 
 				return output;
 			}

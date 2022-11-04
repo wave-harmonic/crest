@@ -59,6 +59,8 @@ Fixed
    -  Fixed self-intersecting polygon (and warning) on Ferry model.
    -  Fixed *Examples* scene UI not scaling and thus looking incorrect for non 4K resolution.
    -  Fixed build failure for *main* scene if reflection probe is added that excluded the *Water* layer.
+   -  Prevent bad values (NaN etc) from propagating in the *Dynamic Waves* simulation.
+      This manifested as the water surface disappearing from a singlar point.
 
 .. only:: hdrp
 

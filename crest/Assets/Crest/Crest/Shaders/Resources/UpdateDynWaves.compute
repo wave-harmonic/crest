@@ -144,5 +144,15 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		ftp *= _AttenuationInShallows * depthMul + (1.0 - _AttenuationInShallows);
 	}
 
+	// Clear for safety as there is a potential for bad values which will propagate throughout the entire simulation.
+	// Zero is not ideal but better than bad values. Cases:
+	// - bad values randomly being sampled from the source texture, but ostensibly not injected by an input
+	// - bad values sometimes appearing after an hour or so runtime
+	if (!isfinite(ftp) || !isfinite(vtp))
+	{
+		ftp = 0.0;
+		vtp = 0.0;
+	}
+
 	_LD_TexArray_Target[id] = float2(ftp, vtp);
 }

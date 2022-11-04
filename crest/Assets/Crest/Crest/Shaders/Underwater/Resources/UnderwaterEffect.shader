@@ -32,10 +32,6 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 	#include "../../Helpers/BIRP/InputsDriven.hlsl"
 	#include "../../FullScreenTriangle.hlsl"
 	#include "../../Helpers/BIRP/Lighting.hlsl"
-
-	// Variable downstream as URP XR has issues.
-	#define _CameraForward unity_CameraToWorld._m02_m12_m22
-
 	ENDHLSL
 
 	SubShader

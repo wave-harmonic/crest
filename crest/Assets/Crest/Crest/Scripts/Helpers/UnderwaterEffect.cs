@@ -7,6 +7,7 @@
 // branch will arrive before then though.
 
 using UnityEngine;
+using static Crest.UnderwaterRenderer;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -57,6 +58,7 @@ namespace Crest
         readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
         SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
+        internal readonly UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
         bool isMeniscus;
 
@@ -181,6 +183,20 @@ namespace Crest
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+
+                // Compute ambient lighting SH.
+                if (!isMeniscus)
+                {
+                    // We could pass in a renderer which would prime this lookup. However it doesnt make sense to use an existing render
+                    // at different position, as this would then thrash it and negate the priming functionality. We could create a dummy invis GO
+                    // with a dummy Renderer which might be enough, but this is hacky enough that we'll wait for it to become a problem
+                    // rather than add a pre-emptive hack.
+                    UnityEngine.Profiling.Profiler.BeginSample("Underwater Sample Spherical Harmonics");
+                    LightProbes.GetInterpolatedProbe(transform.position, null, out var sphericalHarmonicsL2);
+                    sphericalHarmonicsL2.Evaluate(_sphericalHarmonicsData._shDirections, _sphericalHarmonicsData._ambientLighting);
+                    Helpers.SetShaderVector(_rend.sharedMaterial, UnderwaterRenderer.ShaderIDs.s_CrestAmbientLighting, _sphericalHarmonicsData._ambientLighting[0], true);
+                    UnityEngine.Profiling.Profiler.EndSample();
+                }
             }
         }
 

@@ -62,6 +62,10 @@ Fixed
    -  Prevent bad values (NaN etc) from propagating in the *Dynamic Waves* simulation.
       This manifested as the water surface disappearing from a singlar point.
 
+.. only:: birp or urp
+
+   -  Fixed *Underwater Curtain* lighting not matching the water surface causing a visible seam at the far plane.
+
 .. only:: hdrp
 
    -  Fixed ocean moving in edit mode when *Always Refresh* is disabled. `[HDRP]`

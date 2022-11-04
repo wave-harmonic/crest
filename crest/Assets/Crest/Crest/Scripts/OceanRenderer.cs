@@ -604,6 +604,22 @@ namespace Crest
             _canSkipCulling = false;
 
             _generatedSettingsHash = CalculateSettingsHash();
+
+            Camera.onPreRender -= OnPreRenderCamera;
+            Camera.onPreRender += OnPreRenderCamera;
+        }
+
+        void OnPreRenderCamera(Camera camera)
+        {
+            if (!Helpers.MaskIncludesLayer(camera.cullingMask, Layer))
+            {
+                return;
+            }
+
+            if (!CreateShadowData)
+            {
+                LodDataMgrShadow.BindScreenSpaceNullToGraphicsShaders(camera);
+            }
         }
 
         internal void Rebuild()
@@ -1406,6 +1422,8 @@ namespace Crest
             _bufCascadeDataTgt?.Dispose();
             _bufCascadeDataSrc?.Dispose();
             _bufPerCascadeInstanceDataSource?.Dispose();
+
+            Camera.onPreRender -= OnPreRenderCamera;
         }
 
         /// <summary>

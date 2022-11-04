@@ -66,6 +66,10 @@ Fixed
 
    -  Fixed *Underwater Curtain* lighting not matching the water surface causing a visible seam at the far plane.
 
+.. only:: birp
+
+   -  Fixed caustics not rendering in XR `SPI` when shadow simulation is disabled. `[BIRP]`
+
 .. only:: hdrp
 
    -  Fixed ocean moving in edit mode when *Always Refresh* is disabled. `[HDRP]`

@@ -120,12 +120,6 @@ namespace Crest
         {
             base.OnDisable();
 
-            // Built-in RP only.
-            {
-                // Black for shadows. White for unshadowed.
-                Shader.SetGlobalTexture(sp_CrestScreenSpaceShadowTexture, Texture2D.whiteTexture);
-            }
-
             CleanUpShadowCommandBuffers();
 
             for (var index = 0; index < _renderMaterial.Length; index++)
@@ -454,14 +448,20 @@ namespace Crest
         public static void BindNullToGraphicsShaders()
         {
             Shader.SetGlobalTexture(ParamIdSampler(), s_nullTexture);
+        }
 
-            // Built-in RP only.
+        public static void BindScreenSpaceNullToGraphicsShaders(Camera camera)
+        {
+            // Black for shadowed. White for unshadowed. Built-in RP only.
+            if (camera.stereoEnabled && XRHelpers.IsSinglePass)
             {
-                // Black for shadows. White for unshadowed.
+                Shader.SetGlobalTexture(sp_CrestScreenSpaceShadowTexture, XRHelpers.WhiteTexture);
+            }
+            else
+            {
                 Shader.SetGlobalTexture(sp_CrestScreenSpaceShadowTexture, Texture2D.whiteTexture);
             }
         }
-
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()

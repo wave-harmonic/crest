@@ -66,17 +66,17 @@ namespace Crest
             return texture;
         }
 
-        public static Texture2DArray CreateTexture2DArray(Texture2D texture)
+        public static Texture2DArray CreateTexture2DArray(Texture2D texture, int depth)
         {
             var array = new Texture2DArray(
                 SMALL_TEXTURE_DIM, SMALL_TEXTURE_DIM,
-                LodDataMgr.MAX_LOD_COUNT,
+                depth,
                 texture.format,
                 false,
                 false
             );
 
-            for (int textureArrayIndex = 0; textureArrayIndex < LodDataMgr.MAX_LOD_COUNT; textureArrayIndex++)
+            for (var textureArrayIndex = 0; textureArrayIndex < array.depth; textureArrayIndex++)
             {
                 // There is a bug using Graphics.CopyTexture with Texture2DArray when "Texture Quality"
                 // (QualitySettings.masterTextureLimit) is not "Full Res" (0) where result is junk (white from what I
@@ -119,7 +119,7 @@ namespace Crest
 
         static void CreateBlackTexArray()
         {
-            _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
+            _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture, LodDataMgr.MAX_LOD_COUNT);
             _blackTextureArray.name = "Crest Black Texture2DArray";
         }
     }

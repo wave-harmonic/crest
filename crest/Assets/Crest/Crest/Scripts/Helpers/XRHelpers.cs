@@ -82,7 +82,7 @@ namespace Crest
         public static RenderTextureDescriptor GetRenderTextureDescriptor(Camera camera)
         {
 #if _XR_ENABLED
-            if (IsRunning)
+            if (camera.stereoEnabled)
             {
                 return XRSettings.eyeTextureDesc;
             }

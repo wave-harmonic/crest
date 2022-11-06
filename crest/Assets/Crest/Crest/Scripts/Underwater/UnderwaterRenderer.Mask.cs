@@ -297,7 +297,8 @@ namespace Crest
             }
 
             buffer.SetComputeTextureParam(_fixMaskComputeShader, _fixMaskKernel, ShaderIDs.s_CrestOceanMaskTexture, target);
-            _fixMaskComputeShader.SetKeyword("STEREO_INSTANCING_ON", XRHelpers.IsSinglePass);
+            // XR SPI will have a volume depth of two. If using RTHandles, then set manually as will be two for all cameras.
+            _fixMaskComputeShader.SetKeyword("STEREO_INSTANCING_ON", descriptor.volumeDepth > 1);
 
             buffer.DispatchCompute
             (

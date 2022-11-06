@@ -65,6 +65,7 @@ Fixed
 .. only:: birp or urp
 
    -  Fixed *Underwater Curtain* lighting not matching the water surface causing a visible seam at the far plane.
+   -  Fixed "mismatching output texture dimension" error when using XR `SPI`. `[BIRP] [URP]`
 
 .. only:: birp
 

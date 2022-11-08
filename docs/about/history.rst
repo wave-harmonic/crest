@@ -18,12 +18,12 @@ Changed
 .. bullet_list::
 
    -  ShapeFFT/Gerstner can now take a mesh renderer as an input.
-      Also added *Crest/Inputs/Shape Waves/Sample Spectrum* shader which samples the spectrum using a texture.
+   -  Add *Crest/Inputs/Shape Waves/Sample Spectrum* shader which samples the spectrum using a texture.
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
-   -  Added ability to alpha blend waves (effectively an override) instead of only having additive blend waves.
+   -  Add ability to alpha blend waves (effectively an override) instead of only having additive blend waves.
       Set *Blend Mode* to *Alpha Blend* on the *ShapeFFT* or *ShapeGerstner* to use.
       It's useful for preventing rivers and lakes from receiving ocean waves.
-   -  Added *Water Tile Prefab* field to *Ocean Renderer* to provide more control over water tile mesh renderers like reflection probes settings.
+   -  Add *Water Tile Prefab* field to *Ocean Renderer* to provide more control over water tile mesh renderers like reflection probes settings.
    -  Warn users that edits in prefab mode will not be reflected in scene view until prefab is saved.
    -  Validate that no scale can be applied to the *OceanRenderer*.
    -  Viewpoint validation has been removed as it was unnecessary and spammed the logs.
@@ -37,47 +37,47 @@ Changed
    -  Add info validation for tips on using reflection probes when found in a scene.
    -  Set *Ocean Renderer* *Wind Speed* default value to the maxmimum to reduce UX friction for new users.
    -  Also search *Addressables* and *Resources* for ocean materials when stripping keywords from underwater shader.
-   -  Added *Ocean Renderer > Extents Size Multiplier* to adjust the extents so they can be increased in size to meet the horizon in cases where they do not.
+   -  Add *Ocean Renderer > Extents Size Multiplier* to adjust the extents so they can be increased in size to meet the horizon in cases where they do not.
 
 
 Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fixed FFTs incorrectly adding extra foam.
+   -  Fix FFTs incorrectly adding extra foam.
    -  Limit minimum phase period of flow technique applied to waves to fix objectionable phasing issues in flowing water like rivers.
-   -  Fixed some components breaking in edit mode after entering/exiting prefab mode.
-   -  Fixed *Build Processor* deprecated/obsolete warnings.
-   -  Fixed spurious "headless/batch mode" error during builds.
+   -  Fix some components breaking in edit mode after entering/exiting prefab mode.
+   -  Fix *Build Processor* deprecated/obsolete warnings.
+   -  Fix spurious "headless/batch mode" error during builds.
    -  Greatly improve spline performance in the editor.
-   -  Fixed PSSL compiler errors.
-   -  Fixed incompatibility with EasySave3 and similar assets where water tiles would be orphaned when exiting play mode.
-   -  Fixed ocean tiles being pickable in the editor.
-   -  Fixed several memory leaks.
-   -  Fixed *Sea Floor Depth Data* disabled state as it was still attenuating waves when disabled.
+   -  Fix PSSL compiler errors.
+   -  Fix incompatibility with EasySave3 and similar assets where water tiles would be orphaned when exiting play mode.
+   -  Fix ocean tiles being pickable in the editor.
+   -  Fix several memory leaks.
+   -  Fix *Sea Floor Depth Data* disabled state as it was still attenuating waves when disabled.
    -  No longer execute when building which caused several issues.
-   -  Fixed self-intersecting polygon (and warning) on Ferry model.
-   -  Fixed *Examples* scene UI not scaling and thus looking incorrect for non 4K resolution.
-   -  Fixed build failure for *main* scene if reflection probe is added that excluded the *Water* layer.
+   -  Fix self-intersecting polygon (and warning) on Ferry model.
+   -  Fix *Examples* scene UI not scaling and thus looking incorrect for non 4K resolution.
+   -  Fix build failure for *main* scene if reflection probe is added that excluded the *Water* layer.
    -  Prevent bad values (NaN etc) from propagating in the *Dynamic Waves* simulation.
       This manifested as the water surface disappearing from a singlar point.
-   -  Fixed shader include path error when moving `Crest` folder from the standard location.
+   -  Fix shader include path error when moving `Crest` folder from the standard location.
 
-.. only:: birp or urp
+   .. only:: birp or urp
 
-   -  Fixed *Underwater Curtain* lighting not matching the water surface causing a visible seam at the far plane.
-   -  Fixed "mismatching output texture dimension" error when using XR `SPI`. `[BIRP] [URP]`
+      -  Fix *Underwater Curtain* lighting not matching the water surface causing a visible seam at the far plane.
+      -  Fix "mismatching output texture dimension" error when using XR `SPI`. `[BIRP] [URP]`
 
-.. only:: birp
+   .. only:: birp
 
-   -  Fixed caustics not rendering in XR `SPI` when shadow simulation is disabled. `[BIRP]`
-   -  Fixed XR spectator camera breaking if shadow simulation enabled. `[BIRP]`
-   -  Fixed shadow simulation executing for all cameras which could cause incorrect shadows. `[BIRP]`
+      -  Fix caustics not rendering in XR `SPI` when shadow simulation is disabled. `[BIRP]`
+      -  Fix XR spectator camera breaking if shadow simulation enabled. `[BIRP]`
+      -  Fix shadow simulation executing for all cameras which could cause incorrect shadows. `[BIRP]`
 
-.. only:: hdrp
+   .. only:: hdrp
 
-   -  Fixed ocean moving in edit mode when *Always Refresh* is disabled. `[HDRP]`
-   -  Fixed *Clip Surface* adding negative alpha values when *Alpha Clipping* is disabled on the ocean material. `[HDRP]`
+      -  Fix ocean moving in edit mode when *Always Refresh* is disabled. `[HDRP]`
+      -  Fix *Clip Surface* adding negative alpha values when *Alpha Clipping* is disabled on the ocean material. `[HDRP]`
 
 
 4.15.2

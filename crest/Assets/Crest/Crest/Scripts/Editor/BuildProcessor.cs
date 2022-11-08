@@ -91,7 +91,7 @@ namespace Crest
 #if CREST_UNITY_ADDRESSABLES
             // Full coverage (Addressables only).
             List<AddressableAssetEntry> assets = new List<AddressableAssetEntry>();
-            AddressableAssetSettingsDefaultObject.Settings.GetAllAssets(assets, includeSubObjects: true);
+            AddressableAssetSettingsDefaultObject.Settings?.GetAllAssets(assets, includeSubObjects: true);
             foreach (var asset in assets)
             {
                 if (asset.parentGroup.GetSchema<BundledAssetGroupSchema>()?.IncludeInBuild == true)

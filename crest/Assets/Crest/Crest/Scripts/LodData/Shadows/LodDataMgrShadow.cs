@@ -75,7 +75,9 @@ namespace Crest
 
             {
                 _renderMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
-                var shader = Shader.Find("Hidden/Crest/Simulation/Update Shadow");
+                var shaderPath = "Hidden/Crest/Simulation/Update Shadow";
+
+                var shader = Shader.Find(shaderPath);
                 for (int i = 0; i < _renderMaterial.Length; i++)
                 {
                     _renderMaterial[i] = new PropertyWrapperMaterial(shader);

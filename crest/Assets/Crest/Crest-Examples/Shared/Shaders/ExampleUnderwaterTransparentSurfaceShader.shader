@@ -33,7 +33,7 @@ Shader "Crest/Examples/UnderwaterTransparentSurfaceShader"
 		#include "UnityCG.cginc"
 
 		// Include Crest shader functions etc.
-		#include "/Assets/Crest/Crest/Shaders/Underwater/UnderwaterEffectIncludes.hlsl"
+		#include "../../../Crest/Shaders/Underwater/UnderwaterEffectIncludes.hlsl"
 
 		struct Input
 		{

@@ -61,6 +61,7 @@ Fixed
    -  Fixed build failure for *main* scene if reflection probe is added that excluded the *Water* layer.
    -  Prevent bad values (NaN etc) from propagating in the *Dynamic Waves* simulation.
       This manifested as the water surface disappearing from a singlar point.
+   -  Fixed shader include path error when moving `Crest` folder from the standard location.
 
 .. only:: birp or urp
 

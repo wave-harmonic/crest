@@ -112,12 +112,24 @@ namespace Crest
         {
             base.OnEnable();
 
+            {
+                Camera.onPreCull -= OnPreCullCamera;
+                Camera.onPreCull += OnPreCullCamera;
+                Camera.onPostRender -= OnPostRenderCamera;
+                Camera.onPostRender += OnPostRenderCamera;
+            }
+
             CleanUpShadowCommandBuffers();
         }
 
         internal override void OnDisable()
         {
             base.OnDisable();
+
+            {
+                Camera.onPreCull -= OnPreCullCamera;
+                Camera.onPostRender -= OnPostRenderCamera;
+            }
 
             CleanUpShadowCommandBuffers();
 
@@ -137,6 +149,90 @@ namespace Crest
         {
             base.ClearLodData();
             _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
+        }
+
+        void OnPreCullCamera(Camera camera)
+        {
+#if UNITY_EDITOR
+            if (!OceanRenderer.IsWithinEditorUpdate)
+            {
+                return;
+            }
+#endif
+
+            var ocean = OceanRenderer.Instance;
+
+            if (ocean == null)
+            {
+                return;
+            }
+
+            if (!Helpers.MaskIncludesLayer(camera.cullingMask, ocean.Layer))
+            {
+                return;
+            }
+
+            if (camera == ocean.ViewCamera && BufCopyShadowMap != null)
+            {
+                // Calling this in OnPreRender was too late to be executed in the same frame.
+                AddCommandBufferToPrimaryLight();
+
+                // Disable for XR SPI otherwise input will not have correct world position.
+                if (camera.stereoEnabled && XRHelpers.IsSinglePass)
+                {
+                    BufCopyShadowMap.DisableShaderKeyword("STEREO_INSTANCING_ON");
+                }
+
+                BuildCommandBuffer(ocean, BufCopyShadowMap);
+
+                // Restore XR SPI as we cannot rely on remaining pipeline to do it for us.
+                if (camera.stereoEnabled && XRHelpers.IsSinglePass)
+                {
+                    BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
+                }
+            }
+        }
+
+        void OnPostRenderCamera(Camera camera)
+        {
+#if UNITY_EDITOR
+            if (!OceanRenderer.IsWithinEditorUpdate)
+            {
+                return;
+            }
+#endif
+
+            var ocean = OceanRenderer.Instance;
+
+            if (ocean)
+            {
+                return;
+            }
+
+            if (!Helpers.MaskIncludesLayer(camera.cullingMask, ocean.Layer))
+            {
+                return;
+            }
+
+            if (camera == ocean.ViewCamera)
+            {
+                // CBs added to a light are executed for every camera, but the LOD data is only supports a single
+                // camera. Removing the CB after the camera renders restricts the CB to one camera.
+                RemoveCommandBufferFromPrimaryLight();
+            }
+        }
+
+        internal void AddCommandBufferToPrimaryLight()
+        {
+            if (_mainLight == null || BufCopyShadowMap == null) return;
+            _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+            _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+        }
+
+        internal void RemoveCommandBufferFromPrimaryLight()
+        {
+            if (_mainLight == null || BufCopyShadowMap == null) return;
+            _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
         }
 
         /// <summary>
@@ -231,11 +327,9 @@ namespace Crest
         void SetUpShadowCommandBuffers()
         {
             BufCopyShadowMap = new CommandBuffer();
-            BufCopyShadowMap.name = "Shadow data";
+            BufCopyShadowMap.name = "Crest Shadow Data";
 
             {
-                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
-
                 // Call this regardless of rendering path as it has no negative consequences for forward.
                 SetUpDeferredShadows();
                 SetUpScreenSpaceShadows();
@@ -246,7 +340,6 @@ namespace Crest
         {
             if (BufCopyShadowMap != null)
             {
-                if (_mainLight != null) _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
                 BufCopyShadowMap.Release();
                 BufCopyShadowMap = null;
             }
@@ -291,11 +384,6 @@ namespace Crest
             if (_mainLight != null) _mainLight.RemoveCommandBuffer(LightEvent.AfterShadowMap, _deferredShadowMapCommandBuffer);
             _deferredShadowMapCommandBuffer.Release();
             _deferredShadowMapCommandBuffer = null;
-        }
-
-        public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
-        {
-            // Intentionally blank to not flip buffers.
         }
 
         public override void UpdateLodData()
@@ -346,14 +434,14 @@ namespace Crest
             {
                 TextureArrayHelpers.ClearToBlack(_targets.Current);
             }
+        }
+
+        public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buffer)
+        {
+            // NOTE: Base call will flip buffers which is done elsewhere for this simulation.
 
             // Cache the camera for further down.
             var camera = OceanRenderer.Instance.ViewCamera;
-            if (camera == null)
-            {
-                // We want to return early after clear.
-                return;
-            }
 
 #if CREST_SRP
 #pragma warning disable 618
@@ -383,28 +471,14 @@ namespace Crest
                     Helpers.Blit(BufCopyShadowMap, new RenderTargetIdentifier(_targets.Current, 0, CubemapFace.Unknown, lodIdx), _renderMaterial[lodIdx].material, -1);
                 }
 
-#if ENABLE_VR && ENABLE_VR_MODULE
-                // Disable for XR SPI otherwise input will not have correct world position.
-                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
-                {
-                    BufCopyShadowMap.DisableShaderKeyword("STEREO_INSTANCING_ON");
-                }
-#endif
-
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
                     BufCopyShadowMap.SetRenderTarget(_targets.Current, _targets.Current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                    // BUG: These draw calls will "leak" and be duplicated before the above blit. They are executed at
+                    // the beginning of this CB before any commands are applied.
                     SubmitDraws(lodIdx, BufCopyShadowMap);
                 }
-
-#if ENABLE_VR && ENABLE_VR_MODULE
-                // Restore XR SPI as we cannot rely on remaining pipeline to do it for us.
-                if (XRSettings.enabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced)
-                {
-                    BufCopyShadowMap.EnableShaderKeyword("STEREO_INSTANCING_ON");
-                }
-#endif
 
                 // Set the target texture as to make sure we catch the 'pong' each frame
                 Shader.SetGlobalTexture(GetParamIdSampler(), _targets.Current);

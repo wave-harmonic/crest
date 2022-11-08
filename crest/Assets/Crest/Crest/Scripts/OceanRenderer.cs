@@ -456,6 +456,11 @@ namespace Crest
         static float _lastUpdateEditorTime = -1f;
         public static float LastUpdateEditorTime => _lastUpdateEditorTime;
         static int _editorFrames = 0;
+
+        // Useful for rate limiting processes called outside of RunUpdate like camera events.
+        static int s_EditorFramesSinceUpdate = 0;
+        public static int EditorFramesSinceUpdate => Application.isPlaying ? 0 : s_EditorFramesSinceUpdate;
+        public static bool IsWithinEditorUpdate => EditorFramesSinceUpdate == 0;
 #endif
 
         BuildCommandBuffer _commandbufferBuilder;
@@ -638,6 +643,8 @@ namespace Crest
 #if UNITY_EDITOR
         static void EditorUpdate()
         {
+            s_EditorFramesSinceUpdate++;
+
             if (Instance == null) return;
 
             if (!EditorApplication.isPlaying)
@@ -645,6 +652,7 @@ namespace Crest
                 if (EditorApplication.timeSinceStartup - _lastUpdateEditorTime > 1f / Mathf.Clamp(Instance._editModeFPS, 0.01f, 60f))
                 {
                     _editorFrames++;
+                    s_EditorFramesSinceUpdate = 0;
 
                     _lastUpdateEditorTime = (float)EditorApplication.timeSinceStartup;
 
@@ -881,6 +889,9 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             Instance = null;
+#if UNITY_EDITOR
+            s_EditorFramesSinceUpdate = 0;
+#endif
         }
 
         void LateUpdate()

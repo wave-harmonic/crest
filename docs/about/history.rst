@@ -70,6 +70,8 @@ Fixed
 .. only:: birp
 
    -  Fixed caustics not rendering in XR `SPI` when shadow simulation is disabled. `[BIRP]`
+   -  Fixed XR spectator camera breaking if shadow simulation enabled. `[BIRP]`
+   -  Fixed shadow simulation executing for all cameras which could cause incorrect shadows. `[BIRP]`
 
 .. only:: hdrp
 

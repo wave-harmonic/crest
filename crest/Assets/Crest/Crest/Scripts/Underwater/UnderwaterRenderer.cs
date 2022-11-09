@@ -309,7 +309,7 @@ namespace Crest
             XRHelpers.UpdatePassIndex(ref s_xrPassIndex);
 
             // Built-in renderer does not provide these matrices.
-            if (XRHelpers.IsSinglePass)
+            if (_camera.stereoEnabled && XRHelpers.IsSinglePass)
             {
                 _gpuInverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(XRHelpers.LeftEyeProjectionMatrix, false) * XRHelpers.LeftEyeViewMatrix).inverse;
                 _gpuInverseViewProjectionMatrixRight = (GL.GetGPUProjectionMatrix(XRHelpers.RightEyeProjectionMatrix, false) * XRHelpers.RightEyeViewMatrix).inverse;
@@ -328,7 +328,7 @@ namespace Crest
         void SetInverseViewProjectionMatrix(Material material)
         {
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function.
-            if (XRHelpers.IsSinglePass)
+            if (_camera.stereoEnabled && XRHelpers.IsSinglePass)
             {
                 material.SetMatrix(ShaderIDs.s_InvViewProjection, _gpuInverseViewProjectionMatrix);
                 material.SetMatrix(ShaderIDs.s_InvViewProjectionRight, _gpuInverseViewProjectionMatrixRight);

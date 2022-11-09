@@ -73,6 +73,7 @@ Fixed
       -  Fix caustics not rendering in XR `SPI` when shadow simulation is disabled. `[BIRP]`
       -  Fix XR spectator camera breaking if shadow simulation enabled. `[BIRP]`
       -  Fix shadow simulation executing for all cameras which could cause incorrect shadows. `[BIRP]`
+      -  Fix underwater effect not rendering properly if spectator camera is used with XR `SPI`. `[BIRP]`
 
    .. only:: hdrp
 

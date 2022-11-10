@@ -631,6 +631,8 @@ namespace Crest
             Camera.onPreRender += OnPreRenderCamera;
             Camera.onPostRender -= OnPostRenderCamera;
             Camera.onPostRender += OnPostRenderCamera;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         }
 
         void OnPreRenderCamera(Camera camera)
@@ -647,6 +649,12 @@ namespace Crest
         }
 
         void OnPostRenderCamera(Camera camera)
+        {
+            // Clean up for subsequent cameras or water could disappear.
+            UnderwaterRenderer.DisableOceanMaskKeywords();
+        }
+
+        void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             // Clean up for subsequent cameras or water could disappear.
             UnderwaterRenderer.DisableOceanMaskKeywords();
@@ -1460,6 +1468,7 @@ namespace Crest
 
             Camera.onPreRender -= OnPreRenderCamera;
             Camera.onPostRender -= OnPostRenderCamera;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
         }
 
         /// <summary>

@@ -56,13 +56,6 @@ namespace Crest
         [SerializeField]
         [Tooltip("Rendering mode of the underwater effect (and ocean). See the documentation for more details.")]
         internal Mode _mode;
-        public static bool IsCullable
-        {
-            get
-            {
-                return Instance != null && Instance._mode == Mode.FullScreen;
-            }
-        }
 
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
@@ -146,19 +139,36 @@ namespace Crest
         internal static int s_xrPassIndex = -1;
 
 #if UNITY_EDITOR
-        List<Camera> _editorCameras = new List<Camera>();
+        static readonly List<Camera> s_EditorCameras = new List<Camera>();
 #endif
 
         bool _currentEnableShaderAPI;
 
-        // Use instance to denote whether this is active or not. Only one camera is supported.
+        // This will be the primary camera and matches OceanRenderer.Instance.ViewCamera.
         public static UnderwaterRenderer Instance { get; private set; }
+        static Camera s_PrimaryCamera;
+        static int s_InstancesCount;
+
+        public static bool IsCullable =>
+            Instance != null && s_InstancesCount == 1 && Instance._mode == Mode.FullScreen;
+        public static bool SkipSurfaceSelfIntersectionFixMode =>
+            s_InstancesCount > 1 || (Instance != null && Instance.IsActive && Instance._mode != Mode.FullScreen);
+
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+        float _heightAboveWater;
+        float HeightAboveWater => Instance == this ? OceanRenderer.Instance.ViewerHeightAboveWater : _heightAboveWater;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()
         {
+            s_PrimaryCamera = null;
+            s_InstancesCount = 0;
             Instance = null;
             s_xrPassIndex = -1;
+
+#if UNITY_EDITOR
+            s_EditorCameras.Clear();
+#endif
         }
 
         public bool IsActive
@@ -173,7 +183,7 @@ namespace Crest
                 // Only run optimisation in play mode otherwise shared height above water will cause rendering to be
                 // skipped for other cameras which could be confusing. This issue will also be present in play mode but
                 // game view camera is always dominant camera which is less confusing.
-                if (Application.isPlaying && !_debug._disableHeightAboveWaterOptimization && _mode == Mode.FullScreen && OceanRenderer.Instance.ViewerHeightAboveWater > 2f)
+                if (Application.isPlaying && !_debug._disableHeightAboveWaterOptimization && _mode == Mode.FullScreen && HeightAboveWater > 2f)
                 {
                     return false;
                 }
@@ -190,11 +200,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
-            {
-                enabled = false;
-                return;
-            }
+            Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
 #endif
 
             // Setup here because it is the same across pipelines.
@@ -203,7 +209,8 @@ namespace Crest
                 _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_camera);
             }
 
-            Instance = this;
+            UpdateInstance();
+            s_InstancesCount++;
 
             Enable();
         }
@@ -211,7 +218,14 @@ namespace Crest
         void OnDisable()
         {
             Disable();
-            Instance = null;
+
+            if (Instance == this)
+            {
+                s_PrimaryCamera = null;
+                Instance = null;
+            }
+
+            s_InstancesCount--;
         }
 
         void Enable()
@@ -219,10 +233,7 @@ namespace Crest
             SetupOceanMask();
             OnEnableMask();
             SetupUnderwaterEffect();
-            // Handle both forward and deferred.
-            _camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
-            _camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
-            _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            AddCommandBuffers(_camera);
 
             _currentEnableShaderAPI = _enableShaderAPI;
 
@@ -233,19 +244,7 @@ namespace Crest
 
         void Disable()
         {
-            if (_oceanMaskCommandBuffer != null)
-            {
-                // Handle both forward and deferred.
-                _camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
-                _camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
-            }
-
-            if (_underwaterEffectCommandBuffer != null)
-            {
-                // It could be either event registered at this point. Remove from both for safety.
-                _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _underwaterEffectCommandBuffer);
-                _camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
-            }
+            RemoveCommandBuffers(_camera);
 
             OnDisableMask();
 
@@ -256,7 +255,16 @@ namespace Crest
 
         void LateUpdate()
         {
-            Helpers.SetGlobalKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT", _enableShaderAPI);
+            UpdateInstance();
+
+            if (Instance != this)
+            {
+                _sampleHeightHelper.Init(_camera.transform.position, 0f, true);
+                _sampleHeightHelper.Sample(out var waterHeight);
+                _heightAboveWater = _camera.transform.position.y - waterHeight;
+                // Everything from here on is for the primary instance only.
+                return;
+            }
 
             if (_enableShaderAPI != _currentEnableShaderAPI && _underwaterEffectCommandBuffer != null)
             {
@@ -271,8 +279,64 @@ namespace Crest
             }
         }
 
+        void UpdateInstance()
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
+            if (s_PrimaryCamera != OceanRenderer.Instance.ViewCameraExcludingSceneCamera)
+            {
+                s_PrimaryCamera = OceanRenderer.Instance.ViewCameraExcludingSceneCamera;
+                if (s_PrimaryCamera.TryGetComponent<UnderwaterRenderer>(out var instance))
+                {
+#if UNITY_EDITOR
+                    if (Instance != null) Instance.DisableEditMode();
+#endif
+                    Instance = instance;
+#if UNITY_EDITOR
+                    Instance.EnableEditMode();
+#endif
+                }
+            }
+        }
+
+        void AddCommandBuffers(Camera camera)
+        {
+            // Handle both forward and deferred.
+            camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+            camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
+            camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+        }
+
+        void RemoveCommandBuffers(Camera camera)
+        {
+            if (_oceanMaskCommandBuffer != null)
+            {
+                // Handle both forward and deferred.
+                camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
+            }
+
+            if (_underwaterEffectCommandBuffer != null)
+            {
+                // It could be either event registered at this point. Remove from both for safety.
+                camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _underwaterEffectCommandBuffer);
+                camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+            }
+        }
+
+        void UpdateOceanRendererStateForCamera()
+        {
+            // Support these features across multiple cameras by resetting them before each UR camera renders.
+            Helpers.SetGlobalKeyword("CREST_UNDERWATER_BEFORE_TRANSPARENT", _enableShaderAPI);
+        }
+
         void OnPreRender()
         {
+            UpdateOceanRendererStateForCamera();
+
             if (!IsActive)
             {
                 if (Instance != null)
@@ -299,11 +363,6 @@ namespace Crest
                 return;
             }
 #endif
-
-            if (Instance == null)
-            {
-                OnEnable();
-            }
 
             XRHelpers.Update(_camera);
             XRHelpers.UpdatePassIndex(ref s_xrPassIndex);
@@ -346,13 +405,23 @@ namespace Crest
     {
         void EnableEditMode()
         {
+            if (Instance != this)
+            {
+                return;
+            }
+
             Camera.onPreRender -= OnBeforeRender;
             Camera.onPreRender += OnBeforeRender;
         }
 
         void DisableEditMode()
         {
-            foreach (var camera in _editorCameras)
+            if (Instance != this)
+            {
+                return;
+            }
+
+            foreach (var camera in s_EditorCameras)
             {
                 // This can happen on recompile. Thankfully, command buffers will be removed for us.
                 if (camera == null)
@@ -360,21 +429,10 @@ namespace Crest
                     continue;
                 }
 
-                if (_oceanMaskCommandBuffer != null)
-                {
-                    // Handle both forward and deferred.
-                    camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
-                    camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
-                }
-
-                if (_underwaterEffectCommandBuffer != null)
-                {
-                    camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _underwaterEffectCommandBuffer);
-                    camera.RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
-                }
+                RemoveCommandBuffers(camera);
             }
 
-            _editorCameras.Clear();
+            s_EditorCameras.Clear();
             Camera.onPreRender -= OnBeforeRender;
         }
 
@@ -394,7 +452,7 @@ namespace Crest
             }
 
             // Only use for scene and game preview cameras.
-            if (camera.cameraType != CameraType.SceneView && !Helpers.IsPreviewOfGameCamera(camera))
+            if (camera.cameraType != CameraType.SceneView)
             {
                 return false;
             }
@@ -425,13 +483,10 @@ namespace Crest
                 return;
             }
 
-            if (!_editorCameras.Contains(camera))
+            if (!s_EditorCameras.Contains(camera))
             {
-                _editorCameras.Add(camera);
-                // Handle both forward and deferred.
-                camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
-                camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
-                camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
+                s_EditorCameras.Add(camera);
+                AddCommandBuffers(camera);
             }
 
             var oldCamera = _camera;

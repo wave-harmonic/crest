@@ -117,6 +117,7 @@ namespace Crest
             temporaryColorBuffer.name = "_CrestCameraColorTexture";
 
             UpdatePostProcessMaterial(
+                this,
                 _mode,
                 _camera,
                 _underwaterEffectMaterial,
@@ -283,6 +284,7 @@ namespace Crest
         }
 
         internal static void UpdatePostProcessMaterial(
+            UnderwaterRenderer renderer,
             Mode mode,
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
@@ -340,14 +342,26 @@ namespace Crest
                     }
                 }
 
-                if (setGlobalShaderData)
+                Vector3 depthFogDensity;
+
+                if (!IsCullable)
                 {
-                    Shader.SetGlobalVector(ShaderIDs.s_CrestDepthFogDensity, dominantWaterBody == null
-                        ? OceanRenderer.Instance.UnderwaterDepthFogDensity : dominantWaterBody.UnderwaterDepthFogDensity);
+                    depthFogDensity = dominantWaterBody == null
+                        ? OceanRenderer.Instance.OceanMaterial.GetVector(OceanRenderer.ShaderIDs.s_DepthFogDensity) * renderer._depthFogDensityFactor
+                        : dominantWaterBody._overrideMaterial.GetVector(OceanRenderer.ShaderIDs.s_DepthFogDensity) * renderer._depthFogDensityFactor;
+                }
+                else
+                {
+                    depthFogDensity = dominantWaterBody == null
+                        ? OceanRenderer.Instance.UnderwaterDepthFogDensity : dominantWaterBody.UnderwaterDepthFogDensity;
                 }
 
-                underwaterPostProcessMaterial.SetVector(OceanRenderer.ShaderIDs.s_DepthFogDensity, dominantWaterBody == null
-                    ? OceanRenderer.Instance.UnderwaterDepthFogDensity : dominantWaterBody.UnderwaterDepthFogDensity);
+                if (setGlobalShaderData)
+                {
+                    Shader.SetGlobalVector(ShaderIDs.s_CrestDepthFogDensity, depthFogDensity);
+                }
+
+                underwaterPostProcessMaterial.SetVector(OceanRenderer.ShaderIDs.s_DepthFogDensity, depthFogDensity);
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
@@ -367,10 +381,11 @@ namespace Crest
             if (mode == Mode.FullScreen)
             {
                 float seaLevel = OceanRenderer.Instance.SeaLevel;
+                var heightAboveWater = renderer != null ? renderer.HeightAboveWater : OceanRenderer.Instance.ViewerHeightAboveWater;
 
                 // We don't both setting the horizon value if we know we are going to be having to apply the effect
                 // full-screen anyway.
-                var forceFullShader = OceanRenderer.Instance.ViewerHeightAboveWater < -2f;
+                var forceFullShader = heightAboveWater < -2f;
                 if (!forceFullShader)
                 {
                     float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;

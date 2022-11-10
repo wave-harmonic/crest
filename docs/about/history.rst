@@ -17,6 +17,8 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add support for multiple cameras to the *Underwater Renderer*.
+      One limitation is that underwater culling will be disabled when using multiple *Underwater Renderer*s.
    -  ShapeFFT/Gerstner can now take a mesh renderer as an input.
    -  Add *Crest/Inputs/Shape Waves/Sample Spectrum* shader which samples the spectrum using a texture.
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
@@ -62,6 +64,7 @@ Fixed
    -  Prevent bad values (NaN etc) from propagating in the *Dynamic Waves* simulation.
       This manifested as the water surface disappearing from a singlar point.
    -  Fix shader include path error when moving `Crest` folder from the standard location.
+   -  No longer disable the *Underwater Renderer* if it fails validation.
 
    .. only:: birp or urp
 

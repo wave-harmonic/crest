@@ -108,6 +108,23 @@ namespace Crest
             }
         }
 
+        public Camera ViewCameraExcludingSceneCamera
+        {
+            get
+            {
+                if (_camera != null)
+                {
+                    return _camera;
+                }
+
+                return Camera.main;
+            }
+            set
+            {
+                _camera = value;
+            }
+        }
+
         [Tooltip("The height where detail is focused is smoothed to avoid popping which is undesireable after a teleport. Threshold is in Unity units."), SerializeField]
         float _teleportThreshold = 10f;
         float _teleportTimerForHeightQueries = 0f;
@@ -612,6 +629,8 @@ namespace Crest
 
             Camera.onPreRender -= OnPreRenderCamera;
             Camera.onPreRender += OnPreRenderCamera;
+            Camera.onPostRender -= OnPostRenderCamera;
+            Camera.onPostRender += OnPostRenderCamera;
         }
 
         void OnPreRenderCamera(Camera camera)
@@ -625,6 +644,12 @@ namespace Crest
             {
                 LodDataMgrShadow.BindScreenSpaceNullToGraphicsShaders(camera);
             }
+        }
+
+        void OnPostRenderCamera(Camera camera)
+        {
+            // Clean up for subsequent cameras or water could disappear.
+            UnderwaterRenderer.DisableOceanMaskKeywords();
         }
 
         internal void Rebuild()
@@ -1043,8 +1068,7 @@ namespace Crest
                         break;
                     case SurfaceSelfIntersectionFixMode.Automatic:
                         // Skip if UnderwaterRenderer is not full-screen (ocean will be clipped).
-                        var skip = UnderwaterRenderer.Instance != null && UnderwaterRenderer.Instance.IsActive &&
-                            UnderwaterRenderer.Instance._mode != UnderwaterRenderer.Mode.FullScreen;
+                        var skip = UnderwaterRenderer.SkipSurfaceSelfIntersectionFixMode;
                         value = skip ? 0f : height < -2f ? 1f : height > 2f ? -1f : 0f;
                         break;
                 }
@@ -1435,6 +1459,7 @@ namespace Crest
             _bufPerCascadeInstanceDataSource?.Dispose();
 
             Camera.onPreRender -= OnPreRenderCamera;
+            Camera.onPostRender -= OnPostRenderCamera;
         }
 
         /// <summary>

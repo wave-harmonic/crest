@@ -262,8 +262,6 @@ namespace Crest
                 _sampleHeightHelper.Init(_camera.transform.position, 0f, true);
                 _sampleHeightHelper.Sample(out var waterHeight);
                 _heightAboveWater = _camera.transform.position.y - waterHeight;
-                // Everything from here on is for the primary instance only.
-                return;
             }
 
             if (_enableShaderAPI != _currentEnableShaderAPI && _underwaterEffectCommandBuffer != null)
@@ -273,8 +271,11 @@ namespace Crest
                 _camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
                 _currentEnableShaderAPI = _enableShaderAPI;
 #if UNITY_EDITOR
-                DisableEditMode();
-                EnableEditMode();
+                if (Instance == this)
+                {
+                    DisableEditMode();
+                    EnableEditMode();
+                }
 #endif
             }
         }

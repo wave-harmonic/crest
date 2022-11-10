@@ -139,7 +139,7 @@ namespace Crest
             SubsystemManager.GetInstances(_displayList);
 #endif
 
-            if (!IsRunning || !IsSinglePass)
+            if (!camera.stereoEnabled || !IsSinglePass)
             {
                 return;
             }

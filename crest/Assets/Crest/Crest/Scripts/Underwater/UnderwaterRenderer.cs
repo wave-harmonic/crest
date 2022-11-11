@@ -146,7 +146,7 @@ namespace Crest
 
         // This will be the primary camera and matches OceanRenderer.Instance.ViewCamera.
         public static UnderwaterRenderer Instance { get; private set; }
-        static Camera s_PrimaryCamera;
+        internal static Camera s_PrimaryCamera;
         static int s_InstancesCount;
 
         public static bool IsCullable =>
@@ -441,14 +441,18 @@ namespace Crest
         /// Whether the effect is active for the editor only camera (eg scene view). You can check game preview cameras,
         /// but do not check game cameras.
         /// </summary>
-        internal bool IsActiveForEditorCamera(Camera camera)
+        internal static bool IsActiveForEditorCamera(Camera camera, UnderwaterRenderer renderer)
         {
             // Skip rendering altogether if proxy plane is being used.
             if (OceanRenderer.Instance == null || (!Application.isPlaying && OceanRenderer.Instance._showOceanProxyPlane))
             {
                 // These two clears will only run for built-in renderer as they'll be null for SRPs.
-                _oceanMaskCommandBuffer?.Clear();
-                _underwaterEffectCommandBuffer?.Clear();
+                if (renderer != null)
+                {
+                    renderer._oceanMaskCommandBuffer?.Clear();
+                    renderer._underwaterEffectCommandBuffer?.Clear();
+                }
+
                 return false;
             }
 
@@ -479,7 +483,7 @@ namespace Crest
 
         void OnBeforeRender(Camera camera)
         {
-            if (!IsActiveForEditorCamera(camera))
+            if (!IsActiveForEditorCamera(camera, this))
             {
                 return;
             }
@@ -494,6 +498,30 @@ namespace Crest
             _camera = camera;
             OnPreRender();
             _camera = oldCamera;
+        }
+
+        internal static UnderwaterRenderer Get(Camera camera)
+        {
+            UnderwaterRenderer ur;
+
+            // If this is the primary camera then we already have the UR as a static instance.
+            if (camera == s_PrimaryCamera)
+            {
+                ur = Instance;
+            }
+#if UNITY_EDITOR
+            // The scene view should use the primary camera instance exclusively.
+            else if (IsActiveForEditorCamera(camera, null))
+            {
+                ur = Instance;
+            }
+#endif
+            else
+            {
+                camera.TryGetComponent(out ur);
+            }
+
+            return ur;
         }
     }
 

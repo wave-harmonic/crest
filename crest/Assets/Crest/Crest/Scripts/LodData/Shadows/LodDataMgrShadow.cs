@@ -5,9 +5,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-#if ENABLE_VR && ENABLE_VR_MODULE
-using UnityEngine.XR;
-#endif
 
 namespace Crest
 {
@@ -443,15 +440,15 @@ namespace Crest
             // NOTE: Base call will flip buffers which is done elsewhere for this simulation.
 
             // Cache the camera for further down.
-            var camera = OceanRenderer.Instance.ViewCamera;
+            var camera = ocean.ViewCamera;
 
 #if CREST_SRP
 #pragma warning disable 618
-            using (new ProfilingSample(BufCopyShadowMap, "CrestSampleShadows"))
+            using (new ProfilingSample(buffer, "CrestSampleShadows"))
 #pragma warning restore 618
 #endif
             {
-                var lt = OceanRenderer.Instance._lodTransform;
+                var lt = ocean._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
 #if UNITY_EDITOR
@@ -459,7 +456,7 @@ namespace Crest
 #endif
 
                     _renderMaterial[lodIdx].SetVector(sp_CenterPos, lt._renderData[lodIdx].Current._posSnapped);
-                    var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+                    var scale = ocean.CalcLodScale(lodIdx);
                     _renderMaterial[lodIdx].SetVector(sp_Scale, new Vector3(scale, 1f, scale));
                     _renderMaterial[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
                     _renderMaterial[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, renderIntoTexture: true) * camera.worldToCameraMatrix);
@@ -470,16 +467,16 @@ namespace Crest
 
                     LodDataMgrSeaFloorDepth.Bind(_renderMaterial[lodIdx]);
 
-                    Helpers.Blit(BufCopyShadowMap, new RenderTargetIdentifier(_targets.Current, 0, CubemapFace.Unknown, lodIdx), _renderMaterial[lodIdx].material, -1);
+                    Helpers.Blit(buffer, new RenderTargetIdentifier(_targets.Current, 0, CubemapFace.Unknown, lodIdx), _renderMaterial[lodIdx].material, -1);
                 }
 
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    BufCopyShadowMap.SetRenderTarget(_targets.Current, _targets.Current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                    buffer.SetRenderTarget(_targets.Current, _targets.Current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     // BUG: These draw calls will "leak" and be duplicated before the above blit. They are executed at
                     // the beginning of this CB before any commands are applied.
-                    SubmitDraws(lodIdx, BufCopyShadowMap);
+                    SubmitDraws(lodIdx, buffer);
                 }
 
                 // Set the target texture as to make sure we catch the 'pong' each frame

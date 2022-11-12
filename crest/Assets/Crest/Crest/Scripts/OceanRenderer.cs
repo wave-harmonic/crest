@@ -7,8 +7,8 @@ using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
 using Crest.Internal;
 using System.Linq;
-#if UNITY_EDITOR
 using UnityEngine.Rendering;
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 

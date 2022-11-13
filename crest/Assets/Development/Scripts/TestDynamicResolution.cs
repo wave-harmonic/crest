@@ -4,26 +4,12 @@
 
 using UnityEngine;
 
-#if CREST_SRP
-using UnityEngine.Rendering;
-#endif
-
 namespace Crest
 {
     public class TestDynamicResolution : MonoBehaviour
     {
         [SerializeField, Range(0.01f, 1f)] float _resolutionScale = 1f;
 
-#if CREST_SRP
-        float SetDynamicResolutionScale() => _resolutionScale;
-
-        void OnEnable()
-        {
-            // Binds the dynamic resolution policy defined above.
-            DynamicResolutionHandler.SetDynamicResScaler(SetDynamicResolutionScale,
-                DynamicResScalePolicyType.ReturnsMinMaxLerpFactor);
-        }
-#else
         float _currentResolutionScale = 1f;
 
         void OnDisable()
@@ -41,6 +27,5 @@ namespace Crest
                 _currentResolutionScale = _resolutionScale;
             }
         }
-#endif
     }
 }

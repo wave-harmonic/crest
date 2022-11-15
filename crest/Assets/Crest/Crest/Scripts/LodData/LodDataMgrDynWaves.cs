@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -102,6 +103,19 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             LodDataMgrSeaFloorDepth.Bind(simMaterial);
             LodDataMgrFlow.Bind(simMaterial);
+        }
+
+        protected override void SubmitDraws(int lodIdx, CommandBuffer buffer)
+        {
+            base.SubmitDraws(lodIdx, buffer);
+
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+#endif
+            {
+                // SWI needs special handling. They are not registered like other inputs.
+                SphereWaterInteraction.SubmitDraws(this, lodIdx, buffer);
+            }
         }
 
         public static void CountWaveSims(int countFrom, out int o_present, out int o_active)

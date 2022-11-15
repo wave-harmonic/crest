@@ -17,26 +17,19 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			Blend One One
 			ZTest Always
 			ZWrite Off
-			
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+
+			#pragma multi_compile_instancing
 
 			#include "UnityCG.cginc"
 
 			#include "../../OceanInputsDriven.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
-			float3 _Velocity;
 			float _SimDeltaTime;
-			float _Strength;
-			float _StrengthVertical;
-			float _Weight;
-			float _Radius;
-			float3 _DisplacementAtInputPosition;
-			float _InnerSphereOffset;
-			float _InnerSphereMultiplier;
-			float _LargeWaveMultiplier;
 			CBUFFER_END
 
 			float _MinWavelength;
@@ -45,17 +38,34 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
 				float2 offsetXZ : TEXCOORD0;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
+
+			UNITY_INSTANCING_BUFFER_START(CrestPerInstance)
+				UNITY_DEFINE_INSTANCED_PROP(float3, _Velocity)
+				UNITY_DEFINE_INSTANCED_PROP(float, _Strength)
+				UNITY_DEFINE_INSTANCED_PROP(float, _StrengthVertical)
+				UNITY_DEFINE_INSTANCED_PROP(float, _Weight)
+				UNITY_DEFINE_INSTANCED_PROP(float, _Radius)
+				UNITY_DEFINE_INSTANCED_PROP(float3, _DisplacementAtInputPosition)
+				UNITY_DEFINE_INSTANCED_PROP(float, _InnerSphereOffset)
+				UNITY_DEFINE_INSTANCED_PROP(float, _InnerSphereMultiplier)
+				UNITY_DEFINE_INSTANCED_PROP(float, _LargeWaveMultiplier)
+			UNITY_INSTANCING_BUFFER_END(CrestPerInstance)
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_TRANSFER_INSTANCE_ID(input, o);
 
 				const float quadExpand = 4.0;
 
@@ -65,11 +75,14 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				o.offsetXZ = vertexWorldPos.xz - centerPos.xz;
 
 				// Correct for displacement
-				vertexWorldPos.xz -= _DisplacementAtInputPosition.xz;
+				vertexWorldPos.xz -= UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _DisplacementAtInputPosition).xz;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
-				if (_LargeWaveMultiplier * _Radius < _CrestCascadeData[_LodIdx]._texelWidth) o.positionCS *= 0.0;
+				float largeWaveMultiplier = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _LargeWaveMultiplier);
+				float radius = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _Radius);
+
+				if (largeWaveMultiplier * radius < _CrestCascadeData[_LodIdx]._texelWidth) o.positionCS *= 0.0;
 
 				return o;
 			}
@@ -82,29 +95,34 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				float ax = a * x;
 				float ax2 = ax * ax;
 				float ax4 = ax2 * ax2;
-				
+
 				return ax / (1.0 + ax2 * ax4);
 			}
 
 			// Signed distance field for sphere.
-			void SphereSDF(float2 offsetXZ, out float signedDist, out float2 normal)
+			void SphereSDF(float2 offsetXZ, float radius, out float signedDist, out float2 normal)
 			{
 				float dist = length(offsetXZ);
-				signedDist = dist - _Radius;
+				signedDist = dist - radius;
 				normal = dist > 0.0001 ? offsetXZ / dist : float2(1.0, 0.0);
 			}
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				UNITY_SETUP_INSTANCE_ID(input);
+
+				float radius = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _Radius);
+				float3 velocity = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _Velocity);
+
 				// Compute signed distance to sphere (sign gives inside/outside), and outwards normal to sphere surface
 				float signedDist;
 				float2 sdfNormal;
-				SphereSDF(input.offsetXZ, signedDist, sdfNormal);
+				SphereSDF(input.offsetXZ, radius, signedDist, sdfNormal);
 
 				// Forces from up/down motion. Push in same direction as vel inside sphere, and opposite dir outside.
 				float forceUpDown = 0.0;
 				{
-					forceUpDown = -1.0 * _StrengthVertical * _Velocity.y;
+					forceUpDown = -1.0 * UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _StrengthVertical) * velocity.y;
 
 					// Range / radius of interaction force
 					const float a = 1.67 / _MinWavelength;
@@ -113,7 +131,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
 				float forceHoriz = 0.0;
-				if( signedDist > 0.0 || signedDist < -_Radius*_InnerSphereOffset )
+				if (signedDist > 0.0 || signedDist < -radius * UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _InnerSphereOffset))
 				{
 					// Range / radius of interaction force.
 					const float a = 1.43 / _MinWavelength;
@@ -121,17 +139,17 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 					// Invert within sphere, to balance / negate forces applied outside of sphere.
 					float forceSign = sign(signedDist);
 
-					forceHoriz = forceSign * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, abs(signedDist) );
+					forceHoriz = forceSign * dot( sdfNormal, velocity.xz ) * InteractionFalloff( a, abs(signedDist) );
 
 					// If inside sphere, add an additional weight.
 					if (signedDist < 0.0)
 					{
-						forceHoriz *= _InnerSphereMultiplier;
+						forceHoriz *= UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _InnerSphereMultiplier);
 					}
 				}
 
 				// Add to velocity (y-channel) to accelerate water.
-				float accel = _Weight * (forceUpDown + forceHoriz) * _Strength;
+				float accel = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _Weight) * (forceUpDown + forceHoriz) * UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _Strength);
 
 				// Helps interaction to work at different scales
 				accel /= _MinWavelength;

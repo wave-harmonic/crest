@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -75,8 +76,25 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
-        Material _mat;
-        MaterialPropertyBlock _mpb;
+        static Material s_Material;
+        static MaterialPropertyBlock s_MPB;
+
+        // Instance Data.
+
+        // We can only draw a maximum of 1023 instances at once.
+        // https://docs.unity3d.com/ScriptReference/Graphics.DrawMeshInstanced.html
+        static Matrix4x4[] s_Matrices = new Matrix4x4[1023];
+        static List<Vector4> s_RelativeVelocityProperties = new List<Vector4>();
+        static List<float> s_RadiusProperties = new List<float>();
+        static List<float> s_InnerSphereOffsetProperties = new List<float>();
+        static List<float> s_InnerSphereMultiplierProperties = new List<float>();
+        static List<float> s_LargeWaveMultiplierProperties = new List<float>();
+        static List<Vector4> s_DisplacementAtInputPositionProperties = new List<Vector4>();
+        static List<float> s_WeightProperties = new List<float>();
+
+        internal static List<SphereWaterInteraction> s_Instances = new List<SphereWaterInteraction>();
+        static int s_InstanceIndex;
+        static bool s_InstanceDataNeedsClearing;
 
         static int sp_velocity = Shader.PropertyToID("_Velocity");
         static int sp_weight = Shader.PropertyToID("_Weight");
@@ -112,13 +130,30 @@ namespace Crest
                 enabled = false;
                 return;
             }
+        }
 
-            _mat = new Material(Shader.Find("Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"));
-            _mpb = new MaterialPropertyBlock();
+        static void ClearInstanceData()
+        {
+            s_RelativeVelocityProperties?.Clear();
+            s_RadiusProperties?.Clear();
+            s_InnerSphereOffsetProperties?.Clear();
+            s_InnerSphereMultiplierProperties?.Clear();
+            s_LargeWaveMultiplierProperties?.Clear();
+            s_DisplacementAtInputPositionProperties?.Clear();
+            s_WeightProperties?.Clear();
+            s_MPB?.Clear();
+
+            s_InstanceIndex = 0;
+            s_InstanceDataNeedsClearing = false;
         }
 
         void LateUpdate()
         {
+            if (s_InstanceDataNeedsClearing)
+            {
+                ClearInstanceData();
+            }
+
             var ocean = OceanRenderer.Instance;
             if (ocean == null) return;
 
@@ -138,6 +173,7 @@ namespace Crest
             }
 
             var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
+            s_MPB.SetFloat(sp_simDeltaTime, dt);
 
             // Use weight from user with a multiplier to make interactions look plausible
             _weightThisFrame = 3.75f * _weight;
@@ -145,17 +181,15 @@ namespace Crest
             var waterHeight = disp.y + ocean.SeaLevel;
             LateUpdateSphereWeight(waterHeight, ref _weightThisFrame);
 
-            _mpb.SetVector(sp_velocity, relativeVelocity);
-            _mpb.SetFloat(sp_simDeltaTime, dt);
+            s_RelativeVelocityProperties.Add(relativeVelocity);
 
             // Enlarge radius slightly - this tends to help waves 'wrap' the sphere slightly better
             float radiusScale = 1.1f;
-            _mpb.SetFloat(sp_radius, _radius * radiusScale);
-
-            _mpb.SetFloat(sp_innerSphereOffset, _innerSphereOffset);
-            _mpb.SetFloat(sp_innerSphereMultiplier, _innerSphereMultiplier);
-            _mpb.SetFloat(sp_largeWaveMultiplier, _boostLargeWaves ? 2f : 1f);
-            _mpb.SetVector(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, _compensateForWaveMotion * disp);
+            s_RadiusProperties.Add(_radius * radiusScale);
+            s_InnerSphereOffsetProperties.Add(_innerSphereOffset);
+            s_InnerSphereMultiplierProperties.Add(_innerSphereMultiplier);
+            s_LargeWaveMultiplierProperties.Add(_boostLargeWaves ? 2f : 1f);
+            s_DisplacementAtInputPositionProperties.Add(_compensateForWaveMotion * disp);
 
             // Weighting with this value helps keep ripples consistent for different gravity values
             var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier) / 5f;
@@ -237,12 +271,23 @@ namespace Crest
 
         void OnEnable()
         {
-            RegisterLodDataInput<LodDataMgrDynWaves>.RegisterInput(this, 0, transform.GetSiblingIndex());
+            if (s_Material == null)
+            {
+                s_Material = new Material(Shader.Find("Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"));
+                s_Material.enableInstancing = true;
+            }
+
+            if (s_MPB == null)
+            {
+                s_MPB = new MaterialPropertyBlock();
+            }
+
+            s_Instances.Add(this);
         }
 
         void OnDisable()
         {
-            RegisterLodDataInput<LodDataMgrDynWaves>.DeregisterInput(this);
+            s_Instances.Remove(this);
         }
 
         private void OnDrawGizmosSelected()
@@ -274,8 +319,56 @@ namespace Crest
             renderMatrix.m13 -= offset.y;
             renderMatrix.m23 -= offset.z;
 
-            _mpb.SetFloat(sp_weight, weight * _weightThisFrame);
-            buf.DrawMesh(RegisterLodDataInputBase.QuadMesh, renderMatrix, _mat, 0, 0, _mpb);
+            s_WeightProperties.Add(weight * _weightThisFrame);
+
+            Debug.Assert(s_InstanceIndex < s_Matrices.Length, "Crest: There are too many instances of SphereWaterInteraction. A maximum of 1023 instances is supported.");
+            s_Matrices[s_InstanceIndex++] = renderMatrix;
+        }
+
+        public static void SubmitDraws(LodDataMgr manager, int lodIndex, CommandBuffer buffer)
+        {
+            if (s_Instances.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var draw in s_Instances)
+            {
+                draw.Draw(manager, buffer, 1f, 0, lodIndex);
+            }
+
+            s_MPB.SetVectorArray(sp_velocity, s_RelativeVelocityProperties);
+            s_MPB.SetFloatArray(sp_radius, s_RadiusProperties);
+            s_MPB.SetFloatArray(sp_innerSphereOffset, s_InnerSphereOffsetProperties);
+            s_MPB.SetFloatArray(sp_innerSphereMultiplier, s_InnerSphereMultiplierProperties);
+            s_MPB.SetFloatArray(sp_largeWaveMultiplier, s_LargeWaveMultiplierProperties);
+            s_MPB.SetVectorArray(RegisterLodDataInputBase.sp_DisplacementAtInputPosition, s_DisplacementAtInputPositionProperties);
+
+            s_MPB.SetFloatArray(sp_weight, s_WeightProperties);
+
+            buffer.DrawMeshInstanced
+            (
+                mesh: RegisterLodDataInputBase.QuadMesh,
+                submeshIndex: 0,
+                material: s_Material,
+                shaderPass: 0,
+                matrices: s_Matrices,
+                count: s_InstanceIndex,
+                properties: s_MPB
+            );
+
+            // Clear any arrays modified in Draw as this is per LOD.
+            s_WeightProperties.Clear();
+            s_InstanceIndex = 0;
+            // Other arrays are cleared next frame.
+            s_InstanceDataNeedsClearing = true;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void OnLoad()
+        {
+            ClearInstanceData();
+            s_Instances.Clear();
         }
     }
 

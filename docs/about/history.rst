@@ -40,6 +40,7 @@ Changed
    -  Set *Ocean Renderer* *Wind Speed* default value to the maxmimum to reduce UX friction for new users.
    -  Also search *Addressables* and *Resources* for ocean materials when stripping keywords from underwater shader.
    -  Add *Ocean Renderer > Extents Size Multiplier* to adjust the extents so they can be increased in size to meet the horizon in cases where they do not.
+   -  Greatly improve performance when many SphereWaterInteraction components are used by utilising GPU Instancing.
 
 
 Fixed

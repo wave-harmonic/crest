@@ -42,6 +42,10 @@ Changed
    -  Add *Ocean Renderer > Extents Size Multiplier* to adjust the extents so they can be increased in size to meet the horizon in cases where they do not.
    -  Greatly improve performance when many SphereWaterInteraction components are used by utilising GPU Instancing.
 
+   .. only:: urp
+
+      -  Improve *Ocean Depth Cache* capture performance by excluding all render features. `[URP]`
+
 
 Fixed
 ^^^^^
@@ -69,7 +73,7 @@ Fixed
 
    .. only:: birp or urp
 
-      -  Fix *Underwater Curtain* lighting not matching the water surface causing a visible seam at the far plane.
+      -  Fix *Underwater Curtain* lighting not matching the water surface causing a visible seam at the far plane. `[BIRP] [URP]`
       -  Fix "mismatching output texture dimension" error when using XR `SPI`. `[BIRP] [URP]`
 
    .. only:: birp

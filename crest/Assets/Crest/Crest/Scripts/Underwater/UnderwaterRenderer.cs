@@ -398,6 +398,30 @@ namespace Crest
                 material.SetMatrix(ShaderIDs.s_InvViewProjection, _gpuInverseViewProjectionMatrix);
             }
         }
+
+        internal static UnderwaterRenderer Get(Camera camera)
+        {
+            UnderwaterRenderer ur;
+
+            // If this is the primary camera then we already have the UR as a static instance.
+            if (camera == s_PrimaryCamera)
+            {
+                ur = Instance;
+            }
+#if UNITY_EDITOR
+            // The scene view should use the primary camera instance exclusively.
+            else if (IsActiveForEditorCamera(camera, null))
+            {
+                ur = Instance;
+            }
+#endif
+            else
+            {
+                camera.TryGetComponent(out ur);
+            }
+
+            return ur;
+        }
     }
 
 #if UNITY_EDITOR
@@ -498,30 +522,6 @@ namespace Crest
             _camera = camera;
             OnPreRender();
             _camera = oldCamera;
-        }
-
-        internal static UnderwaterRenderer Get(Camera camera)
-        {
-            UnderwaterRenderer ur;
-
-            // If this is the primary camera then we already have the UR as a static instance.
-            if (camera == s_PrimaryCamera)
-            {
-                ur = Instance;
-            }
-#if UNITY_EDITOR
-            // The scene view should use the primary camera instance exclusively.
-            else if (IsActiveForEditorCamera(camera, null))
-            {
-                ur = Instance;
-            }
-#endif
-            else
-            {
-                camera.TryGetComponent(out ur);
-            }
-
-            return ur;
         }
     }
 

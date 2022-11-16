@@ -88,7 +88,8 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 
 #if _APPLYROTATION_ON
 				// Apply rotation.
-				flow = normalize(flow.y * unity_ObjectToWorld._m00_m20 - flow.x * unity_ObjectToWorld._m02_m22);
+				float2 rotation = normalize(unity_ObjectToWorld._m00_m20.xy);
+				flow = flow.x * rotation + flow.y * float2(-rotation.y, rotation.x);
 #endif
 
 				return float4(flow * _Strength, 0.0, 0.0);

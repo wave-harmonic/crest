@@ -88,6 +88,8 @@ Fixed
       -  Fix ocean moving in edit mode when *Always Refresh* is disabled. `[HDRP]`
       -  Fix *Clip Surface* adding negative alpha values when *Alpha Clipping* is disabled on the ocean material. `[HDRP]`
       -  Fix *Sort Priority* on the ocean material not having an effect. `[HDRP]`
+      -  Improve performance by removing duplicated pass when using shadow simulation. `[HDRP]`
+      -  Improve XR `MP` performance by removing shadow copy pass from the right eye. `[HDRP]`
 
 
 4.15.2

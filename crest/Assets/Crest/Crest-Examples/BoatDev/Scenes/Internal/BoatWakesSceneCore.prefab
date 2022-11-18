@@ -688,7 +688,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _version: 0
+  _resetOnDisable: 0
   _velocity: {x: 0, y: 0, z: 9}
+  _angularVelocity: {x: 0, y: 0, z: 0}
 --- !u!1 &5419537502603692069
 GameObject:
   m_ObjectHideFlags: 0
@@ -790,23 +792,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a57126133720c243a7af00a156c9ee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _version: 0
-  _windTurbulence: 0.145
   _spectrum: {fileID: 11400000, guid: 02c797a6329139b4aa4f3722248aba4c, type: 2}
   _spectrumFixedAtRuntime: 0
   _waveDirectionHeadingAngle: -90
   _overrideGlobalWindSpeed: 0
   _windSpeed: 20
-  _weight: 1
   _respectShallowWaterAttenuation: 1
-  _componentsPerOctave: 8
-  _randomSeed: 0
-  _resolution: 32
+  _weight: 1
+  _blendMode: 0
+  _queue: 0
+  _resolution: 128
   _debugDrawSlicesInEditor: 0
   _overrideSplineSettings: 0
   _radius: 50
   _subdivisions: 1
   _featherWaveStart: 0.1
+  _version: 0
+  _windTurbulence: 0.145
   _maxVerticalDisplacement: 10
   _maxHorizontalDisplacement: 15
   _enableBakedCollision: 0
@@ -865,6 +867,7 @@ MonoBehaviour:
   _primaryLight: {fileID: 1338187404168452971}
   _searchForPrimaryLightOnStartup: 1
   _material: {fileID: 2100000, guid: 4ee1dcb33f9d13449837c5422e910412, type: 2}
+  _waterTilePrefab: {fileID: 0}
   _layerName: 
   _layer: 4
   _gravityMultiplier: 1
@@ -875,7 +878,7 @@ MonoBehaviour:
   _lodDataResolution: 384
   _geometryDownSampleFactor: 2
   _lodCount: 7
-  _underwaterCullLimit: 0.001
+  _extentsSizeMultiplier: 100
   _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _simSettingsSeaFloorDepth: {fileID: 0}
@@ -893,9 +896,12 @@ MonoBehaviour:
   _defaultClippingState: 0
   _createAlbedoData: 0
   _settingsAlbedo: {fileID: 0}
+  _surfaceSelfIntersectionFixMode: 2
+  _underwaterCullLimit: 0.001
   _showOceanProxyPlane: 0
   _editModeFPS: 30
   _followSceneCamera: 1
+  _heightQueries: 1
   _forceBatchMode: 0
   _forceNoGPU: 0
   _attachDebugGUI: 1

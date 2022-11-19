@@ -41,6 +41,7 @@ Changed
    -  Also search *Addressables* and *Resources* for ocean materials when stripping keywords from underwater shader.
    -  Add *Ocean Renderer > Extents Size Multiplier* to adjust the extents so they can be increased in size to meet the horizon in cases where they do not.
    -  Greatly improve performance when many SphereWaterInteraction components are used by utilising GPU Instancing.
+   -  Improve example scenes.
 
    .. only:: urp
 
@@ -90,6 +91,10 @@ Fixed
       -  Fix *Sort Priority* on the ocean material not having an effect. `[HDRP]`
       -  Improve performance by removing duplicated pass when using shadow simulation. `[HDRP]`
       -  Improve XR `MP` performance by removing shadow copy pass from the right eye. `[HDRP]`
+
+   .. only:: urp
+
+      -  Fix *Underwater Renderer* incompatibility with `SSAO`. `[URP]`
 
 
 4.15.2

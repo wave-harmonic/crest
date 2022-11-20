@@ -87,14 +87,18 @@ Fixed
    .. only:: hdrp
 
       -  Fix ocean moving in edit mode when *Always Refresh* is disabled. `[HDRP]`
+      -  Fix ocean not rendering if no active *Underwater Renderer* is present. `[HDRP]`
       -  Fix *Clip Surface* adding negative alpha values when *Alpha Clipping* is disabled on the ocean material. `[HDRP]`
       -  Fix *Sort Priority* on the ocean material not having an effect. `[HDRP]`
       -  Improve performance by removing duplicated pass when using shadow simulation. `[HDRP]`
       -  Improve XR `MP` performance by removing shadow copy pass from the right eye. `[HDRP]`
+      -  Fix Unity 2022.2 shader compilation errors. `[HDRP]`
+      -  Fix Unity 2023.1 script compilation errors. `[HDRP]`
 
    .. only:: urp
 
       -  Fix *Underwater Renderer* incompatibility with `SSAO`. `[URP]`
+      -  Fix Unity 2022.2 obsolete warnings. `[URP]`
 
 
 4.15.2

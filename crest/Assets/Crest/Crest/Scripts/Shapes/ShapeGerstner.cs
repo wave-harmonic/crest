@@ -67,11 +67,6 @@ namespace Crest
         ComputeBuffer _bufCascadeParams;
         GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[CASCADE_COUNT + 1];
 
-        // First cascade of wave buffer that has waves and will be rendered
-        int _firstCascade = -1;
-        // Last cascade of wave buffer that has waves and will be rendered
-        int _lastCascade = -1;
-
         // Caution - order here impact performance. Rearranging these to match order
         // they're read in the compute shader made it 50% slower..
         struct GerstnerWaveComponent4
@@ -155,25 +150,23 @@ namespace Crest
 
         public override void CrestUpdate(CommandBuffer buf)
         {
-            base.CrestUpdate(buf);
-
             if (_waveBuffers == null || _resolution != _waveBuffers.width || _bufCascadeParams == null || _bufWaveData == null)
             {
                 InitData();
             }
 
             var windSpeed = WindSpeed;
-            if (IsFirstUpdate || UpdateDataEachFrame || windSpeed != _windSpeedWhenGenerated)
+            if (_firstUpdate || UpdateDataEachFrame || windSpeed != _windSpeedWhenGenerated)
             {
                 UpdateWaveData(windSpeed);
                 _windSpeedWhenGenerated = windSpeed;
             }
 
+            base.CrestUpdate(buf);
+
             _matGenerateWaves.SetVector(sp_AxisX, PrimaryWaveDirection);
             // Seems like shader errors cause this to unbind if I don't set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
-
-            ReportMaxDisplacement();
 
             // If some cascades have waves in them, generate
             if (_firstCascade != -1 && _lastCascade != -1)

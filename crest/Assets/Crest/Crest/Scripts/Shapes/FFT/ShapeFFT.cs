@@ -73,6 +73,10 @@ namespace Crest
 
         public override void CrestUpdate(CommandBuffer buf)
         {
+            // We do not filter FFTs.
+            _firstCascade = 0;
+            _lastCascade = CASCADE_COUNT - 1;
+
             base.CrestUpdate(buf);
 
             // If using geo, the primary wave dir is used by the input shader to rotate the waves relative
@@ -98,8 +102,6 @@ namespace Crest
             _windSpeedOld = windSpeedMPS;
             _spectrumOld = _spectrum;
             _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
-
-            ReportMaxDisplacement();
         }
 
         protected override void ReportMaxDisplacement()

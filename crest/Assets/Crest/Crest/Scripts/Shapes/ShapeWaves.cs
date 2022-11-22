@@ -167,10 +167,13 @@ namespace Crest
 
         WaveBatch[] _batches = null;
 
+        // First cascade of wave buffer that has waves and will be rendered.
+        protected int _firstCascade = -1;
+        // Last cascade of wave buffer that has waves and will be rendered.
+        protected int _lastCascade = -1;
+
         // Used to populate data on first frame.
-        bool _firstUpdate = true;
-        // For sub-classes.
-        protected bool IsFirstUpdate { get; private set; } = true;
+        protected bool _firstUpdate = true;
 
         // Active material.
         protected Material _matGenerateWaves;
@@ -216,10 +219,8 @@ namespace Crest
             UpdateEditorOnly();
 #endif
 
-            IsFirstUpdate = _firstUpdate;
-
             // Ensure batches assigned to correct slots.
-            if (IsFirstUpdate || UpdateDataEachFrame)
+            if (_firstUpdate || UpdateDataEachFrame)
             {
                 InitBatches();
                 _firstUpdate = false;
@@ -228,6 +229,8 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_MaximumAttenuationDepth, OceanRenderer.Instance._lodDataAnimWaves.Settings.MaximumAttenuationDepth);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+
+            ReportMaxDisplacement();
         }
 
         void CreateOrUpdateSplineMesh()
@@ -300,7 +303,7 @@ namespace Crest
 
             // Submit draws to create the FFT waves
             _batches = new WaveBatch[CASCADE_COUNT];
-            for (int i = 0; i < CASCADE_COUNT; i++)
+            for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
                 _batches[i] = new WaveBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);

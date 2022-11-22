@@ -187,7 +187,7 @@ rst_prolog = f"""
 .. set:: SponsorLink {sponsor_link}
 """
 rst_prolog = rst_prolog + """
-.. set:: RPMinVersion 10.5
+.. set:: RPMinVersion 10.10
 .. set:: UPMDocLinkBase \https://docs.unity3d.com/Packages
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
 .. set:: UnityMinVersionShort 2020.3

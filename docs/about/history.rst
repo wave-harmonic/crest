@@ -19,6 +19,10 @@ Breaking
 
    -  Set minimum Unity version to 2020.3.40.
 
+   .. only:: hdrp or urp
+
+      -  Set minimum render pipeline package version to 10.10. `[HDRP] [URP]`
+
 
 Changed
 ^^^^^^^

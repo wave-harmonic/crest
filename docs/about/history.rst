@@ -29,7 +29,7 @@ Changed
 .. bullet_list::
 
    -  Add support for multiple cameras to the *Underwater Renderer*.
-      One limitation is that underwater culling will be disabled when using multiple *Underwater Renderer*s.
+      One limitation is that underwater culling will be disabled when using multiple *Underwater Renderer*\ s.
    -  ShapeFFT/Gerstner can now take a mesh renderer as an input.
    -  Add *Crest/Inputs/Shape Waves/Sample Spectrum* shader which samples the spectrum using a texture.
    -  Ocean inputs provided via the *Register* components now sort on sibling index in addition to queue, so multiple inputs with the same queue can be organised in the hierarchy to control sort order.
@@ -45,7 +45,7 @@ Changed
    -  *Render Alpha On Surface* now executes in edit mode.
    -  Only report no Shape component validation as help boxes (ie no more console logs).
    -  Remove outdated lighting validation.
-   -  Validate layers to warn users of potential build failures if *Crest* related renderers are not on the same layer as the *OceanRenderer.Layer*.
+   -  Validate layers to warn users of potential build failures if `Crest` related renderers are not on the same layer as the *OceanRenderer.Layer*.
    -  No longer log info level validation to the console.
    -  Add info validation for tips on using reflection probes when found in a scene.
    -  Set *Ocean Renderer* *Wind Speed* default value to the maxmimum to reduce UX friction for new users.

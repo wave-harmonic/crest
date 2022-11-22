@@ -112,6 +112,21 @@ Fixed
       -  Fix Unity 2022.2 obsolete warnings. `[URP]`
 
 
+.. only:: latex
+
+   \
+
+   .. attention::
+
+      The history has been trimmed but the :link:`full history <{DocLinkBase}/about/history.html>` can be viewed online.
+
+
+.. Trim the history for PDFs.
+.. raw:: latex
+
+   \iffalse
+
+
 4.15.2
 ------
 
@@ -308,21 +323,6 @@ Fixed
    .. bullet_list::
 
       -  Reduce cost of populating the ocean depth cache. `[HDRP]`
-
-
-.. only:: latex
-
-   \
-
-   .. attention::
-
-      The history has been trimmed but the :link:`full history <{DocLinkBase}/about/history.html>` can be viewed online.
-
-
-.. Trim the history for PDFs.
-.. raw:: latex
-
-   \iffalse
 
 
 4.14
@@ -1144,13 +1144,30 @@ Fixed
 
 .. only:: hdrp
 
+   .. Trim the history for PDFs.
+   .. raw:: latex
+
+      \iffalse
+
+
    4.0 `[HDRP]`
    ------------
 
    -  First release!
 
 
+   .. raw:: latex
+
+      \fi
+
+
 .. only:: urp
+
+   .. Trim the history for PDFs.
+   .. raw:: latex
+
+      \iffalse
+
 
    3.8 `[URP]`
    -----------
@@ -1272,6 +1289,12 @@ Fixed
    ^^^^^
    -  Made more robust against VR screen depth bug, resolves odd shapes appearing on surface
    -  :issue:`279`
+
+
+   .. raw:: latex
+
+      \fi
+
 
 .. raw:: latex
 

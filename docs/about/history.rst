@@ -13,6 +13,13 @@ Release Notes
 |version|
 ---------
 
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Set minimum Unity version to 2020.3.40.
+
+
 Changed
 ^^^^^^^
 .. bullet_list::

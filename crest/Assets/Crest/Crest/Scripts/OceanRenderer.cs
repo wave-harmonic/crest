@@ -676,6 +676,12 @@ namespace Crest
 #if UNITY_EDITOR
         static void EditorUpdate()
         {
+            // Do not execute when editor is not active to conserve power and prevent possible leaks.
+            if (!UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+            {
+                return;
+            }
+
             s_EditorFramesSinceUpdate++;
 
             if (Instance == null) return;

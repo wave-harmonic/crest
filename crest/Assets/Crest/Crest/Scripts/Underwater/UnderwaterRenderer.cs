@@ -336,6 +336,16 @@ namespace Crest
 
         void OnPreRender()
         {
+#if UNITY_EDITOR
+            // Do not execute when editor is not active to conserve power and prevent possible leaks.
+            if (!UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+            {
+                _oceanMaskCommandBuffer?.Clear();
+                _underwaterEffectCommandBuffer?.Clear();
+                return;
+            }
+#endif
+
             UpdateOceanRendererStateForCamera();
 
             if (!IsActive)
@@ -507,6 +517,16 @@ namespace Crest
 
         void OnBeforeRender(Camera camera)
         {
+#if UNITY_EDITOR
+            // Do not execute when editor is not active to conserve power and prevent possible leaks.
+            if (!UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+            {
+                _oceanMaskCommandBuffer?.Clear();
+                _underwaterEffectCommandBuffer?.Clear();
+                return;
+            }
+#endif
+
             if (!IsActiveForEditorCamera(camera, this))
             {
                 return;

@@ -153,6 +153,13 @@ namespace Crest
         void OnPreCullCamera(Camera camera)
         {
 #if UNITY_EDITOR
+            // Do not execute when editor is not active to conserve power and prevent possible leaks.
+            if (!UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+            {
+                BufCopyShadowMap?.Clear();
+                return;
+            }
+
             if (!OceanRenderer.IsWithinEditorUpdate)
             {
                 return;
@@ -195,6 +202,13 @@ namespace Crest
         void OnPostRenderCamera(Camera camera)
         {
 #if UNITY_EDITOR
+            // Do not execute when editor is not active to conserve power and prevent possible leaks.
+            if (!UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+            {
+                BufCopyShadowMap?.Clear();
+                return;
+            }
+
             if (!OceanRenderer.IsWithinEditorUpdate)
             {
                 return;

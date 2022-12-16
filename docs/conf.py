@@ -38,11 +38,7 @@ extensions = [
     "sphinx_issues",
 
     # For using CONTRIBUTING.md.
-    "sphinx_markdown_tables",
-    "recommonmark",
-
-    # Theme.
-    "furo",
+    "myst_parser",
 
     # Local packages.
     "youtube",
@@ -95,6 +91,9 @@ issues_github_path = "wave-harmonic/crest"
 
 # https://sphinx-hoverxref.readthedocs.io/en/latest/usage.html#tooltip-on-all-ref-roles
 hoverxref_auto_ref = True
+hoverxref_role_types = {
+    "ref": "tooltip",  # for hoverxref_auto_ref config
+}
 
 # -- Options for HTML output -------------------------------------------------
 

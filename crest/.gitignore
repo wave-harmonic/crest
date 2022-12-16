@@ -9,6 +9,10 @@
 # Ignore generated build settings.
 /[Pp]roject[Ss]ettings/BurstAotSettings_*.json
 
+# Build Report Inspector package default location for build reports.
+/Assets/BuildReports/
+/Assets/BuildReports.meta
+
 # Ignore the Ignored folder exactly
 /[Aa]ssets/[Ii]gnored/
 /[Aa]ssets/[Ii]gnored.meta

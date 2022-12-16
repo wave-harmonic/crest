@@ -4,6 +4,7 @@
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.addressables": "1.18.19",
+    "com.unity.build-report-inspector": "0.3.0-preview",
     "com.unity.burst": "1.6.6",
     "com.unity.cinemachine": "2.6.17",
     "com.unity.ide.rider": "3.0.16",

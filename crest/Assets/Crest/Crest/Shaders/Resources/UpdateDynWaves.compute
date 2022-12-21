@@ -22,6 +22,7 @@ float _SimDeltaTime;
 float _LODChange;
 float _CourantNumber;
 float _AttenuationInShallows;
+float _WaveStrength;
 CBUFFER_END
 
 float ComputeWaveSpeed(float wavelength, float g)
@@ -130,7 +131,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	vtp *= weightEdge;
 
 	// integrate velocity onto position
-	float ftp = ft + dt * vtp;
+	float ftp = ft + dt * vtp * _WaveStrength;
 	ftp *= weightEdge;
 
 	if (_AttenuationInShallows > 0.0)

@@ -48,6 +48,9 @@ namespace Crest
 
         [Range(0f, 64f), Tooltip("Multiplier for gravity. More gravity means dynamic waves will travel faster.")]
         public float _gravityMultiplier = 1f;
+
+        [Range(0f, 10f)]
+        public float _waveStrength = 1.0f;
     }
 
 #if UNITY_EDITOR

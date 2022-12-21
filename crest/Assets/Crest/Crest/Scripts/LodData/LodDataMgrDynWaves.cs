@@ -38,6 +38,7 @@ namespace Crest
         readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
         readonly int sp_CourantNumber = Shader.PropertyToID("_CourantNumber");
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
+        readonly int sp_WaveStrength = Shader.PropertyToID("_WaveStrength");
 
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsDynamicWaves != null ? _ocean._simSettingsDynamicWaves : GetDefaultSettings<SettingsType>();
@@ -97,6 +98,7 @@ namespace Crest
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
             simMaterial.SetFloat(sp_CourantNumber, Settings._courantNumber);
             simMaterial.SetFloat(sp_AttenuationInShallows, Settings._attenuationInShallows);
+            simMaterial.SetFloat(sp_WaveStrength, Settings._waveStrength);
             simMaterial.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,

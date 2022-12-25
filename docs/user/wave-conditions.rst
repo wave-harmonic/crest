@@ -75,3 +75,31 @@ If the *Spline* component is attached to the same GameObject as a *ShapeFFT* com
 This allows for quick experimentation with placing and orienting waves in different areas of the environment.
 
 The *Spline* component can also be combined with the *RegisterHeightInput* to make the water level follow the spline, and with the *RegisterFlowInput* to make water move along the spline.
+
+Shoreline Wave Simulation
+-------------------------
+
+Crest provides a water simulation that can handle fluid dynamics in shallow water efficiently, known as a Shallow Water Simulation. This can be combined with normal water waves to simulated shoreline wave behaviour.
+
+To add this simulation to the world, place a GameObject roughly at the center of the simulation area and add the *ShallowWaterSimulation* component.
+
+The following parameters are used to setup the simulation:
+
+- **Domain Width** - The width of the simulation area (m). Enable gizmos to see a wireframe outline of the domain.
+- **Water Depth** - The depth of the water in the shallow water simulation (m). Any underwater surfaces deeper than this depth will not influence the sim. Large values can lead to instabilities / jitter in the result.
+- **Texel Size** - Simulation resolution; width of simulation grid cell (m). Smaller values will increase resolution but take more computation time and memory, and may lead to instabilities for small values.
+- **Max Resolution** - Maximum resolution of simulation grid. Safety limit to avoid simulation using large amount of video memory.
+- **Drain Water At Boundaries** - Rate at which to remove water at the boundaries of the domain, useful for preventing buildup of water when simulating shoreline waves.
+- **Friction** - Friction applied to water to prevent dampen velocities.
+- **Maximum Velocity** - Maximum velocity that simulation is allowed to contain (m/s).
+
+The following parameters provide control over the blend between the normal water waves and the shallow water simulation:
+
+- **Blend Shallow Min Depth** - The minimum depth for blending (m). When the water depth is less than this value, animated waves will not contribute at all, water shape will come purely from this simulation. Negative depths are valid and occur when surfaces are above sea level.
+- **Blend Shallow Max Depth** - The maximum depth for blending (m). When the water depth is greater than this value, this simulation will not contribute at all, water shape will come purely from the normal ocean waves. Negative depths are valid and occur when surfaces are above sea level.
+- **Blend Push Up Strength** - The intensity at which ocean waves inject water into the simulation.
+
+The following parameters control distance culling to shut down the simulation when the viewpoint is not nearby to save runtime performance cost:
+
+- **Enable Distance Culling** - Disable simulation when viewpoint far from domain.
+- **Cull Distance** - Disable simulation if viewpoint (main camera or Viewpoint transform set on OceanRenderer component) is more than this distance outside simulation domain.

@@ -97,14 +97,12 @@ float PiersonMoskowitzWindTerm( float w )
 
 float PosCosSquaredDirectionalSpreading( float cosTheta )
 {
-	if( cosTheta > 0.0 )
-	{
-		return lerp( INVPI2 * (cosTheta * cosTheta), PI4, _Turbulence );
-	}
-	else
-	{
-		return PI4 * _Turbulence;
-	}
+	float minWeight = lerp(0.1, 1.0, _Turbulence);
+	float wt = max(cosTheta, minWeight);
+	wt *= lerp(1.5, 0.25, _Turbulence);
+	float power = lerp(16.0, 1.0, _Turbulence);
+
+	return wt * INVPI2 * pow(abs(cosTheta), power);
 }
 
 RWTexture2DArray<float4> _ResultInit;

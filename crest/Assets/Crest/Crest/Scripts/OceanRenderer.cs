@@ -417,8 +417,8 @@ namespace Crest
         public static readonly int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
         public static readonly int sp_CrestCascadeDataSource = Shader.PropertyToID("_CrestCascadeDataSource");
         public static readonly int sp_CrestLodChange = Shader.PropertyToID("_CrestLodChange");
-        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        public static readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        public static readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly static int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly static int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         readonly static int sp_CrestDepthTextureOffset = Shader.PropertyToID("_CrestDepthTextureOffset");
@@ -1588,19 +1588,6 @@ namespace Crest
                     "Multiple <i>OceanRenderer</i> components detected in open scenes, this is not typical - usually only one <i>OceanRenderer</i> is expected to be present.",
                     "Remove extra <i>OceanRenderer</i> components.",
                     ValidatedHelper.MessageType.Warning, ocean
-                );
-            }
-
-            // Shape*
-            var gerstners = FindObjectsOfType<ShapeGerstner>(true);
-            var ffts = FindObjectsOfType<ShapeFFT>(true);
-            if (gerstners.Length == 0 && ffts.Length == 0)
-            {
-                showMessage
-                (
-                    "No ShapeGerstner/ShapeFFT component found, so ocean will appear flat (no waves).",
-                    "Assign a ShapeFFT component to a GameObject.",
-                    ValidatedHelper.MessageType.Info, ocean
                 );
             }
 

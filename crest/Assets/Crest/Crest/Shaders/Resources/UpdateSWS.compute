@@ -1,0 +1,609 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel Init
+#pragma kernel InitGroundHeight
+#pragma kernel Advect
+#pragma kernel UpdateH
+#pragma kernel HOvershootReduction
+#pragma kernel UpdateVels
+#pragma kernel BlurH
+#pragma kernel Blur
+
+#include "HLSLSupport.cginc"
+
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanHelpers.hlsl"
+
+SamplerState linear_clamp_sampler;
+
+Texture2D<float> _H0;
+RWTexture2D<float> _H1;
+Texture2D<float> _Vx0;
+RWTexture2D<float> _Vx1;
+Texture2D<float> _Vy0;
+RWTexture2D<float> _Vy1;
+Texture2D<float> _GroundHeightSS;
+RWTexture2D<float> _GroundHeightSSRW;
+Texture2D<float> _SimulationMask;
+RWTexture2D<float> _SimulationMaskRW;
+
+float _Time;
+float _DeltaTime;
+float _DomainWidth;
+float3 _SimOrigin;
+float _Resolution;
+float _DrainWaterAtBoundaries;
+float _Friction;
+float _MaximumVelocity;
+float _AddAdditionalWater;
+float _TexelSize;
+
+int _MacCormackAdvection;
+int _MacCormackAdvectionForHeight;
+int _UpwindHeight;
+int _DepthLimiter;
+float _OvershootReductionStrength;
+
+float _ShallowMinDepth;
+float _ShallowMaxDepth;
+float _BlendPushUpStrength;
+
+float2 IdToWorldXZ_H(uint2 id)
+{
+	// H grid is centered
+	return ((id + 0.5) / _Resolution - 0.5) * _DomainWidth + _SimOrigin.xz;
+}
+float2 IdToWorldXZ_GroundHeight(uint2 id)
+{
+	// H and GroundHeight are aligned
+	return IdToWorldXZ_H(id);
+}
+float2 IdToWorldXZ_Vx(uint2 id)
+{
+	// Vx grid is offset right half a texel
+	return ((id + float2(1.0, 0.5)) / _Resolution - 0.5) * _DomainWidth + _SimOrigin.xz;
+}
+float2 IdToWorldXZ_Vy(uint2 id)
+{
+	// Vy grid is offset forward half a texel
+	return ((id + float2(0.5, 1.0)) / _Resolution - 0.5) * _DomainWidth + _SimOrigin.xz;
+}
+
+float2 WorldXZToUv_H(float2 worldXZ)
+{
+	// H grid is centered
+	return (worldXZ - _SimOrigin.xz) / _DomainWidth + 0.5;
+}
+float2 WorldXZToUv_GroundHeight(float2 worldXZ)
+{
+	// Aligned to H
+	return WorldXZToUv_H(worldXZ);
+}
+float2 WorldXZToUv_Vx(float2 worldXZ)
+{
+	// Vx grid is offset right half a texel
+	return (worldXZ - _SimOrigin.xz) / _DomainWidth + 0.5 - float2(0.5 / _Resolution, 0.0);
+}
+float2 WorldXZToUv_Vy(float2 worldXZ)
+{
+	// Vy grid is offset forward half a texel
+	return (worldXZ - _SimOrigin.xz) / _DomainWidth + 0.5 - float2(0.0, 0.5 / _Resolution);
+}
+
+float SampleH(float2 worldXZ)
+{
+	return _H0.SampleLevel(linear_clamp_sampler, WorldXZToUv_H(worldXZ), 0.0).x;
+}
+float SampleGroundHeight(float2 worldXZ)
+{
+	return _GroundHeightSS.SampleLevel(linear_clamp_sampler, WorldXZToUv_GroundHeight(worldXZ), 0.0).x;
+}
+float SampleVx0(float2 worldXZ)
+{
+	return _Vx0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vx(worldXZ), 0.0).x;
+}
+float SampleVy0(float2 worldXZ)
+{
+	return _Vy0.SampleLevel(linear_clamp_sampler, WorldXZToUv_Vy(worldXZ), 0.0).x;
+}
+
+////////////////////////////////////////////
+// INIT
+
+[numthreads(8, 8, 1)]
+void InitGroundHeight(uint2 id : SV_DispatchThreadID)
+{
+	const float2 worldXZ = IdToWorldXZ_GroundHeight(id);
+
+	uint slice0, slice1;
+	float lodAlpha;
+	PosToSliceIndices(worldXZ, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha);
+
+	const float3 uv0 = WorldToUV(worldXZ, _CrestCascadeData[slice0], slice0);
+	const float3 uv1 = WorldToUV(worldXZ, _CrestCascadeData[slice1], slice1);
+	
+	const float wt_0 = (1.0 - lodAlpha) * _CrestCascadeData[slice0]._weight;
+	const float wt_1 = (1.0 - wt_0) * _CrestCascadeData[slice1]._weight;
+
+	float2 groundHeight_seaLevelOffset =
+		wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xy +
+		wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xy;
+	float g = groundHeight_seaLevelOffset.x;
+
+	// Mask is directly based off depth at the moment
+	float depth = _OceanCenterPosWorld.y + groundHeight_seaLevelOffset.y - g;
+	_SimulationMaskRW[id] = 1.0 - saturate((depth - _ShallowMinDepth) / _ShallowMaxDepth);
+
+	g = max(0.0, g - _SimOrigin.y);
+
+	_GroundHeightSSRW[id] = g;
+}
+
+[numthreads(8, 8, 1)]
+void Init(uint2 id : SV_DispatchThreadID)
+{
+	const float2 worldXZ = IdToWorldXZ_H(id);
+
+	float h = _OceanCenterPosWorld.y - _SimOrigin.y;
+	h = max(0.0, h - SampleGroundHeight(worldXZ));
+
+	h += _AddAdditionalWater;
+
+	_H1[id.xy] = h;
+	_Vx1[id.xy] = 0.0;
+	_Vy1[id.xy] = 0.0;
+}
+
+////////////////////////////////////////////
+// ADVECT
+
+[numthreads(8, 8, 1)]
+void Advect(uint3 id : SV_DispatchThreadID)
+{
+	// Vx
+	if (id.z == 0)
+	{
+		const float2 worldXZ = IdToWorldXZ_Vx(id.xy);
+
+		// Advect forwards to predict advected position
+		const float2 worldXZAdvected_prediction = worldXZ - _DeltaTime * float2(SampleVx0(worldXZ), SampleVy0(worldXZ));
+
+		float2 worldXZAdvected = worldXZAdvected_prediction;
+		const float vxSemiLagrangian = SampleVx0(worldXZAdvected);
+		float vxAdvected = vxSemiLagrangian;
+		if (_MacCormackAdvection)
+		{
+			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
+			
+			// Advect forwards to predict original position
+			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(vxSemiLagrangian, SampleVy0(worldXZAdvected_prediction));
+
+			// Remove half of prediction error to yield average of both
+			worldXZAdvected -= (worldXZ_prediction - worldXZ) / 2.0;
+
+			float vxAdvectedNew = SampleVx0(worldXZAdvected);
+
+			const float4 vxsUsedForFirstSLStep = _Vx0.Gather(linear_clamp_sampler, WorldXZToUv_Vx(worldXZ));
+			const float vxMin = min(min(vxsUsedForFirstSLStep[0], vxsUsedForFirstSLStep[1]), min(vxsUsedForFirstSLStep[2], vxsUsedForFirstSLStep[3]));
+			const float vxMax = max(max(vxsUsedForFirstSLStep[0], vxsUsedForFirstSLStep[1]), max(vxsUsedForFirstSLStep[2], vxsUsedForFirstSLStep[3]));
+
+			if (vxAdvectedNew >= vxMin && vxAdvectedNew <= vxMax)
+			{
+				vxAdvected = vxAdvectedNew;
+			}
+		}
+
+		const float h_vx = SampleH(worldXZAdvected);
+		const float friction = _Friction * _DeltaTime / max(0.001f, pow(h_vx, 1.333333f));
+		vxAdvected -= abs(vxAdvected) * vxAdvected * friction;
+
+		vxAdvected = clamp(vxAdvected, -_MaximumVelocity, _MaximumVelocity);
+
+		_Vx1[id.xy] = vxAdvected;
+	}
+
+	// Vy
+	if (id.z == 1)
+	{
+		const float2 worldXZ = IdToWorldXZ_Vy(id.xy);
+		
+		// Advect forwards to predict advected position
+		const float2 worldXZAdvected_prediction = worldXZ - _DeltaTime * float2(SampleVx0(worldXZ), SampleVy0(worldXZ));
+
+		float2 worldXZAdvected = worldXZAdvected_prediction;
+		const float vySemiLagrangian = SampleVy0(worldXZAdvected);
+		float vyAdvected = vySemiLagrangian;
+		if (_MacCormackAdvection)
+		{
+			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
+
+			// Advect forwards to predict original position
+			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), vySemiLagrangian);
+
+			// Remove half of prediction error to yield average of both
+			worldXZAdvected -= (worldXZ_prediction - worldXZ) / 2.0;
+
+			float vyAdvectedNew = SampleVy0(worldXZAdvected);
+
+			const float4 vysUsedForFirstSLStep = _Vy0.Gather(linear_clamp_sampler, WorldXZToUv_Vy(worldXZ));
+			const float vyMin = min(min(vysUsedForFirstSLStep[0], vysUsedForFirstSLStep[1]), min(vysUsedForFirstSLStep[2], vysUsedForFirstSLStep[3]));
+			const float vyMax = max(max(vysUsedForFirstSLStep[0], vysUsedForFirstSLStep[1]), max(vysUsedForFirstSLStep[2], vysUsedForFirstSLStep[3]));
+
+			if (vyAdvectedNew >= vyMin && vyAdvectedNew <= vyMax)
+			{
+				vyAdvected = vyAdvectedNew;
+			}
+		}
+
+		const float h_vy = SampleH(worldXZAdvected);
+		const float friction = _Friction * _DeltaTime / max(0.001f, pow(h_vy, 1.333333f));
+		vyAdvected -= abs(vyAdvected) * vyAdvected * friction;
+
+		vyAdvected = clamp(vyAdvected, -_MaximumVelocity, _MaximumVelocity);
+
+		_Vy1[id.xy] = vyAdvected;
+	}
+
+	// H
+	if (id.z == 2)
+	{
+		const float2 worldXZ = IdToWorldXZ_H(id.xy);
+
+		// Advect forwards to predict advected position
+		const float2 worldXZAdvected_prediction = worldXZ - _DeltaTime * float2(SampleVx0(worldXZ), SampleVy0(worldXZ));
+
+		float2 worldXZAdvected = worldXZAdvected_prediction;
+		if (_MacCormackAdvectionForHeight)
+		{
+			// Update prediction by advecting backwards to obtain a starting position and using the difference as an error term
+
+			// Advect forwards to predict original position
+			const float2 worldXZ_prediction = worldXZAdvected_prediction + _DeltaTime * float2(SampleVx0(worldXZAdvected_prediction), SampleVy0(worldXZAdvected_prediction));
+
+			// Remove half of prediction error to yield average of both
+			worldXZAdvected -= (worldXZ_prediction - worldXZ) / 2.0;
+		}
+
+		_H1[id.xy] = SampleH(worldXZAdvected);
+	}
+}
+
+////////////////////////////////////////////
+// UPDATE H
+
+float HAdjustment(uint2 id)
+{
+	const float gravity = 9.81f;
+	float hn = _H0[id + uint2(0, 1)];
+	float hs = _H0[id - uint2(0, 1)];
+	float he = _H0[id + uint2(1, 0)];
+	float hw = _H0[id - uint2(1, 0)];
+	float h_avg = 0.25 * (hn + hs + he + hw);
+	float beta = 2.0;
+	float minThickness = beta * _TexelSize / (gravity * _DeltaTime);
+	return max(0.0, h_avg - minThickness);
+}
+
+[numthreads(8,8,1)]
+void UpdateH(uint2 id : SV_DispatchThreadID)
+{
+	float h = _H0[id];
+
+	const uint x = id.x;
+	const uint y = id.y;
+
+	const float2 worldXZ = IdToWorldXZ_H(id);
+
+	float pump = 0.0;
+
+	if (h > 0.01)
+	{
+		float2 offset = abs(id / float(_Resolution) - 0.5);
+		float maxOff = max(offset.x, offset.y);
+
+		// Drain water out at boundary of domain. This seems to work ok. 
+		pump += _DrainWaterAtBoundaries * smoothstep(0.4, 0.5, maxOff);
+
+		uint slice0, slice1;
+		float lodAlpha;
+		PosToSliceIndices(worldXZ, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha);
+
+		const float3 uv0 = WorldToUV(worldXZ, _CrestCascadeData[slice0], slice0);
+		const float3 uv1 = WorldToUV(worldXZ, _CrestCascadeData[slice1], slice1);
+
+		const float wt_0 = (1.0 - lodAlpha) * _CrestCascadeData[slice0]._weight;
+		const float wt_1 = (1.0 - wt_0) * _CrestCascadeData[slice1]._weight;
+
+		float dispy =
+			wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
+			wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
+
+		// TODO Needs sea level offset, not just sea level. I don't really understand anymore how this will
+		// work. Where will sim origin be placed when sea level is varying? I think at that point sim placement
+		// needs to be manual, not automatic.
+		//float seaLevelOffset =
+		//	wt_0 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).y +
+		//	wt_1 * _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).y;
+
+		float wavey = dispy + _OceanCenterPosWorld.y /*+ seaLevelOffset*/;
+		float simH = h + _SimOrigin.y + _GroundHeightSS[id];
+		if(wavey > simH)
+		{
+			// This is tricksy. Don't apply forces from waves in deep, but also don't apply in very shallow.
+			// The latter will mean that the SWS is held at sea level instead of being allowed to drop below.
+			// I tried asserting disp.y > somevalue but that led to a whole different set of issues. Therefore
+			// settle for a y=4x(1-x) weight that chooses the mid point of the mask blend. Seems to work.
+			float maskWeight = _SimulationMask[id];
+			maskWeight *= 4.0 * (1.0 - maskWeight);
+
+			pump += _BlendPushUpStrength * maskWeight * (wavey - simH);
+		}
+	}
+
+
+	float outPump = 30.0;// 30.0;
+	float vxp = (x == uint(_Resolution - 1)) ? outPump : _Vx1[id];
+	float vyp = (y == uint(_Resolution - 1)) ? outPump : _Vy1[id];
+	float vxm = (x == 0) ? -outPump : _Vx1[uint2(x - 1, y)];
+	float vym = (y == 0) ? -outPump : _Vy1[uint2(x, y - 1)];
+	const float dx = (vxp - vxm) / _TexelSize;
+	const float dy = (vyp - vym) / _TexelSize;
+	const float divergence = dx + dy;
+
+	// Update height based on total flow in minus total flow out
+
+	float hvel;
+	if (_UpwindHeight)
+	{
+		float2 hx = vxp <= 0.0
+			? float2(_H0[id], _H0[id + uint2(1, 0)]) // forward diffs
+			: float2(_H0[id - uint2(1, 0)], _H0[id]); // backward diffs
+		float2 hy = vyp <= 0.0
+			? float2(_H0[id], _H0[id + uint2(0, 1)]) // forward diffs
+			: float2(_H0[id - uint2(0, 1)], _H0[id]); // backward diffs
+
+		if (_DepthLimiter)
+		{
+			float h_adj = HAdjustment(id);
+			hx -= h_adj;
+			hy -= h_adj;
+		}
+
+		hvel = -(vxp * hx[1] - vxm * hx[0] + vyp * hy[1] - vym * hy[0]) / _TexelSize;
+	}
+	else
+	{
+		if (_DepthLimiter)
+		{
+			hvel = -(h - HAdjustment(id)) * divergence;
+		}
+		else
+		{
+			hvel = -h * divergence;
+		}
+	}
+
+	h += _DeltaTime * hvel + pump;
+	h = max(h, 0.0);
+
+	// Dry - force to 0
+	//if (h < 0.001) h = 0.0;
+
+	_H1[id] = h;
+}
+
+////////////////////////////////////////////
+// H OVERSHOOT REDUCTION
+
+[numthreads(8, 8, 1)]
+void HOvershootReduction(uint2 id : SV_DispatchThreadID)
+{
+	float h = _H0[id];
+
+	if (any(id == 0) || any(id == _Resolution - 1))
+	{
+		// Don't do this at boundary
+		_H1[id] = h;
+		return;
+	}
+
+	float y = _H0[id] + _GroundHeightSS[id];
+	float hn = _H0[id + uint2(1, 0)];
+	float hs = _H0[id - uint2(1, 0)];
+	float he = _H0[id + uint2(1, 0)];
+	float hw = _H0[id - uint2(1, 0)];
+	float yn = hn + _GroundHeightSS[id + uint2(1, 0)];
+	float ys = hs + _GroundHeightSS[id - uint2(1, 0)];
+	float ye = he + _GroundHeightSS[id + uint2(1, 0)];
+	float yw = hw + _GroundHeightSS[id - uint2(1, 0)];
+
+	float lambda_edge = 2.0 * _TexelSize;
+
+	// X axis
+	if ((y - yw) > lambda_edge && y > ye)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + he)) - h);
+	}
+	if ((y - ye) > lambda_edge && y > yw)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + hw)) - h);
+	}
+
+	// Z axis
+	if ((y - ys) > lambda_edge && y > yn)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + hn)) - h);
+	}
+	if ((y - yn) > lambda_edge && y > ys)
+	{
+		h += _OvershootReductionStrength * (max(0.0, 0.5 * (h + hs)) - h);
+	}
+
+	_H1[id] = h;
+}
+
+////////////////////////////////////////////
+// UPDATE VELS
+
+[numthreads(8, 8, 1)]
+void UpdateVels(uint2 id : SV_DispatchThreadID)
+{
+	// Height before vel
+	const float2 worldXZ_H0 = IdToWorldXZ_H(id);
+	const float g0 = _GroundHeightSS[id];
+	const float h0 = _H1[id];
+
+	const uint x = id.x;
+	const uint y = id.y;
+	const uint xp = min(x + 1, _Resolution - 1);
+	const uint yp = min(y + 1, _Resolution - 1);
+
+	const float gravity = 9.81f;
+
+	// Vx
+	{
+		float vx = _Vx1[id];
+
+		const float2 worldXZ_H1 = IdToWorldXZ_H(uint2(xp, y));
+		const float g1 = _GroundHeightSS[uint2(xp, y)];
+		const float h1 = _H1[uint2(xp, y)];
+
+		const float hdiff = (h1 + g1) - (h0 + g0);
+		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
+
+		float accel = -gravity * hdiff / _TexelSize;
+
+		vx += _DeltaTime * accel;
+
+		// Kill velocity if totally dry
+		if (h0 < 0.001 && h1 < 0.001)
+		{
+			vx = 0.0;
+		}
+		else if (accel < 0 && h1 < 0.001)
+		{
+			// Don't produce acceleration from water flowing in from a dry cell
+			vx = 0.0;
+		}
+		else if (accel > 0 && h0 < 0.001)
+		{
+			// Don't produce acceleration from water flowing in from a dry cell
+			vx = 0.0;
+		}
+
+		_Vx1[id] = vx;
+
+		if (h0 < 0.001 && h1 < 0.001) _Vx1[id] = 0.0;
+	}
+
+	// Vy
+	{
+		float vy = _Vy1[id];
+
+		const float2 worldXZ_H1 = IdToWorldXZ_H(uint2(x, yp));
+		const float g1 = _GroundHeightSS[uint2(x, yp)];
+		const float h1 = _H1[uint2(x, yp)];
+
+		const float hdiff = (h1 + g1) - (h0 + g0);
+		//if (fabs(hdiff) > maxDiff) hdiff = sign(hdiff) * maxDiff;
+
+		float accel = -gravity * hdiff / _TexelSize;
+
+		vy += _DeltaTime * accel;
+
+		// Kill velocity if totally dry
+		if (h0 < 0.001 && h1 < 0.001)
+		{
+			vy = 0.0;
+		}
+		else if (accel < 0 && h1 < 0.001)
+		{
+			// Don't produce acceleration from water flowing in from a dry cell
+			vy = 0.0;
+		}
+		else if (accel > 0 && h0 < 0.001)
+		{
+			// Don't produce acceleration from water flowing in from a dry cell
+			vy = 0.0;
+		}
+
+		_Vy1[id] = vy;
+	}
+}
+
+////////////////////////////////////////////
+// BLUR H
+
+[numthreads(8, 8, 1)]
+void BlurH(int2 id : SV_DispatchThreadID)
+{
+	float result = 0.0;
+	float twt = 0.0;
+	const int rad = 1;
+
+	float hcenter = _H0[id];
+	if (hcenter < 0.001)
+	{
+		_H1[id] = 0.0;
+		return;
+	}
+
+	for (int y = -rad; y <= rad; y++)
+	{
+		for (int x = -rad; x <= rad; x++)
+		{
+			int2 idx;
+			idx.x = clamp(id.x + x, 0, _Resolution - 1);
+			idx.y = clamp(id.y + y, 0, _Resolution - 1);
+
+			float h = _H0[idx];
+			if (h >= 0.001)
+			{
+				result += h + _GroundHeightSS[idx];
+				twt += 1.0;
+			}
+		}
+	}
+
+	if (twt > 0.0)
+	{
+		float blurredY = result / twt;
+		_H1[id] = max(blurredY - _GroundHeightSS[id], 0.0);
+	}
+	else
+	{
+		_H1[id] = hcenter;
+	}
+}
+
+
+////////////////////////////////////////////
+// BLUR
+
+[numthreads(8, 8, 1)]
+void Blur(int2 id : SV_DispatchThreadID)
+{
+	float result = 0.0;
+	const int rad = 2;
+
+	for (int y = -rad; y <= rad; y++)
+	{
+		for (int x = -rad; x <= rad; x++)
+		{
+			int2 idx;
+			idx.x = clamp(id.x + x, 0, _Resolution - 1);
+			idx.y = clamp(id.y + y, 0, _Resolution - 1);
+
+			result += _H0[idx];
+		}
+	}
+
+	float sampleCount = 2.0 * rad + 1.0;
+	sampleCount *= sampleCount;
+	_H1[id] = result / sampleCount;
+
+	//_H1[id] = _H0[id];
+}

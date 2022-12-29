@@ -10,7 +10,7 @@ namespace Crest.Examples
     using UnityEngine.Rendering;
 
     [ExecuteDuringEditMode]
-    public abstract class CustomPassForCameraBase : MonoBehaviour
+    public abstract class CustomPassForCameraBase : CustomMonoBehaviour
     {
         // Use int to support other RPs. We could use a custom enum to map to each RP in the future.
         protected abstract int Event { get; }

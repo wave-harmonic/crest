@@ -52,22 +52,25 @@ namespace Crest
             // expand where we use this list. At that point we might need to take a
             // different approach.
 
-            KeyValuePair<TKey, TValue> itemToRemove = default;
-            bool removed = false;
+            var removeIndex = -1;
+            var index = 0;
             foreach (KeyValuePair<TKey, TValue> item in _backingList)
             {
                 if (item.Value.Equals(value))
                 {
-                    itemToRemove = item;
-                    removed = true;
+                    removeIndex = index;
                 }
+
+                index++;
             }
 
-            if (removed)
+            if (removeIndex > -1)
             {
-                _backingList.Remove(itemToRemove);
+                // Remove method produces garbage.
+                _backingList.RemoveAt(removeIndex);
             }
-            return removed;
+
+            return removeIndex > -1;
         }
 
         public void Clear()

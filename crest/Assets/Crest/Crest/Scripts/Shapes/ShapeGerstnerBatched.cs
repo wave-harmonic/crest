@@ -162,7 +162,7 @@ namespace Crest
             public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
-        internal static readonly CrestSortedList<int, ShapeGerstnerBatched> Instances = new CrestSortedList<int, ShapeGerstnerBatched>(new SiblingIndexComparer());
+        internal static readonly CrestSortedList<int, ShapeGerstnerBatched> Instances = new CrestSortedList<int, ShapeGerstnerBatched>(Helpers.SiblingIndexComparison);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitStatics()

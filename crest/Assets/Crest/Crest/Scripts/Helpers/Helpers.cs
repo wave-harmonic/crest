@@ -13,6 +13,18 @@ namespace Crest
     /// </summary>
     public static class Helpers
     {
+        internal static int SiblingIndexComparison(int x, int y) => x.CompareTo(y);
+
+        /// <summary>
+        /// Comparer that always returns less or greater, never equal, to get work around unique key constraint
+        /// </summary>
+        internal static int DuplicateComparison(int x, int y)
+        {
+            var result = x.CompareTo(y);
+            // If non-zero, use result, otherwise return greater (never equal)
+            return result != 0 ? result : 1;
+        }
+
         public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
             BindingFlags.Static;
 

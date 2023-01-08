@@ -72,11 +72,29 @@ namespace Crest
 #endif
         }
 
+        // Taken from Unity
+        // https://docs.unity3d.com/2022.2/Documentation/Manual/BestPracticeUnderstandingPerformanceInUnity5.html
+        public static bool StartsWithNoAlloc(this string a, string b)
+        {
+            int aLen = a.Length;
+            int bLen = b.Length;
+
+            int ap = 0; int bp = 0;
+
+            while (ap < aLen && bp < bLen && a[ap] == b[bp])
+            {
+                ap++;
+                bp++;
+            }
+
+            return (bp == bLen);
+        }
+
 #if UNITY_EDITOR
         public static bool IsPreviewOfGameCamera(Camera camera)
         {
             // StartsWith has GC allocations. It is only used in the editor.
-            return camera.cameraType == CameraType.Game && camera.name.StartsWith("Preview");
+            return camera.cameraType == CameraType.Game && camera.name.StartsWithNoAlloc("Preview");
         }
 #endif
 

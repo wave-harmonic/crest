@@ -19,7 +19,7 @@ namespace Crest
         static void OnDidReloadScripts()
         {
             // TODO: Try using TypeCache in Unity 2020.
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.FullName.StartsWith("Crest")).ToList();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.FullName.StartsWithNoAlloc("Crest")).ToList();
             foreach (var assembly in assemblies)
             {
                 foreach (var type in assembly.GetTypes())

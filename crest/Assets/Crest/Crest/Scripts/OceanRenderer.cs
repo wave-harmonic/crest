@@ -1927,7 +1927,7 @@ namespace Crest
                 _materialEditor.DrawHeader();
 
                 // We need to prevent the user from editing Unity's default materials.
-                bool isDefaultMaterial = !AssetDatabase.GetAssetPath(_target._material).StartsWith("Assets");
+                bool isDefaultMaterial = !AssetDatabase.GetAssetPath(_target._material).StartsWithNoAlloc("Assets");
 
                 using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
                 {

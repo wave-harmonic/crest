@@ -325,7 +325,7 @@ namespace Crest
             // Check that underwater effect has correct material assigned.
             var shaderPrefix = "Crest/Underwater";
             var renderer = GetComponent<Renderer>();
-            if (renderer != null && renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
+            if (renderer != null && renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWithNoAlloc(shaderPrefix))
             {
                 ValidatedHelper.ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix);
 

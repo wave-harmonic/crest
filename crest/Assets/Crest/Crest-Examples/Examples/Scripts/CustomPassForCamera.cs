@@ -81,7 +81,7 @@ namespace Crest.Examples
             _buffer.Clear();
 
             // Only execute for main camera and editor only cameras.
-            if (Camera.main != camera && camera.cameraType != CameraType.SceneView && !camera.name.StartsWith("Preview"))
+            if (Camera.main != camera && camera.cameraType != CameraType.SceneView && !camera.name.StartsWithNoAlloc("Preview"))
             {
                 Clear(_buffer, camera);
                 return;

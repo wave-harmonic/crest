@@ -254,7 +254,7 @@ namespace Crest
                 return false;
             }
 
-            if (!material || material.shader && (!material.shader.name.StartsWith(shaderPrefix) && !material.shader.name.Contains("/All/")))
+            if (!material || material.shader && (!material.shader.name.StartsWithNoAlloc(shaderPrefix) && !material.shader.name.Contains("/All/")))
             {
                 showMessage
                 (

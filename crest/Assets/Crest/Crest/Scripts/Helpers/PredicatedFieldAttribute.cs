@@ -106,7 +106,7 @@ namespace Crest
             {
                 result = prop.enumValueIndex != ((int?)_disableIfValueIs ?? 0);
             }
-            else if (prop.type.StartsWith("PPtr"))
+            else if (prop.type.StartsWithNoAlloc("PPtr"))
             {
                 result = prop.objectReferenceValue != null;
             }

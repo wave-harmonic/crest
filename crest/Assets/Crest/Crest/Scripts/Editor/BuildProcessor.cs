@@ -68,7 +68,7 @@ namespace Crest
             // According to the docs it's possible to change RP at runtime, so I guess all relevant
             // shaders should be built.
             return shaderName == "Crest/Underwater Curtain"
-                || shaderName.StartsWith("Hidden/Crest/Underwater/Underwater Effect")
+                || shaderName.StartsWithNoAlloc("Hidden/Crest/Underwater/Underwater Effect")
                 || shaderName == "Hidden/Crest/Underwater/Post Process HDRP";
         }
 
@@ -141,7 +141,7 @@ namespace Crest
             // shader pass. For underwater, it will at minimum be called twice since it has vertex and fragment.
 
 #if CREST_DEBUG
-            if (shader.name.StartsWith("Crest") || shader.name.StartsWith("Hidden/Crest"))
+            if (shader.name.StartsWithNoAlloc("Crest") || shader.name.StartsWithNoAlloc("Hidden/Crest"))
             {
                 shaderVariantCount += data.Count;
             }

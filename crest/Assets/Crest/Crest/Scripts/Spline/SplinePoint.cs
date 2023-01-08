@@ -77,7 +77,7 @@ namespace Crest.Spline
             var thisIdx = thisSP.transform.GetSiblingIndex();
 
             var parent = thisSP.transform.parent;
-            if (parent == null || parent.GetComponent<Spline>() == null)
+            if (parent == null || !parent.TryGetComponent<Spline>(out _))
             {
                 EditorGUILayout.HelpBox("Spline component must be present on parent of this GameObject.", MessageType.Error);
                 return;

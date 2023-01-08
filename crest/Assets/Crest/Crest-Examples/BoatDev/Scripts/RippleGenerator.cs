@@ -29,7 +29,7 @@ public class RippleGenerator : MonoBehaviour
 
     void Start()
     {
-        _rdwi = GetComponent<RegisterDynWavesInput>();
+        TryGetComponent(out _rdwi);
 
         if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim || _rdwi == null)
         {

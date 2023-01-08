@@ -313,9 +313,7 @@ namespace Crest
 
         void InitBatches()
         {
-            // Get the wave
-            MeshRenderer rend = GetComponent<MeshRenderer>();
-            if (_mode == GerstnerMode.Geometry && rend != null)
+            if (TryGetComponent<MeshRenderer>(out var rend) && _mode == GerstnerMode.Geometry)
             {
                 rend.enabled = false;
 #if UNITY_EDITOR
@@ -575,8 +573,7 @@ namespace Crest
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
-            var mf = GetComponent<MeshFilter>();
-            if (mf)
+            if (TryGetComponent<MeshFilter>(out var mf))
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
                 Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
@@ -881,23 +878,9 @@ namespace Crest
             if (_mode == GerstnerMode.Geometry)
             {
                 isValid = ValidatedHelper.ValidateRenderer<MeshRenderer>(gameObject, showMessage, "Crest/Inputs/Animated Waves/Gerstner");
-            }
-            else if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
-            {
-                showMessage
-                (
-                    "The <i>MeshRenderer</i> component will be ignored because the <i>Mode</i> is set to <i>Global</i>.",
-                    "Either remove the <i>MeshRenderer</i> component or set the <i>Mode</i> option to <i>Geometry</i>.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
-            }
-
-            if (_mode == GerstnerMode.Geometry)
-            {
                 ValidatedHelper.ValidateRendererLayer(gameObject, showMessage, ocean);
             }
-
-            if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
+            else if (_mode == GerstnerMode.Global && TryGetComponent<MeshRenderer>(out _))
             {
                 showMessage
                 (

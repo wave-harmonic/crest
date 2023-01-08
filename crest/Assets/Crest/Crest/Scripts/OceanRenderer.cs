@@ -609,7 +609,7 @@ namespace Crest
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
-            if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            if (_attachDebugGUI && !TryGetComponent<OceanDebugGUI>(out _))
             {
                 gameObject.AddComponent<OceanDebugGUI>().hideFlags = HideFlags.DontSave;
             }

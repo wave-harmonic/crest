@@ -211,7 +211,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (GetComponent<RegisterDynWavesInput>() == null)
+            if (!TryGetComponent<RegisterDynWavesInput>(out _))
             {
                 showMessage
                 (
@@ -224,7 +224,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (GetComponent<Renderer>() == null)
+            if (!TryGetComponent<Renderer>(out _))
             {
                 showMessage
                 (

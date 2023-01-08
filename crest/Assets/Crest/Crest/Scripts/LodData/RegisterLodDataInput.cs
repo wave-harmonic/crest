@@ -91,9 +91,7 @@ namespace Crest
 
         void InitRendererAndMaterial(bool verifyShader)
         {
-            _renderer = GetComponent<Renderer>();
-
-            if (RendererRequired && _renderer != null)
+            if (RendererRequired && TryGetComponent(out _renderer))
             {
 #if UNITY_EDITOR
                 if (Application.isPlaying && verifyShader)
@@ -196,8 +194,7 @@ namespace Crest
 
         protected virtual bool GetQueue(out int queue)
         {
-            var rend = GetComponent<Renderer>();
-            if (rend && rend.sharedMaterial != null)
+            if (TryGetComponent<Renderer>(out var rend) && rend.sharedMaterial != null)
             {
                 queue = rend.sharedMaterial.renderQueue;
                 return true;
@@ -228,8 +225,7 @@ namespace Crest
         {
             if (_disableRenderer)
             {
-                var rend = GetComponent<Renderer>();
-                if (rend)
+                if (TryGetComponent<Renderer>(out var rend))
                 {
                     if (rend is TrailRenderer || rend is LineRenderer)
                     {
@@ -276,8 +272,7 @@ namespace Crest
 
         protected void OnDrawGizmosSelected()
         {
-            var mf = GetComponent<MeshFilter>();
-            if (mf)
+            if (TryGetComponent<MeshFilter>(out var mf))
             {
                 Gizmos.color = GizmoColor;
                 Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);

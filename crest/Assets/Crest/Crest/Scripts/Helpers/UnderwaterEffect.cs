@@ -66,9 +66,7 @@ namespace Crest
 
         private void Start()
         {
-            _rend = GetComponent<Renderer>();
-
-            if (_rend == null)
+            if (!TryGetComponent<Renderer>(out var _rend))
             {
                 Debug.LogError($"Crest: No renderer attached to <i>{this}</i>. Please attach on or use the prefab.");
                 return;
@@ -308,7 +306,7 @@ namespace Crest
             }
 
             // Check that underwater effect is parented to a camera.
-            if (!transform.parent || transform.parent.GetComponent<Camera>() == null)
+            if (!transform.parent || !transform.parent.TryGetComponent<Camera>(out _))
             {
                 showMessage
                 (
@@ -324,8 +322,7 @@ namespace Crest
 
             // Check that underwater effect has correct material assigned.
             var shaderPrefix = "Crest/Underwater";
-            var renderer = GetComponent<Renderer>();
-            if (renderer != null && renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWithNoAlloc(shaderPrefix))
+            if (TryGetComponent<Renderer>(out var renderer) && renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWithNoAlloc(shaderPrefix))
             {
                 ValidatedHelper.ValidateMaterial(gameObject, showMessage, renderer.sharedMaterial, shaderPrefix);
 

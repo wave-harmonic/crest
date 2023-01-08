@@ -64,8 +64,7 @@ public class CamController : MonoBehaviour
     {
         _targetTransform = transform;
 
-        camera = GetComponent<Camera>();
-        if (camera == null)
+        if (!TryGetComponent(out camera))
         {
             enabled = false;
             return;

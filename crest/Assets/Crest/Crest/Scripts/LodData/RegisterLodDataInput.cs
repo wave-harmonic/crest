@@ -16,20 +16,6 @@ namespace Crest
 {
     using OceanInput = CrestSortedList<int, ILodDataInput>;
 
-    /// <summary>
-    /// Comparer that always returns less or greater, never equal, to get work around unique key constraint
-    /// </summary>
-    public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
-    {
-        public int Compare(TKey x, TKey y)
-        {
-            int result = x.CompareTo(y);
-
-            // If non-zero, use result, otherwise return greater (never equal)
-            return result != 0 ? result : 1;
-        }
-    }
-
     public interface ILodDataInput
     {
         /// <summary>
@@ -81,14 +67,13 @@ namespace Crest
 
         protected abstract string ShaderPrefix { get; }
 
-        static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
 
         public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
             if (!s_registrar.TryGetValue(lodDataMgrType, out var registered))
             {
-                registered = new OceanInput(s_comparer);
+                registered = new OceanInput(Helpers.DuplicateComparison);
                 s_registrar.Add(lodDataMgrType, registered);
             }
             return registered;

@@ -21,28 +21,20 @@ namespace Crest
         public int Count => _backingList.Count;
 
         private List<KeyValuePair<TKey, TValue>> _backingList = new List<KeyValuePair<TKey, TValue>>();
-        private IComparer<KeyValuePair<TKey, TValue>> _comparer;
+        System.Comparison<TKey> _comparison;
         private bool _needsSorting = false;
 
-        private class InternalComparer : IComparer<KeyValuePair<TKey, TValue>>
+        int Comparison(KeyValuePair<TKey, TValue> x, KeyValuePair<TKey, TValue> y)
         {
-            private IComparer<TKey> _comparer;
-            public InternalComparer(IComparer<TKey> comparer)
-            {
-                _comparer = comparer;
-            }
-            public int Compare(KeyValuePair<TKey, TValue> x, KeyValuePair<TKey, TValue> y)
-            {
-                return _comparer.Compare(x.Key, y.Key);
-            }
+            return _comparison(x.Key, y.Key);
         }
 
-        public CrestSortedList(IComparer<TKey> comparer)
+        public CrestSortedList(System.Comparison<TKey> comparison)
         {
             // We provide the only constructors that SortedList provides that
             // we need. We wrap the input IComparer to ensure that our backing list
             // is sorted in the same way a SortedList would be with the same one.
-            _comparer = new InternalComparer(comparer);
+            _comparison = comparison;
         }
 
         public void Add(TKey key, TValue value)
@@ -106,14 +98,10 @@ namespace Crest
         {
             if (_needsSorting)
             {
-                _backingList.Sort(_comparer);
+                // @GC: Allocates 112B.
+                _backingList.Sort(Comparison);
             }
             _needsSorting = false;
         }
-    }
-
-    internal class SiblingIndexComparer : IComparer<int>
-    {
-        public int Compare(int x, int y) => x.CompareTo(y);
     }
 }

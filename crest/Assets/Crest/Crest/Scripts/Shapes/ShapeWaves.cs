@@ -106,19 +106,27 @@ namespace Crest
 
         public class WaveBatch : ILodDataInput
         {
-            ShapeWaves _shapeWaves;
+            readonly ShapeWaves _shapeWaves;
 
             Material _material;
             Mesh _mesh;
 
             int _waveBufferSliceIndex;
 
-            public static Component _previousShapeComponent;
-            public static int _previousLodIndex = -1;
+            static Component _previousShapeComponent;
+            static int _previousLodIndex = -1;
 
             public WaveBatch(ShapeWaves shapeWaves, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeWaves = shapeWaves;
+                Wavelength = wavelength;
+                _waveBufferSliceIndex = waveBufferSliceIndex;
+                _mesh = mesh;
+                _material = material;
+            }
+
+            public void UpdateData(float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
+            {
                 Wavelength = wavelength;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
@@ -165,7 +173,7 @@ namespace Crest
 
         public const int CASCADE_COUNT = 16;
 
-        WaveBatch[] _batches = null;
+        readonly WaveBatch[] _batches = new WaveBatch[CASCADE_COUNT];
 
         // First cascade of wave buffer that has waves and will be rendered.
         protected int _firstCascade = -1;
@@ -302,11 +310,19 @@ namespace Crest
             }
 
             // Submit draws to create the FFT waves
-            _batches = new WaveBatch[CASCADE_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
-                _batches[i] = new WaveBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
+
+                if (_batches[i] == null)
+                {
+                    _batches[i] = new WaveBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
+                }
+                else
+                {
+                    _batches[i].UpdateData(MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
+                }
+
                 RegisterLodDataInput<LodDataMgrAnimWaves>.RegisterInput(_batches[i], queue, subQueue);
             }
         }
@@ -366,8 +382,6 @@ namespace Crest
                 {
                     RegisterLodDataInput<LodDataMgrAnimWaves>.DeregisterInput(batch);
                 }
-
-                _batches = null;
             }
         }
 

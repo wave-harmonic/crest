@@ -30,7 +30,7 @@ The appearance and shape of the waves is determined by a *Wave Spectrum*.
 A default wave spectrum will be created if none is specified.
 To author wave conditions, click the *Create Asset* button next to the *Spectrum* field. The resulting spectrum can then be edited by expanding this field.
 
-The spectrum can be freely edited in Edit mode, and is locked by default in Play mode to save evaluating the spectrum every frame (this optimisation can be disabled using the *Spectrum Fixed At Runtime* toggle).
+The spectrum can be freely edited in Edit mode, and is locked by default in Play mode to save evaluating the spectrum every frame (this optimisation, including not incurring per frame `GC` allocations, can be disabled using the *Spectrum Fixed At Runtime* toggle).
 The spectrum has sliders for each wavelength to control contribution of different scales of waves.
 To control the contribution of 2m wavelengths, use the slider labelled '2'.
 Note that the wind speed may need to be increased on the *OceanRenderer* component in order for large wavelengths to be visible.

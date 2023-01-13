@@ -13,9 +13,14 @@ Release Notes
 |version|
 ---------
 
-.. admonition:: TODO
+Fixed
+^^^^^
+.. bullet_list::
 
-   This section is a work in progress.
+   -  Reduce `GC` allocations when using *ShapeFFT* or *ShapeGerstner*.
+      To not have per frame `GC` allocations, ensure *Spectrum Fixed At Runtime* is enabled.
+   -  Remove or reduce several runtime `GC` allocations.
+   -  Remove several editor `GC` allocations.
 
 
 4.16

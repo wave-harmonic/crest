@@ -22,6 +22,10 @@ Fixed
    -  Remove or reduce several runtime `GC` allocations.
    -  Remove several editor `GC` allocations.
 
+   .. only:: birp
+
+      -  Fix "shader_feature keyword '\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning.
+
 
 4.16
 ----

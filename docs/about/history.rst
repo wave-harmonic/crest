@@ -13,6 +13,13 @@ Release Notes
 |version|
 ---------
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  No longer execute when editor is inactive (ie out of focus) to prevent edge cases where memory leaks can occur and to save energy.
+
+
 Fixed
 ^^^^^
 .. bullet_list::

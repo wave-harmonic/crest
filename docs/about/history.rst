@@ -31,7 +31,12 @@ Fixed
 
    .. only:: birp
 
-      -  Fix "shader_feature keyword '\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning.
+      -  Fix "shader_feature keyword '\\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning.
+
+   .. only:: urp
+
+      -  Fix *Underwater Renderer* compatibility with depth prepass.
+      -  Fix *Underwater Renderer* not working with multiple cameras in certain cases.
 
 
 4.16

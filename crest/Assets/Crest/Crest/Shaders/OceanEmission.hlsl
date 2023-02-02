@@ -19,7 +19,8 @@ half3 ScatterColour
 {
 	// base colour
 	float v = abs(i_view.y);
-	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
+	// Previously caused rendering artifacts. See issue #1040.
+	half3 col = lerp(_DiffuseGrazing, _Diffuse, v);
 
 #if _SHADOWS_ON
 	col = lerp(_DiffuseShadow, col, i_shadow);

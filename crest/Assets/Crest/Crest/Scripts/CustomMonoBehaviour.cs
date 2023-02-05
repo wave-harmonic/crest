@@ -26,47 +26,58 @@ namespace Crest
 
                 var enableInEditMode = attribute != null;
 
-                if (enableInEditMode)
+                if (enableInEditMode && !attribute._including.HasFlag(Include.BuildPipeline))
                 {
-                    if (!attribute._including.HasFlag(Include.BuildPipeline))
-                    {
-                        // Do not execute when building the player.
-                        enableInEditMode = !BuildPipeline.isBuildingPlayer;
-                    }
-
-                    // Components that use the singleton pattern are candidates for not executing in the prefab stage
-                    // as a new instance will be created which could interfere with the scene stage instance.
-                    if (!attribute._including.HasFlag(Include.PrefabStage))
-                    {
-#if UNITY_2021_2_OR_NEWER
-                        var stage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
-#else
-                        var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
-#endif
-                        _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
-
-                        // Do not execute in prefab stage.
-                        enableInEditMode = !_isPrefabStageInstance;
-                    }
+                    // Do not execute when building the player.
+                    enableInEditMode = !BuildPipeline.isBuildingPlayer;
                 }
 
-                // TryAndEnableEditMode will immediately call Awake and OnEnable so we must not do this in OnValidate as
-                // there are many restrictions which Unity will produce warnings for:
+                // Components that use the singleton pattern are candidates for not executing in the prefab stage
+                // as a new instance will be created which could interfere with the scene stage instance.
+                if (enableInEditMode && !attribute._including.HasFlag(Include.PrefabStage))
+                {
+#if UNITY_2021_2_OR_NEWER
+                    var stage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+#else
+                    var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+#endif
+                    _isPrefabStageInstance = stage != null && gameObject.scene == stage.scene;
+
+                    // Do not execute in prefab stage.
+                    enableInEditMode = !_isPrefabStageInstance;
+                }
+
+                // runInEditMode will immediately call Awake and OnEnable so we must not do this in OnValidate as there
+                // are many restrictions which Unity will produce warnings for:
                 // https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnValidate.html
-                // Coroutines are not an option as they will throw errors if not active.
                 if (enableInEditMode)
                 {
-                    Invoke("TryAndEnableEditMode", 0);
+                    if (BuildPipeline.isBuildingPlayer)
+                    {
+                        // EditorApplication.update and Invoke are not called when building.
+                        EnableEditMode();
+                    }
+                    else
+                    {
+                        // Called between OnEnable and Start which is late but much better than Invoke which is called
+                        // between Update and LateUpdate. Coroutines are not an option as they will throw errors if not
+                        // active.
+                        EditorApplication.update -= EnableEditMode;
+                        EditorApplication.update += EnableEditMode;
+                    }
                 }
             }
 
             _isFirstOnValidate = false;
         }
 
-#pragma warning disable IDE0051
-        void TryAndEnableEditMode()
-#pragma warning restore IDE0051
+        void EnableEditMode()
         {
+            EditorApplication.update -= EnableEditMode;
+            // If the scene that is being built is already opened then, there can be a rogue instance which registers
+            // an event but is destroyed by the time it gets here. It has something to do with OnValidate being called
+            // after the object is destroyed with _isFirstOnValidate being true.
+            if (this == null) return;
             // Workaround to ExecuteAlways also executing during building which is often not what we want.
             runInEditMode = true;
         }

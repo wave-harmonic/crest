@@ -1,10 +1,13 @@
 // Crest Ocean System
 
+// This file is subject to the Unity Companion License:
+// https://github.com/Unity-Technologies/Graphics/blob/7ff8fd444c179fd9bb380d61f4865be6935b47dd/LICENSE.md
+
 // Adds functions from SRP.
 
-// Taken from:
-// com.unity.shadergraph@12.0.0/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl
-// com.unity.render-pipelines.high-definition@10.5.0/Runtime/ShaderLibrary/TextureXR.hlsl
+// Adapted from:
+// https://github.com/Unity-Technologies/Graphics/blob/8f54e6591e93fb3bf8e9879a0e43665dfbe2f629/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl
+// https://github.com/Unity-Technologies/Graphics/blob/7ff8fd444c179fd9bb380d61f4865be6935b47dd/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl
 
 #ifndef BUILTIN_PIPELINE_CORE_INCLUDED
 #define BUILTIN_PIPELINE_CORE_INCLUDED

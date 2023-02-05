@@ -1,6 +1,12 @@
 // Crest Ocean System
 
+// This file is subject to the Unity Companion License:
+// https://github.com/Unity-Technologies/Graphics/blob/7ff8fd444c179fd9bb380d61f4865be6935b47dd/LICENSE.md
+
 // Adds functions from SRP.
+
+// Adapted from:
+// https://github.com/Unity-Technologies/Graphics/blob/8f54e6591e93fb3bf8e9879a0e43665dfbe2f629/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl
 
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED

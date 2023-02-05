@@ -1,6 +1,10 @@
 // Crest Ocean System
 
-// Add two functions from com.unity.render-pipelines.core@5.13.0\ShaderLibrary\Common.hlsl
+// This file is subject to the Unity Companion License:
+// https://github.com/Unity-Technologies/Graphics/blob/61584ec20cf305929dae85cec7b94ff2ed3942f3/LICENSE.md
+
+// Add two functions from:
+// https://github.com/Unity-Technologies/Graphics/blob/61584ec20cf305929dae85cec7b94ff2ed3942f3/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl
 
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).

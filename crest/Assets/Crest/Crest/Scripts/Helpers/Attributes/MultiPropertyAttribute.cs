@@ -1,6 +1,9 @@
 ﻿// Crest Ocean System
 
-// Adapted from: https://forum.unity.com/threads/drawing-a-field-using-multiple-property-drawers.479377/
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// Adapted from:
+// https://forum.unity.com/threads/drawing-a-field-using-multiple-property-drawers.479377/
 
 // DecoratedPropertyAttribute renders the field and DecoratorAttribute decorates said field. The decorator changes the
 // GUI state so that the decorated field receives that state. The DecoratedDrawer targets DecoratedPropertyAttribute,

@@ -1,10 +1,10 @@
 using UnityEditor;
 using UnityEngine;
 
-using Include = ExecuteDuringEditModeAttribute.Include;
-
 namespace Crest
 {
+    using Include = ExecuteDuringEditModeAttribute.Include;
+
     /// <summary>
     /// Implements custom behaviours common to all components.
     /// </summary>

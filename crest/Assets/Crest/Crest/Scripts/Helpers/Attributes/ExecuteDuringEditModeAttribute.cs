@@ -1,25 +1,24 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-using UnityEngine;
 
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-public class ExecuteDuringEditModeAttribute : Attribute
+namespace Crest
 {
-    [Flags]
-    public enum Include
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    public class ExecuteDuringEditModeAttribute : Attribute
     {
-        None,
-        PrefabStage,
-        BuildPipeline,
-        All = PrefabStage | BuildPipeline,
-    }
+        [Flags]
+        public enum Include
+        {
+            None,
+            PrefabStage,
+            BuildPipeline,
+            All = PrefabStage | BuildPipeline,
+        }
 
-    public Include _including;
+        public Include _including;
 
-    public ExecuteDuringEditModeAttribute(Include including = Include.PrefabStage)
-    {
-        _including = including;
+        public ExecuteDuringEditModeAttribute(Include including = Include.PrefabStage)
+        {
+            _including = including;
+        }
     }
 }

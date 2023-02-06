@@ -28,6 +28,7 @@ Fixed
       To not have per frame `GC` allocations, ensure *Spectrum Fixed At Runtime* is enabled.
    -  Remove or reduce several runtime `GC` allocations.
    -  Remove several editor `GC` allocations.
+   -  Fix culling and performance issues in edit mode when using RegisterHeightInput, RegisterAnimWavesInput or Whirlpool.
 
    .. only:: birp
 

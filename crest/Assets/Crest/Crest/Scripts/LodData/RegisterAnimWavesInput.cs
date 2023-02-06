@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Animated Waves Input")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#animated-waves")]
-    public class RegisterAnimWavesInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAnimWaves>
+    public class RegisterAnimWavesInput : RegisterLodDataInputWithSplineSupport<LodDataMgrAnimWaves>, LodDataMgrAnimWaves.IShapeUpdatable
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -50,10 +50,22 @@ namespace Crest
         [Predicated(typeof(MeshRenderer)), DecoratedField]
         bool _reportRendererBoundsToOceanSystem = false;
 
-        protected override void Update()
+        protected override void OnEnable()
         {
-            base.Update();
+            base.OnEnable();
 
+            LodDataMgrAnimWaves.RegisterUpdatable(this);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            LodDataMgrAnimWaves.DeregisterUpdatable(this);
+        }
+
+        public void CrestUpdate(UnityEngine.Rendering.CommandBuffer buf)
+        {
             if (OceanRenderer.Instance == null)
             {
                 return;

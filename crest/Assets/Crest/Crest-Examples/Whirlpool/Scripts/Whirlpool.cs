@@ -8,7 +8,7 @@ namespace Crest
 {
     [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_EXAMPLE + "Whirlpool")]
-    public class Whirlpool : CustomMonoBehaviour
+    public class Whirlpool : CustomMonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -83,6 +83,8 @@ namespace Crest
             CreateOrDestroyDynamicWaves();
 
             UpdateMaterials();
+
+            LodDataMgrAnimWaves.RegisterUpdatable(this);
         }
 
         void OnDisable()
@@ -93,6 +95,13 @@ namespace Crest
             Helpers.Destroy(_displacementMaterial);
             Helpers.Destroy(_flowMaterial);
             Helpers.Destroy(_dampDynWavesMaterial);
+
+            LodDataMgrAnimWaves.DeregisterUpdatable(this);
+        }
+
+        public void CrestUpdate(UnityEngine.Rendering.CommandBuffer buf)
+        {
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
         }
 
         void CreateOrDestroy<RegisterInputType>(bool toggle, string shaderName, ref GameObject input, ref Material material) where RegisterInputType : RegisterLodDataInputBase
@@ -146,8 +155,6 @@ namespace Crest
             {
                 return;
             }
-
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
 
             UpdateMaterials();
             UpdateInputs();

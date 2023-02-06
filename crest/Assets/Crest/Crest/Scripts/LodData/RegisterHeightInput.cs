@@ -10,7 +10,7 @@ namespace Crest
     /// Registers a custom input to affect the water height.
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
-    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>
+    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, LodDataMgrAnimWaves.IShapeUpdatable
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -39,10 +39,22 @@ namespace Crest
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
 
-        protected override void Update()
+        protected override void OnEnable()
         {
-            base.Update();
+            base.OnEnable();
 
+            LodDataMgrAnimWaves.RegisterUpdatable(this);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            LodDataMgrAnimWaves.DeregisterUpdatable(this);
+        }
+
+        public void CrestUpdate(UnityEngine.Rendering.CommandBuffer buf)
+        {
             if (OceanRenderer.Instance == null)
             {
                 return;

@@ -659,7 +659,7 @@ namespace Crest
 
                 foreach (var renderer in renderers)
                 {
-                    if (ReferenceEquals(renderer, quadRenderer)) continue;
+                    if (renderer == quadRenderer) continue;
 
                     showMessage
                     (

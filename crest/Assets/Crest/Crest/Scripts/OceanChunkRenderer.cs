@@ -194,12 +194,27 @@ namespace Crest
         // can change depending on view altitude
         public static void ExpandBoundsForDisplacements(Transform transform, ref Bounds bounds)
         {
-            var boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
+            var ocean = OceanRenderer.Instance;
+
+            var boundsPadding = ocean.MaxHorizDisplacement;
             var expandXZ = boundsPadding / transform.lossyScale.x;
-            var boundsY = OceanRenderer.Instance.MaxVertDisplacement;
-            // extend the kinematic bounds slightly to give room for dynamic sim stuff
-            boundsY += 5f;
-            bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
+            var boundsY = ocean.MaxVertDisplacement;
+
+            // Extend the kinematic bounds slightly to give room for dynamic waves.
+            if (ocean._lodDataDynWaves != null)
+            {
+                boundsY += 5f;
+            }
+
+            var minimumWaterLevelBounds = ocean.MinimumHeight * 0.5f;
+            var maximumWaterLevelBounds = ocean.MaximumHeight * 0.5f;
+
+            boundsY += minimumWaterLevelBounds + maximumWaterLevelBounds;
+
+            bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
+
+            var offset = maximumWaterLevelBounds - minimumWaterLevelBounds;
+            bounds.center = new Vector3(bounds.center.x, bounds.center.y + offset, bounds.center.z);
         }
 
         public void SetInstanceData(int lodIndex)

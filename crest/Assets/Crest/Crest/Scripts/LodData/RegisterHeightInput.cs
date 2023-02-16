@@ -36,6 +36,7 @@ namespace Crest
         protected override bool FollowHorizontalMotion => true;
 
         [Header("Height Input Settings")]
+        [HideInInspector]
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
 
@@ -55,33 +56,30 @@ namespace Crest
 
         public void CrestUpdate(UnityEngine.Rendering.CommandBuffer buf)
         {
-            if (OceanRenderer.Instance == null)
+            var ocean = OceanRenderer.Instance;
+
+            if (ocean == null)
             {
                 return;
             }
 
-            var maxDispVert = _maxDisplacementVertical;
+            var minimum = ocean.SeaLevel;
+            var maximum = minimum;
 
             // let ocean system know how far from the sea level this shape may displace the surface
             if (_renderer != null)
             {
-                var minY = _renderer.bounds.min.y;
-                var maxY = _renderer.bounds.max.y;
-                var seaLevel = OceanRenderer.Instance.SeaLevel;
-                maxDispVert = Mathf.Max(maxDispVert, Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
+                minimum = _renderer.bounds.min.y;
+                maximum = _renderer.bounds.max.y;
             }
             else if (_splineMaterial != null &&
                 ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
             {
-                var seaLevel = OceanRenderer.Instance.SeaLevel;
-                maxDispVert = Mathf.Max(maxDispVert,
-                    Mathf.Abs(seaLevel - _splinePointHeightMin), Mathf.Abs(seaLevel - _splinePointHeightMax));
+                minimum = _splinePointHeightMin;
+                maximum = _splinePointHeightMax;
             }
 
-            if (maxDispVert > 0f)
-            {
-                OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, maxDispVert, 0f);
-            }
+            OceanRenderer.Instance.ReportDisplacementFromHeight(minimum, maximum);
         }
 
 #if UNITY_EDITOR

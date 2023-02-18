@@ -187,7 +187,10 @@ namespace Crest
             var oldColor = Gizmos.color;
             Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
             var center = AABB.center;
-            Gizmos.DrawCube(center, 2f * new Vector3(AABB.extents.x, 1f, AABB.extents.z));
+            var size = 2f * new Vector3(AABB.extents.x, 1f, AABB.extents.z);
+            Gizmos.DrawCube(center, size);
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireCube(center, size);
             Gizmos.color = oldColor;
         }
 #endif

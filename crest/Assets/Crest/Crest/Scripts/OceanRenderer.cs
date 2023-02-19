@@ -1313,6 +1313,7 @@ namespace Crest
                 if (!canSkipCulling)
                 {
                     var chunkBounds = tile.Rend.bounds;
+                    var chunkUndisplacedBoundsXZ = tile.UnexpandedBoundsXZ;
 
                     var largestOverlap = 0f;
                     var overlappingOne = false;
@@ -1338,10 +1339,14 @@ namespace Crest
                             {
                                 var overlap = 0f;
                                 {
-                                    var xMin = Mathf.Max(bounds.min.x, chunkBounds.min.x);
-                                    var xMax = Mathf.Min(bounds.max.x, chunkBounds.max.x);
-                                    var zMin = Mathf.Max(bounds.min.z, chunkBounds.min.z);
-                                    var zMax = Mathf.Min(bounds.max.z, chunkBounds.max.z);
+                                    // Use the unexpanded bounds to prevent leaking as generally this feature will be
+                                    // for an inland body of water where hopefully there is attenuation between it and
+                                    // the ocean to handle the ocean's displacement. The inland water body will unlikely
+                                    // have large displacement but can be mitigated with a decent buffer zone.
+                                    var xMin = Mathf.Max(bounds.min.x, chunkUndisplacedBoundsXZ.min.x);
+                                    var xMax = Mathf.Min(bounds.max.x, chunkUndisplacedBoundsXZ.max.x);
+                                    var zMin = Mathf.Max(bounds.min.z, chunkUndisplacedBoundsXZ.min.y);
+                                    var zMax = Mathf.Min(bounds.max.z, chunkUndisplacedBoundsXZ.max.y);
                                     if (xMin < xMax && zMin < zMax)
                                     {
                                         overlap = (xMax - xMin) * (zMax - zMin);

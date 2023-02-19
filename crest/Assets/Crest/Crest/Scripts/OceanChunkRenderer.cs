@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using Crest.Internal;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -33,6 +34,9 @@ namespace Crest
         Mesh _mesh;
         public Renderer Rend { get; private set; }
         internal PropertyWrapperMPB _mpb;
+
+        internal Rect _unexpandedBoundsXZ = new Rect();
+        public Rect UnexpandedBoundsXZ => _unexpandedBoundsXZ;
 
         public bool MaterialOverridden { get; set; }
 
@@ -89,9 +93,26 @@ namespace Crest
 
         void UpdateMeshBounds()
         {
+            if (WaterBody.WaterBodies.Count > 0)
+            {
+                _unexpandedBoundsXZ = ComputeBoundsXZ(transform, ref _boundsLocal);
+            }
+
             var newBounds = _boundsLocal;
             ExpandBoundsForDisplacements(transform, ref newBounds);
             _mesh.bounds = newBounds;
+        }
+
+        public static Rect ComputeBoundsXZ(Transform transform, ref Bounds bounds)
+        {
+            // Since chunks are axis-aligned it is safe to rotate the bounds.
+            var center = transform.rotation * bounds.center * transform.lossyScale.x + transform.position;
+            var size = transform.rotation * bounds.size * transform.lossyScale.x;
+            // Rotation can make size negative.
+            return new Rect(0, 0, Mathf.Abs(size.x), Mathf.Abs(size.z))
+            {
+                center = center.XZ(),
+            };
         }
 
         static Camera _currentCamera = null;
@@ -201,6 +222,21 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
+        void OnDrawGizmosSelected()
+        {
+            Rend.bounds.GizmosDraw();
+
+            if (WaterBody.WaterBodies.Count > 0)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireCube
+                (
+                    _unexpandedBoundsXZ.center.XNZ(transform.position.y),
+                    _unexpandedBoundsXZ.size.XNZ()
+                );
+            }
+        }
+
         private void OnDrawGizmos()
         {
             if (_drawRenderBounds)
@@ -273,14 +309,16 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
-            var oceanChunkRenderer = target as OceanChunkRenderer;
+            var target = this.target as OceanChunkRenderer;
 
             if (renderer == null)
             {
-                renderer = oceanChunkRenderer.GetComponent<Renderer>();
+                renderer = target.GetComponent<Renderer>();
             }
 
             GUI.enabled = false;
+            var boundsXZ = new Bounds(target._unexpandedBoundsXZ.center.XNZ(), target._unexpandedBoundsXZ.size.XNZ());
+            EditorGUILayout.BoundsField("Bounds XZ", boundsXZ);
             EditorGUILayout.BoundsField("Expanded Bounds", renderer.bounds);
             GUI.enabled = true;
         }

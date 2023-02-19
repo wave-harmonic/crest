@@ -10,6 +10,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Crest.EditorHelpers;
+using Crest.Internal;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

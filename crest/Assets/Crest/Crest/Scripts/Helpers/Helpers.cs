@@ -281,54 +281,58 @@ namespace Crest
         }
     }
 
-    static class Extensions
+    namespace Internal
     {
-        public static void SetKeyword(this Material material, string keyword, bool enabled)
+        static class Extensions
         {
-            if (enabled)
+            public static void SetKeyword(this Material material, string keyword, bool enabled)
             {
-                material.EnableKeyword(keyword);
+                if (enabled)
+                {
+                    material.EnableKeyword(keyword);
+                }
+                else
+                {
+                    material.DisableKeyword(keyword);
+                }
             }
-            else
-            {
-                material.DisableKeyword(keyword);
-            }
-        }
 
-        public static void SetKeyword(this ComputeShader shader, string keyword, bool enabled)
-        {
-            if (enabled)
+            public static void SetKeyword(this ComputeShader shader, string keyword, bool enabled)
             {
-                shader.EnableKeyword(keyword);
+                if (enabled)
+                {
+                    shader.EnableKeyword(keyword);
+                }
+                else
+                {
+                    shader.DisableKeyword(keyword);
+                }
             }
-            else
-            {
-                shader.DisableKeyword(keyword);
-            }
-        }
 
-        public static void SetShaderKeyword(this CommandBuffer buffer, string keyword, bool enabled)
-        {
-            if (enabled)
+            public static void SetShaderKeyword(this CommandBuffer buffer, string keyword, bool enabled)
             {
-                buffer.EnableShaderKeyword(keyword);
+                if (enabled)
+                {
+                    buffer.EnableShaderKeyword(keyword);
+                }
+                else
+                {
+                    buffer.DisableShaderKeyword(keyword);
+                }
             }
-            else
-            {
-                buffer.DisableShaderKeyword(keyword);
-            }
-        }
 
-        ///<summary>
-        /// Sets the msaaSamples property to the highest supported MSAA level in the settings.
-        ///</summary>
-        public static void SetMSAASamples(this ref RenderTextureDescriptor descriptor, Camera camera)
-        {
-            // QualitySettings.antiAliasing is zero when disabled which is invalid for msaaSamples.
-            // We need to set this first as GetRenderTextureSupportedMSAASampleCount uses it:
-            // https://docs.unity3d.com/ScriptReference/SystemInfo.GetRenderTextureSupportedMSAASampleCount.html
-            descriptor.msaaSamples = Helpers.IsMSAAEnabled(camera) ? Mathf.Max(QualitySettings.antiAliasing, 1) : 1;
-            descriptor.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(descriptor);
+            ///<summary>
+            /// Sets the msaaSamples property to the highest supported MSAA level in the settings.
+            ///</summary>
+            public static void SetMSAASamples(this ref RenderTextureDescriptor descriptor, Camera camera)
+            {
+                // QualitySettings.antiAliasing is zero when disabled which is invalid for msaaSamples.
+                // We need to set this first as GetRenderTextureSupportedMSAASampleCount uses it:
+                // https://docs.unity3d.com/ScriptReference/SystemInfo.GetRenderTextureSupportedMSAASampleCount.html
+                descriptor.msaaSamples = Helpers.IsMSAAEnabled(camera) ? Mathf.Max(QualitySettings.antiAliasing, 1) : 1;
+                descriptor.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(descriptor);
+            }
         }
     }
+
 }

@@ -285,6 +285,17 @@ namespace Crest
     {
         static class Extensions
         {
+            // Swizzle
+            public static Vector2 XZ(this Vector3 v) => new Vector2(v.x, v.z);
+            public static Vector2 XY(this Vector4 v) => new Vector2(v.x, v.y);
+            public static Vector2 ZW(this Vector4 v) => new Vector2(v.z, v.w);
+            public static Vector3 XNZ(this Vector2 v, float n = 0f) => new Vector3(v.x, n, v.y);
+            public static Vector3 XNZ(this Vector3 v, float n = 0f) => new Vector3(v.x, n, v.z);
+            public static Vector3 XNN(this Vector3 v, float n = 0f) => new Vector3(v.x, n, n);
+            public static Vector3 NNZ(this Vector3 v, float n = 0f) => new Vector3(n, n, v.z);
+            public static Vector4 XYNN(this Vector2 v, float n = 0f) => new Vector4(v.x, v.y, n, n);
+            public static Vector4 NNZW(this Vector2 v, float n = 0f) => new Vector4(n, n, v.x, v.y);
+
             public static void SetKeyword(this Material material, string keyword, bool enabled)
             {
                 if (enabled)

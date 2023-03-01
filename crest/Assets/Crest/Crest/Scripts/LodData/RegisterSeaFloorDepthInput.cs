@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -33,6 +34,15 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Depth";
 
+        // Workaround to ODC depth not being relative. This allows the change without break current baked depth caches.
+        [SerializeField, HideInInspector]
+        internal bool _relative;
+
+        public static class ShaderIDs
+        {
+            public static readonly int s_HeightOffset = Shader.PropertyToID("_HeightOffset");
+        }
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -44,6 +54,12 @@ namespace Crest
                     rend.material = new Material(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"));
                 }
             }
+        }
+
+        public override void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        {
+            buf.SetGlobalFloat(ShaderIDs.s_HeightOffset, _relative ? transform.position.y : 0f);
+            base.Draw(lodData, buf, weight, isTransition, lodIdx);
         }
 
 #if UNITY_EDITOR

@@ -2268,7 +2268,7 @@ GameObject:
   - component: {fileID: 1709276513223586032}
   - component: {fileID: 1709276513223586029}
   - component: {fileID: 1709276513223586030}
-  - component: {fileID: 1709276513223586031}
+  - component: {fileID: 1751447419258378229}
   m_Layer: 0
   m_Name: SetWaterHeight
   m_TagString: Untagged
@@ -2317,7 +2317,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: da39a2b2845ff5346adadb9752effc4a, type: 2}
+  - {fileID: 2100000, guid: 6275fa852a7f1435fa7570404bae86b5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2339,7 +2339,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1709276513223586031
+--- !u!114 &1751447419258378229
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2348,7 +2348,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1709276513223586033}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
+  m_Script: {fileID: 11500000, guid: 4202964ceac6ce0449c238ad8b873e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _checkShaderName: 1
@@ -2358,11 +2358,7 @@ MonoBehaviour:
   _radius: 20
   _subdivisions: 1
   _version: 0
-  _octaveWavelength: 0
-  _followHorizontalMotion: 1
   _maxDisplacementVertical: 0
-  _maxDisplacementHorizontal: 0
-  _reportRendererBoundsToOceanSystem: 0
 --- !u!1 &1709276513236537474
 GameObject:
   m_ObjectHideFlags: 0

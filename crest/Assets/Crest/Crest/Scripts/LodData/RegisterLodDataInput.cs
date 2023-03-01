@@ -270,7 +270,7 @@ namespace Crest
 #endif
         }
 
-        protected void OnDrawGizmosSelected()
+        protected virtual void OnDrawGizmosSelected()
         {
             if (TryGetComponent<MeshFilter>(out var mf))
             {
@@ -380,8 +380,14 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        protected new void OnDrawGizmosSelected()
+        protected override void OnDrawGizmosSelected()
         {
+            if (!TryGetComponent(out _spline))
+            {
+                base.OnDrawGizmosSelected();
+                return;
+            }
+
             // Restrict this call as it is costly.
             if (Selection.activeGameObject == gameObject)
             {

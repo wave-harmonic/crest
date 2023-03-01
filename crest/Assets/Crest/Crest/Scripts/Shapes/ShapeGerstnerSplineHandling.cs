@@ -12,12 +12,12 @@ namespace Crest
     /// </summary>
     public static class ShapeGerstnerSplineHandling
     {
-        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
+        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight, ref Vector3[] verts)
         {
-            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, customDataDefault, ref mesh, out minHeight, out maxHeight);
+            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, customDataDefault, ref mesh, out minHeight, out maxHeight, ref verts);
         }
 
-        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight)
+        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, Vector2 customDataDefault, ref Mesh mesh, out float minHeight, out float maxHeight, ref Vector3[] verts)
             where SplinePointCustomData : ISplinePointCustomData
         {
             minHeight = 10000f;
@@ -196,7 +196,7 @@ namespace Crest
                 }
             }
 
-            return UpdateMesh(transform, sampledPtsOffSplineLeft, sampledPtsOffSplineRight, customData, spline._closed, ref mesh);
+            return UpdateMesh(transform, sampledPtsOffSplineLeft, sampledPtsOffSplineRight, customData, spline._closed, ref mesh, ref verts);
         }
 
         // Ensures that the set of points are always moving "forwards", where forwards direction is defined by
@@ -247,7 +247,7 @@ namespace Crest
         }
 
         // Generates a mesh from the points sampled along the spline, and corresponding offset points. Bridges points with a ribbon of triangles.
-        static bool UpdateMesh(Transform transform, Vector3[] sampledPtsOffSplineLeft, Vector3[] sampledPtsOffSplineRight, Vector2[] customData, bool closed, ref Mesh mesh)
+        static bool UpdateMesh(Transform transform, Vector3[] sampledPtsOffSplineLeft, Vector3[] sampledPtsOffSplineRight, Vector2[] customData, bool closed, ref Mesh mesh, ref Vector3[] verts)
         {
             if (mesh == null)
             {
@@ -274,7 +274,11 @@ namespace Crest
             var triCount = (sampledPtsOffSplineLeft.Length - 1) * 2;
             var indices = new int[triCount * 3];
             var vertCount = 2 * sampledPtsOffSplineLeft.Length;
-            var verts = new Vector3[vertCount];
+            if (vertCount != verts?.Length)
+            {
+                // Consumer will use vertices to calculate a transformed bounds (XZ only) like a renderer would.
+                verts = new Vector3[vertCount];
+            }
             var uvs = new Vector2[vertCount];
             var uvs2 = new Vector2[vertCount];
             var uvs3 = new Vector2[vertCount];

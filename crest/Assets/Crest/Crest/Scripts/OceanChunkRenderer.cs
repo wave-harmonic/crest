@@ -5,6 +5,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Internal;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -12,6 +13,16 @@ using UnityEditor;
 
 namespace Crest
 {
+    public interface IReportsHeight
+    {
+        bool ReportHeight(ref Rect bounds, ref float minimum, ref float maximum);
+    }
+
+    public interface IReportsDisplacement
+    {
+        bool ReportDisplacement(ref Rect bounds, ref float horizontal, ref float vertical);
+    }
+
     /// <summary>
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
@@ -47,6 +58,11 @@ namespace Crest
         internal bool _oceanDataHasBeenBound = true;
 
         int _lodIndex = -1;
+
+        readonly static List<IReportsHeight> s_HeightReporters = new List<IReportsHeight>();
+        public static List<IReportsHeight> HeightReporters => s_HeightReporters;
+        readonly static List<IReportsDisplacement> s_DisplacementReporters = new List<IReportsDisplacement>();
+        public static List<IReportsDisplacement> DisplacementReporters => s_DisplacementReporters;
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
 
@@ -201,15 +217,71 @@ namespace Crest
                 boundsY += 5f;
             }
 
-            var minimumWaterLevelBounds = ocean.MinimumHeight * 0.5f;
-            var maximumWaterLevelBounds = ocean.MaximumHeight * 0.5f;
-
-            boundsY += minimumWaterLevelBounds + maximumWaterLevelBounds;
-
+            // Extend bounds by global waves.
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
 
-            var offset = maximumWaterLevelBounds - minimumWaterLevelBounds;
-            bounds.center = new Vector3(bounds.center.x, bounds.center.y + offset, bounds.center.z);
+            // Get XZ bounds. Doing this manually bypasses updating render bounds call.
+            Rect rect;
+            {
+                var p1 = transform.position;
+                var p2 = transform.rotation * new Vector3(bounds.center.x, 0f, bounds.center.z);
+                var s1 = transform.lossyScale;
+                var s2 = transform.rotation * new Vector3(bounds.size.x, 0f, bounds.size.z);
+
+                rect = new Rect(0, 0, Mathf.Abs(s1.x * s2.x), Mathf.Abs(s1.z * s2.z))
+                {
+                    center = new Vector2(p1.x + p2.x, p1.z + p2.z)
+                };
+            }
+
+            // Extend bounds by local waves.
+            {
+                var totalHorizontal = 0f;
+                var totalVertical = 0f;
+
+                foreach (var reporter in s_DisplacementReporters)
+                {
+                    var horizontal = 0f;
+                    var vertical = 0f;
+                    if (reporter.ReportDisplacement(ref rect, ref horizontal, ref vertical))
+                    {
+                        totalHorizontal += horizontal;
+                        totalVertical += vertical;
+                    }
+                }
+
+                boundsPadding = totalHorizontal;
+                expandXZ = boundsPadding / transform.lossyScale.x;
+                boundsY = totalVertical;
+
+                bounds.extents = new Vector3(bounds.extents.x + expandXZ, bounds.extents.y + boundsY, bounds.extents.z + expandXZ);
+            }
+
+            // Expand and offset bounds by height.
+            {
+                var minimumWaterLevelBounds = 0f;
+                var maximumWaterLevelBounds = 0f;
+
+                foreach (var reporter in s_HeightReporters)
+                {
+                    var minimum = 0f;
+                    var maximum = 0f;
+                    if (reporter.ReportHeight(ref rect, ref minimum, ref maximum))
+                    {
+                        minimumWaterLevelBounds = Mathf.Max(minimumWaterLevelBounds, Mathf.Abs(Mathf.Min(minimum, ocean.SeaLevel) - ocean.SeaLevel));
+                        maximumWaterLevelBounds = Mathf.Max(maximumWaterLevelBounds, Mathf.Abs(Mathf.Max(maximum, ocean.SeaLevel) - ocean.SeaLevel));
+                    }
+                }
+
+                minimumWaterLevelBounds *= 0.5f;
+                maximumWaterLevelBounds *= 0.5f;
+
+                boundsY = minimumWaterLevelBounds + maximumWaterLevelBounds;
+                bounds.extents = new Vector3(bounds.extents.x, bounds.extents.y + boundsY, bounds.extents.z);
+
+                var offset = maximumWaterLevelBounds - minimumWaterLevelBounds;
+                bounds.center = new Vector3(bounds.center.x, bounds.center.y + offset, bounds.center.z);
+            }
         }
 
         public void SetInstanceData(int lodIndex)
@@ -222,6 +294,8 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             _currentCamera = null;
+            s_HeightReporters.Clear();
+            s_DisplacementReporters.Clear();
         }
 
         [RuntimeInitializeOnLoadMethod]

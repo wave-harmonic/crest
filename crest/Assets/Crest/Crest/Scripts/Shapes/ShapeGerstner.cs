@@ -40,6 +40,15 @@ namespace Crest
         [Tooltip("Change to get a different set of waves.")]
         public int _randomSeed = 0;
 
+
+        // Debug
+        [Space(10)]
+
+        [SerializeField]
+        DebugFields _debug = new DebugFields();
+        protected override DebugFields DebugSettings => _debug;
+
+
         protected override int MinimumResolution => 8;
         protected override int MaximumResolution => 64;
 
@@ -449,7 +458,14 @@ namespace Crest
             // Apply weight or will cause popping due to scale change.
             ampSum *= _weight;
 
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _activeSpectrum._chop, ampSum, ampSum);
+            _maxHorizDisp = ampSum * _activeSpectrum._chop;
+            _maxVertDisp = ampSum;
+            _maxWavesDisp = ampSum;
+
+            if (IsGlobalWaves)
+            {
+                OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _activeSpectrum._chop, ampSum, ampSum);
+            }
         }
 
         protected override void OnEnable()
@@ -488,7 +504,7 @@ namespace Crest
 #if UNITY_EDITOR
         void OnGUI()
         {
-            if (_debugDrawSlicesInEditor && _waveBuffers != null && _waveBuffers.IsCreated())
+            if (_debug._drawSlicesInEditor && _waveBuffers != null && _waveBuffers.IsCreated())
             {
                 OceanDebugGUI.DrawTextureArray(_waveBuffers, 8, 0.5f);
             }

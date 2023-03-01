@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [ExecuteDuringEditMode(ExecuteDuringEditModeAttribute.Include.None)]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
-    public abstract partial class ShapeWaves : CustomMonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable, ISplinePointCustomDataSetup
+    public abstract partial class ShapeWaves : CustomMonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable, ISplinePointCustomDataSetup, IReportsDisplacement
     {
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]
         public OceanWaveSpectrum _spectrum;
@@ -66,11 +66,6 @@ namespace Crest
         [Tooltip("Resolution to use for wave generation buffers. Low resolutions are more efficient but can result in noticeable patterns in the shape."), Delayed]
         public int _resolution = 128;
 
-        [Tooltip("In Editor, shows the wave generation buffers on screen."), SerializeField]
-#pragma warning disable 414
-        protected bool _debugDrawSlicesInEditor = false;
-#pragma warning restore 414
-
 
         [Header("Spline Settings")]
 
@@ -83,6 +78,20 @@ namespace Crest
 
         [SerializeField]
         float _featherWaveStart = 0.1f;
+
+
+        [System.Serializable]
+        protected class DebugFields
+        {
+            [Predicated(typeof(ShapeWaves), "IsLocalWaves"), DecoratedField]
+            public bool _drawBounds = false;
+
+            [Tooltip("In Editor, shows the wave generation buffers on screen."), DecoratedField]
+            public bool _drawSlicesInEditor = false;
+        }
+
+        protected abstract DebugFields DebugSettings { get; }
+
 
         protected Mesh _meshForDrawingWaves;
 
@@ -191,6 +200,12 @@ namespace Crest
 
         MeshRenderer _renderer;
         Spline.Spline _spline;
+        Vector3[] _splineBoundingPoints = new Vector3[0];
+        Rect _rect;
+
+        protected float _maxHorizDisp;
+        protected float _maxVertDisp;
+        protected float _maxWavesDisp;
 
         protected static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         protected static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
@@ -221,6 +236,8 @@ namespace Crest
         protected abstract void ReportMaxDisplacement();
         protected abstract void DestroySharedResources();
 
+        protected bool IsGlobalWaves => _renderer == null && _spline == null;
+
         public virtual void CrestUpdate(CommandBuffer buffer)
         {
 #if UNITY_EDITOR
@@ -248,7 +265,7 @@ namespace Crest
                 var radius = _overrideSplineSettings ? _radius : _spline.Radius;
                 var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
                 if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointDataWaves>(_spline, transform,
-                    subdivs, radius, Vector2.one, ref _meshForDrawingWaves, out _, out _))
+                    subdivs, radius, Vector2.one, ref _meshForDrawingWaves, out _, out _, ref _splineBoundingPoints))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
@@ -370,11 +387,13 @@ namespace Crest
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
+            OceanChunkRenderer.DisplacementReporters.Add(this);
         }
 
         protected virtual void OnDisable()
         {
             LodDataMgrAnimWaves.DeregisterUpdatable(this);
+            OceanChunkRenderer.DisplacementReporters.Remove(this);
 
             if (_batches != null)
             {
@@ -395,6 +414,33 @@ namespace Crest
 
             splinePoint.AddComponent<SplinePointDataWaves>();
             return true;
+        }
+
+        public bool ReportDisplacement(ref Rect bounds, ref float horizontal, ref float vertical)
+        {
+            if (IsGlobalWaves || _meshForDrawingWaves == null)
+            {
+                return false;
+            }
+
+            if (_renderer != null)
+            {
+                _rect = Rect.MinMaxRect(_renderer.bounds.min.x, _renderer.bounds.min.z, _renderer.bounds.max.x, _renderer.bounds.max.z);
+            }
+            else if (_spline != null)
+            {
+                var splineBounds = GeometryUtility.CalculateBounds(_splineBoundingPoints, transform.localToWorldMatrix);
+                _rect = Rect.MinMaxRect(splineBounds.min.x, splineBounds.min.z, splineBounds.max.x, splineBounds.max.z);
+            }
+
+            if (bounds.Overlaps(_rect, false))
+            {
+                horizontal = _maxHorizDisp;
+                vertical = _maxVertDisp;
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -444,6 +490,19 @@ namespace Crest
             }
 
             DrawMesh();
+        }
+
+        void OnDrawGizmos()
+        {
+            if (DebugSettings._drawBounds)
+            {
+                // Render bounds.
+                var ocean = OceanRenderer.Instance;
+                if (ocean != null && _rect != null && !IsGlobalWaves)
+                {
+                    Gizmos.DrawWireCube(new Vector3(_rect.center.x, ocean.SeaLevel, _rect.center.y), new Vector3(_rect.size.x, 0, _rect.size.y));
+                }
+            }
         }
 
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)

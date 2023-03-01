@@ -31,6 +31,7 @@ Fixed
    -  Remove or reduce several runtime `GC` allocations.
    -  Remove several editor `GC` allocations.
    -  Fix culling and performance issues in edit mode when using RegisterHeightInput, RegisterAnimWavesInput or Whirlpool.
+   -  Fix gizmos not drawing for inputs when using an attached renderer.
 
    .. only:: birp
 

@@ -48,6 +48,15 @@ namespace Crest
         [Tooltip("FFT waves will loop with a period of this many seconds. Smaller values decrease data size but can make waves visibly repetitive."), Predicated("_enableBakedCollision"), Range(4f, 128f)]
         public float _timeLoopLength = 32f;
 
+
+        // Debug
+        [Space(10)]
+
+        [SerializeField]
+        DebugFields _debug = new DebugFields();
+        protected override DebugFields DebugSettings => _debug;
+
+
         internal float LoopPeriod => _enableBakedCollision ? _timeLoopLength : -1f;
 
         protected override int MinimumResolution => 16;
@@ -107,7 +116,13 @@ namespace Crest
         protected override void ReportMaxDisplacement()
         {
             // Apply weight or will cause popping due to scale change.
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxHorizontalDisplacement * _weight, _maxVerticalDisplacement * _weight, _maxVerticalDisplacement * _weight);
+            _maxHorizDisp = _maxHorizontalDisplacement * _weight;
+            _maxVertDisp = _maxWavesDisp = _maxVerticalDisplacement * _weight;
+
+            if (IsGlobalWaves)
+            {
+                OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxHorizDisp, _maxVertDisp, _maxVertDisp);
+            }
         }
 
         protected override void DestroySharedResources()
@@ -118,7 +133,7 @@ namespace Crest
 #if UNITY_EDITOR
         void OnGUI()
         {
-            if (_debugDrawSlicesInEditor)
+            if (_debug._drawSlicesInEditor)
             {
                 FFTCompute.OnGUI(_resolution, LoopPeriod, _windTurbulence, WindDirRadForFFT, WindSpeed, _activeSpectrum);
             }
@@ -224,6 +239,8 @@ namespace Crest
             var selectCurrentSettingsLabel = "Select current settings";
             if (OceanRenderer.Instance._simSettingsAnimatedWaves != null)
             {
+                GUILayout.Space(10);
+
                 if (GUILayout.Button(bakeLabel))
                 {
                     FFTBaker.BakeShapeFFT(target as ShapeFFT);

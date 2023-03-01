@@ -1390,7 +1390,7 @@ namespace Crest
 
         void LateUpdateResetMaxDisplacementFromShape()
         {
-            _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = _minVertDispFromHeight = _maxVertDispFromHeight = 0f;
+            _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
         }
 
         /// <summary>
@@ -1412,18 +1412,9 @@ namespace Crest
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
         }
-        public void ReportDisplacementFromHeight(float minimum, float maximum)
-        {
-            _minVertDispFromHeight = Mathf.Max(_minVertDispFromHeight, Mathf.Abs(Mathf.Min(minimum, SeaLevel) - SeaLevel));
-            _maxVertDispFromHeight = Mathf.Max(_maxVertDispFromHeight, Mathf.Abs(Mathf.Max(maximum, SeaLevel) - SeaLevel));
-        }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;
         float _maxVertDispFromWaves = 0f;
-        float _minVertDispFromHeight = 0f;
-        float _maxVertDispFromHeight = 0f;
-        public float MinimumHeight => _minVertDispFromHeight;
-        public float MaximumHeight => _maxVertDispFromHeight;
         /// <summary>
         /// The maximum horizontal distance that the shape scripts are displacing the shape.
         /// </summary>

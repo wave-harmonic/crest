@@ -10,7 +10,7 @@ namespace Crest
     /// Registers a custom input to affect the water height.
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Height Input")]
-    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, LodDataMgrAnimWaves.IShapeUpdatable
+    public partial class RegisterHeightInput : RegisterLodDataInputWithSplineSupport<LodDataMgrSeaFloorDepth>, IReportsHeight
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -35,51 +35,86 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => true;
 
-        [Header("Height Input Settings")]
-        [HideInInspector]
-        [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
-        float _maxDisplacementVertical = 0f;
+        // Debug
+        [Space(10)]
+
+        [SerializeField]
+        DebugFields _debug = new DebugFields();
+
+        [System.Serializable]
+        class DebugFields
+        {
+            public bool _drawBounds;
+        }
+
+
+        Rect _rect;
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
-            LodDataMgrAnimWaves.RegisterUpdatable(this);
+            OceanChunkRenderer.HeightReporters.Add(this);
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
 
-            LodDataMgrAnimWaves.DeregisterUpdatable(this);
+            OceanChunkRenderer.HeightReporters.Remove(this);
         }
 
-        public void CrestUpdate(UnityEngine.Rendering.CommandBuffer buf)
+        public bool ReportHeight(ref Rect bounds, ref float minimum, ref float maximum)
         {
-            var ocean = OceanRenderer.Instance;
-
-            if (ocean == null)
+            if (!Enabled)
             {
-                return;
+                return false;
             }
 
-            var minimum = ocean.SeaLevel;
-            var maximum = minimum;
-
-            // let ocean system know how far from the sea level this shape may displace the surface
             if (_renderer != null)
             {
-                minimum = _renderer.bounds.min.y;
-                maximum = _renderer.bounds.max.y;
+                _rect = new Rect(0, 0, _renderer.bounds.size.x, _renderer.bounds.size.z)
+                {
+                    center = new Vector2(_renderer.bounds.center.x, _renderer.bounds.center.z),
+                };
+
+                if (bounds.Overlaps(_rect, false))
+                {
+                    minimum = _renderer.bounds.min.y;
+                    maximum = _renderer.bounds.max.y;
+                    return true;
+                }
             }
-            else if (_splineMaterial != null &&
-                ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
+            else if (_splineMaterial != null && ShapeGerstnerSplineHandling.MinMaxHeightValid(_splinePointHeightMin, _splinePointHeightMax))
             {
-                minimum = _splinePointHeightMin;
-                maximum = _splinePointHeightMax;
+                var splineBounds = GeometryUtility.CalculateBounds(_splineBoundingPoints, transform.localToWorldMatrix);
+                _rect = Rect.MinMaxRect(splineBounds.min.x, splineBounds.min.z, splineBounds.max.x, splineBounds.max.z);
+
+                if (bounds.Overlaps(_rect, false))
+                {
+                    minimum = _splinePointHeightMin;
+                    maximum = _splinePointHeightMax;
+                    return true;
+                }
             }
 
-            OceanRenderer.Instance.ReportDisplacementFromHeight(minimum, maximum);
+            return false;
+        }
+
+        public void OnDrawGizmos()
+        {
+            if (_debug._drawBounds)
+            {
+                var ocean = OceanRenderer.Instance;
+                if (ocean != null && _rect != null)
+                {
+                    Gizmos.DrawWireCube
+                    (
+                        new Vector3(_rect.center.x, ocean.SeaLevel, _rect.center.y),
+                        new Vector3(_rect.size.x, 0, _rect.size.y)
+                    );
+                }
+            }
         }
 
 #if UNITY_EDITOR

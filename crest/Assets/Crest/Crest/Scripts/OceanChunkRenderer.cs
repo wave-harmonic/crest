@@ -53,17 +53,8 @@ namespace Crest
         void Start()
         {
             Rend = GetComponent<Renderer>();
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                _mesh = GetComponent<MeshFilter>().sharedMesh;
-            }
-            else
-#endif
-            {
-                // An unshared mesh will break instancing, but a shared mesh will break culling due to shared bounds.
-                _mesh = GetComponent<MeshFilter>().mesh;
-            }
+            // Meshes are cloned so it is safe to use sharedMesh in play mode. We need clones to modify the render bounds.
+            _mesh = GetComponent<MeshFilter>().sharedMesh;
 
             UpdateMeshBounds();
 
@@ -163,6 +154,10 @@ namespace Crest
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
         }
 
+        void OnDestroy()
+        {
+            Helpers.Destroy(_mesh);
+        }
 
         // Called when visible to a camera
         void OnWillRenderObject()

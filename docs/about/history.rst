@@ -33,6 +33,7 @@ Fixed
    -  Remove several editor `GC` allocations.
    -  Fix culling and performance issues in edit mode when using RegisterHeightInput, RegisterAnimWavesInput or Whirlpool.
    -  Fix gizmos not drawing for inputs when using an attached renderer.
+   -  Fix potential cases where water tiles were being culled incorrectly.
 
    .. only:: birp
 
@@ -42,6 +43,14 @@ Fixed
 
       -  Fix *Underwater Renderer* compatibility with depth prepass.
       -  Fix *Underwater Renderer* not working with multiple cameras in certain cases.
+
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Improve water tile culling significantly.
+      The bounds for each tile are normally expanded to accommodate mesh displacement (to prevent culling), but they were much larger than required in many cases leading to reduced culling hits which is no longer the case.
 
 
 4.16

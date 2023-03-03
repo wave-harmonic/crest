@@ -339,7 +339,7 @@ namespace Crest
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
                 bounds = mesh.bounds;
-                bounds.extents = new Vector3(bounds.extents.x + dx, 100f, bounds.extents.z + dx);
+                bounds.extents = new Vector3(bounds.extents.x + dx, bounds.extents.y, bounds.extents.z + dx);
                 mesh.bounds = bounds;
                 mesh.name = pt.ToString();
             }

@@ -357,6 +357,11 @@ namespace Crest
         [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
         public bool _disableSkirt = false;
 
+#if CREST_DEBUG
+        public bool _debugDrawLodOutline = false;
+#endif
+
+
         /// <summary>
         /// Current ocean scale (changes with viewer altitude).
         /// </summary>
@@ -1497,6 +1502,21 @@ namespace Crest
 
         private void OnDrawGizmos()
         {
+#if CREST_DEBUG
+            if (_debugDrawLodOutline)
+            {
+                if (Root != null && _perCascadeInstanceData?.Current != null)
+                {
+                    for (int lodIdx = 0; lodIdx < CurrentLodCount; lodIdx++)
+                    {
+                        Gizmos.color = Color.yellow;
+                        var width = _cascadeParams.Current[lodIdx]._texelWidth * _cascadeParams.Current[lodIdx]._textureRes;
+                        Gizmos.DrawWireCube(Root.transform.position, new Vector3(width, 0, width));
+                    }
+                }
+            }
+#endif
+
             // Don't need proxy if in play mode
             if (EditorApplication.isPlaying)
             {

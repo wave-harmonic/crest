@@ -34,6 +34,7 @@ Fixed
    -  Fix culling and performance issues in edit mode when using RegisterHeightInput, RegisterAnimWavesInput or Whirlpool.
    -  Fix gizmos not drawing for inputs when using an attached renderer.
    -  Fix potential cases where water tiles were being culled incorrectly.
+   -  Fix *Sphere Water Interaction* not working in builds.
 
    .. only:: birp
 

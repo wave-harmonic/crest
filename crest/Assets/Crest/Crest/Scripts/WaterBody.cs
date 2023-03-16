@@ -57,6 +57,7 @@ namespace Crest
             // Render to all cascades
             public float Wavelength => 0f;
             public bool Enabled => true;
+            public bool IgnoreTransitionWeight => false;
 
             public Matrix4x4 _transform;
 

@@ -34,6 +34,8 @@ namespace Crest
         /// Whether to apply this input.
         /// </summary>
         bool Enabled { get; }
+
+        bool IgnoreTransitionWeight { get; }
     }
 
     /// <summary>
@@ -175,6 +177,8 @@ namespace Crest
                 return s_Quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
             }
         }
+
+        public bool IgnoreTransitionWeight => false;
     }
 
     /// <summary>

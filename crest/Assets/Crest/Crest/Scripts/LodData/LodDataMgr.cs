@@ -210,7 +210,7 @@ namespace Crest
 
         public interface IDrawFilter
         {
-            float Filter(ILodDataInput data, out int isTransition);
+            float Filter(ILodDataInput data, out int isTransition, out float alpha);
         }
 
         protected virtual void SubmitDraws(int lodIdx, CommandBuffer buf)
@@ -247,10 +247,10 @@ namespace Crest
                     continue;
                 }
 
-                float weight = filter.Filter(draw.Value, out var isTransition);
-                if (weight > 0f)
+                var weight = filter.Filter(draw.Value, out var isTransition, out var alpha);
+                if ((weight > 0f && alpha > 0f) || (draw.Value.IgnoreTransitionWeight && weight > 0f))
                 {
-                    draw.Value.Draw(this, buf, weight, isTransition, lodIdx);
+                    draw.Value.Draw(this, buf, weight * alpha, isTransition, lodIdx);
                 }
             }
         }

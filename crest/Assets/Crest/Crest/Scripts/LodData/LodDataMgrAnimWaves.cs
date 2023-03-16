@@ -169,10 +169,11 @@ namespace Crest
             public int _lodCount;
             public float _globalMaxWavelength;
 
-            public float Filter(ILodDataInput data, out int isTransition)
+            public float Filter(ILodDataInput data, out int isTransition, out float alpha)
             {
                 var drawOctaveWavelength = data.Wavelength;
                 isTransition = 0;
+                alpha = 1f;
 
                 // No wavelength preference - don't draw per-lod
                 if (drawOctaveWavelength == 0f)
@@ -192,13 +193,15 @@ namespace Crest
                     if (_lodIdx == _lodCount - 2)
                     {
                         isTransition = 1;
-                        return 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                        alpha = 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
                     }
 
                     if (_lodIdx == _lodCount - 1)
                     {
-                        return OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                        alpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
                     }
+
+                    return 1f;
                 }
                 else if (drawOctaveWavelength < _lodMaxWavelength)
                 {
@@ -213,9 +216,10 @@ namespace Crest
 
         public class FilterNoLodPreference : IDrawFilter
         {
-            public float Filter(ILodDataInput data, out int isTransition)
+            public float Filter(ILodDataInput data, out int isTransition, out float alpha)
             {
                 isTransition = 0;
+                alpha = 1f;
                 return data.Wavelength == 0f ? 1f : 0f;
             }
         }

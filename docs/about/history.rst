@@ -35,6 +35,7 @@ Fixed
    -  Fix gizmos not drawing for inputs when using an attached renderer.
    -  Fix potential cases where water tiles were being culled incorrectly.
    -  Fix *Sphere Water Interaction* not working in builds.
+   -  Fix larger waves not blending out when using wave blending.
 
    .. only:: birp
 

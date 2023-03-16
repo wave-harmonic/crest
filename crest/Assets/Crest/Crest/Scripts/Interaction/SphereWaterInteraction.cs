@@ -108,6 +108,8 @@ namespace Crest
 
         public bool Enabled => true;
 
+        public bool IgnoreTransitionWeight => false;
+
         private void Start()
         {
             if (OceanRenderer.Instance == null)

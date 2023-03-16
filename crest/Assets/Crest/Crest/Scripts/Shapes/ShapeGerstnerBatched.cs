@@ -89,6 +89,8 @@ namespace Crest
 
             public bool Enabled { get; set; }
 
+            public bool IgnoreTransitionWeight => false;
+
             public bool HasWaves { get; set; }
 
             public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)

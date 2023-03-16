@@ -147,15 +147,40 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
+            public bool IgnoreTransitionWeight => _shapeWaves._blendMode == ShapeBlendMode.Blend;
+
             public void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 var finalWeight = weight * _shapeWaves._weight;
-                if (finalWeight > 0f)
+
+                // If the component has changed or the LOD slice then this is a new batch of cascades. We use this
+                // to add alpha blending without changing much of the architecture. It requires an extra pass which
+                // is not very lean performance wise. Use blend states when breaking change can be introduced.
+                // Blend pass needs to ignore transition weight (including last LOD) otherwise it cannot flatten waves.
+                var isBlendPassNeeded = _mesh != null
+                    && _material != null
+                    && _shapeWaves._weight > 0f
+                    && _shapeWaves._blendMode == ShapeBlendMode.Blend
+                    && (_previousShapeComponent != _shapeWaves || _previousLodIndex != lodIdx);
+
+                if (isBlendPassNeeded || finalWeight > 0f)
                 {
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+                }
+
+                if (isBlendPassNeeded)
+                {
+                    _previousShapeComponent = _shapeWaves;
+                    _previousLodIndex = lodIdx;
+                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, _shapeWaves._weight);
+                    buf.DrawMesh(_mesh, _shapeWaves.transform.localToWorldMatrix, _material, submeshIndex: 0, shaderPass: 1);
+                }
+
+                if (finalWeight > 0f)
+                {
+                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
 
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
@@ -164,16 +189,6 @@ namespace Crest
                     }
                     else if (_material != null)
                     {
-                        // If the component has changed or the LOD slice then this is a new batch of cascades. We use this
-                        // to add alpha blending without changing much of the architecture. It requires an extra pass which
-                        // is not very lean performance wise. Use blend states when breaking change can be introduced.
-                        if (_shapeWaves._blendMode == ShapeBlendMode.Blend && (_previousShapeComponent != _shapeWaves || _previousLodIndex != lodIdx))
-                        {
-                            _previousShapeComponent = _shapeWaves;
-                            _previousLodIndex = lodIdx;
-                            buf.DrawMesh(_mesh, _shapeWaves.transform.localToWorldMatrix, _material, submeshIndex: 0, shaderPass: 1);
-                        }
-
                         buf.DrawMesh(_mesh, _shapeWaves.transform.localToWorldMatrix, _material, submeshIndex: 0, shaderPass: 0);
                     }
                 }

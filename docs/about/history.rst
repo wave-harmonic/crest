@@ -37,6 +37,7 @@ Fixed
 
       -  Fix *Underwater Renderer* compatibility with depth prepass.
       -  Fix *Underwater Renderer* not working with multiple cameras in certain cases.
+      -  Fix rendering artifacts when *Windows Graphics API* is set to *Direct3D11* and the *Android Graphics API* is set to *Vulkan*.
 
 
 4.16

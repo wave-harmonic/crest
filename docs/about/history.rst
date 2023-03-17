@@ -21,6 +21,7 @@ Changed
    -  No longer execute when editor is inactive (ie out of focus) to prevent edge cases where memory leaks can occur and to save energy.
    -  Improve *Water Body* gizmo by adding a wireframe.
    -  Use *Register Height Input* in *Boat* scene instead of *Register Animated Waves Input*.
+   -  Rate limit shadow simulation to *Ocean Renderer > Editor Mode FPS*.
 
 
 Fixed
@@ -40,6 +41,13 @@ Fixed
    .. only:: birp
 
       -  Fix "shader_feature keyword '\\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning.
+
+   .. only:: hdrp
+
+      -  Fix *Scatter Colour Shadow* only having a minimal effect and/or causing an outline in shadowed areas.
+      -  Fix motion vectors popping when camera height changes.
+      -  Fix motion vectors popping on first frame.
+      -  Fix *Ocean* *Shader Graph* features (eg shadows) from jittering on camera move for Unity 2021.2+.
 
    .. only:: urp
 

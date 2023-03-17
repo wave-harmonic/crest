@@ -33,21 +33,23 @@ Therefore we target *Crest* at PC/console platforms.
 
 Which platforms does `Crest` support?
 -------------------------------------
-Testing occurs primarily on Windows.
+Testing occurs primarily on MacOS/Windows.
+
+Firstly, make sure your target platform adheres to the :ref:`requirements`.
 
 We have users targeting the following platforms:
 
 -  Windows
--  Mac
--  Linux
--  PS4 \*\*
--  XboxOne \*\*
+-  MacOS
+-  Linux \*
+-  Playstation \*
+-  Xbox \*
 -  Switch \* \*\*
--  iOS/Android \* \*\* `[[BIRP]]` `[[URP]]`
--  Quest \* \*\* `[[BIRP]]` `[[URP]]`
+-  iOS \* \*\*
+-  Android/Quest \* \*\*
 
-| \* Performance is a challenge on these platforms. Please see the previous question.
-| \*\* We do not have access to these platforms ourselves.
+| \* We do not have access to these platforms ourselves.
+| \*\* Performance is a challenge on these platforms. Please see the previous question.
 
 `Crest` also supports VR/XR Multi-Pass and Single Pass Instanced rendering.
 

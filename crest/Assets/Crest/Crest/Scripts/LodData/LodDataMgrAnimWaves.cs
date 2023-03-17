@@ -194,14 +194,14 @@ namespace Crest
                     {
                         isTransition = 1;
                         alpha = 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                        return 1f;
                     }
 
                     if (_lodIdx == _lodCount - 1)
                     {
                         alpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                        return 1f;
                     }
-
-                    return 1f;
                 }
                 else if (drawOctaveWavelength < _lodMaxWavelength)
                 {

@@ -40,20 +40,20 @@ Fixed
 
    .. only:: birp
 
-      -  Fix "shader_feature keyword '\\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning.
+      -  Fix "shader_feature keyword '\\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning. `[BIRP]`
 
    .. only:: hdrp
 
-      -  Fix *Scatter Colour Shadow* only having a minimal effect and/or causing an outline in shadowed areas.
-      -  Fix motion vectors popping when camera height changes.
-      -  Fix motion vectors popping on first frame.
-      -  Fix *Ocean* *Shader Graph* features (eg shadows) from jittering on camera move for Unity 2021.2+.
+      -  Fix *Scatter Colour Shadow* only having a minimal effect and/or causing an outline in shadowed areas. `[HDRP]`
+      -  Fix motion vectors popping when camera height changes. `[HDRP]`
+      -  Fix motion vectors popping on first frame. `[HDRP]`
+      -  Fix *Ocean* *Shader Graph* features (eg shadows) from jittering on camera move for Unity 2021.2+. `[HDRP]`
 
    .. only:: urp
 
-      -  Fix *Underwater Renderer* compatibility with depth prepass.
-      -  Fix *Underwater Renderer* not working with multiple cameras in certain cases.
-      -  Fix rendering artifacts when *Windows Graphics API* is set to *Direct3D11* and the *Android Graphics API* is set to *Vulkan*.
+      -  Fix *Underwater Renderer* compatibility with depth prepass. `[URP]`
+      -  Fix *Underwater Renderer* not working with multiple cameras in certain cases. `[URP]`
+      -  Fix rendering artifacts when *Windows Graphics API* is set to *Direct3D11* and the *Android Graphics API* is set to *Vulkan*. `[URP]`
 
 
 Performance

@@ -162,6 +162,7 @@ namespace Crest
 
             if (!OceanRenderer.IsWithinEditorUpdate)
             {
+                BufCopyShadowMap?.Clear();
                 return;
             }
 #endif
@@ -211,13 +212,14 @@ namespace Crest
 
             if (!OceanRenderer.IsWithinEditorUpdate)
             {
+                BufCopyShadowMap?.Clear();
                 return;
             }
 #endif
 
             var ocean = OceanRenderer.Instance;
 
-            if (ocean)
+            if (ocean == null)
             {
                 return;
             }

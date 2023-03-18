@@ -338,28 +338,42 @@ namespace Crest
 #pragma warning restore 414
 
 
-        [Header("Server Settings")]
-        [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument."), SerializeField]
-        bool _forceBatchMode = false;
-        [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument."), SerializeField]
-        bool _forceNoGPU = false;
+        [Space(10)]
 
-        [Header("Debug Params")]
+        [SerializeField]
+        internal DebugFields _debug = new DebugFields();
 
-        [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
-        bool _attachDebugGUI = false;
-        [Tooltip("Move ocean with viewpoint.")]
-        bool _followViewpoint = true;
-        [Tooltip("Set the ocean surface tiles hidden by default to clean up the hierarchy.")]
-        public bool _hideOceanTileGameObjects = true;
-        [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
-        public bool _uniformTiles = false;
-        [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
-        public bool _disableSkirt = false;
+        [System.Serializable]
+        internal class DebugFields
+        {
+            [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data.")]
+            public bool _attachDebugGUI = false;
+
+            [Tooltip("Set the ocean surface tiles hidden by default to clean up the hierarchy.")]
+            public bool _showOceanTileGameObjects = false;
 
 #if CREST_DEBUG
-        public bool _debugDrawLodOutline = false;
+            [Tooltip("Ocean will not move with viewpoint.")]
+            public bool _disableFollowViewpoint = false;
+
+            [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
+            public bool _uniformTiles = false;
+
+            [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
+            public bool _disableSkirt = false;
+
+            public bool _drawLodOutline = false;
 #endif
+
+
+            [Header("Server Settings")]
+
+            [Tooltip("Emulate batch mode which models running without a display (but with a GPU available). Equivalent to running standalone build with -batchmode argument."), SerializeField]
+            public bool _forceBatchMode = false;
+
+            [Tooltip("Emulate running on a client without a GPU. Equivalent to running standalone with -nographics argument."), SerializeField]
+            public bool _forceNoGPU = false;
+        }
 
 
         /// <summary>
@@ -430,7 +444,7 @@ namespace Crest
             get
             {
                 var noGPU = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
-                var emulateNoGPU = (Instance != null ? Instance._forceNoGPU : false);
+                var emulateNoGPU = (Instance != null ? Instance._debug._forceNoGPU : false);
                 return noGPU || emulateNoGPU;
             }
         }
@@ -438,7 +452,7 @@ namespace Crest
         /// <summary>
         /// Is runtime environment without graphics card
         /// </summary>
-        public static bool RunningHeadless => Application.isBatchMode || (Instance != null ? Instance._forceBatchMode : false);
+        public static bool RunningHeadless => Application.isBatchMode || (Instance != null ? Instance._debug._forceBatchMode : false);
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -615,7 +629,7 @@ namespace Crest
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
-            if (_attachDebugGUI && !TryGetComponent<OceanDebugGUI>(out _))
+            if (_debug._attachDebugGUI && !TryGetComponent<OceanDebugGUI>(out _))
             {
                 gameObject.AddComponent<OceanDebugGUI>().hideFlags = HideFlags.DontSave;
             }
@@ -962,9 +976,13 @@ namespace Crest
             Hashy.AddInt(_geometryDownSampleFactor, ref settingsHash);
             Hashy.AddInt(_lodCount, ref settingsHash);
             Hashy.AddFloat(_extentsSizeMultiplier, ref settingsHash);
-            Hashy.AddBool(_forceBatchMode, ref settingsHash);
-            Hashy.AddBool(_forceNoGPU, ref settingsHash);
-            Hashy.AddBool(_hideOceanTileGameObjects, ref settingsHash);
+            Hashy.AddBool(_debug._forceBatchMode, ref settingsHash);
+            Hashy.AddBool(_debug._forceNoGPU, ref settingsHash);
+            Hashy.AddBool(_debug._showOceanTileGameObjects, ref settingsHash);
+#if CREST_DEBUG
+            Hashy.AddBool(_debug._disableSkirt, ref settingsHash);
+            Hashy.AddBool(_debug._uniformTiles, ref settingsHash);
+#endif
             if (_waterTilePrefab != null)
             {
                 Hashy.AddObject(_waterTilePrefab, ref settingsHash);
@@ -1011,7 +1029,7 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (_followViewpoint && ViewCamera != null)
+            if (!_debug._disableFollowViewpoint && ViewCamera != null)
             {
                 LateUpdatePosition();
                 LateUpdateViewerHeight();
@@ -1504,7 +1522,7 @@ namespace Crest
         private void OnDrawGizmos()
         {
 #if CREST_DEBUG
-            if (_debugDrawLodOutline)
+            if (_debug._drawLodOutline)
             {
                 if (Root != null && _perCascadeInstanceData?.Current != null)
                 {
@@ -1906,6 +1924,8 @@ namespace Crest
                     target.PushTimeProvider(newlyAssignedTP as TimeProviderBase);
                 }
             }
+
+            GUILayout.Space(10);
 
             if (GUILayout.Button("Validate Setup"))
             {

@@ -1937,6 +1937,8 @@ namespace Crest
                 Application.OpenURL(Internal.Constants.HELP_URL_BASE_USER + "configuration.html" + Internal.Constants.HELP_URL_RP + "#material-parameters");
             }
 
+            GUILayout.Space(10);
+
             DrawMaterialEditor();
         }
 

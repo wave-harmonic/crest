@@ -41,6 +41,7 @@ Fixed
    .. only:: birp
 
       -  Fix "shader_feature keyword '\\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning. `[BIRP]`
+      -  Actually fix "shadow simulation executing for all cameras". `[BIRP]`
 
    .. only:: hdrp
 

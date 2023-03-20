@@ -1,5 +1,11 @@
-Collision Shape for Physics
-===========================
+.. _collision-shape-buoyancy-physics:
+
+Collision Shape and Buoyancy Physics
+====================================
+
+
+Collision Shape
+---------------
 
 The system has a few paths for computing information about the water surface such as height, displacement, flow and surface velocity.
 These paths are covered in the following subsections, and are configured on the *Animated Waves Sim Settings*, assigned to the OceanRenderer script, using the Collision Source dropdown.
@@ -16,14 +22,14 @@ Use of these is demonstrated in the example content.
 .. admonition:: Research
 
    We use a technique called *Fixed Point Iteration* to calculate the water height.
-   We gave a talk at GDC about this technique which may be useful to learn more: http://www.huwbowles.com/fpi-gdc-2016/.
+   We gave a talk at GDC about this technique which may be useful to learn more: https://www.gdcvault.com/play/1023011/Fixed-Point-Iteration-A-Simple.
 
 The *Visualise Collision Area* debug component is useful for visualising the collision shape for comparison against the render surface.
 It draws debug line crosses in the Scene View around the position of the component.
 
 
 Collision API Usage
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 The collision providers built intout our system perform queries asynchronously; queries are offloaded to the GPU or to spare CPU cores for processing.
 This has a few non-trivial impacts on how the query API must be used.
@@ -45,7 +51,7 @@ The helper classes always submit a fixed number of points this frame, so satisfy
 
 
 Compute Shape Queries (GPU)
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is the default and recommended choice for when a GPU is present.
 Query positions are uploaded to a compute shader which then samples the ocean data and returns the
@@ -56,7 +62,7 @@ The result of the query accurately tracks the height of the surface, including a
 .. _collisions-fft-waves-cpu:
 
 Baked FFT Data (CPU)
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 .. admonition:: Preview
 
@@ -87,3 +93,24 @@ After the bake completes the current active *Animated Waves Sim Settings* will b
    Sponsoring us will help increase our development bandwidth which could work towards solving the aforementioned limitations.
 
    .. trello:: https://trello.com/c/EJCQhvsL
+
+.. _buoyancy:
+
+Buoyancy
+--------
+
+.. note::
+
+   Buoyancy physics for boats is not a core focus of `Crest`.
+   For a professional physics solution we recommend the :link:`{DWP2} <https://assetstore.unity.com/packages/tools/physics/dynamic-water-physics-2-147990?aid=1011lic2K>` asset which is compatible with `Crest`.
+
+   With that said, we do provide rudimentary physics scripts.
+
+*SimpleFloatingObject* is a simple buoyancy script that attempts to match the object position and rotation with the surface height and normal.
+This can work well enough for small water craft that don't need perfect floating behaviour, or floating objects such as buoys, barrels, etc.
+
+*BoatProbes* is a more advanced implementation that computes buoyancy forces at a number of *ForcePoints* and uses these to apply force and torque to the object.
+This gives more accurate results at the cost of more queries.
+
+*BoatAlignNormal* is a rudimentary boat physics emulator that attaches an engine and rudder to *SimpleFloatingObject*.
+It is not recommended for cases where high animation quality is required.

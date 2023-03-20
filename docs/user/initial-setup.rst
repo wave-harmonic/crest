@@ -1,5 +1,5 @@
-Getting Started
-===============
+Initial Setup
+=============
 
 .. Set section numbering and ToC depth for PDFs because Sphinx has bugs and limitations.
 
@@ -133,6 +133,8 @@ Import the `Crest` package into project using the *Asset Store* window in the Un
 
    If you are starting from scratch we recommend :link:`creating a project using a template in the Unity Hub <{UnityDocLink}/ProjectTemplates.html>`.
 
+
+.. _add-crest-to-scene-section:
 
 Adding `Crest` to a Scene
 -------------------------

@@ -43,20 +43,23 @@ Crest Ocean System
    :maxdepth: 3
    :caption: User Guide
 
-   user/getting-started
-   user/configuration
-   user/ocean-simulation
-   user/authoring-input-modes
-   user/wave-conditions
-   user/shallows-and-shorelines
+   user/initial-setup
+   user/quick-start-guide
+   user/water-appearance
+   user/water-inputs
+   user/clipping
+   user/waves
    user/water-bodies
-   user/collision-shape-for-physics
+   user/shallows-and-shorelines
+   user/tides-and-currents
    user/underwater
+   user/collision-shape-and-buoyancy-physics
    user/time-providers
-   user/other-features
-   user/rendering
-   user/performance
-   user/technical-information
+   user/open-worlds
+   user/watercraft
+   user/performance-guide
+   user/system-notes
+   user/rendering-notes
    user/faq
 
 .. NOTE:

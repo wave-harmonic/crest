@@ -1,8 +1,20 @@
-Authoring Input Modes
-=====================
+Water Inputs
+============
 
-Overview
---------
+Inputs provides a means for developers to control the various simulations powering `Crest`.
+The following video covers the basics:
+
+.. _adding-inputs-video:
+
+.. youtube:: sQIakAjSq4Y
+
+   Basics of Adding Ocean Inputs
+
+
+.. _input-modes-section:
+
+Input Modes
+-----------
 
 A number of components provide multiple authoring modes.
 
@@ -18,13 +30,13 @@ The following sections describe each mode.
 
 
 Global Mode
------------
+^^^^^^^^^^^
 
 The input simply applies everywhere.
 
 
 Painted Mode
-------------
+^^^^^^^^^^^^
 
 .. admonition:: Preview
 
@@ -60,8 +72,10 @@ The storage required by saving this data may be evident by a sudden increase in 
 While most painted input is likely to compress well into a small package size, it may still be worth creating prefabs from painted input GameObjects so that the data is stored outside the main level file.
 
 
+.. _wave-splines-section:
+
 Spline Mode
------------
+^^^^^^^^^^^
 
 Selecting *Spline* from the *Input Mode* dropdown will enable *Spline Mode Settings* UI in the Inspector.
 This mode requires a *Spline* component to be present with at least two spline points added.
@@ -77,19 +91,29 @@ For example if the spline is used with a *RegisterFlowInput* component, the *Spl
 
 
 Custom Geometry and Shader Mode
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is the most advanced type of input and allows rendering any geometry/shader into the water system data.
 One could draw foam directly into the foam data, or inject a flow map baked from an offline sim.
 
-The geometry can come from a standard *MeshRenderer*/*MeshFilter* combination, or it can come from any *Renderer* component such as a particle system.
+The geometry can come from a :link:`MeshRenderer <{UnityDocScriptLink}/MeshRenderer.html>`, or it can come from any :link:`Renderer <{UnityDocScriptLink}/Renderer.html>` component such as a :link:`TrailRenderer <{UnityDocScriptLink}/TrailRenderer.html>`, :link:`LineRenderer <{UnityDocScriptLink}/LineRenderer.html>` or :link:`ParticleSystem <{UnityDocScriptLink}/ParticleSystem.html>`.
 This geometry will be rendered from a orthographic top down perspective to "print" the data onto the water.
 
 The *Particle Renderer* example in the *Examples* scene shows a particle system being projected onto the water surface.
 
+.. tip::
+
+   Inputs only execute the first shader pass (pass zero).
+   It is recommended to use unlit shader templates or unlit *Shader Graph* (`URP` only) if not using one of ours.
+
+The following shaders can be used with any ocean input:
+
+-  **Scale By Factor** scales the ocean data between zero and one inclusive.
+   It is multiplicative, which can be inverted, so zero becomes no data and one leaves the data unchanged.
+
 
 Primitive Mode
---------------
+^^^^^^^^^^^^^^
 
 Use a primitive shape for the input such as a mathematical cube or sphere.
 

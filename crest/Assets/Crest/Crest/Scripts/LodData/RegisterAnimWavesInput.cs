@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Animated Waves Input")]
-    [CrestHelpURL("user/ocean-simulation", "animated-waves")]
+    [CrestHelpURL("user/waves", "wave-placement")]
     [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Painted, (int)InputMode.Primitive, (int)InputMode.Spline)]
     public class RegisterAnimWavesInput : RegisterLodDataInput<LodDataMgrAnimWaves>
     {

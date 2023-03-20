@@ -12,7 +12,7 @@ using UnityEditor;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsClipSurface", menuName = "Crest/Clip Surface Sim Settings", order = 10000)]
-    [CrestHelpURL("user/ocean-simulation", "clip-surface-settings")]
+    [CrestHelpURL("user/clipping", "clip-surface-settings")]
     public class SimSettingsClipSurface : SimSettingsBase
     {
         /// <summary>

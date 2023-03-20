@@ -16,7 +16,7 @@ namespace Crest
     /// spheres can be used to model the interaction of a non-spherical shape.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Sphere Water Interaction")]
-    [CrestHelpURL("user/ocean-simulation", "adding-interaction-forces")]
+    [CrestHelpURL("user/waves", "adding-interaction-forces")]
     public partial class SphereWaterInteraction : MonoBehaviour, ILodDataInput
     {
         /// <summary>

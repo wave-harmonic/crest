@@ -15,7 +15,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(MENU_PREFIX + "Flow Input")]
-    [CrestHelpURL("user/ocean-simulation", "flow")]
+    [CrestHelpURL("user/tides-and-currents", "flow")]
     [FilterEnum("_inputMode", FilteredAttribute.Mode.Exclude, (int)InputMode.Primitive)]
     public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>, IPaintable
     {

@@ -41,7 +41,7 @@ namespace Crest
     /// script should normally be attached to the viewpoint, typically the main camera.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Floating Origin")]
-    [CrestHelpURL("user/other-features", "floating-origin")]
+    [CrestHelpURL("user/open-worlds", "floating-origin")]
     public class FloatingOrigin : MonoBehaviour
     {
         const string k_Keyword = "CREST_FLOATING_ORIGIN";

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsDynamicWaves", menuName = "Crest/Dynamic Wave Sim Settings", order = 10000)]
-    [CrestHelpURL("user/ocean-simulation", "dynamic-waves-settings")]
+    [CrestHelpURL("user/waves", "dynamic-waves-settings")]
     public class SimSettingsWave : SimSettingsBase
     {
         /// <summary>

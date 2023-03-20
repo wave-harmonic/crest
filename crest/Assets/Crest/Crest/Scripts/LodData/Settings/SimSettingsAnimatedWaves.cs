@@ -9,7 +9,7 @@ using UnityEngine.Experimental.Rendering;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsAnimatedWaves", menuName = "Crest/Animated Waves Sim Settings", order = 10000)]
-    [CrestHelpURL("user/ocean-simulation", "animated-waves-settings")]
+    [CrestHelpURL("user/waves", "animated-waves-settings")]
     public partial class SimSettingsAnimatedWaves : SimSettingsBase
     {
         /// <summary>

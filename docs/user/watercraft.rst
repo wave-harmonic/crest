@@ -1,38 +1,21 @@
-Other Features
-==============
+.. _watercraft:
 
-Floating Origin
----------------
-
-*Crest* has support for 'floating origin' functionality, based on code from the *Unity Community Wiki*.
-See the :link:`original Floating Origin wiki page <https://wiki.unity3d.com/index.php/Floating_Origin>` for an overview and original code.
-
-By default the *FloatingOrigin* script will call *FindObjectsOfType()* for a few different component types, which is a notoriously expensive operation.
-It is possible to provide custom lists of components to the "override" fields, either by hand or programmatically, to avoid searching the entire scene(s) for the components.
-Managing these lists at run-time is left to the user.
-
-
-Buoyancy
---------
+Watercraft
+==========
 
 .. note::
 
    Buoyancy physics for boats is not a core focus of `Crest`.
    For a professional physics solution we recommend the :link:`{DWP2} <https://assetstore.unity.com/packages/tools/physics/dynamic-water-physics-2-147990?aid=1011lic2K>` asset which is compatible with `Crest`.
 
-   With that said, we do provide rudimentary physics scripts.
 
-*SimpleFloatingObject* is a simple buoyancy script that attempts to match the object position and rotation with the surface height and normal.
-This can work well enough for small water craft that don't need perfect floating behaviour, or floating objects such as buoys, barrels, etc.
+Boats
+-----
 
-*BoatProbes* is a more advanced implementation that computes buoyancy forces at a number of *ForcePoints* and uses these to apply force and torque to the object.
-This gives more accurate results at the cost of more queries.
-
-*BoatAlignNormal* is a rudimentary boat physics emulator that attaches an engine and rudder to *SimpleFloatingObject*.
-It is not recommended for cases where high animation quality is required.
-
-Adding boats
+Adding Boats
 ^^^^^^^^^^^^
+
+This section describes the simplest way to add a boat, including buoyancy and wakes, to your project.
 
 Setting up a boat with physics can be a dark art.
 The authors recommend duplicating and modifying one of the existing boat prefabs, and proceeding slowly and carefully as follows:
@@ -70,3 +53,23 @@ The authors recommend duplicating and modifying one of the existing boat prefabs
    The *Weight* param controls the strength of the interaction.
 
 The above steps should maintain a working boat throughout - we recommend testing after each step to catch issues early.
+
+
+Adding Buoyancy
+^^^^^^^^^^^^^^^
+
+The simplest method to adding buoyancy is detailed above.
+Further details about buoyancy components can be found in the :ref:`buoyancy` section.
+
+
+Adding Wakes
+^^^^^^^^^^^^
+
+The *Sphere Water Interaction* component is used to add wakes.
+See :ref:`adding-interaction-forces` section for more information on this component.
+
+
+Removing Water From Inside Boat
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are various methods to removing water from Crest detailed on the :ref:`water-exclusion` page.

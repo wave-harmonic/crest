@@ -9,6 +9,21 @@
 /* https://github.com/pradyunsg/sphinx-inline-tabs/blob/main/src/sphinx_inline_tabs/static/tabs.css
 /****************************************************************************/
 
+h1, h2, h3
+{
+    margin-top: 1.75rem !important;
+}
+
+h4
+{
+    margin-top: 1.5rem !important;
+}
+
+h1 + .section > h2, h2 + .section > h3, h3 + .section > h4
+{
+    margin-top: 1.25rem !important;
+}
+
 .tab-content
 {
     padding-top: 1rem;

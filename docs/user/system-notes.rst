@@ -1,5 +1,5 @@
-Technical Documentation
-=======================
+System Notes
+============
 
 We have published details of the algorithms and approaches we use.
 See the following publications:

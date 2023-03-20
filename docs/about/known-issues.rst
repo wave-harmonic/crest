@@ -23,7 +23,7 @@ Please see the following links:
 
         -  :link:`{URP} specific issues on GitHub <{GitHubLink}/issues?q=is%3Aopen+label%3Abug+label%3AURP>`.
 
-If you discover a bug, please :link:`open a bug report <{GitHubLink}/issues/new?template=bug_report.md>` or mention it on the :link:`bugs channel on our Discord <https://discord.com/channels/559866092546424832/559872374682681345>`.
+If you discover a bug, please :link:`open a bug report <{GitHubLink}/issues/new/choose>` or mention it on the :link:`bugs channel on our Discord <https://discord.com/channels/559866092546424832/1025347180468387860>`.
 
 
 Unity Bugs
@@ -34,15 +34,6 @@ Some of these may even be blocking new features from being developed.
 If you could vote on these issues, that would be greatly appreciated:
 
 -  :link:`Gizmos render over opaque objects with Post-Processing stack. <{UnityIssueLink}/1124862>` `[[BIRP]]`
-
-
-Unity Features
---------------
-
-There are upcoming features being developed by Unity which will greatly help `Crest`.
-If you could vote on these features, that would be greatly appreciated:
-
--  :link:`Post Processing Custom Effects <https://portal.productboard.com/8ufdwj59ehtmsvxenjumxo82/c/37-post-processing-custom-effects>` `[[URP]]`
 
 
 Prefab Mode Not Supported

@@ -1,5 +1,5 @@
-Performance
-===========
+Performance Guide
+=================
 
 The foundation of *Crest* is architected for performance from the ground up with an innovative LOD system.
 It is tweaked to achieve a good balance between quality and performance in the general case, but getting the most out of the system requires tweaking the parameters for the particular use case.

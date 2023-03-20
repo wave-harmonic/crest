@@ -1,5 +1,5 @@
-Q & A
-=====
+Frequently Asked Questions
+==========================
 
 .. Set section numbering and ToC depth for PDFs because Sphinx has bugs and limitations.
 
@@ -57,21 +57,14 @@ For additional platform notes, see :link:`Platform Support <{WikiLink}/Platform-
 
 Is `Crest` well suited for localised bodies of water such as lakes?
 -------------------------------------------------------------------
-Currently Crest is targeted towards large bodies of water.
-This area is being actively developed.
-Please see :ref:`water-bodies` for current progress.
+Yes, see :ref:`water-bodies` for documentation.
 
 Can *Crest* work with multiplayer?
 ----------------------------------
-Yes, the animated waves are deterministic and easily synchronized.
-See discussion in :issue:`75`.
-However, the dynamic wave sim is not synchronized over the network and can not currently be relied upon in networked situations.
+Yes, the animated waves are deterministic and can be synchronised across the network.
+For more information see :ref:`network-synchronisation`.
 
-For more information, see the following sections relevant to networking and server environments:
-
--  :ref:`network-synchronisation`
--  :ref:`collisions-fft-waves-cpu`
--  :ref:`collisions-gerstner-waves-cpu`
+Note however that the dynamic wave sim is not synchronized over the network and should not be relied upon in networked situations.
 
 Errors are present in the log that report *Kernel 'xxx.yyy' not found*
 ----------------------------------------------------------------------
@@ -90,8 +83,8 @@ We hope to support multiple simultaneous views in the future.
 
 Can I sample the water height at a position from C#?
 ----------------------------------------------------
-Yes, see SampleHeightHelper class in SamplingHelpers.cs.
-The OceanRenderer uses this helper to get the height of the viewer above the water, and makes this viewer height available via the ViewerHeightAboveWater property.
+Yes, see usages of *SampleHeightHelper* class in *SamplingHelpers.cs*.
+The *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
 
 Can I trigger something when an object is above or under the ocean surface without any scripting knowledge?
 -----------------------------------------------------------------------------------------------------------

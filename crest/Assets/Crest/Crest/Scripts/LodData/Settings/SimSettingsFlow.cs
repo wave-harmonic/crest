@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsFlow", menuName = "Crest/Flow Sim Settings", order = 10000)]
-    [CrestHelpURL("user/ocean-simulation", "flow")]
+    [CrestHelpURL("user/tides-and-currents", "flow")]
     public class SimSettingsFlow : SimSettingsBase
     {
         /// <summary>

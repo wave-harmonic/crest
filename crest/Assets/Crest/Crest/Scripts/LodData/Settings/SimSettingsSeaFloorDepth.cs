@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsSeaFloorDepth", menuName = "Crest/Sea Floor Depth Settings", order = 10000)]
-    [CrestHelpURL("user/ocean-simulation", "sea-floor-depth")]
+    [CrestHelpURL("user/shallows-and-shorelines", "sea-floor-depth")]
     public class SimSettingsSeaFloorDepth : SimSettingsBase
     {
         [Tooltip("Allow varying water level, to support water bodies at different heights and rivers to run down slopes. Disabling this will save some memory and may improve performance on some platforms.")]

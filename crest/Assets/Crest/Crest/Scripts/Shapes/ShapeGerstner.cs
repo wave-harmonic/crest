@@ -19,7 +19,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
-    [CrestHelpURL("user/wave-conditions")]
+    [CrestHelpURL("user/waves")]
     public partial class ShapeGerstner : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR

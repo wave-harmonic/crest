@@ -13,7 +13,7 @@ namespace Crest
     /// <summary>
     /// Base class for objects that float on water.
     /// </summary>
-    [CrestHelpURL("user/other-features", "buoyancy")]
+    [CrestHelpURL("user/collision-shape-and-buoyancy-physics", "buoyancy")]
     public abstract partial class FloatingObjectBase : MonoBehaviour
     {
         public abstract float ObjectWidth { get; }

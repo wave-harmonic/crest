@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape FFT")]
-    [CrestHelpURL("user/wave-conditions")]
+    [CrestHelpURL("user/waves")]
     public partial class ShapeFFT : MonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable, IPaintable
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR

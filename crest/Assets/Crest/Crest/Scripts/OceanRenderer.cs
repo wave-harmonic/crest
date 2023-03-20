@@ -1989,7 +1989,7 @@ namespace Crest
 
             if (GUILayout.Button("Open Material Online Help"))
             {
-                Application.OpenURL(CrestHelpURLAttribute.GetPageLink("user/configuration", "material-parameters"));
+                Application.OpenURL(CrestHelpURLAttribute.GetPageLink("user/water-appearance", "material-parameters"));
             }
 
             DrawMaterialEditor();

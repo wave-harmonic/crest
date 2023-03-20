@@ -12,7 +12,7 @@ using UnityEditor;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsFoam", menuName = "Crest/Foam Sim Settings", order = 10000)]
-    [CrestHelpURL("user/ocean-simulation", "foam-settings")]
+    [CrestHelpURL("user/water-appearance", "foam-settings")]
     public class SimSettingsFoam : SimSettingsBase
     {
         /// <summary>

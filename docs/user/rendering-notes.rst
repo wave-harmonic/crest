@@ -1,7 +1,7 @@
 .. _rendering:
 
-Rendering
-=========
+Rendering Notes
+===============
 
 Transparency
 ------------

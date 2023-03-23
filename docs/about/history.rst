@@ -57,6 +57,10 @@ Fixed
       -  Fix *Underwater Renderer* not working with multiple cameras in certain cases. `[URP]`
       -  Fix rendering artifacts when *Windows Graphics API* is set to *Direct3D11* and the *Android Graphics API* is set to *Vulkan*. `[URP]`
 
+   .. only:: birp or urp
+
+      -  Fix Ocean material texture properties not binding on some platforms (PS5). `[BIRP] [URP]`
+
 
 Performance
 ^^^^^^^^^^^

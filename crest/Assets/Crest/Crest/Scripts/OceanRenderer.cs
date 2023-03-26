@@ -134,6 +134,8 @@ namespace Crest
 
         public Transform Root { get; private set; }
 
+        public GameObject Container { get; private set; }
+
         // does not respond to _timeProvider changing in inspector
 
         // Loosely a stack for time providers. The last TP in the list is the active one. When a TP gets
@@ -365,6 +367,8 @@ namespace Crest
             public bool _drawLodOutline = false;
 #endif
 
+            [Tooltip("Resources are normally released in OnDestroy (except in edit mode) which avoids expensive rebuilds when toggling this component. This option moves it to OnDisable. If you need this active then please report to us.")]
+            public bool _destroyResourcesInOnDisable = false;
 
             [Header("Server Settings")]
 
@@ -432,6 +436,8 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
+
+        bool _isInitialized = false;
 
         // A hash of the settings used to generate the ocean, used to regenerate when necessary
         int _generatedSettingsHash = 0;
@@ -544,6 +550,12 @@ namespace Crest
         {
             _isFirstFrameSinceEnabled = true;
 
+            if (_isInitialized)
+            {
+                Enable();
+                return;
+            }
+
             // Setup a default time provider, and add the override one (from the inspector)
             _timeProviderStack.Clear();
 
@@ -625,7 +637,13 @@ namespace Crest
             // We could calculate this in the shader, but we can save two subtractions this way.
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
+            Container = new GameObject();
+            Container.name = "Container";
+            Container.gameObject.hideFlags = _debug._showOceanTileGameObjects ? HideFlags.DontSave : HideFlags.HideAndDontSave;
+            Container.transform.SetParent(transform, worldPositionStays: false);
+
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            Root.SetParent(Container.transform, worldPositionStays: false);
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
@@ -647,12 +665,27 @@ namespace Crest
 
             _generatedSettingsHash = CalculateSettingsHash();
 
+            Enable();
+            _isInitialized = true;
+        }
+
+        void Enable()
+        {
+            Instance = this;
+
+            foreach (var lodData in _lodDatas)
+            {
+                lodData?.Enable();
+            }
+
             Camera.onPreRender -= OnPreRenderCamera;
             Camera.onPreRender += OnPreRenderCamera;
             Camera.onPostRender -= OnPostRenderCamera;
             Camera.onPostRender += OnPostRenderCamera;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+
+            Container.SetActive(true);
         }
 
         void OnPreRenderCamera(Camera camera)
@@ -682,15 +715,31 @@ namespace Crest
 
         internal void Rebuild()
         {
-            enabled = false;
-            enabled = true;
+            CleanUp();
+            Disable();
+            OnEnable();
         }
 
         private void OnDisable()
         {
-            CleanUp();
+            // Always clean up in OnDisable during edit mode as OnDestroy is not always called.
+            if (_debug._destroyResourcesInOnDisable || !Application.isPlaying)
+            {
+                CleanUp();
+            }
 
-            Instance = null;
+            Disable();
+        }
+
+        void OnDestroy()
+        {
+            // Only clean up in OnDestroy when not in edit mode.
+            if (_debug._destroyResourcesInOnDisable || !Application.isPlaying)
+            {
+                return;
+            }
+
+            CleanUp();
         }
 
 #if UNITY_EDITOR
@@ -1463,8 +1512,14 @@ namespace Crest
             _lodDatas.Clear();
 
             // Clean up everything created through the Ocean Builder.
-            OceanBuilder.CleanUp(Instance);
+            OceanBuilder.CleanUp(this);
             Root = null;
+
+            if (Container)
+            {
+                Helpers.Destroy(Container);
+                Container = null;
+            }
 
             _lodTransform = null;
             _lodDataAnimWaves = null;
@@ -1495,9 +1550,26 @@ namespace Crest
             _bufCascadeDataSrc?.Dispose();
             _bufPerCascadeInstanceDataSource?.Dispose();
 
+            _isInitialized = false;
+        }
+
+        void Disable()
+        {
+            foreach (var lodData in _lodDatas)
+            {
+                lodData?.Disable();
+            }
+
             Camera.onPreRender -= OnPreRenderCamera;
             Camera.onPostRender -= OnPostRenderCamera;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+
+            if (Container != null)
+            {
+                Container.SetActive(false);
+            }
+
+            Instance = null;
         }
 
         /// <summary>

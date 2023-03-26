@@ -308,7 +308,10 @@ namespace Crest
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()
         {
-            Rend.bounds.GizmosDraw();
+            if (Rend != null)
+            {
+                Rend.bounds.GizmosDraw();
+            }
 
             if (WaterBody.WaterBodies.Count > 0)
             {

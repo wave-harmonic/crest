@@ -288,5 +288,15 @@ namespace Crest
 
             Helpers.Destroy(_defaultSettings);
         }
+
+        internal virtual void Enable()
+        {
+
+        }
+
+        internal virtual void Disable()
+        {
+
+        }
     }
 }

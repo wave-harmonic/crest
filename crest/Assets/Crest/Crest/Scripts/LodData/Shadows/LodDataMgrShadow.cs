@@ -111,6 +111,13 @@ namespace Crest
         {
             base.OnEnable();
 
+            Enable();
+        }
+
+        internal override void Enable()
+        {
+            base.Enable();
+
             {
                 Camera.onPreCull -= OnPreCullCamera;
                 Camera.onPreCull += OnPreCullCamera;
@@ -121,16 +128,23 @@ namespace Crest
             CleanUpShadowCommandBuffers();
         }
 
-        internal override void OnDisable()
+        internal override void Disable()
         {
-            base.OnDisable();
+            base.Disable();
+
+            CleanUpShadowCommandBuffers();
 
             {
                 Camera.onPreCull -= OnPreCullCamera;
                 Camera.onPostRender -= OnPostRenderCamera;
             }
+        }
 
-            CleanUpShadowCommandBuffers();
+        internal override void OnDisable()
+        {
+            base.OnDisable();
+
+            Disable();
 
             for (var index = 0; index < _renderMaterial.Length; index++)
             {

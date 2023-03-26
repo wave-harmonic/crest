@@ -1934,7 +1934,7 @@ namespace Crest
 
             if (GUILayout.Button("Open Material Online Help"))
             {
-                Application.OpenURL(Internal.Constants.HELP_URL_BASE_USER + "configuration.html" + Internal.Constants.HELP_URL_RP + "#material-parameters");
+                Application.OpenURL(Internal.Constants.HELP_URL_BASE_USER + "water-appearance.html" + Internal.Constants.HELP_URL_RP + "#material-parameters");
             }
 
             GUILayout.Space(10);

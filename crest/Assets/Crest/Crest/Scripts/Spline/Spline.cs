@@ -17,7 +17,7 @@ namespace Crest.Spline
     /// </summary>
     [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP + "#wave-splines")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-inputs.html" + Internal.Constants.HELP_URL_RP + "#spline-mode")]
     public partial class Spline : CustomMonoBehaviour, ISplinePointCustomDataSetup
     {
         /// <summary>

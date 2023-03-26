@@ -16,7 +16,7 @@ namespace Crest
     /// FFT ocean wave shape
     /// </summary>
     [ExecuteDuringEditMode(ExecuteDuringEditModeAttribute.Include.None)]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "wave-conditions.html" + Internal.Constants.HELP_URL_RP)]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "waves.html" + Internal.Constants.HELP_URL_RP)]
     public abstract partial class ShapeWaves : CustomMonoBehaviour, LodDataMgrAnimWaves.IShapeUpdatable, ISplinePointCustomDataSetup, IReportsDisplacement
     {
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), Embedded]

@@ -24,7 +24,7 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#clip-surface";
+        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "clipping.html" + Internal.Constants.HELP_URL_RP + "#clip-surface-settings";
 
         // The clip values only really need 8bits (unless using signed distance).
         [Tooltip("The render texture format to use for the clip surface simulation. It should only be changed if you need more precision. See the documentation for information.")]

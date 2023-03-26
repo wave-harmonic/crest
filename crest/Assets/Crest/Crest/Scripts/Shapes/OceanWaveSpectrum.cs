@@ -14,6 +14,7 @@ namespace Crest
     /// Ocean shape representation - power values for each octave of wave components.
     /// </summary>
     [CreateAssetMenu(fileName = "OceanWaves", menuName = "Crest/Ocean Wave Spectrum", order = 10000)]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "waves.html" + Internal.Constants.HELP_URL_RP)]
     public class OceanWaveSpectrum : ScriptableObject
     {
         /// <summary>

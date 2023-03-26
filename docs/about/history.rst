@@ -24,6 +24,8 @@ Changed
    -  Use *Register Height Input* in *Boat* scene instead of *Register Animated Waves Input*.
    -  Rate limit shadow simulation to *Ocean Renderer > Editor Mode FPS*.
    -  Move *Ocean Renderer* debug options into foldout.
+   -  Release *Ocean Renderer* resources in *OnDestroy* instead of *OnDisable* to prevent performance penality of rebuilding the system.
+      The option *Debug > Destroy Resources In On Disable* will revert this behaviour if needed.
 
 
 Fixed

@@ -24,7 +24,7 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#id5";
+        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "water-appearance.html" + Internal.Constants.HELP_URL_RP + "#foam-settings";
 
         [Header("General settings")]
         [Tooltip("Prewarms the simulation on load and teleports. Results are only an approximation but are better than no foam.")]

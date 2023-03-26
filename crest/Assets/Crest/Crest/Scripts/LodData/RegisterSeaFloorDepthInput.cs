@@ -11,7 +11,7 @@ namespace Crest
     /// For static objects, use an Ocean Depth Cache.
     /// </summary>
     [AddComponentMenu(MENU_PREFIX + "Sea Floor Depth Input")]
-    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#sea-floor-depth")]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "shallows-and-shorelines.html" + Internal.Constants.HELP_URL_RP + "#sea-floor-depth")]
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
         /// <summary>

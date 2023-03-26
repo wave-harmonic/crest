@@ -7,6 +7,7 @@ using UnityEngine;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SettingsAlbedo", menuName = "Crest/Albedo Settings", order = 10000)]
+    [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "water-appearance.html" + Internal.Constants.HELP_URL_RP + "#custom-albedo")]
     public class SimSettingsAlbedo : SimSettingsBase
     {
         /// <summary>

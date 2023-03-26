@@ -20,7 +20,7 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "ocean-simulation.html" + Internal.Constants.HELP_URL_RP + "#simulation-settings";
+        public const string HELP_URL = Internal.Constants.HELP_URL_BASE_USER + "waves.html" + Internal.Constants.HELP_URL_RP + "#dynamic-waves-settings";
 
         //[Header("Range")]
         [Range(0f, 32f), Tooltip("NOT CURRENTLY WORKING. The wave sim will not run if the simulation grid is smaller in resolution than this size. Useful to limit sim range for performance."),

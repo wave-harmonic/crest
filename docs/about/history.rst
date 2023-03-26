@@ -17,6 +17,7 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Reorganise documentation to make things easier to find.
    -  Reduce *Water Body* material override feature leaking outside of water bodies.
    -  No longer execute when editor is inactive (ie out of focus) to prevent edge cases where memory leaks can occur and to save energy.
    -  Improve *Water Body* gizmo by adding a wireframe.

@@ -587,6 +587,12 @@ namespace Crest
             }
 #endif
 
+            // Other components may place objects under the container so it needs to be created early.
+            Container = new GameObject();
+            Container.name = "Container";
+            Container.gameObject.hideFlags = _debug._showOceanTileGameObjects ? HideFlags.DontSave : HideFlags.HideAndDontSave;
+            Container.transform.SetParent(transform, worldPositionStays: false);
+
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
@@ -636,11 +642,6 @@ namespace Crest
             _lodAlphaBlackPointFade = 0.4f / (baseMeshDensity / 8f);
             // We could calculate this in the shader, but we can save two subtractions this way.
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
-
-            Container = new GameObject();
-            Container.name = "Container";
-            Container.gameObject.hideFlags = _debug._showOceanTileGameObjects ? HideFlags.DontSave : HideFlags.HideAndDontSave;
-            Container.transform.SetParent(transform, worldPositionStays: false);
 
             Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
             Root.SetParent(Container.transform, worldPositionStays: false);

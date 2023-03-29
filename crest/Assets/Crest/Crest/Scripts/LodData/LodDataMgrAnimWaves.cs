@@ -61,6 +61,7 @@ namespace Crest
         readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
         public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
+        public static readonly int sp_CombineBuffer = Shader.PropertyToID("_CombineBuffer");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
         public interface IShapeUpdatable { void CrestUpdate(CommandBuffer buf); }
@@ -326,7 +327,7 @@ namespace Crest
 
                 // Copy combine buffer back to lod texture array
                 buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
-                _combineMaterial[lodIdx].SetTexture(Shader.PropertyToID("_CombineBuffer"), _combineBuffer);
+                _combineMaterial[lodIdx].SetTexture(sp_CombineBuffer, _combineBuffer);
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCopyResultBack, MeshTopology.Triangles, 3);
             }
         }

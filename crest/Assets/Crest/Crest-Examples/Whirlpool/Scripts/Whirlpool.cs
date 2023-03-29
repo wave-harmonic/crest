@@ -48,18 +48,26 @@ namespace Crest
         GameObject _flowInput;
         GameObject _dynamicWavesInput;
 
+        public static class ShaderIDs
+        {
+            public static readonly int s_EyeRadiusProportion = Shader.PropertyToID("_EyeRadiusProportion");
+            public static readonly int s_MaxSpeed = Shader.PropertyToID("_MaxSpeed");
+            public static readonly int s_Radius = Shader.PropertyToID("_Radius");
+            public static readonly int s_Amplitude = Shader.PropertyToID("_Amplitude");
+        }
+
         private void UpdateMaterials()
         {
             if (_flowMaterial)
             {
-                _flowMaterial.SetFloat("_EyeRadiusProportion", _eyeRadius / _radius);
-                _flowMaterial.SetFloat("_MaxSpeed", _maxSpeed);
+                _flowMaterial.SetFloat(ShaderIDs.s_EyeRadiusProportion, _eyeRadius / _radius);
+                _flowMaterial.SetFloat(ShaderIDs.s_MaxSpeed, _maxSpeed);
             }
 
             if (_displacementMaterial)
             {
-                _displacementMaterial.SetFloat("_Radius", _radius * 0.25f);
-                _displacementMaterial.SetFloat("_Amplitude", _amplitude);
+                _displacementMaterial.SetFloat(ShaderIDs.s_Radius, _radius * 0.25f);
+                _displacementMaterial.SetFloat(ShaderIDs.s_Amplitude, _amplitude);
             }
         }
 

@@ -22,6 +22,14 @@ namespace Crest
     {
         static string s_bakeFolder = null;
 
+        public static class ShaderIDs
+        {
+            public static readonly int s_BakeTime = Shader.PropertyToID("_BakeTime");
+            public static readonly int s_MinSlice = Shader.PropertyToID("_MinSlice");
+            public static readonly int s_InFFTWaves = Shader.PropertyToID("_InFFTWaves");
+            public static readonly int s_OutDisplacements = Shader.PropertyToID("_OutDisplacements");
+        }
+
         /// <summary>
         /// Bakes FFT data for a ShapeFFT component
         /// </summary>
@@ -94,10 +102,10 @@ namespace Crest
                     fftWaves._spectrum, true);
 
                 // Compute shader generates the final waves
-                buf.SetComputeFloatParam(waveCombineShader, "_BakeTime", t);
-                buf.SetComputeIntParam(waveCombineShader, "_MinSlice", firstLod);
-                buf.SetComputeTextureParam(waveCombineShader, kernel, "_InFFTWaves", fftWaveDataTA);
-                buf.SetComputeTextureParam(waveCombineShader, kernel, "_OutDisplacements", bakedWaves);
+                buf.SetComputeFloatParam(waveCombineShader, ShaderIDs.s_BakeTime, t);
+                buf.SetComputeIntParam(waveCombineShader, ShaderIDs.s_MinSlice, firstLod);
+                buf.SetComputeTextureParam(waveCombineShader, kernel, ShaderIDs.s_InFFTWaves, fftWaveDataTA);
+                buf.SetComputeTextureParam(waveCombineShader, kernel, ShaderIDs.s_OutDisplacements, bakedWaves);
                 buf.DispatchCompute(waveCombineShader, kernel, bakedWaves.width / 8, bakedWaves.height / 8, 1);
 
                 Graphics.ExecuteCommandBuffer(buf);

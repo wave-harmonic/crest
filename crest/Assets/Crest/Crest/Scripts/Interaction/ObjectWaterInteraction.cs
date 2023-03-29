@@ -49,6 +49,11 @@ namespace Crest
         Renderer _renderer;
         MaterialPropertyBlock _mpb;
 
+        public static class ShaderIDs
+        {
+            public static readonly int s_Velocity = Shader.PropertyToID("_Velocity");
+        }
+
         private void Start()
         {
             if (OceanRenderer.Instance == null)
@@ -159,12 +164,12 @@ namespace Crest
 
             _renderer.GetPropertyBlock(_mpb);
 
-            _mpb.SetVector("_Velocity", vel);
-            _mpb.SetFloat("_SimDeltaTime", dt);
+            _mpb.SetVector(ShaderIDs.s_Velocity, vel);
+            _mpb.SetFloat(LodDataMgrPersistent.sp_SimDeltaTime, dt);
 
             // Weighting with this value helps keep ripples consistent for different gravity values
             var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
-            _mpb.SetFloat("_Weight", weight * gravityMul);
+            _mpb.SetFloat(RegisterLodDataInputBase.sp_Weight, weight * gravityMul);
 
             _renderer.SetPropertyBlock(_mpb);
 

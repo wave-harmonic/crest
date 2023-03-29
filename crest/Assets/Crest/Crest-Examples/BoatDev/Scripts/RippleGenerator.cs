@@ -27,6 +27,11 @@ public class RippleGenerator : MonoBehaviour
 
     RegisterDynWavesInput _rdwi;
 
+    public static class ShaderIDs
+    {
+        public static readonly int s_SimCount = Shader.PropertyToID("_SimCount");
+    }
+
     void Start()
     {
         TryGetComponent(out _rdwi);
@@ -80,8 +85,8 @@ public class RippleGenerator : MonoBehaviour
 
         _rend.GetPropertyBlock(_mpb);
 
-        _mpb.SetFloat("_SimCount", simsActive);
-        _mpb.SetFloat("_SimDeltaTime", dt);
+        _mpb.SetFloat(ShaderIDs.s_SimCount, simsActive);
+        _mpb.SetFloat(LodDataMgrPersistent.sp_SimDeltaTime, dt);
 
         _rend.SetPropertyBlock(_mpb);
     }

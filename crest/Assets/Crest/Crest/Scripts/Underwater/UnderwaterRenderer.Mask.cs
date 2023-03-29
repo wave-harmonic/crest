@@ -42,6 +42,8 @@ namespace Crest
             public static readonly int s_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
             public static readonly int s_CrestWaterVolumeFrontFaceTexture = Shader.PropertyToID("_CrestWaterVolumeFrontFaceTexture");
             public static readonly int s_CrestWaterVolumeBackFaceTexture = Shader.PropertyToID("_CrestWaterVolumeBackFaceTexture");
+
+            public static readonly int s_StencilRef = Shader.PropertyToID("_StencilRef");
         }
 
         internal enum VolumePass
@@ -200,7 +202,7 @@ namespace Crest
             Helpers.SetGlobalKeyword(k_KeywordVolume2D, _mode == Mode.Portal);
             Helpers.SetGlobalKeyword(k_KeywordVolumeHasBackFace, _mode == Mode.Volume || _mode == Mode.VolumeFlyThrough);
             maskMaterial.SetKeyword(k_KeywordVolume, _mode != Mode.FullScreen);
-            maskMaterial.SetInt("_StencilRef", UseStencilBufferOnMask ? k_StencilValueVolume : 0);
+            maskMaterial.SetInt(ShaderIDs.s_StencilRef, UseStencilBufferOnMask ? k_StencilValueVolume : 0);
         }
 
         void OnPreRenderOceanMask()

@@ -48,6 +48,13 @@ namespace Crest
         readonly static float _bottomPanelHeight = 25f;
         readonly static Color _guiColor = Color.black * 0.7f;
 
+        public static class ShaderIDs
+        {
+            public static readonly int s_Depth = Shader.PropertyToID("_Depth");
+            public static readonly int s_Scale = Shader.PropertyToID("_Scale");
+            public static readonly int s_Bias = Shader.PropertyToID("_Bias");
+        }
+
         static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
         static Material s_DebugArrayMaterial;
@@ -404,9 +411,9 @@ namespace Crest
                         if (isRightmost) w += b;
 
                         // Render specific slice of 2D texture array
-                        DebugArrayMaterial.SetInt("_Depth", idx);
-                        DebugArrayMaterial.SetFloat("_Scale", scale);
-                        DebugArrayMaterial.SetFloat("_Bias", bias);
+                        DebugArrayMaterial.SetInt(ShaderIDs.s_Depth, idx);
+                        DebugArrayMaterial.SetFloat(ShaderIDs.s_Scale, scale);
+                        DebugArrayMaterial.SetFloat(ShaderIDs.s_Bias, bias);
                         Graphics.DrawTexture(new Rect(x + b, (y + b / 2f) - scroll, h - b, h - b), lodData.DataTexture, DebugArrayMaterial);
                     }
                 }
@@ -442,9 +449,9 @@ namespace Crest
                         if (offset == 1f) w += b;
 
                         // Render specific slice of 2D texture array
-                        DebugArrayMaterial.SetInt("_Depth", idx);
-                        DebugArrayMaterial.SetFloat("_Scale", scale);
-                        DebugArrayMaterial.SetFloat("_Bias", bias);
+                        DebugArrayMaterial.SetInt(ShaderIDs.s_Depth, idx);
+                        DebugArrayMaterial.SetFloat(ShaderIDs.s_Scale, scale);
+                        DebugArrayMaterial.SetFloat(ShaderIDs.s_Bias, bias);
                         Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, DebugArrayMaterial);
                     }
                 }

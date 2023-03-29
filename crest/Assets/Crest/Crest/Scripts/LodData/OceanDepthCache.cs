@@ -88,6 +88,13 @@ namespace Crest
         Camera _camDepthCache;
         Material _copyDepthMaterial;
 
+        public static class ShaderIDs
+        {
+            public static readonly int s_CamDepthBuffer = Shader.PropertyToID("_CamDepthBuffer");
+            public static readonly int s_CustomZBufferParams = Shader.PropertyToID("_CustomZBufferParams");
+            public static readonly int s_HeightNearHeightFar = Shader.PropertyToID("_HeightNearHeightFar");
+        }
+
         void Start()
         {
 #if UNITY_EDITOR
@@ -316,17 +323,17 @@ namespace Crest
                 _copyDepthMaterial = new Material(Shader.Find("Crest/Copy Depth Buffer Into Cache"));
             }
 
-            _copyDepthMaterial.SetTexture("_CamDepthBuffer", _camDepthCache.targetTexture);
+            _copyDepthMaterial.SetTexture(ShaderIDs.s_CamDepthBuffer, _camDepthCache.targetTexture);
 
             // Zbuffer params
             //float4 _ZBufferParams;            // x: 1-far/near,     y: far/near, z: x/far,     w: y/far
             float near = _camDepthCache.nearClipPlane, far = _camDepthCache.farClipPlane;
-            _copyDepthMaterial.SetVector("_CustomZBufferParams", new Vector4(1f - far / near, far / near, (1f - far / near) / far, (far / near) / far));
+            _copyDepthMaterial.SetVector(ShaderIDs.s_CustomZBufferParams, new Vector4(1f - far / near, far / near, (1f - far / near) / far, (far / near) / far));
 
             // Altitudes for near and far planes
             float ymax = _camDepthCache.transform.position.y - near;
             float ymin = ymax - far;
-            _copyDepthMaterial.SetVector("_HeightNearHeightFar", new Vector2(ymax, ymin));
+            _copyDepthMaterial.SetVector(ShaderIDs.s_HeightNearHeightFar, new Vector2(ymax, ymin));
 
             // Copy from depth buffer into the cache
             Graphics.Blit(null, _cacheTexture, _copyDepthMaterial);

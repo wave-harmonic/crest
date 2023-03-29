@@ -61,6 +61,32 @@ namespace Crest
 
         float _generationTime = -1f;
 
+        public static class ShaderIDs
+        {
+            public static readonly int s_Size = Shader.PropertyToID("_Size");
+            public static readonly int s_WindSpeed = Shader.PropertyToID("_WindSpeed");
+            public static readonly int s_Turbulence = Shader.PropertyToID("_Turbulence");
+            public static readonly int s_Gravity = Shader.PropertyToID("_Gravity");
+            public static readonly int s_Period = Shader.PropertyToID("_Period");
+            public static readonly int s_WindDir = Shader.PropertyToID("_WindDir");
+            public static readonly int s_SpectrumControls = Shader.PropertyToID("_SpectrumControls");
+            public static readonly int s_ResultInit = Shader.PropertyToID("_ResultInit");
+            public static readonly int s_Time = Shader.PropertyToID("_Time");
+            public static readonly int s_Chop = Shader.PropertyToID("_Chop");
+            public static readonly int s_Init0 = Shader.PropertyToID("_Init0");
+            public static readonly int s_ResultHeight = Shader.PropertyToID("_ResultHeight");
+            public static readonly int s_ResultDisplaceX = Shader.PropertyToID("_ResultDisplaceX");
+            public static readonly int s_ResultDisplaceZ = Shader.PropertyToID("_ResultDisplaceZ");
+            public static readonly int s_InputH = Shader.PropertyToID("_InputH");
+            public static readonly int s_InputX = Shader.PropertyToID("_InputX");
+            public static readonly int s_InputZ = Shader.PropertyToID("_InputZ");
+            public static readonly int s_InputButterfly = Shader.PropertyToID("_InputButterfly");
+            public static readonly int s_Output1 = Shader.PropertyToID("_Output1");
+            public static readonly int s_Output2 = Shader.PropertyToID("_Output2");
+            public static readonly int s_Output3 = Shader.PropertyToID("_Output3");
+            public static readonly int s_Output = Shader.PropertyToID("_Output");
+        }
+
         public FFTCompute(int resolution, float loopPeriod, float windSpeed, float windTurbulence, float windDirRad, OceanWaveSpectrum spectrum)
         {
             Debug.Assert(Mathf.NextPowerOfTwo(resolution) == resolution, "Crest: FFTCompute resolution must be power of 2");
@@ -376,14 +402,14 @@ namespace Crest
         /// </summary>
         void InitializeSpectrum(CommandBuffer buf)
         {
-            buf.SetComputeIntParam(_shaderSpectrum, "_Size", _resolution);
-            buf.SetComputeFloatParam(_shaderSpectrum, "_WindSpeed", _windSpeed);
-            buf.SetComputeFloatParam(_shaderSpectrum, "_Turbulence", _windTurbulence);
-            buf.SetComputeFloatParam(_shaderSpectrum, "_Gravity", Mathf.Abs(Physics.gravity.magnitude));
-            buf.SetComputeFloatParam(_shaderSpectrum, "_Period", _loopPeriod);
-            buf.SetComputeVectorParam(_shaderSpectrum, "_WindDir", new Vector2(Mathf.Cos(_windDirRad), Mathf.Sin(_windDirRad)));
-            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_SpectrumControls", _texSpectrumControls);
-            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, "_ResultInit", _spectrumInit);
+            buf.SetComputeIntParam(_shaderSpectrum, ShaderIDs.s_Size, _resolution);
+            buf.SetComputeFloatParam(_shaderSpectrum, ShaderIDs.s_WindSpeed, _windSpeed);
+            buf.SetComputeFloatParam(_shaderSpectrum, ShaderIDs.s_Turbulence, _windTurbulence);
+            buf.SetComputeFloatParam(_shaderSpectrum, ShaderIDs.s_Gravity, Mathf.Abs(Physics.gravity.magnitude));
+            buf.SetComputeFloatParam(_shaderSpectrum, ShaderIDs.s_Period, _loopPeriod);
+            buf.SetComputeVectorParam(_shaderSpectrum, ShaderIDs.s_WindDir, new Vector2(Mathf.Cos(_windDirRad), Mathf.Sin(_windDirRad)));
+            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, ShaderIDs.s_SpectrumControls, _texSpectrumControls);
+            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumInit, ShaderIDs.s_ResultInit, _spectrumInit);
             buf.DispatchCompute(_shaderSpectrum, _kernelSpectrumInit, _resolution / 8, _resolution / 8, CASCADE_COUNT);
         }
 
@@ -394,14 +420,14 @@ namespace Crest
         {
             // Always set _Size as the compute shader returned from Resource.Load is the same asset every time and more
             // than one ShapeFFT will overwrite this value.
-            buf.SetComputeIntParam(_shaderSpectrum, "_Size", _resolution);
-            buf.SetComputeFloatParam(_shaderSpectrum, "_Time", time * _spectrum._gravityScale);
-            buf.SetComputeFloatParam(_shaderSpectrum, "_Chop", _spectrum._chop);
-            buf.SetComputeFloatParam(_shaderSpectrum, "_Period", _loopPeriod);
-            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_Init0", _spectrumInit);
-            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_ResultHeight", _spectrumHeight);
-            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_ResultDisplaceX", _spectrumDisplaceX);
-            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, "_ResultDisplaceZ", _spectrumDisplaceZ);
+            buf.SetComputeIntParam(_shaderSpectrum, ShaderIDs.s_Size, _resolution);
+            buf.SetComputeFloatParam(_shaderSpectrum, ShaderIDs.s_Time, time * _spectrum._gravityScale);
+            buf.SetComputeFloatParam(_shaderSpectrum, ShaderIDs.s_Chop, _spectrum._chop);
+            buf.SetComputeFloatParam(_shaderSpectrum, ShaderIDs.s_Period, _loopPeriod);
+            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, ShaderIDs.s_Init0, _spectrumInit);
+            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, ShaderIDs.s_ResultHeight, _spectrumHeight);
+            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, ShaderIDs.s_ResultDisplaceX, _spectrumDisplaceX);
+            buf.SetComputeTextureParam(_shaderSpectrum, _kernelSpectrumUpdate, ShaderIDs.s_ResultDisplaceZ, _spectrumDisplaceZ);
             buf.DispatchCompute(_shaderSpectrum, _kernelSpectrumUpdate, _resolution / 8, _resolution / 8, CASCADE_COUNT);
         }
 
@@ -412,20 +438,20 @@ namespace Crest
         {
             var kernelOffset = 2 * Mathf.RoundToInt(Mathf.Log(_resolution / FFT_KERNEL_0_RESOLUTION, 2f));
 
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputH", _spectrumHeight);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputX", _spectrumDisplaceX);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputZ", _spectrumDisplaceZ);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_InputButterfly", _texButterfly);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_Output1", _tempFFT1);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_Output2", _tempFFT2);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, "_Output3", _tempFFT3);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, ShaderIDs.s_InputH, _spectrumHeight);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, ShaderIDs.s_InputX, _spectrumDisplaceX);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, ShaderIDs.s_InputZ, _spectrumDisplaceZ);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, ShaderIDs.s_InputButterfly, _texButterfly);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, ShaderIDs.s_Output1, _tempFFT1);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, ShaderIDs.s_Output2, _tempFFT2);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset, ShaderIDs.s_Output3, _tempFFT3);
             buf.DispatchCompute(_shaderFFT, kernelOffset, 1, _resolution, CASCADE_COUNT);
 
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputH", _tempFFT1);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputX", _tempFFT2);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputZ", _tempFFT3);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_InputButterfly", _texButterfly);
-            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, "_Output", _waveBuffers);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, ShaderIDs.s_InputH, _tempFFT1);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, ShaderIDs.s_InputX, _tempFFT2);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, ShaderIDs.s_InputZ, _tempFFT3);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, ShaderIDs.s_InputButterfly, _texButterfly);
+            buf.SetComputeTextureParam(_shaderFFT, kernelOffset + 1, ShaderIDs.s_Output, _waveBuffers);
             buf.DispatchCompute(_shaderFFT, kernelOffset + 1, _resolution, 1, CASCADE_COUNT);
         }
 

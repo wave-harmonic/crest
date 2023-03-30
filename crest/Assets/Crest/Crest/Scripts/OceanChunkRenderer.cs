@@ -147,6 +147,11 @@ namespace Crest
                 Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
             }
 
+            if (camera == null)
+            {
+                return;
+            }
+
             // per instance data
 
             if (_mpb == null)
@@ -155,16 +160,18 @@ namespace Crest
             }
             Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
-            // Only done here because current camera is defined. This could be done just once, probably on the OnRender function
-            // or similar on the OceanPlanarReflection script?
-            var reflTex = PreparedReflections.GetRenderTexture(camera.GetHashCode());
-            if (reflTex)
             {
-                _mpb.SetTexture(sp_ReflectionTex, reflTex);
-            }
-            else
-            {
-                _mpb.SetTexture(sp_ReflectionTex, Texture2D.blackTexture);
+                // Only done here because current camera is defined. This could be done just once, probably on the OnRender function
+                // or similar on the OceanPlanarReflection script?
+                var reflTex = PreparedReflections.GetRenderTexture(camera.GetHashCode());
+                if (reflTex)
+                {
+                    _mpb.SetTexture(sp_ReflectionTex, reflTex);
+                }
+                else
+                {
+                    _mpb.SetTexture(sp_ReflectionTex, Texture2D.blackTexture);
+                }
             }
 
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);

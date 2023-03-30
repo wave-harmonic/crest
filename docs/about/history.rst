@@ -59,6 +59,7 @@ Fixed
       -  Fix *Underwater Renderer* compatibility with depth prepass. `[URP]`
       -  Fix *Underwater Renderer* not working with multiple cameras in certain cases. `[URP]`
       -  Fix rendering artifacts when *Windows Graphics API* is set to *Direct3D11* and the *Android Graphics API* is set to *Vulkan*. `[URP]`
+      -  Fix *Ocean Planar Reflections* capturing reflections from only one viewpoint when used with multiple cameras in builds. `[URP]`
 
    .. only:: birp or urp
 

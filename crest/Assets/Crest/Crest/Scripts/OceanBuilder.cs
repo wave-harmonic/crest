@@ -214,8 +214,8 @@ namespace Crest
 
         static Mesh BuildOceanPatch(OceanRenderer ocean, PatchType pt, float vertDensity, out Bounds bounds)
         {
-            ArrayList verts = new ArrayList();
-            ArrayList indices = new ArrayList();
+            var verts = new List<Vector3>();
+            var indices = new List<int>();
 
             // stick a bunch of verts into a 1m x 1m patch (scaling happens later)
             float dx = 1f / vertDensity;

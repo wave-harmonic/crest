@@ -165,7 +165,6 @@ namespace Crest
 
                 if (isBlendPassNeeded || finalWeight > 0f)
                 {
-                    buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
                 }

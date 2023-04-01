@@ -177,7 +177,6 @@ namespace Crest
             }
 
             buf.SetGlobalFloat(sp_Weight, weight);
-            buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
             buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
 
             if (_mode == Mode.Primitive)
@@ -261,7 +260,6 @@ namespace Crest
                     _signedDistancedMaterial.SetInt(sp_BlendOp, (int)(_inverted ? BlendOp.Min : BlendOp.Max));
                 }
 
-                _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
 
                 if (_mode == Mode.Geometry)

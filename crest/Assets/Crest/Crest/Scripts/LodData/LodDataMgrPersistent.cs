@@ -30,7 +30,6 @@ namespace Crest
         public static readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         public static readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
         public static readonly int sp_MinWavelength = Shader.PropertyToID("_MinWavelength");
-        public static readonly int sp_LodIdx = Shader.PropertyToID("_LodIdx");
 
         // Is this the first step since being enabled?
         protected bool _needsPrewarmingThisStep = true;
@@ -184,7 +183,7 @@ namespace Crest
                     for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                     {
                         buf.SetGlobalFloat(sp_MinWavelength, ocean._lodTransform.MaxWavelength(lodIdx) / 2f);
-                        buf.SetGlobalFloat(sp_LodIdx, lodIdx);
+                        buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                         buf.SetRenderTarget(current, current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                         SubmitDraws(lodIdx, buf);
                     }

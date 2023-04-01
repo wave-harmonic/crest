@@ -27,7 +27,6 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			CBUFFER_END
 
 			float _MinWavelength;
-			float _LodIdx;
 
 			struct Attributes
 			{
@@ -74,7 +73,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				float largeWaveMultiplier = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _LargeWaveMultiplier);
 				float radius = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _Radius);
 
-				if (largeWaveMultiplier * radius < _CrestCascadeData[_LodIdx]._texelWidth) o.positionCS *= 0.0;
+				if (largeWaveMultiplier * radius < _CrestCascadeData[_LD_SliceIndex]._texelWidth) o.positionCS *= 0.0;
 
 				return o;
 			}

@@ -124,6 +124,7 @@ namespace Crest
                 {
                     var mat = new Material(combineShaderGraphics);
                     _combineMaterial[i] = new PropertyWrapperMaterial(mat);
+                    _combineMaterial[i].SetInt(sp_LD_SliceIndex, i);
                 }
             }
 
@@ -251,6 +252,7 @@ namespace Crest
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
+                buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
 
                 // draw any data with lod preference
                 _filterWavelength._lodIdx = lodIdx;
@@ -274,6 +276,7 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
@@ -315,8 +318,6 @@ namespace Crest
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                 }
-
-                _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
                 _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
                 _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_perCascadeInstanceData, OceanRenderer.Instance._bufPerCascadeInstanceData);

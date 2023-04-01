@@ -126,7 +126,6 @@ namespace Crest
             if (_renderer && _material && weight > 0f)
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
                 if (!FollowHorizontalMotion)
                 {
@@ -356,7 +355,6 @@ namespace Crest
             if (_splineMesh != null && _splineMaterial != null)
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
-                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
                 buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
             }

@@ -79,6 +79,7 @@ namespace Crest
                 for (int i = 0; i < _renderMaterial.Length; i++)
                 {
                     _renderMaterial[i] = new PropertyWrapperMaterial(shader);
+                    _renderMaterial[i].SetInt(sp_LD_SliceIndex, i);
                 }
             }
 
@@ -493,7 +494,6 @@ namespace Crest
                     _renderMaterial[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, renderIntoTexture: true) * camera.worldToCameraMatrix);
                     _renderMaterial[lodIdx].SetFloat(sp_SimDeltaTime, Time.deltaTime);
 
-                    _renderMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
                     _renderMaterial[lodIdx].SetTexture(GetParamIdSampler(true), _targets.Previous(1));
 
                     LodDataMgrSeaFloorDepth.Bind(_renderMaterial[lodIdx]);
@@ -504,6 +504,7 @@ namespace Crest
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
+                    buffer.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                     buffer.SetRenderTarget(_targets.Current, _targets.Current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     // BUG: These draw calls will "leak" and be duplicated before the above blit. They are executed at
                     // the beginning of this CB before any commands are applied.

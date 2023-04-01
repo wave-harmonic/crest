@@ -86,6 +86,7 @@ namespace Crest
         // We pass this to GetSharedMaterials to avoid allocations.
         protected List<Material> _sharedMaterials = new List<Material>();
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
+        Vector3 _displacement;
 
         // If this is false, then the renderer should not be there as input source is from something else.
         protected virtual bool RendererRequired => true;
@@ -121,23 +122,26 @@ namespace Crest
 #endif
         }
 
+        protected virtual void LateUpdate()
+        {
+            if (!FollowHorizontalMotion)
+            {
+                // allowMultipleCallsPerFrame because we are calling before the time values are updated.
+                _sampleHelper.Init(transform.position, i_minLength: 0f, allowMultipleCallsPerFrame: true, context: this);
+                _sampleHelper.Sample(out _displacement, out _, out _);
+            }
+            else
+            {
+                _displacement = Vector3.zero;
+            }
+        }
+
         public virtual void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && _material && weight > 0f)
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
-
-                if (!FollowHorizontalMotion)
-                {
-                    // This can be called multiple times per frame - one for each LOD potentially
-                    _sampleHelper.Init(transform.position, 0f, true, this);
-                    _sampleHelper.Sample(out Vector3 displacement, out _, out _);
-                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, displacement);
-                }
-                else
-                {
-                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                }
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, _displacement);
 
                 _renderer.GetSharedMaterials(_sharedMaterials);
                 for (var i = 0; i < _sharedMaterials.Count; i++)
@@ -318,6 +322,8 @@ namespace Crest
 
         protected float _splinePointHeightMin;
         protected float _splinePointHeightMax;
+
+        protected override bool FollowHorizontalMotion => _spline != null;
 
         void Awake()
         {

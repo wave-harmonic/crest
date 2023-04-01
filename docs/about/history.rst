@@ -73,6 +73,7 @@ Performance
    -  Improve water tile culling significantly.
       The bounds for each tile are normally expanded to accommodate mesh displacement (to prevent culling), but they were much larger than required in many cases leading to reduced culling hits which is no longer the case.
    -  Reduce the amount of displacement queries LOD inputs make significantly making performance more scalable.
+   -  Optimise LOD inputs cost per frame when used with a *Renderer*.
    -  Minor performance optimisations.
 
 

@@ -88,6 +88,8 @@ namespace Crest
         SampleHeightHelper _sampleHelper = new SampleHeightHelper();
         Vector3 _displacement;
 
+        int _lastDrawFrame = -1;
+
         // If this is false, then the renderer should not be there as input source is from something else.
         protected virtual bool RendererRequired => true;
         protected virtual bool SupportsMultiPassShaders => false;
@@ -138,25 +140,35 @@ namespace Crest
 
         public virtual void Draw(LodDataMgr lodData, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
-            if (_renderer && _material && weight > 0f)
+            if (_material && weight > 0f)
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, _displacement);
 
-                _renderer.GetSharedMaterials(_sharedMaterials);
+                if (_lastDrawFrame < OceanRenderer.FrameCount)
+                {
+                    _renderer.GetSharedMaterials(_sharedMaterials);
+                }
+
                 for (var i = 0; i < _sharedMaterials.Count; i++)
                 {
+                    Debug.AssertFormat(_sharedMaterials[i] != null, _renderer, "Crest: Attached renderer has an empty material slot which is not allowed.");
+
+#if UNITY_EDITOR
                     // Empty material slots is a user error, but skip so we do not spam errors.
                     if (_sharedMaterials[i] == null)
                     {
                         continue;
                     }
+#endif
 
                     // By default, shaderPass is -1 which is all passes. Shader Graph will produce multi-pass shaders
                     // for depth etc so we should only render one pass. Unlit SG will have the unlit pass first.
                     // Submesh count generally must equal number of materials.
                     buf.DrawRenderer(_renderer, _sharedMaterials[i], submeshIndex: i, shaderPass: 0);
                 }
+
+                _lastDrawFrame = OceanRenderer.FrameCount;
             }
         }
 
@@ -459,7 +471,7 @@ namespace Crest
                         (
                             $"<i>{_renderer.GetType().Name}</i> used by this input (<i>{GetType().Name}</i>) has empty material slots.",
                             "Remove these slots or fill them with a material.",
-                            ValidatedHelper.MessageType.Warning, _renderer
+                            ValidatedHelper.MessageType.Error, _renderer
                         );
                     }
                 }

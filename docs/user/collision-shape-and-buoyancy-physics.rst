@@ -97,20 +97,20 @@ After the bake completes the current active *Animated Waves Sim Settings* will b
 
 .. _collisions-gerstner-waves-cpu:
 
-Gerstner Waves CPU (deprecated)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Gerstner Waves CPU
+^^^^^^^^^^^^^^^^^^
 
 .. admonition:: Deprecated
 
-   The Gerstner wave system in Crest is now deprecated. A CPU query path for the FFT waves is being worked on.
+   The *Shape Gerstner Batched* component is deprecated which supported this option.
 
-This collision option is serviced directly by the *GerstnerWavesBatched* component which implements the *ICollProvider* interface, check this interface to see functionality.
+This collision option is serviced directly by the *Shape Gerstner Batched* component which implements the *ICollProvider* interface, check this interface to see functionality.
 This sums over all waves to compute displacements, normals, velocities, etc.
 In contrast to the displacement textures the horizontal range of this collision source is unlimited.
 
 A drawback of this approach is the CPU performance cost of evaluating the waves.
 It also does not include wave attenuation from water depth or any custom rendered shape.
-A final limitation is the current system finds the first *GerstnerWavesBatched* component in the scene which may or may not be the correct one.
+A final limitation is the current system finds the first *Shape Gerstner Batched* component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
 
 .. _buoyancy:

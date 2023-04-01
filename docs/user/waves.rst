@@ -3,7 +3,10 @@
 Waves
 =====
 
-The following sections describe how to define the wave conditions.
+The *Animated Waves* simulation contains the animated surface shape.
+This typically contains the waves from shape components, but can also contain waves from the ripple simulation.
+All waves will eventually be combined into this simulation so the water shader only needs to sample once to animate vertices.
+
 
 Environmental Waves
 -------------------
@@ -14,6 +17,8 @@ To add waves, add the *ShapeFFT* component to a GameObject.
 For advanced situations where a high level of control is required over the wave shape, the *ShapeGerstner* component can be used to add specific wave components.
 It can be especially useful for Trochoidal waves and shoreline waves.
 See the :ref:`shoreline-waves-section` section for more information on the latter.
+
+The *Shape Gerstner Batched* component is deprecated.
 
 .. tip::
 
@@ -66,22 +71,48 @@ Wave Placement
 Waves can be applied everywhere in the world, placed along or orthogonal to a spline, or injected via a custom shader.
 See the :ref:`input-modes-section` section for information about these authoring modes.
 
-For the :ref:`renderer-mode`, the following shaders are provided with *Crest* under the shader category *Crest/Inputs/Animated Waves*:
+Shape components' :ref:`renderer-mode` has custom shaders under *Crest/Inputs/Shape Waves*:
+
+-  **Sample Spectrum** samples from the spectrum using a texture.
+   The RG channels are the wave direction and together they make the magnitude.
+   The values are 0-1 where 0.5 is zero magnitude (ie no waves).
+
+
+.. _wave-manipulation-section:
+
+Wave Manipulation
+^^^^^^^^^^^^^^^^^
+
+The Animated Waves simulation can also be manipulated directly using a *Register Animated Waves Input*.
+
+For the *Register Animated Waves Input*'s :ref:`renderer-mode`, the following shaders are provided with *Crest* under the shader category *Crest/Inputs/Animated Waves*:
+
+-  **Scale By Factor** scales the waves by a factor where zero is no waves and one leaves waves unchanged.
+   Useful for reducing waves.
 
 -  **Add From Texture** allows any kind of shape added to the surface from a texture.
    Can ether be a heightmap texture (1 channel) or a 3 channel XYZ displacement texture.
-   Optionally the alpha channel can be used to write to subsurface scattering which increases the amount of light emitted from the water volume, which is useful for approximating light scattering.
--  **Scale By Factor** scales the waves by a factor where zero is no waves and one leaves waves unchanged.
-   Useful for reducing waves.
--  **Set Base Water Height Using Geometry** allows the sea level (average water height) to be offset some amount.
-   The top surface of the geometry will provide the water height, and the waves will apply on top.
+
 -  **Push Water Under Convex Hull** pushes the water underneath the geometry.
    Can be used to define a volume of space which should stay 'dry'.
--  **Set Water Height Using Geometry** snaps the water surface to the top surface of the geometry.
-   Will override any waves.
+
 -  **Wave Particle** is a 'bump' of water.
    Many bumps can be combined to make interesting effects such as wakes for boats or choppy water.
    Based loosely on http://www.cemyuksel.com/research/waveparticles/.
+
+-  **Set Base Water Height Using Geometry** allows the sea level (average water height) to be offset some amount.
+   The top surface of the geometry will provide the water height, and the waves will apply on top.
+
+   .. admonition:: Deprecated
+
+      This shader is deprecated in favour using a *Register Height Input*.
+
+-  **Set Water Height Using Geometry** snaps the water surface to the top surface of the geometry.
+   Will override any waves.
+
+   .. admonition:: Deprecated
+
+      This shader is deprecated in favour using a *Register Height Input*.
 
 
 .. _animated_waves_settings:

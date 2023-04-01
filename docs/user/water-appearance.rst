@@ -502,9 +502,15 @@ This is useful for projecting colour onto the surface.
 
 This is somewhat similar to decals, except the colour only affects the water.
 
-HDRP has a :link:`Decal Projector <{HDRPDocLink}/Decal-Projector.html>` feature that works with the water, and the effect is more configurable and may be preferred over this feature. When using this feature be sure to enable :link:`Affects Transparent <{HDRPDocLink}/Decal-Projector.html#properties>`.
+.. note::
 
-URP 2022 has a decal system but it does not support transparent surfaces like water.
+   HDRP has a :link:`Decal Projector <{HDRPDocLink}/Decal-Projector.html>` feature that works with the water, and the effect is more configurable and may be preferred over this feature. When using this feature be sure to enable :link:`Affects Transparent <{HDRPDocLink}/Decal-Projector.html#properties>`.
+
+   URP 2022 has a decal system but it does not support transparent surfaces like water.
+
+   There is a *Render Alpha On Surface* component which is an alternative.
+   It behaves similar to a decal projector, but has several issues like z-order issues.
+
 
 User Inputs
 ^^^^^^^^^^^
@@ -550,7 +556,8 @@ There are a small number of parameters that control the construction of the ocea
    A value of 1 means a vert is generated for every LOD data texel.
    Larger values give lower fidelity surface shape with higher performance.
 
--  **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. The horizontal range of the ocean surface doubles for each added LOD, while GPU processing time increases linearly.
+-  **Lod Count** - the number of levels of detail / scales of ocean geometry to generate.
+   The horizontal range of the ocean surface doubles for each added LOD, while GPU processing time increases linearly.
    It can be useful to select the ocean in the scene view while running in editor to inspect where LODs are present.
 
 -  **Max Scale** - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints.
@@ -558,6 +565,7 @@ There are a small number of parameters that control the construction of the ocea
 
 -  **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level.
    Low values give lots of detail, but will limit the horizontal extents of the ocean detail.
+   Increasing this value can be a great performance saving for mobile as it will reduce draw calls.
 
 
 .. _advanced_ocean_renderer_options:

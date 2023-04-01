@@ -51,6 +51,7 @@ It will take priority except when a *Spline* is present.
 
 The geometry can come from a :link:`MeshRenderer <{UnityDocScriptLink}/MeshRenderer.html>`, or it can come from any :link:`Renderer <{UnityDocScriptLink}/Renderer.html>` component such as a :link:`TrailRenderer <{UnityDocScriptLink}/TrailRenderer.html>`, :link:`LineRenderer <{UnityDocScriptLink}/LineRenderer.html>` or :link:`ParticleSystem <{UnityDocScriptLink}/ParticleSystem.html>`.
 This geometry will be rendered from a orthographic top down perspective to "print" the data onto the water.
+For simple cases it is recommended to use an upwards facing quad for the best performance.
 
 The *Particle Renderer* example in the *Examples* scene shows a particle system being projected onto the water surface.
 

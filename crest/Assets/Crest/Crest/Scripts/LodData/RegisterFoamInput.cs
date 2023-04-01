@@ -30,7 +30,7 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Foam";
 
-        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+        protected override bool FollowHorizontalMotion => base.FollowHorizontalMotion || _followHorizontalMotion;
 
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Foam/Spline Geometry";
         protected override Vector2 DefaultCustomData => Vector2.right;

@@ -39,7 +39,7 @@ namespace Crest
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = true;
-        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+        protected override bool FollowHorizontalMotion => base.FollowHorizontalMotion || _followHorizontalMotion;
 
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;

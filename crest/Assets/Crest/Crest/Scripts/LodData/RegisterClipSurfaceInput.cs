@@ -207,8 +207,10 @@ namespace Crest
             }
         }
 
-        private void LateUpdate()
+        protected override void LateUpdate()
         {
+            base.LateUpdate();
+
             if (OceanRenderer.Instance == null || (_mode == Mode.Geometry && _renderer == null))
             {
                 return;

@@ -30,7 +30,7 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Flow";
 
-        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+        protected override bool FollowHorizontalMotion => base.FollowHorizontalMotion || _followHorizontalMotion;
 
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Flow/Spline Geometry";
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);

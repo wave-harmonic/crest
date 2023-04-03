@@ -496,6 +496,11 @@ namespace Crest
 
                     _renderMaterial[lodIdx].SetTexture(GetParamIdSampler(true), _targets.Previous(1));
 
+#if UNITY_EDITOR
+                    // On recompiles this becomes unset even though we run over the code path to set it again...
+                    _renderMaterial[lodIdx].material.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+#endif
+
                     LodDataMgrSeaFloorDepth.Bind(_renderMaterial[lodIdx]);
 
                     Helpers.Blit(buffer, new RenderTargetIdentifier(_targets.Current, 0, CubemapFace.Unknown, lodIdx), _renderMaterial[lodIdx].material, -1);

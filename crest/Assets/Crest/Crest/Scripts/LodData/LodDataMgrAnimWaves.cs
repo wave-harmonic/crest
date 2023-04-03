@@ -303,6 +303,11 @@ namespace Crest
                 // The per-octave wave buffers
                 BindWaveBuffer(_combineMaterial[lodIdx]);
 
+#if UNITY_EDITOR
+                // On recompiles this becomes unset even though we run over the code path to set it again...
+                _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
+#endif
+
                 // Bind this LOD data (displacements). Option to disable the combine pass - very useful debugging feature.
                 if (_shapeCombinePass)
                 {

@@ -473,6 +473,13 @@ namespace Crest
                 System.IO.File.WriteAllBytes(path, bytes);
                 AssetDatabase.ImportAsset(path);
 
+                if (dc.SavedCache == null)
+                {
+                    serializedObject.FindProperty("_savedCache").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                    serializedObject.FindProperty("_type").enumValueIndex = (int)OceanDepthCache.OceanDepthCacheType.Baked;
+                    serializedObject.ApplyModifiedProperties();
+                }
+
                 TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
                 ti.textureShape = TextureImporterShape.Texture2D;
                 ti.textureType = TextureImporterType.SingleChannel;

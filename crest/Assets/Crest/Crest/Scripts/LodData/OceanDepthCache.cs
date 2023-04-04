@@ -303,6 +303,11 @@ namespace Crest
                 return;
             }
 
+            PopulateCacheInternal(updateComponents);
+        }
+
+        internal void PopulateCacheInternal(bool updateComponents = false)
+        {
             if (OceanRenderer.RunningWithoutGPU)
             {
                 // Don't bake in headless mode
@@ -435,13 +440,14 @@ namespace Crest
                 dc.RefreshMode == OceanDepthCache.OceanDepthCacheRefreshMode.OnDemand;
             var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
                 (!isOnDemand || dc.CacheTexture != null);
+            var isRebakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Baked && dc.SavedCache != null;
 
             if ((!playing || isOnDemand) && dc.Type != OceanDepthCache.OceanDepthCacheType.Baked && GUILayout.Button("Populate cache"))
             {
                 dc.PopulateCache(updateComponents: true);
             }
 
-            if (isBakeable && GUILayout.Button("Save cache to file"))
+            if ((isBakeable && GUILayout.Button("Save Cache to File")) || (isRebakeable && GUILayout.Button("Update Saved Cache File")))
             {
                 if (!serializedObject.FindProperty("_relative").boolValue)
                 {
@@ -451,7 +457,7 @@ namespace Crest
                     Debug.Log($"Crest: {target} depth is now relative!");
                 }
 
-                dc.PopulateCache(updateComponents: true);
+                dc.PopulateCacheInternal(updateComponents: true);
 
                 var rt = dc.CacheTexture;
                 RenderTexture.active = rt;

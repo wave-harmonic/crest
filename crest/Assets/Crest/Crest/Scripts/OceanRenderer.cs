@@ -1998,7 +1998,17 @@ namespace Crest
                 }
             }
 
-            GUILayout.Space(10);
+            // Display version in information box.
+            {
+                var padding = GUI.skin.GetStyle("HelpBox").padding;
+                GUI.skin.GetStyle("HelpBox").padding = new RectOffset(10, 10, 10, 10);
+
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox($"Crest Ocean System\nVersion: {Constants.HELP_URL_VERSION}", MessageType.None);
+                EditorGUILayout.Space();
+
+                GUI.skin.GetStyle("HelpBox").padding = padding;
+            }
 
             if (GUILayout.Button("Validate Setup"))
             {

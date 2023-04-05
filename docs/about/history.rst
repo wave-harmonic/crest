@@ -28,6 +28,11 @@ Changed
       The option *Debug > Destroy Resources In On Disable* will revert this behaviour if needed.
    -  Make *Ocean Depth Cache* depth relative.
       This benefits baked depth caches by allowing them to be moved after baking providing the contents are moved with it.
+   -  Add *Update Saved Cache File* button to *Ocean Depth Cache*.
+   -  Automatically set *Ocean Depth Cache* to *Baked* and set texture after baking.
+   -  Show `Crest` version on *Ocean Renderer*.
+   -  Add helpbox to *Floating Origin* directing users to documentation for solving potential popping issues.
+   -  Improve spacing for spectrum power slider labels.
 
 
 Fixed
@@ -54,6 +59,7 @@ Fixed
       -  Fix *Scatter Colour Shadow* only having a minimal effect and/or causing an outline in shadowed areas. `[HDRP]`
       -  Fix motion vectors popping when camera height changes. `[HDRP]`
       -  Fix motion vectors popping on first frame. `[HDRP]`
+      -  Fix motion vectors popping when *Floating Origin* shifts. `[HDRP]`
       -  Fix *Ocean* *Shader Graph* features (eg shadows) from jittering on camera move for Unity 2021.2+. `[HDRP]`
 
    .. only:: urp
@@ -62,6 +68,12 @@ Fixed
       -  Fix *Underwater Renderer* not working with multiple cameras in certain cases. `[URP]`
       -  Fix rendering artifacts when *Windows Graphics API* is set to *Direct3D11* and the *Android Graphics API* is set to *Vulkan*. `[URP]`
       -  Fix *Ocean Planar Reflections* capturing reflections from only one viewpoint when used with multiple cameras in builds. `[URP]`
+      -  Fix shadow simulation breaking cameras that use *StereoTargetEyeMask* when XR `SPI` is enabled. `[URP]`
+      -  Check correct `URP` asset when doing validation to prevent possible exceptions or erroneous validation. `[URP]`
+
+   .. only:: hdrp or urp
+
+      -  Fix shader compilation errors from `BIRP` shaders being previously included in package. `[HDRP] [URP]`
 
    .. only:: birp or urp
 

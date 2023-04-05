@@ -322,7 +322,7 @@ namespace Crest
                 // Cleanup render proxy used for global mode after switching.
                 if (_renderProxy != null)
                 {
-                    DestroyImmediate(_renderProxy);
+                    Helpers.Destroy(_renderProxy);
                 }
 #endif
             }
@@ -333,11 +333,7 @@ namespace Crest
                 {
                     // Create a proxy MeshRenderer to feed the rendering
                     _renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
-#if UNITY_EDITOR
-                    DestroyImmediate(_renderProxy.GetComponent<Collider>());
-#else
-                    Destroy(_renderProxy.GetComponent<Collider>());
-#endif
+                    Helpers.Destroy(_renderProxy.GetComponent<Collider>());
                     _renderProxy.hideFlags = HideFlags.HideAndDontSave;
                     _renderProxy.transform.parent = transform;
                     rend = _renderProxy.GetComponent<MeshRenderer>();

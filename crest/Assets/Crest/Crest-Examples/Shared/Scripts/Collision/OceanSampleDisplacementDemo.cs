@@ -61,7 +61,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
                 if (_markerObjects[i] == null)
                 {
                     _markerObjects[i] = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    Destroy(_markerObjects[i].GetComponent<Collider>());
+                    Helpers.Destroy(_markerObjects[i].GetComponent<Collider>());
                     _markerObjects[i].transform.localScale = Vector3.one * 0.5f;
                 }
 

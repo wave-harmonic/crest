@@ -256,11 +256,7 @@ namespace Crest
             {
                 _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 _drawCacheQuad.hideFlags = HideFlags.DontSave;
-#if UNITY_EDITOR
-                DestroyImmediate(_drawCacheQuad.GetComponent<Collider>());
-#else
-                Destroy(_drawCacheQuad.GetComponent<Collider>());
-#endif
+                Helpers.Destroy(_drawCacheQuad.GetComponent<Collider>());
                 _drawCacheQuad.name = "DepthCache_" + gameObject.name + "_NOSAVE";
                 _drawCacheQuad.transform.SetParent(transform, false);
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;

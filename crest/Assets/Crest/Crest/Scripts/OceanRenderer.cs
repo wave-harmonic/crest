@@ -1619,7 +1619,7 @@ namespace Crest
             if (_proxyPlane == null && _showOceanProxyPlane)
             {
                 _proxyPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                DestroyImmediate(_proxyPlane.GetComponent<Collider>());
+                Helpers.Destroy(_proxyPlane.GetComponent<Collider>());
                 _proxyPlane.hideFlags = HideFlags.HideAndDontSave;
                 _proxyPlane.transform.parent = transform;
                 _proxyPlane.transform.localPosition = Vector3.zero;
@@ -1971,7 +1971,7 @@ namespace Crest
             if (_materialEditor != null)
             {
                 // Free the memory used by default MaterialEditor.
-                DestroyImmediate(_materialEditor);
+                Helpers.Destroy(_materialEditor);
             }
         }
 
@@ -2042,7 +2042,7 @@ namespace Crest
                 if (_materialEditor != null)
                 {
                     // Free the memory used by the previous MaterialEditor.
-                    DestroyImmediate(_materialEditor);
+                    Helpers.Destroy(_materialEditor);
                 }
 
                 if (_target._material != null)

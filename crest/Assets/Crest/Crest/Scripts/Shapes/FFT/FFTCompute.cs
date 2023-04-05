@@ -101,8 +101,8 @@ namespace Crest
 
         public void Release()
         {
-            if (_texButterfly != null) Object.DestroyImmediate(_texButterfly);
-            if (_texSpectrumControls != null) Object.DestroyImmediate(_texSpectrumControls);
+            if (_texButterfly != null) Helpers.Destroy(_texButterfly);
+            if (_texSpectrumControls != null) Helpers.Destroy(_texSpectrumControls);
             if (_spectrumInit != null) _spectrumInit.Release();
             if (_spectrumHeight != null) _spectrumHeight.Release();
             if (_spectrumDisplaceX != null) _spectrumDisplaceX.Release();
@@ -113,16 +113,7 @@ namespace Crest
 
             if (_waveBuffers != null)
             {
-#if UNITY_EDITOR
-                if (!EditorApplication.isPlaying)
-                {
-                    Object.DestroyImmediate(_waveBuffers);
-                }
-                else
-#endif
-                {
-                    Object.Destroy(_waveBuffers);
-                }
+                Helpers.Destroy(_waveBuffers);
                 _waveBuffers = null;
             }
 

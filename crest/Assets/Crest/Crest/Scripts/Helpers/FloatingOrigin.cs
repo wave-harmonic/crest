@@ -376,6 +376,15 @@ namespace Crest.CrestEditor
     {
         public override void OnInspectorGUI()
         {
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox
+            (
+                "It is recommended to read the documentation on this component (click the (?) button) if you want to " +
+                "change the default threshold value to avoid popping on world shifts.",
+                MessageType.Info
+            );
+            EditorGUILayout.Space();
+
             base.OnInspectorGUI();
 
             var target = this.target as FloatingOrigin;

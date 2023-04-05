@@ -22,7 +22,7 @@ half3 SkyProceduralDP(in const half3 i_refl, in const half3 i_lightDir)
 void PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel, in const float i_pixelZ, inout half3 io_colour)
 {
 	half4 screenPos = i_screenPos;
-	screenPos.xy += i_pixelZ * _PlanarReflectionNormalsStrength * i_n_pixel.xz;
+	screenPos.xy += max(1.0, i_pixelZ * _PlanarReflectionDistanceFactor) * _PlanarReflectionNormalsStrength * i_n_pixel.xz;
 	half4 refl = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(screenPos));
 	// If more than four layers are used on terrain, they will appear black if HDR is enabled on the planar reflection
 	// camera. Reflection alpha is probably a negative value.

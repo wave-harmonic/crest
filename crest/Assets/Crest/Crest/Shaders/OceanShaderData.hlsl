@@ -121,6 +121,7 @@ half _DirectionalLightFallOffFar;
 
 #if _PLANARREFLECTIONS_ON
 half _PlanarReflectionNormalsStrength;
+half _PlanarReflectionDistanceFactor;
 half _PlanarReflectionIntensity;
 #endif
 

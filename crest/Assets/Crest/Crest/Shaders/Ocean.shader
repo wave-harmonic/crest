@@ -68,7 +68,9 @@ Shader "Crest/Ocean"
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 		// How much the water normal affects the planar reflection
-		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Range(0.0, 1.0)) = 1
+		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Multiplier to adjust the strength of the distortion at a distance.
+		_PlanarReflectionDistanceFactor("Planar Reflections Distortion Distance Factor", Range(0.0, 1.0)) = 1.0
 		// Multiplier to adjust how intense the reflection is
 		_PlanarReflectionIntensity("Planar Reflection Intensity", Range(0.0, 1.0)) = 1.0
 		// Whether to use an overridden reflection cubemap (provided in the next property)

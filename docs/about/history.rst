@@ -63,7 +63,6 @@ Fixed
       -  Fix *Scatter Colour Shadow* only having a minimal effect and/or causing an outline in shadowed areas. `[HDRP]`
       -  Fix motion vectors popping when camera height changes. `[HDRP]`
       -  Fix motion vectors popping on first frame. `[HDRP]`
-      -  Fix motion vectors popping when *Floating Origin* shifts. `[HDRP]`
       -  Fix *Ocean* *Shader Graph* features (eg shadows) from jittering on camera move for Unity 2021.2+. `[HDRP]`
 
    .. only:: urp

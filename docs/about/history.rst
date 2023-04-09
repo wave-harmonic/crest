@@ -57,6 +57,7 @@ Fixed
 
       -  Fix "shader_feature keyword '\\' is not started with a letter or underscore, ignoring the whole line." shader compilation warning. `[BIRP]`
       -  Actually fix "shadow simulation executing for all cameras". `[BIRP]`
+      -  Fix scene camera "CopyTexture" errors and warnings when using PPv2 with *Underwater Renderer*.
 
    .. only:: hdrp
 

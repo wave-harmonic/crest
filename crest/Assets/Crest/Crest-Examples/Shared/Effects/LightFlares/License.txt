@@ -1,0 +1,2 @@
+Files in this folder are part of the Unity Standard Assets and are subject to the Unity Companion License.
+https://unity.com/legal/licenses/unity-companion-license

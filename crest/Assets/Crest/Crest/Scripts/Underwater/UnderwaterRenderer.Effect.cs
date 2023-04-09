@@ -174,17 +174,7 @@ namespace Crest
             }
 
             // Copy the color buffer into a texture.
-            if (Helpers.IsMSAAEnabled(_camera))
-            {
-                // Use blit if MSAA is active because transparents were not included with CopyTexture.
-                // This appears to be a bug. CopyTexture + MSAA works fine when the stencil is required.
-                _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
-            }
-            else
-            {
-                // Copy the frame buffer as we cannot read/write at the same time. If it causes problems, replace with Blit.
-                _underwaterEffectCommandBuffer.CopyTexture(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
-            }
+            _underwaterEffectCommandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, temporaryColorBuffer);
 
             if (UseStencilBufferOnEffect)
             {

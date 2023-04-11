@@ -20,3 +20,17 @@ These are available for tweaking out of the box and should be explored on every 
 
 -  Our wave system uses an inefficient approach to generate the waves to avoid an incompatibility in older hardware.
    If you are shipping on a limited set of hardware which you can test the waves on, you may try disabling the *Ping pong combine* option in the *Animated Wave Settings* asset.
+
+
+Mobile Performance
+------------------
+
+Mobile is not the primary target for `Crest`, but the following are some hints on getting better performance:
+
+-  `Crest` can be draw call heavy which mobile platforms can be sensitive to.
+   Together, reducing the LOD count and increasing the Min Scale can significantly reduce draw calls.
+
+-  The *Underwater Renderer* can be very expensive as it will render the water mesh a second time to create a mask.
+   Even though it has been deprecated, try using the *Underwater Curtain* instead.
+
+-  Disabling *Transparency* on the ocean material will benefit platforms that use tile-based renderers.

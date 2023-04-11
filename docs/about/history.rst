@@ -36,7 +36,7 @@ Changed
 
    .. only:: birp or urp
 
-      -  Ramp planar reflection distortion with distance. `[BIRP] [URP]`
+      -  Ramp planar reflection distortion with distance using the new *Planar Reflections Distortion Distance Factor* material property. `[BIRP] [URP]`
 
 
 Fixed

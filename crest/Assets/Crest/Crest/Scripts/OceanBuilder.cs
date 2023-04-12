@@ -356,7 +356,11 @@ namespace Crest
             float horizScale = Mathf.Pow(2f, lodIndex);
 
             bool isBiggestLOD = lodIndex == lodCount - 1;
-            bool generateSkirt = isBiggestLOD && !ocean._debug._disableSkirt;
+            bool generateSkirt = isBiggestLOD;
+
+#if CREST_DEBUG
+            generateSkirt = generateSkirt && !ocean._debug._disableSkirt;
+#endif
 
             Vector2[] offsets;
             PatchType[] patchTypes;
@@ -416,6 +420,7 @@ namespace Crest
                 };
             }
 
+#if CREST_DEBUG
             // debug toggle to force all patches to be the same. they'll be made with a surrounding skirt to make sure patches
             // overlap
             if (ocean._debug._uniformTiles)
@@ -425,6 +430,7 @@ namespace Crest
                     patchTypes[i] = PatchType.Fat;
                 }
             }
+#endif
 
             // create the ocean patches
             for (int i = 0; i < offsets.Length; i++)

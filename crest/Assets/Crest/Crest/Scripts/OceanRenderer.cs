@@ -355,9 +355,12 @@ namespace Crest
             public bool _showOceanTileGameObjects = false;
 
 #if CREST_DEBUG
+            [HideInInspector]
+#endif
             [Tooltip("Ocean will not move with viewpoint.")]
             public bool _disableFollowViewpoint = false;
 
+#if CREST_DEBUG
             [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
             public bool _uniformTiles = false;
 

@@ -95,6 +95,12 @@ Performance
    -  Minor performance optimisations.
 
 
+.. Trim the history for PDFs.
+.. raw:: latex
+
+   \iffalse
+
+
 4.16
 ----
 
@@ -204,12 +210,6 @@ Fixed
    .. attention::
 
       The history has been trimmed but the :link:`full history <{DocLinkBase}/about/history.html>` can be viewed online.
-
-
-.. Trim the history for PDFs.
-.. raw:: latex
-
-   \iffalse
 
 
 4.15.2

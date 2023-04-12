@@ -59,11 +59,10 @@ namespace Crest
                     }
                     else
                     {
-                        // Called between OnEnable and Start which is late but much better than Invoke which is called
-                        // between Update and LateUpdate. Coroutines are not an option as they will throw errors if not
-                        // active.
-                        EditorApplication.update -= EnableEditMode;
-                        EditorApplication.update += EnableEditMode;
+                        // Called between Update and LateUpdate. EditorApplication.update is called earlier (between
+                        // OnEnable and Start) but caused some problems with ODC in URP.
+                        // Coroutines are not an option as they will throw errors if not active.
+                        Invoke(nameof(EnableEditMode), 0f);
                     }
                 }
             }
@@ -73,7 +72,6 @@ namespace Crest
 
         void EnableEditMode()
         {
-            EditorApplication.update -= EnableEditMode;
             // If the scene that is being built is already opened then, there can be a rogue instance which registers
             // an event but is destroyed by the time it gets here. It has something to do with OnValidate being called
             // after the object is destroyed with _isFirstOnValidate being true.

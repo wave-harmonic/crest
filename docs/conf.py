@@ -22,7 +22,7 @@ project = "Crest"
 organization = "Wave Harmonic"
 author = f"{organization} & Contributors"
 copyright = f"2021, {author}"
-version = "XX.XX.XX"
+version = "4.17"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
 sponsor_link = "https://github.com/sponsors/wave-harmonic"

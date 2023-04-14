@@ -13,6 +13,27 @@ Release Notes
 |version|
 ---------
 
+Fixed
+^^^^^
+
+-  Fix *Underwater Renderer* breaking in editor randomly.
+
+
+.. only:: hdrp
+
+   4.17.1 `[HDRP]`
+   ---------------
+
+   Fixed
+   ^^^^^
+
+   -  Fix "Unknown Error" shader compilation error. `[HDRP]`
+   -  Fix black edge where water intersects surface in Examples scene. `[HDRP]`
+
+
+4.17
+----
+
 Changed
 ^^^^^^^
 .. bullet_list::

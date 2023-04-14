@@ -55,14 +55,14 @@ namespace Crest
                     if (BuildPipeline.isBuildingPlayer)
                     {
                         // EditorApplication.update and Invoke are not called when building.
-                        EnableEditMode();
+                        InternalEnableEditMode();
                     }
                     else
                     {
                         // Called between Update and LateUpdate. EditorApplication.update is called earlier (between
                         // OnEnable and Start) but caused some problems with ODC in URP.
                         // Coroutines are not an option as they will throw errors if not active.
-                        Invoke(nameof(EnableEditMode), 0f);
+                        Invoke(nameof(InternalEnableEditMode), 0f);
                     }
                 }
             }
@@ -70,7 +70,7 @@ namespace Crest
             _isFirstOnValidate = false;
         }
 
-        void EnableEditMode()
+        void InternalEnableEditMode()
         {
             // If the scene that is being built is already opened then, there can be a rogue instance which registers
             // an event but is destroyed by the time it gets here. It has something to do with OnValidate being called

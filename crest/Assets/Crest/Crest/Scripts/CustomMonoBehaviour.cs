@@ -20,6 +20,11 @@ namespace Crest
 
         protected virtual void OnValidate()
         {
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
             if (_isFirstOnValidate)
             {
                 var attribute = Helpers.GetCustomAttribute<ExecuteDuringEditModeAttribute>(GetType());

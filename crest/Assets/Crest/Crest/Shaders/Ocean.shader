@@ -194,6 +194,9 @@ Shader "Crest/Ocean"
 		// What projection modes will this material support? Choosing perspective or orthographic is an optimisation.
 		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
 
+		[Header(Spherical Ocean Hack)]
+		_SphericalOceanRadius("Radius", Range(0.0, 10000.0)) = 4000.0
+
 		[Header(Debug Options)]
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
@@ -320,6 +323,8 @@ Shader "Crest/Ocean"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
+			float _SphericalOceanRadius;
+
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
 			{
@@ -370,6 +375,12 @@ Shader "Crest/Ocean"
 				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = o.worldPos.xz;
+
+				// Sphere hack
+				{
+					float3 sphereCenter = _OceanCenterPosWorld - float3(0.0, _SphericalOceanRadius, 0.0);
+					o.worldPos = sphereCenter + normalize(o.worldPos - sphereCenter) * _SphericalOceanRadius;
+				}
 
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)

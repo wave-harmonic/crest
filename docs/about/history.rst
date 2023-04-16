@@ -13,7 +13,18 @@ Release Notes
 |version|
 ---------
 
-TBA
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix *OnEnable* being triggered twice for *Crest* components in play mode in the editor when *Scene Reload* is enabled.
+      This potentially caused problems with some components.
+
+   .. only:: hdrp
+
+      -  Fix certain components like *Underwater Renderer* and *Ocean Depth Cache* not working in play mode (2021.2+ only). `[HDRP]`
+      -  Fix *Underwater Renderer* not working after *Ocean Renderer* is disabled and then enabled (2021.2+ only). `[HDRP]`
+      -  Fix *Shadow Simulation* not working after *Ocean Renderer* is disabled and then enabled (2021.2+ only). `[HDRP]`
 
 
 4.17.2

@@ -27,43 +27,48 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
       .. include:: /includes/_urp-vars.rst
       .. include:: includes/_documentation-stanza.rst
 
-.. only:: html
 
-   Assets
-   ------
+Assets
+------
 
-   .. panels::
-      :header: text-center
+You can find `Crest` on the *Unity Asset Store* for all render pipelines.
 
-      ---
-      :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/ae4a1e07-c6f1-4b2e-b1c3-9f2065d43515.jpg
+.. panels::
+   :header: text-center
+   :column: col-lg-4 col-md-4 col-sm-4 col-xs-12 p-2
 
-      Crest Ocean System URP
-      ^^^^^^^^^^^^^^^^^^^^^^
+   ---
+   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/fef53e24-736f-41f9-98de-bfbcdef4a4a8.jpg
 
-      .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K
-         :type: url
-         :text: Asset Store
-         :classes: btn-outline-primary btn-block stretched-link
+   Crest Ocean System
+   ^^^^^^^^^^^^^^^^^^
 
-      ---
-      :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/68d1442e-488d-4ae9-8ec4-a7e3ff913788.jpg
+   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K
+      :type: url
+      :text: Asset Store
+      :classes: btn-outline-primary btn-block stretched-link
 
-      Crest Ocean System HDRP
-      ^^^^^^^^^^^^^^^^^^^^^^^
+   ---
+   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/1e89a1d1-6cae-4163-b3f9-ead226f53160.jpg
 
-      .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K
-         :type: url
-         :text: Asset Store
-         :classes: btn-outline-primary btn-block stretched-link
+   Crest Ocean System HDRP
+   ^^^^^^^^^^^^^^^^^^^^^^^
 
-   .. raw:: html
+   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K
+      :type: url
+      :text: Asset Store
+      :classes: btn-outline-primary btn-block stretched-link
 
-      <br>
+   ---
+   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/2b640420-1fed-4a76-a54e-e86b9693c2bb.jpg
 
-      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/164158/widget-wide-light?aid=1011lic2K" style="width:600px; height:130px; border:0px;"></iframe>
+   Crest Ocean System URP
+   ^^^^^^^^^^^^^^^^^^^^^^
 
-      <iframe class="asset-store" src="https://assetstore.unity.com/linkmaker/embed/package/141674/widget-wide-light?aid=1011lic2K" style="width:600px; height:130px; border:0px;"></iframe>
+   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K
+      :type: url
+      :text: Asset Store
+      :classes: btn-outline-primary btn-block stretched-link
 
 
 Sponsorship

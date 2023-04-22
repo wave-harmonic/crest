@@ -15,9 +15,9 @@
 
 This repository targets the built-in renderer. For other render pipelines, see the following:
 
-|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/0ec1a855-a905-4906-bf55-fdfb4f0323cf.webp" alt="Crest Ocean System URP Asset" width="240" height="160"/></a>|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/4956a00c-8713-4b8a-b5a6-4ffab848feb5.webp" alt="Crest Ocean System HDRP Asset" width="240" height="160"/></a>|
-:-:|:-:|
-[Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K)|[Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K)
+|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/fef53e24-736f-41f9-98de-bfbcdef4a4a8.jpg" alt="Crest Ocean System BIRP Asset" width="240" height="160"/></a>|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/1e89a1d1-6cae-4163-b3f9-ead226f53160.jpg" alt="Crest Ocean System HDRP Asset" width="240" height="160"/></a>|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/2b640420-1fed-4a76-a54e-e86b9693c2bb.jpg" alt="Crest Ocean System URP Asset" width="240" height="160"/></a>|
+:-:|:-:|:-:|
+[Crest Ocean System](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K)|[Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K)|[Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K)
 
 <br>
 

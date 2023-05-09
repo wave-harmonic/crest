@@ -13,6 +13,16 @@ Release Notes
 |version|
 ---------
 
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   - Minor CPU performance improvements.
+
+
+4.17.4
+------
+
 Fixed
 ^^^^^
 .. bullet_list::

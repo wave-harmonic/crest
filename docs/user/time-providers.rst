@@ -34,6 +34,7 @@ This can be specified using an offset between the clients `Time.time` and that o
 This is supported by attaching a *TimeProviderNetworked.cs* component to a GameObject, assigning it to the *Time Provider* parameter on the *OceanRenderer* component, and at run-time setting *TimeProviderNetworked.TimeOffsetToServer* to the time difference between the client and the server.
 
 If using the :link:`Mirror <https://assetstore.unity.com/packages/tools/network/mirror-129321?aid=1011lic2K>` network system, set this property to the :link:`network time offset <https://mirror-networking.com/docs/api/Mirror.NetworkTime.html#Mirror_NetworkTime_offset>`.
+`Crest` expects that if the client time is ahead then the offset needs to be a negative value which may mean that you need to invert the sign of the offset first.
 
 If the server needs the water shape to run physics but does not have a GPU then we have a CPU path, see :ref:`collisions-fft-waves-cpu`.
 Different server conditions can be emulated in Editor using the *Force Batch Mode* and *Force No GPU* toggles on the *OceanRenderer*.

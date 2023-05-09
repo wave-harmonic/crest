@@ -203,7 +203,7 @@ namespace Crest
                 var position = transform.position;
                 // Apply sea level to matrix so we can use it for rendering and gizmos.
                 position.y = OceanRenderer.Instance.SeaLevel;
-                var scale = Vector3.one * 2f * _radius;
+                var scale = _radius * 2f * Vector3.one;
                 scale.z = 0f;
                 _renderMatrix = Matrix4x4.TRS(position, Quaternion.Euler(90f, 0f, 0f), scale);
             }

@@ -593,7 +593,7 @@ namespace Crest
             // Other components may place objects under the container so it needs to be created early.
             Container = new GameObject();
             Container.name = "Container";
-            Container.gameObject.hideFlags = _debug._showOceanTileGameObjects ? HideFlags.DontSave : HideFlags.HideAndDontSave;
+            Container.hideFlags = _debug._showOceanTileGameObjects ? HideFlags.DontSave : HideFlags.HideAndDontSave;
             Container.transform.SetParent(transform, worldPositionStays: false);
 
             Instance = this;

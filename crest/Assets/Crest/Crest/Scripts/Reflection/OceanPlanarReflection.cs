@@ -331,8 +331,7 @@ namespace Crest
                 GameObject go = new GameObject("Water Refl Cam");
                 _camReflections = go.AddComponent<Camera>();
                 _camReflections.enabled = false;
-                _camReflections.transform.position = transform.position;
-                _camReflections.transform.rotation = transform.rotation;
+                _camReflections.transform.SetPositionAndRotation(transform.position, transform.rotation);
                 _camReflections.cullingMask = _reflectionLayers;
                 _camReflectionsSkybox = _camReflections.gameObject.AddComponent<Skybox>();
                 _camReflections.gameObject.AddComponent<FlareLayer>();

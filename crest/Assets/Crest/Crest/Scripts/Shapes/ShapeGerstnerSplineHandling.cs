@@ -161,8 +161,8 @@ namespace Crest
                 normal.z = -tangent.x;
                 normal.y = 0f;
                 normal = normal.normalized;
-                sampledPtsOffSplineLeft[i] = sampledPtsOnSpline[i] - normal * radiusLeft * radiusMultiplier[i];
-                sampledPtsOffSplineRight[i] = sampledPtsOnSpline[i] + normal * radiusRight * radiusMultiplier[i];
+                sampledPtsOffSplineLeft[i] = sampledPtsOnSpline[i] - radiusLeft * radiusMultiplier[i] * normal;
+                sampledPtsOffSplineRight[i] = sampledPtsOnSpline[i] + radiusMultiplier[i] * radiusRight * normal;
             }
             if (spline._closed)
             {

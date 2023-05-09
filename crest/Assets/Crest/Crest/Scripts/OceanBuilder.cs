@@ -488,7 +488,7 @@ namespace Crest
                 if (rotateXOutwards)
                 {
                     if (Mathf.Abs(pos.y) >= Mathf.Abs(pos.x))
-                        patch.transform.localEulerAngles = -Vector3.up * 90f * Mathf.Sign(pos.y);
+                        patch.transform.localEulerAngles = 90f * Mathf.Sign(pos.y) * -Vector3.up;
                     else
                         patch.transform.localEulerAngles = pos.x < 0f ? Vector3.up * 180f : Vector3.zero;
                 }

@@ -17,14 +17,15 @@ Fixed
 ^^^^^
 .. bullet_list::
 
-   - Fix *ShapeFFT* memory leak when using the default spectrum (no spectrum set to property).
+   -  Fix *ShapeFFT* memory leak when using the default spectrum (no spectrum set to property).
+   -  Fix script compilation error when Unity's input system is enabled but the package is not installed.
 
 
 Performance
 ^^^^^^^^^^^
 .. bullet_list::
 
-   - Minor CPU performance improvements.
+   -  Minor CPU performance improvements.
 
 
 4.17.4

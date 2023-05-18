@@ -13,6 +13,13 @@ Release Notes
 |version|
 ---------
 
+Fixed
+^^^^^
+.. bullet_list::
+
+   - Fix *ShapeFFT* memory leak when using the default spectrum (no spectrum set to property).
+
+
 Performance
 ^^^^^^^^^^^
 .. bullet_list::

@@ -4,9 +4,13 @@
 
 // Shout out to @holdingjason who posted a first version of this script here: https://github.com/huwb/crest-oceanrender/pull/100
 
+#if CREST_UNITY_INPUT && ENABLE_INPUT_SYSTEM
+#define INPUT_SYSTEM_ENABLED
+#endif
+
 using System;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
 #endif
 using UnityEngine.Serialization;
@@ -184,7 +188,7 @@ namespace Crest
 
             var forward = _engineBias;
             if (_playerControlled) forward +=
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
                 !Application.isFocused ? 0 :
                 ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
 #else
@@ -194,7 +198,7 @@ namespace Crest
 
             var sideways = _turnBias;
             if (_playerControlled) sideways +=
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
                 !Application.isFocused ? 0 :
                 ((Keyboard.current.aKey.isPressed ? -1f : 0f) +
                 (Keyboard.current.dKey.isPressed ? 1f : 0f));

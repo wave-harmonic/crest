@@ -2,8 +2,12 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if CREST_UNITY_INPUT && ENABLE_INPUT_SYSTEM
+#define INPUT_SYSTEM_ENABLED
+#endif
+
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
 #endif
 #if ENABLE_VR && ENABLE_VR_MODULE
@@ -121,7 +125,7 @@ public class CamController : MonoBehaviour
             return;
         }
 
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
         if (!Mouse.current.leftButton.isPressed && _requireLMBToMove) return;
         float forward = (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0);
 #else
@@ -136,7 +140,7 @@ public class CamController : MonoBehaviour
         _targetTransform.position += linSpeed * _targetTransform.forward * forward * dt;
         var speed = linSpeed;
 
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
         if (Keyboard.current.leftShiftKey.isPressed)
 #else
         if (Input.GetKey(KeyCode.LeftShift))
@@ -147,7 +151,7 @@ public class CamController : MonoBehaviour
 
         _targetTransform.position += speed * _targetTransform.forward * forward * dt;
         //_transform.position += linSpeed * _transform.right * Input.GetAxis( "Horizontal" ) * dt;
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
         _targetTransform.position += linSpeed * _targetTransform.up * (Keyboard.current.eKey.isPressed ? 1 : 0) * dt;
         _targetTransform.position -= linSpeed * _targetTransform.up * (Keyboard.current.qKey.isPressed ? 1 : 0) * dt;
         _targetTransform.position -= linSpeed * _targetTransform.right * (Keyboard.current.aKey.isPressed ? 1 : 0) * dt;
@@ -168,7 +172,7 @@ public class CamController : MonoBehaviour
 #endif
         {
             float rotate = 0f;
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
             rotate += (Keyboard.current.rightArrowKey.isPressed ? 1 : 0);
             rotate -= (Keyboard.current.leftArrowKey.isPressed ? 1 : 0);
 #else
@@ -192,14 +196,14 @@ public class CamController : MonoBehaviour
         }
 
         Vector2 mousePos =
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
             Mouse.current.position.ReadValue();
 #else
             Input.mousePosition;
 #endif
 
         var wasLeftMouseButtonPressed =
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
             Mouse.current.leftButton.wasPressedThisFrame;
 #else
             Input.GetMouseButtonDown(0);
@@ -211,7 +215,7 @@ public class CamController : MonoBehaviour
             _dragging = true;
             _lastMousePos = mousePos;
         }
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
         if (_dragging && Mouse.current.leftButton.wasReleasedThisFrame)
 #else
         if (_dragging && Input.GetMouseButtonUp(0))

@@ -2,9 +2,13 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if CREST_UNITY_INPUT && ENABLE_INPUT_SYSTEM
+#define INPUT_SYSTEM_ENABLED
+#endif
+
 using Crest;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
 #endif
 
@@ -160,7 +164,7 @@ public class BoatAlignNormal : FloatingObjectBase
         _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = _throttleBias;
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
         float rawForward = !Application.isFocused ? 0 : ((Keyboard.current.wKey.isPressed ? 1 : 0) + (Keyboard.current.sKey.isPressed ? -1 : 0));
 #else
         float rawForward = Input.GetAxis("Vertical");
@@ -171,7 +175,7 @@ public class BoatAlignNormal : FloatingObjectBase
         float reverseMultiplier = (rawForward < 0f ? -1f : 1f);
         float sideways = _steerBias;
         if (_playerControlled) sideways +=
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
                 !Application.isFocused ? 0 :
                 ((Keyboard.current.aKey.isPressed ? reverseMultiplier * -1f : 0f) +
                 (Keyboard.current.dKey.isPressed ? reverseMultiplier * 1f : 0f));

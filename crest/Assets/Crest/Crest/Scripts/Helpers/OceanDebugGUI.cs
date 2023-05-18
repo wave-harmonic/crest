@@ -2,9 +2,13 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if CREST_UNITY_INPUT && ENABLE_INPUT_SYSTEM
+#define INPUT_SYSTEM_ENABLED
+#endif
+
 using System.Collections.Generic;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
 #endif
 using UnityEngine.SceneManagement;
@@ -135,7 +139,7 @@ namespace Crest
                 return;
             }
 
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
             if (Keyboard.current.gKey.wasPressedThisFrame)
 #else
             if (Input.GetKeyDown(KeyCode.G))
@@ -143,7 +147,7 @@ namespace Crest
             {
                 ToggleGUI();
             }
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
             if (Keyboard.current.fKey.wasPressedThisFrame)
 #else
             if (Input.GetKeyDown(KeyCode.F))
@@ -151,7 +155,7 @@ namespace Crest
             {
                 Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
             }
-#if ENABLE_INPUT_SYSTEM
+#if INPUT_SYSTEM_ENABLED
             if (Keyboard.current.rKey.wasPressedThisFrame)
 #else
             if (Input.GetKeyDown(KeyCode.R))

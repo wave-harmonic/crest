@@ -1,5 +1,6 @@
 {
     "name": "Crest.Examples",
+    "rootNamespace": "",
     "references": [
         "Crest",
         "Unity.InputSystem"
@@ -21,6 +22,11 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "",
+            "define": "CREST_UNITY_INPUT"
         }
     ],
     "noEngineReferences": false

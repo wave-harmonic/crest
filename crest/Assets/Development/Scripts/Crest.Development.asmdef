@@ -16,6 +16,11 @@
             "name": "com.unity.render-pipelines.core",
             "expression": "",
             "define": "CREST_SRP"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "",
+            "define": "CREST_UNITY_INPUT"
         }
     ],
     "noEngineReferences": false

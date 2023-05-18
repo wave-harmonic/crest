@@ -99,9 +99,9 @@ namespace Crest
             float loopPeriod = LoopPeriod;
 
             // Don't create tons of generators when values are varying. Notify so that existing generators may be adapted.
-            if (_windTurbulenceOld != _windTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _spectrum)
+            if (_windTurbulenceOld != _windTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _activeSpectrum)
             {
-                FFTCompute.OnGenerationDataUpdated(_resolution, loopPeriod, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _spectrum);
+                FFTCompute.OnGenerationDataUpdated(_resolution, loopPeriod, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _activeSpectrum);
             }
 
             var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, loopPeriod, _windTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, UpdateDataEachFrame);
@@ -109,7 +109,7 @@ namespace Crest
             _windTurbulenceOld = _windTurbulence;
             _windDirRadOld = windDirRad;
             _windSpeedOld = windSpeedMPS;
-            _spectrumOld = _spectrum;
+            _spectrumOld = _activeSpectrum;
             _matGenerateWaves.SetTexture(sp_WaveBuffer, waveData);
         }
 

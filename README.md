@@ -25,7 +25,7 @@ This repository targets the built-in renderer. For other render pipelines, see t
 
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=aU07QiKF2YQ" target="_blank"><img src="https://img.youtube.com/vi/aU07QiKF2YQ/0.jpg" alt="FAR: Changing Tides | Announcement Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=70voKq6cdKQ" target="_blank"><img src="https://img.youtube.com/vi/70voKq6cdKQ/0.jpg" alt="Windbound - Brave the Storm Announce Trailer [Official]" width="270" height="202" /></a>
-<a href="https://www.youtube.com/watch?feature=player_embedded&v=m2ZojyD4PZc" target="_blank"><img src="https://img.youtube.com/vi/KrFlyE84UF4/0.jpg" alt="Critter Cove & Crest Trailer" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=RHCPGHr3L18" target="_blank"><img src="https://img.youtube.com/vi/RHCPGHr3L18/0.jpg" alt="Critter Cove | Official Announcement Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_Rq5dfZfQ1k" target="_blank"><img src="https://img.youtube.com/vi/_Rq5dfZfQ1k/0.jpg" alt="Out of Reach: Treasure Royale - Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=zCeK_Kdxqa0" target="_blank"><img src="https://img.youtube.com/vi/QvCPhk0e7-I/0.jpg" alt="Of Ships & Scoundrels - Crest Demo" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=ZmKto87To-0" target="_blank"><img src="https://img.youtube.com/vi/ZmKto87To-0/0.jpg" alt="An Adventure to the World of Artificial Intelligenc" width="270" height="202" /></a>

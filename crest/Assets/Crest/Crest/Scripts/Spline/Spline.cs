@@ -58,7 +58,7 @@ namespace Crest.Spline
             }
 
             splinePoint.AddComponent<SplinePointData>();
-            return true;
+            return false;
         }
     }
 

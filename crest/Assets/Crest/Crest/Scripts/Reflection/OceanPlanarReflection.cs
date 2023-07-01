@@ -153,19 +153,7 @@ namespace Crest
 #endif
         }
 
-        bool RequestRefresh(long frame)
-        {
-            if (_lastRefreshOnFrame <= 0 || RefreshPerFrames < 2)
-                return true; // Not refreshed before or refresh every frame, not check frame counter
-            return Math.Abs(_frameRefreshOffset) % RefreshPerFrames == frame % RefreshPerFrames;
-        }
-
-        void Refreshed(long currentframe)
-        {
-            _lastRefreshOnFrame = currentframe;
-        }
-
-        private void OnPreRender()
+        void LateUpdate()
         {
             if (!RequestRefresh(Time.renderedFrameCount))
                 return; // Skip if not need to refresh on this frame
@@ -248,9 +236,25 @@ namespace Crest
                 QualitySettings.pixelLightCount = oldPixelLightCount;
             }
 
-            Refreshed(Time.renderedFrameCount); //remember this frame as last refreshed
+            // Remember this frame as last refreshed.
+            Refreshed(Time.renderedFrameCount);
         }
 
+        bool RequestRefresh(long frame)
+        {
+            if (_lastRefreshOnFrame <= 0 || RefreshPerFrames < 2)
+            {
+                // Not refreshed before or refresh every frame, not check frame counter.
+                return true;
+            }
+
+            return Math.Abs(_frameRefreshOffset) % RefreshPerFrames == frame % RefreshPerFrames;
+        }
+
+        void Refreshed(long currentframe)
+        {
+            _lastRefreshOnFrame = currentframe;
+        }
 
         /// <summary>
         /// Limit render distance for reflection camera for first 32 layers

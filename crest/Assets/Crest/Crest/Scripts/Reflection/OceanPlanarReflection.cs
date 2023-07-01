@@ -220,7 +220,12 @@ namespace Crest
 
             ForceDistanceCulling(_farClipPlane);
 
+            // We do not want the water plane when rendering planar reflections.
+            OceanRenderer.Instance.Root.gameObject.SetActive(false);
+
             _camReflections.Render();
+
+            OceanRenderer.Instance.Root.gameObject.SetActive(true);
 
             GL.invertCulling = oldCulling;
 

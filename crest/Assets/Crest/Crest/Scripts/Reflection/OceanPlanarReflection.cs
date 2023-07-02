@@ -280,6 +280,8 @@ namespace Crest
 
         void UpdateCameraModes()
         {
+            _camReflections.cullingMask = _reflectionLayers;
+
             // Set water camera to clear the same way as current camera
             _camReflections.renderingPath = _forceForwardRenderingPath ? RenderingPath.Forward : _camViewpoint.renderingPath;
             _camReflections.backgroundColor = new Color(0f, 0f, 0f, 0f);
@@ -337,20 +339,15 @@ namespace Crest
             // Camera for reflection
             if (!_camReflections)
             {
-                GameObject go = new GameObject("Water Refl Cam");
-                _camReflections = go.AddComponent<Camera>();
+                _camReflections = new GameObject("Crest Water Reflection Camera").AddComponent<Camera>();
                 _camReflections.enabled = false;
                 _camReflections.transform.SetPositionAndRotation(transform.position, transform.rotation);
-                _camReflections.cullingMask = _reflectionLayers;
                 _camReflectionsSkybox = _camReflections.gameObject.AddComponent<Skybox>();
                 _camReflections.gameObject.AddComponent<FlareLayer>();
                 _camReflections.cameraType = CameraType.Reflection;
-
-                if (_hideCameraGameobject)
-                {
-                    go.hideFlags = HideFlags.HideAndDontSave;
-                }
             }
+
+            _camReflections.gameObject.hideFlags = _hideCameraGameobject ? HideFlags.HideAndDontSave : HideFlags.DontSave;
         }
 
         // Given position/normal of the plane, calculates plane in camera space.

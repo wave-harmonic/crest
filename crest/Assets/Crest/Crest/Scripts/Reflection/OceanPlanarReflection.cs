@@ -118,6 +118,7 @@ namespace Crest
         Camera _camViewpoint;
         Skybox _camViewpointSkybox;
         Camera _camReflections;
+        public Camera ReflectionCamera => _camReflections;
         Skybox _camReflectionsSkybox;
 
         private long _lastRefreshOnFrame = -1;

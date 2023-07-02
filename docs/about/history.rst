@@ -29,6 +29,10 @@ Fixed
    -  Fix *ShapeFFT* memory leak when using the default spectrum (no spectrum set to property).
    -  Fix script compilation error when Unity's input system is enabled but the package is not installed.
 
+   .. only:: hdrp
+
+      -  Fix *Underwater Renderer* not working if enabled after the *Ocean Renderer* or the *Ocean Renderer* was disabled/enabled. `[HDRP]`
+
    .. only:: urp
 
       -  Fix reflections for Forward+. `[URP]`

@@ -13,6 +13,15 @@ Release Notes
 |version|
 ---------
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   .. only:: birp or urp
+
+      -  Disable water mesh for *Ocean Planar Reflections* preventing possible user error of including water in reflections leading to intersections. `[BIRP] [URP]`
+
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -24,11 +33,20 @@ Fixed
 
       -  Fix reflections for Forward+. `[URP]`
 
+   .. only:: birp or urp
+
+      -  Fix some properties on *Ocean Planar Reflections* not updating after being changed. `[BIRP] [URP]`
+
+
 Performance
 ^^^^^^^^^^^
 .. bullet_list::
 
    -  Minor CPU performance improvements.
+
+   .. only:: birp or urp
+
+      -  Disable water mesh for planar reflections camera skipping culling entirely. `[BIRP] [URP]`
 
 
 4.17.4

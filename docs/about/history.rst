@@ -19,6 +19,7 @@ Changed
 
    .. only:: birp or urp
 
+      -  Add *ReflectionCamera* property to *OceanPlanarReflections* for those who need a reference. `[BIRP] [URP]`
       -  Disable water mesh for *Ocean Planar Reflections* preventing possible user error of including water in reflections leading to intersections. `[BIRP] [URP]`
 
 

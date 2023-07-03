@@ -62,6 +62,11 @@ namespace Crest
         [Tooltip("The 'near plane' for the depth cache camera (top down)."), SerializeField]
         float _cameraMaxTerrainHeight = 100f;
 
+#if UNITY_2022_2_OR_NEWER
+        [Tooltip("Overrides the pixel error value for terrains. Best at zero (highest precision) unless using real-time cache."), SerializeField]
+        float _terrainPixelErrorOverride = 0f;
+#endif
+
         [Tooltip("Will render into the cache every frame. Intended for debugging, will generate garbage."), SerializeField]
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
@@ -326,8 +331,20 @@ namespace Crest
                 QualitySettings.shadowDistance = 0f;
             }
 
+#if UNITY_2022_2_OR_NEWER
+            var oldTerrainOverrides = QualitySettings.terrainQualityOverrides;
+            var oldPixelError = QualitySettings.terrainPixelError;
+            QualitySettings.terrainQualityOverrides = TerrainQualityOverrides.PixelError;
+            QualitySettings.terrainPixelError = _terrainPixelErrorOverride;
+#endif
+
             // Render scene, saving depths in depth buffer.
             _camDepthCache.Render();
+
+#if UNITY_2022_2_OR_NEWER
+            QualitySettings.terrainQualityOverrides = oldTerrainOverrides;
+            QualitySettings.terrainPixelError = oldPixelError;
+#endif
 
             // Built-in only.
             {
@@ -377,7 +394,7 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : CustomBaseEditor
     {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layers", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_relative" };
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layers", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_terrainPixelErrorOverride", "_relative" };
 
         public override void OnInspectorGUI()
         {
@@ -414,6 +431,9 @@ namespace Crest
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layers"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));
+#if UNITY_2022_2_OR_NEWER
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_terrainPixelErrorOverride"));
+#endif
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_forceAlwaysUpdateDebug"));
             }
             else

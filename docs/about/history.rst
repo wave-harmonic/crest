@@ -17,9 +17,12 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Better utilise *Dynamic Waves* data textures by removing soft border.
+   -  Add *Terrain Pixel Error Override* to *Ocean Depth Cache*.
+
    .. only:: birp or urp
 
-      -  Add *ReflectionCamera* property to *OceanPlanarReflections* for those who need a reference. `[BIRP] [URP]`
+      -  Add *ReflectionCamera* script property to *OceanPlanarReflections* for those who need a reference. `[BIRP] [URP]`
       -  Disable water mesh for *Ocean Planar Reflections* preventing possible user error of including water in reflections leading to intersections. `[BIRP] [URP]`
 
 
@@ -29,6 +32,8 @@ Fixed
 
    -  Fix *ShapeFFT* memory leak when using the default spectrum (no spectrum set to property).
    -  Fix script compilation error when Unity's input system is enabled but the package is not installed.
+   -  Fix *Dynamic Waves* streaking on camera movement.
+   -  Fix terrains having low precision in *Ocean Depth Cache* in 2022.2+.
 
    .. only:: hdrp
 
@@ -37,10 +42,15 @@ Fixed
    .. only:: urp
 
       -  Fix reflections for Forward+. `[URP]`
+      -  Fix shader warnings on build when using Forward+ by disabling additional lights (unsupported). `[URP]`
 
    .. only:: birp or urp
 
       -  Fix some properties on *Ocean Planar Reflections* not updating after being changed. `[BIRP] [URP]`
+
+   .. only:: hdrp or urp
+
+      -  Fix lens flare appearing in scene view in sample scenes. `[HDRP] [URP]`
 
 
 Performance

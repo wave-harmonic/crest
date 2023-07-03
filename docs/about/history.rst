@@ -45,6 +45,7 @@ Fixed
    .. only:: hdrp
 
       -  Fix *Underwater Renderer* not working if enabled after the *Ocean Renderer* or the *Ocean Renderer* was disabled/enabled. `[HDRP]`
+      - Fix underwater surface appearance not having correct reflection coefficient. `[HDRP]`
 
    .. only:: urp
 
@@ -69,6 +70,10 @@ Performance
    .. only:: birp or urp
 
       -  Disable water mesh for planar reflections camera skipping culling entirely. `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  Skip sampling normal maps if *Normals Strength* is zero. `[HDRP]`
 
 
 4.17.4

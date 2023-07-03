@@ -13,6 +13,13 @@ Release Notes
 |version|
 ---------
 
+Breaking
+^^^^^^^^
+.. bullet_list::
+
+   -  Add *Crest.Examples* namespace to all example scripts.
+
+
 Changed
 ^^^^^^^
 .. bullet_list::

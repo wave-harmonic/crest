@@ -47,6 +47,26 @@ float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 	return (i_id + 0.5) / float2(i_width, i_height);
 }
 
+float3 Internal_WrapToNextSlice(float3 i_uv, float i_overflowed)
+{
+	// Next slice is twice the size so half the coordinates to match position.
+	float overflow = 0.5 * i_overflowed;
+	i_uv = float3((i_uv.xy - overflow) * (1.0 - overflow) + overflow, i_uv.z + i_overflowed);
+	return i_uv;
+}
+
+// Wraps to next slice if coordinates outside of range.
+float3 WrapToNextSlice(float3 i_uv)
+{
+	return Internal_WrapToNextSlice(i_uv, any(i_uv.xy > 1.0 || i_uv.xy < 0.0));
+}
+
+// Wraps to next slice if coordinates outside of range.
+float3 WrapToNextSlice(float3 i_uv, float i_depth)
+{
+	return Internal_WrapToNextSlice(i_uv, any(i_uv.xy > 1.0 || i_uv.xy < 0.0) && i_uv.z + 1.0 < i_depth);
+}
+
 // Sampling functions
 
 // Displacements. Variance is a statistical measure of how many waves are in the smaller cascades (below this cascade slice). This gives a measure

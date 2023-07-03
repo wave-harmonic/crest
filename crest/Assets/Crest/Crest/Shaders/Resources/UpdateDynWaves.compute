@@ -85,32 +85,21 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float2 worldPosXZFlowed = worldPosXZ - dt * velocity;
 	const float3 uv_source = WorldToUV(worldPosXZFlowed, _CrestCascadeDataSource[sliceIndexSource], sliceIndexSource);
 
-	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
-	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);
-	// soft, wide feather at boundary to balance reflections vs streaking under motion
-	const float edgeFeather = 0.1;
-	float weightEdge = saturate(min(distToEdge.x, distToEdge.y) / edgeFeather);
-	weightEdge = lerp(0.95, 1.0, weightEdge);
-
 	// compute axes of laplacian kernel - rotated every frame
 	const float e = _CrestCascadeDataSource[sliceIndexSource]._oneOverTextureRes; // assumes square RT
 	const float3 X = float3(1.0, 0.0, 0.0);
 	const float3 Y = float3(-X.y, X.x, 0.0);
 
-	// no border wrap mode for RTs in unity it seems,
-	// so make any off-array reads 0 manually
-	const bool insideTarget = sliceIndexSource <= depth && sliceIndexSource >= 0;
-
 	float fxm, fym, fxp, fyp; float2 ft_v;
 	ft_v = fxm = fym = fxp = fyp = 0.0;
 
-	if (insideTarget)
+	// Sample source.
 	{
-		fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * X).x; // x minus
-		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
-		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
-		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
-		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
+		fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, WrapToNextSlice(uv_source - e * X, depth)).x; // x minus
+		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, WrapToNextSlice(uv_source - e * Y, depth)).x; // y minus
+		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, WrapToNextSlice(uv_source + e * X, depth)).x; // x plus
+		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, WrapToNextSlice(uv_source + e * Y, depth)).x; // y plus
+		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, WrapToNextSlice(uv_source, depth)).xy;
 	}
 
 	// wave propagation
@@ -126,12 +115,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// damping. works ok at low dts, doesnt damp well at high dts which counter intuitively leads to instabilities, i think.
 	vtp *= 1.0 - min(1.0, _Damping * dt);
 
-	// dampen towards boundaries smoothly to eliminate reflections and streaking
-	vtp *= weightEdge;
-
 	// integrate velocity onto position
 	float ftp = ft + dt * vtp;
-	ftp *= weightEdge;
 
 	if (_AttenuationInShallows > 0.0)
 	{

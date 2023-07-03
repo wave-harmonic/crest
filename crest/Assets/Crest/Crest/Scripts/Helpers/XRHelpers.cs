@@ -136,7 +136,7 @@ namespace Crest
         public static void Update(Camera camera)
         {
 #if _XR_ENABLED
-            SubsystemManager.GetInstances(_displayList);
+            SubsystemManager.GetSubsystems(_displayList);
 #endif
 
             if (!camera.stereoEnabled || !IsSinglePass)

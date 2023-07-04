@@ -76,6 +76,16 @@ Performance
       -  Skip sampling normal maps if *Normals Strength* is zero. `[HDRP]`
 
 
+.. Trim the history for PDFs.
+.. only:: latex
+
+   | Full version history has been omitted for brevity. It can be found at :link:`Release Notes <{DocLinkBase}/about/history.html>`.
+
+.. raw:: latex
+
+   \iffalse
+
+
 4.17.3
 ------
 
@@ -197,12 +207,6 @@ Performance
    -  Reduce the amount of displacement queries LOD inputs make significantly making performance more scalable.
    -  Optimise LOD inputs cost per frame when used with a *Renderer*.
    -  Minor performance optimisations.
-
-
-.. Trim the history for PDFs.
-.. raw:: latex
-
-   \iffalse
 
 
 4.16

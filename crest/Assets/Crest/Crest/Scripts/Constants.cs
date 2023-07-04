@@ -21,10 +21,11 @@ namespace Crest.Internal
         // master, then they will be redirected from crest.readthedocs.io/en/4.10 to crest.readthedocs.io/en/latest when
         // they land on the 404 page.
         public const string HELP_URL_VERSION = "4.17.3";
-        public const string HELP_URL_RP = "?rp=birp";
         public const string HELP_URL_BASE = "https://crest.readthedocs.io/en/" + HELP_URL_VERSION + "/";
         public const string HELP_URL_BASE_USER = HELP_URL_BASE + "user/";
         public const string HELP_URL_GENERAL = HELP_URL_BASE + HELP_URL_RP;
+
+        public const string HELP_URL_RP = "?rp=birp";
 
         public const string k_NoPrefabModeSupportWarning = "Crest does not support prefab mode. Changes made in prefab mode will not be reflected in the scene view. Save this prefab to see changes.";
     }

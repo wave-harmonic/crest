@@ -76,7 +76,7 @@ Performance
       -  Skip sampling normal maps if *Normals Strength* is zero. `[HDRP]`
 
 
-4.17.4
+4.17.3
 ------
 
 Fixed

@@ -600,13 +600,16 @@ namespace Crest
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
             // Make sure we have correct defaults in case simulations are not enabled.
-            LodDataMgrClipSurface.BindNullToGraphicsShaders();
-            LodDataMgrDynWaves.BindNullToGraphicsShaders();
-            LodDataMgrFlow.BindNullToGraphicsShaders();
-            LodDataMgrFoam.BindNullToGraphicsShaders();
-            LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
-            LodDataMgrShadow.BindNullToGraphicsShaders();
-            LodDataMgrAlbedo.BindNullToGraphicsShaders();
+            if (!RunningWithoutGPU)
+            {
+                LodDataMgrClipSurface.BindNullToGraphicsShaders();
+                LodDataMgrDynWaves.BindNullToGraphicsShaders();
+                LodDataMgrFlow.BindNullToGraphicsShaders();
+                LodDataMgrFoam.BindNullToGraphicsShaders();
+                LodDataMgrSeaFloorDepth.BindNullToGraphicsShaders();
+                LodDataMgrShadow.BindNullToGraphicsShaders();
+                LodDataMgrAlbedo.BindNullToGraphicsShaders();
+            }
 
             CreateDestroySubSystems();
 

@@ -25,7 +25,7 @@ Shader "Crest/Inputs/Clip Surface/Remove Area Texture"
 
 			#include "UnityCG.cginc"
 
-			sampler2D _MainTex;
+			UNITY_DECLARE_TEX2D(_MainTex);
 
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
@@ -53,7 +53,7 @@ Shader "Crest/Inputs/Clip Surface/Remove Area Texture"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				return tex2D(_MainTex, input.uv);
+				return UNITY_SAMPLE_TEX2D(_MainTex, input.uv);
 			}
 
 			ENDCG

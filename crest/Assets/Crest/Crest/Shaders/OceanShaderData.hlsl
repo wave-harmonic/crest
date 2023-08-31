@@ -35,9 +35,9 @@ SamplerState sampler_CausticsTexture;
 TEXTURE2D_X(_CrestScreenSpaceShadowTexture);
 float4 _CrestScreenSpaceShadowTexture_TexelSize;
 
-sampler2D _ReflectionTex;
+TEXTURE2D(_ReflectionTex); SAMPLER(sampler_ReflectionTex);
 #if _OVERRIDEREFLECTIONCUBEMAP_ON
-samplerCUBE _ReflectionCubemapOverride;
+TEXTURECUBE(_ReflectionCubemapOverride); SAMPLER(sampler_ReflectionCubemapOverride);
 #endif
 
 /////////////////////////////

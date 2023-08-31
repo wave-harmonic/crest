@@ -25,9 +25,9 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 
 			#include "UnityCG.cginc"
 
-			sampler2D _MainTex;
+			UNITY_DECLARE_TEX2D(_MainTex);
 			float _Strength;
-			
+
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
 			float _Radius;
@@ -50,7 +50,7 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				
+
 				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
 				worldPos.xz -= _DisplacementAtInputPosition.xz;
@@ -62,7 +62,7 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				return tex2D(_MainTex, input.uv) * _Strength;
+				return UNITY_SAMPLE_TEX2D(_MainTex, input.uv) * _Strength;
 			}
 
 			ENDCG

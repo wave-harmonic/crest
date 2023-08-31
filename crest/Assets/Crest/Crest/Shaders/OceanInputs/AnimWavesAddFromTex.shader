@@ -28,7 +28,7 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 
 			#include "UnityCG.cginc"
 
-			sampler2D _MainTex;
+			UNITY_DECLARE_TEX2D(_MainTex);
 
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
@@ -57,14 +57,14 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 				// Correct for displacement
 				worldPos.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
-				
+
 				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				return o;
 			}
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				half3 texSample = tex2D(_MainTex, input.uv).xyz;
+				half3 texSample = UNITY_SAMPLE_TEX2D(_MainTex, input.uv).xyz;
 
 				half3 displacement = (half3)0.0;
 #if _HEIGHTSONLY_ON

@@ -44,7 +44,7 @@ Shader "Crest/Examples/Masked"
 #endif
 #endif // _MASK
 
-		sampler2D _Albedo;
+		UNITY_DECLARE_TEX2D(_Albedo);
 		fixed4 _Color;
 		half _Cutoff;
 
@@ -137,7 +137,7 @@ Shader "Crest/Examples/Masked"
 #endif // !_SHADOWS
 #endif // _MASKED_ON
 
-				fixed4 c = tex2D(_Albedo, input.uv) * _Color;
+				fixed4 c = UNITY_SAMPLE_TEX2D(_Albedo, input.uv) * _Color;
 				clip(c.a - _Cutoff);
 				SHADOW_CASTER_FRAGMENT(i)
 			}
@@ -172,13 +172,13 @@ Shader "Crest/Examples/Masked"
 			else
 #endif
 			{
-				fixed4 c = tex2D(_Albedo, input.uv_Albedo) * _Color;
+				fixed4 c = UNITY_SAMPLE_TEX2D(_Albedo, input.uv_Albedo) * _Color;
 				clip(c.a - _Cutoff);
 				output.Albedo = c.rgb;
 				output.Metallic = _Metallic;
 				output.Smoothness = _Smoothness;
 #if _EMISSION_ON
-				output.Emission = c.rgb * tex2D(_Albedo, input.uv_Albedo).a * _EmissionColor;
+				output.Emission = c.rgb * UNITY_SAMPLE_TEX2D(_Albedo, input.uv_Albedo).a * _EmissionColor;
 #endif
 				output.Alpha = c.a;
 			}

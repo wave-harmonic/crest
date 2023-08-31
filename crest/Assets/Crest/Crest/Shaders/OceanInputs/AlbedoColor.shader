@@ -43,7 +43,7 @@ Shader "Crest/Inputs/Albedo/Color"
                 float2 uv : TEXCOORD0;
             };
 
-            sampler2D _Texture;
+            UNITY_DECLARE_TEX2D(_Texture);
             float4 _Texture_ST;
 
             half4 _Color;
@@ -60,7 +60,7 @@ Shader "Crest/Inputs/Albedo/Color"
 
             fixed4 Fragment(Varyings i) : SV_Target
             {
-                fixed4 color = tex2D(_Texture, i.uv) * _Color;
+                fixed4 color = UNITY_SAMPLE_TEX2D(_Texture, i.uv) * _Color;
                 clip(color.a - _Cutoff + 0.0001);
                 return color * i.color;
             }

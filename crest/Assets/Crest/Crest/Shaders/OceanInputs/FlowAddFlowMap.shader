@@ -35,7 +35,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 
-			sampler2D _FlowMap;
+			UNITY_DECLARE_TEX2D(_FlowMap);
 
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _FlowMap_ST;
@@ -71,7 +71,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float2 flow = tex2D(_FlowMap, input.uv).xy - 0.5;
+				float2 flow = UNITY_SAMPLE_TEX2D(_FlowMap, input.uv).xy - 0.5;
 
 #if _FEATHERATUVEXTENTS_ON
 				flow *= FeatherWeightFromUV(input.uv, _FeatherWidth);

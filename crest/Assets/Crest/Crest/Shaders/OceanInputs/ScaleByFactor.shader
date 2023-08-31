@@ -51,7 +51,7 @@ Shader "Crest/Inputs/All/Scale By Factor"
 #endif
 
 #if _TEXTURE_ON
-			sampler2D _MainTex;
+			UNITY_DECLARE_TEX2D(_MainTex);
 #endif
 
 			CBUFFER_START(CrestPerOceanInput)
@@ -101,7 +101,7 @@ Shader "Crest/Inputs/All/Scale By Factor"
 			half4 Frag(Varyings input) : SV_Target
 			{
 #if _TEXTURE_ON
-				float scale = tex2D(_MainTex, input.uv).r;
+				float scale = UNITY_SAMPLE_TEX2D(_MainTex, input.uv).r;
 #else
 				float scale = _Scale;
 #endif

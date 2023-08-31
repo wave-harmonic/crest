@@ -23,7 +23,7 @@ void PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel, in c
 {
 	half4 screenPos = i_screenPos;
 	screenPos.xy += max(1.0, i_pixelZ * _PlanarReflectionDistanceFactor) * _PlanarReflectionNormalsStrength * i_n_pixel.xz;
-	half4 refl = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(screenPos));
+	half4 refl = SAMPLE_TEXTURE2D(_ReflectionTex, sampler_ReflectionTex, screenPos.xy / screenPos.w);
 	// If more than four layers are used on terrain, they will appear black if HDR is enabled on the planar reflection
 	// camera. Reflection alpha is probably a negative value.
 	io_colour = lerp(io_colour, refl.rgb, _PlanarReflectionIntensity * saturate(refl.a));
@@ -68,7 +68,7 @@ void ApplyReflectionSky
 	// sample sky cubemap
 #if _OVERRIDEREFLECTIONCUBEMAP_ON
 	// User-provided cubemap
-	half4 val = texCUBE(_ReflectionCubemapOverride, refl);
+	half4 val = SAMPLE_TEXTURECUBE(_ReflectionCubemapOverride, sampler_ReflectionCubemapOverride, refl);
 	skyColour = val.rgb;
 #else
 	Unity_GlossyEnvironmentData envData;

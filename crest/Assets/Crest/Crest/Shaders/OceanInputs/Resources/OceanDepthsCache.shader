@@ -23,10 +23,10 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-		
+
 			#include "UnityCG.cginc"
 
-			sampler2D _MainTex;
+			UNITY_DECLARE_TEX2D(_MainTex);
 			float _HeightOffset;
 
 			CBUFFER_START(CrestPerOceanInput)
@@ -55,7 +55,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			float2 Frag(Varyings input) : SV_Target
 			{
-				return float2(tex2D(_MainTex, input.uv).x + _HeightOffset, 0.0);
+				return float2(UNITY_SAMPLE_TEX2D(_MainTex, input.uv).x + _HeightOffset, 0.0);
 			}
 			ENDCG
 		}

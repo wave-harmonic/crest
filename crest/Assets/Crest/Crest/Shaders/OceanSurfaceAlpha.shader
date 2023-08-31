@@ -41,7 +41,7 @@ Shader "Crest/Ocean Surface Alpha"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanVertHelpers.hlsl"
 
-			sampler2D _MainTex;
+			Texture2D _MainTex; SamplerState sampler_MainTex;
 			float4 _MainTex_ST;
 			half _Alpha;
 
@@ -132,7 +132,7 @@ Shader "Crest/Ocean Surface Alpha"
 				// We don't want decals etc floating on nothing
 				ApplyOceanClipSurface(input.worldPos, input.lodAlpha);
 
-				half4 col = tex2D(_MainTex, input.uv);
+				half4 col = _MainTex.Sample(sampler_MainTex, input.uv);
 
 				UNITY_APPLY_FOG(input.fogCoord, col);
 

@@ -53,6 +53,8 @@ Shader "Crest/Underwater Curtain"
 
 			#include "../ShaderLibrary/Common.hlsl"
 
+			TEXTURE2D_X(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
+
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanShaderData.hlsl"

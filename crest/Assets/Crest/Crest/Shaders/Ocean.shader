@@ -279,6 +279,8 @@ Shader "Crest/Ocean"
 
 			#include "ShaderLibrary/Common.hlsl"
 
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
+
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
 			#include "OceanShaderData.hlsl"

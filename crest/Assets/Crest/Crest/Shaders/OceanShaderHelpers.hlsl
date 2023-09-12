@@ -8,7 +8,7 @@
 #define CREST_OCEAN_SHADER_HELPERS_H
 
 // Unity does not define these.
-#define SAMPLE_DEPTH_TEXTURE_X(textureName, samplerName, coord2) SAMPLE_TEXTURE2D_X(textureName, samplerName, coord2).r
+#define SAMPLE_DEPTH_TEXTURE_X(textureName, coord2) UNITY_SAMPLE_SCREENSPACE_TEXTURE(textureName, coord2).r
 #define LOAD_DEPTH_TEXTURE_X(textureName, coord2) LOAD_TEXTURE2D_X(textureName, coord2).r
 
 // Sample depth macros for all pipelines. Use macros as HDRP depth is a mipchain which can change according to:
@@ -17,7 +17,7 @@
 #define CREST_SAMPLE_SCENE_DEPTH(uv) SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv)
 #else
 #define CREST_SAMPLE_SCENE_DEPTH(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
-#define CREST_SAMPLE_SCENE_DEPTH_X(uv) SAMPLE_DEPTH_TEXTURE_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
+#define CREST_SAMPLE_SCENE_DEPTH_X(uv) SAMPLE_DEPTH_TEXTURE_X(_CameraDepthTexture, uv)
 #endif
 
 #define CREST_MULTISAMPLE_DEPTH(texture, uv, depth) CrestMultiSampleDepth(texture, sampler##texture, texture##_TexelSize.xy, uv, _CrestDepthTextureOffset, depth)
@@ -82,10 +82,10 @@ float CrestMultiSampleDepth
 	{
 		float2 texelSize = i_texelSize.xy;
 		int3 offset = int3(-i_offset, 0, i_offset);
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.xy * i_texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.yx * i_texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.yz * i_texelSize));
-		rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.zy * i_texelSize));
+		// rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.xy * i_texelSize));
+		// rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.yx * i_texelSize));
+		// rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.yz * i_texelSize));
+		// rawDepth = CREST_DEPTH_COMPARE(rawDepth, SAMPLE_DEPTH_TEXTURE_X(i_texture, i_sampler, i_positionNDC + offset.zy * i_texelSize));
 	}
 
 	return rawDepth;

@@ -220,7 +220,7 @@ half3 OceanEmission
 		float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
 		ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, i_positionSS, scenePos, i_lightDir, i_sceneZ, i_underwater, sceneColour, _LD_SliceIndex + 1, cascadeData1);
 #endif
-		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
+		alpha = 1.0 - saturate(exp(-_DepthFogDensity.xyz * depthFogDistance));
 	}
 	else
 	{
@@ -233,7 +233,7 @@ half3 OceanEmission
 
 	// NOTE: Here might be the problem for refraction.
 	// blend from water colour to the scene colour
-	col = lerp(sceneColour, col, alpha);
+	col = lerp(sceneColour, col, saturate(alpha));
 
 #endif // _TRANSPARENCY_ON
 

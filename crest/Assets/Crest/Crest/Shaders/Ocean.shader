@@ -689,7 +689,7 @@ Shader "Crest/Ocean"
 				// Soften reflection at intersections with objects/surfaces
 				#if _TRANSPARENCY_ON
 				// Above water depth outline is handled in OceanEmission.
-				sceneZ = (underwater ? CrestLinearEyeDepth(CREST_MULTISAMPLE_SCENE_DEPTH(uvDepth, rawDepth)) : sceneZ);
+				sceneZ = (underwater ? CrestLinearEyeDepth(CREST_SAMPLE_SCENE_DEPTH_X(uvDepth)) : sceneZ);
 				float reflAlpha = saturate((sceneZ  - pixelZ) / 0.2);
 				#else
 				// This addresses the problem where screenspace depth doesnt work in VR, and so neither will this. In VR people currently

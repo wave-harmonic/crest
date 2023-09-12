@@ -193,7 +193,7 @@ half3 OceanEmission
 	if (!i_underwater)
 	{
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-		const float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(i_uvDepth + refractOffset);
+		const float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(clamp(i_uvDepth + refractOffset, 0.1, 0.9));
 		half2 uvBackgroundRefract;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
@@ -214,6 +214,8 @@ half3 OceanEmission
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;
 		}
+
+		uvBackgroundRefract = clamp(uvBackgroundRefract, 0.1, 0.9);
 
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON

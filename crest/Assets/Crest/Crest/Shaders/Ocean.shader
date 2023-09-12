@@ -525,10 +525,10 @@ Shader "Crest/Ocean"
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
 				// water surface depth, and underlying scene opaque surface depth
-				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
+				float pixelZ = LinearEyeDepth(input.positionCS.z);
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
 				float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepth);
-				float sceneZ = CrestLinearEyeDepth(rawDepth);
+				float sceneZ = LinearEyeDepth(rawDepth);
 
 				float3 lightDir = WaveHarmonic::Crest::WorldSpaceLightDir(input.worldPos);
 				half3 lightCol = _LightColor0;
@@ -691,7 +691,7 @@ Shader "Crest/Ocean"
 				// Soften reflection at intersections with objects/surfaces
 				#if _TRANSPARENCY_ON
 				// Above water depth outline is handled in OceanEmission.
-				sceneZ = (underwater ? CrestLinearEyeDepth(CREST_SAMPLE_SCENE_DEPTH_X(uvDepth)) : sceneZ);
+				sceneZ = (underwater ? LinearEyeDepth(CREST_SAMPLE_SCENE_DEPTH_X(uvDepth)) : sceneZ);
 				float reflAlpha = saturate((sceneZ  - pixelZ) / 0.2);
 				#else
 				// This addresses the problem where screenspace depth doesnt work in VR, and so neither will this. In VR people currently

@@ -204,12 +204,12 @@ half3 OceanEmission
 #endif
 		{
 			uvBackgroundRefract = uvBackground + refractOffset;
-			depthFogDistance = max(CrestLinearEyeDepth(CREST_SAMPLE_SCENE_DEPTH_X(uvBackgroundRefract)) - i_pixelZ, 0.0);
+			depthFogDistance = max(LinearEyeDepth(CREST_SAMPLE_SCENE_DEPTH_X(uvBackgroundRefract)) - i_pixelZ, 0.0);
 		}
 		else
 		{
 			// It seems that when MSAA is enabled this can sometimes be negative
-			depthFogDistance = max(CrestLinearEyeDepth(CREST_SAMPLE_SCENE_DEPTH_X(uvBackground)) - i_pixelZ, 0.0);
+			depthFogDistance = max(LinearEyeDepth(CREST_SAMPLE_SCENE_DEPTH_X(uvBackground)) - i_pixelZ, 0.0);
 
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;

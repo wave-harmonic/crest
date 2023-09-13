@@ -155,6 +155,25 @@ void ApplyCaustics
 }
 #endif // _CAUSTICS_ON
 
+// Taken from:
+// https://github.com/Unity-Technologies/Graphics/blob/f56d2b265eb9e01b0376623e909f98c88bc60662/Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterUtilities.hlsl#L781-L797
+float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
+{
+    // Convert the screen position to NDC
+    float2 screenPosNDC = screenPosition * 2 - 1;
+
+    // We want the value to be 0 at the center and go to 1 at the edges
+    float distanceToEdge = 1.0 - min((1.0 - abs(screenPosNDC.x)), (1.0 - abs(screenPosNDC.y)));
+
+    // What we want here is:
+    // - +inf -> 0.5 value is 0
+    // - 0.5-> 0.25 value is going from  0 to 1
+    // - 0.25 -> 0 value is 1
+    float distAttenuation = 1.0 - saturate((distanceToWaterSurface - 0.75) / 0.25);
+
+    // Based on if the water surface is close, we want to make the blending region even bigger
+    return lerp(saturate((distanceToEdge - 0.8) / (0.2)), saturate(distanceToEdge + 0.25), distAttenuation);
+}
 
 half3 OceanEmission
 (
@@ -192,7 +211,8 @@ half3 OceanEmission
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)
 	{
-		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
+		half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5 * (i_sceneZ - i_pixelZ)) / i_sceneZ;
+		refractOffset *= 1.0 - EdgeBlendingFactor(i_uvDepth, i_pixelZ);
 		const float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(i_uvDepth + refractOffset);
 		half2 uvBackgroundRefract;
 

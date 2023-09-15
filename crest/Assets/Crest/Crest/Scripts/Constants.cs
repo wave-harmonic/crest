@@ -2,6 +2,13 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+namespace Crest.CrestEditor { }
+namespace Crest.EditorHelpers { }
+namespace UnityEditor.EditorTools { }
+namespace UnityEngine.InputSystem { }
+namespace UnityEngine.Rendering.HighDefinition { }
+namespace UnityEngine.Rendering.Universal { }
+
 namespace Crest.Internal
 {
     public static class Constants

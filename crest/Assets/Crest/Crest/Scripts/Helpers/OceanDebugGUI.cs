@@ -8,9 +8,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
-#endif
 using UnityEngine.SceneManagement;
 
 namespace Crest

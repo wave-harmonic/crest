@@ -5,11 +5,8 @@
 namespace Crest
 {
     using UnityEngine;
-
-#if UNITY_EDITOR
     using Crest.EditorHelpers;
     using UnityEditor;
-#endif
 
     public class EmbeddedAttribute : DecoratedPropertyAttribute
     {

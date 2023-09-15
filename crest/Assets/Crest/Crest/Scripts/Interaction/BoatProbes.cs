@@ -10,9 +10,7 @@
 
 using System;
 using UnityEngine;
-#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
-#endif
 using UnityEngine.Serialization;
 
 namespace Crest

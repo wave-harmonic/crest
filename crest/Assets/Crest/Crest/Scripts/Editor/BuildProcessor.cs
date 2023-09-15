@@ -4,11 +4,9 @@
 
 using System.Collections.Generic;
 using UnityEditor;
-#if CREST_UNITY_ADDRESSABLES
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
-#endif
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;

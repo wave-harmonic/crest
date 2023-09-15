@@ -7,9 +7,7 @@
 #endif
 
 using UnityEngine;
-#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
-#endif
 
 namespace Crest.Examples
 {

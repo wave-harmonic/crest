@@ -4,10 +4,8 @@
 
 namespace Crest
 {
-#if UNITY_EDITOR
     using Crest.EditorHelpers;
     using UnityEditor;
-#endif
     using UnityEngine;
 
     public class LayerAttribute : DecoratedPropertyAttribute

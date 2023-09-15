@@ -7,12 +7,8 @@
 #endif
 
 using UnityEngine;
-#if INPUT_SYSTEM_ENABLED
 using UnityEngine.InputSystem;
-#endif
-#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
-#endif
 
 namespace Crest.Examples
 {

@@ -5,10 +5,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Crest.Spline;
-
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 namespace Crest
 {

@@ -5,11 +5,8 @@
 using System;
 using UnityEngine;
 using System.Reflection;
-
-#if UNITY_EDITOR
 using Crest.EditorHelpers;
 using UnityEditor;
-#endif
 
 namespace Crest
 {

@@ -20,9 +20,7 @@
 
 using System.Collections;
 using UnityEngine;
-#if CREST_DEBUG
 using UnityEngine.Experimental.Rendering;
-#endif
 
 namespace Crest
 {

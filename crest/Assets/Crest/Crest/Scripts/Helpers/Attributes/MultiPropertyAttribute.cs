@@ -13,12 +13,9 @@ namespace Crest
 {
     using UnityEngine;
     using System;
-
-#if UNITY_EDITOR
     using Crest.EditorHelpers;
     using UnityEditor;
     using System.Reflection;
-#endif
 
     /// <summary>
     /// Renders a property field accommodating decorator properties.

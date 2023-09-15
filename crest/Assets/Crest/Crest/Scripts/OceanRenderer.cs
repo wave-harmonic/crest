@@ -8,9 +8,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Crest.Internal;
 using System.Linq;
 using UnityEngine.Rendering;
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 #if !UNITY_2020_3_OR_NEWER
 #error This version of Crest requires Unity 2020.3 or later.

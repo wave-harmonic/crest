@@ -58,11 +58,11 @@ namespace Crest
         [SerializeField]
         bool _warnOnSpeedClamp = false;
 
-#if UNITY_EDITOR
+#pragma warning disable 414
         [Header("Debug")]
         [Tooltip("Draws debug lines at each substep position. Editor only."), SerializeField]
         bool _debugSubsteps = false;
-#endif
+#pragma warning restore 414
 
         Vector3 _velocity;
         Vector3 _velocityClamped;

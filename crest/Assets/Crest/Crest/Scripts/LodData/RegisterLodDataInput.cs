@@ -41,7 +41,7 @@ namespace Crest
     [ExecuteDuringEditMode]
     public abstract partial class RegisterLodDataInputBase : CustomMonoBehaviour, ILodDataInput
     {
-#if UNITY_EDITOR
+#pragma warning disable 414
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         [Predicated(typeof(Renderer)), DecoratedField]
         bool _checkShaderName = true;
@@ -49,7 +49,7 @@ namespace Crest
         [SerializeField, Tooltip("Check that the shader applied to this object has only a single pass as only the first pass is executed for most inputs.")]
         [Predicated(typeof(Renderer)), DecoratedField]
         bool _checkShaderPasses = true;
-#endif
+#pragma warning restore 414
 
         public const string MENU_PREFIX = Internal.Constants.MENU_SCRIPTS + "LOD Inputs/Crest Register ";
 

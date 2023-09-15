@@ -23,6 +23,7 @@ float _SimDeltaTime;
 float _SimDeltaTimePrev;
 float _LODChange;
 bool _NeedsPrewarming;
+uint _CrestMinimumWavesSlice;
 CBUFFER_END
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
@@ -79,12 +80,15 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	float simDeltaTime = _NeedsPrewarming ? max(_SimDeltaTime, min(1.0, _WaveFoamStrength - 1.0) / _FoamFadeRate) : _SimDeltaTime;
 
 	// Sample displacement texture and generate foam from it
-	const float3 dd = float3(cascadeData._oneOverTextureRes, 0.0, cascadeData._texelWidth);
-	half4 data = SampleLod( _LD_TexArray_AnimatedWaves, uv_slice );
+	const float wavesSliceIndex = max(_CrestMinimumWavesSlice, id.z);
+	const CascadeParams wavesCascadeParams = _CrestCascadeData[wavesSliceIndex];
+	const float3 wavesUV = WorldToUV(worldPosXZ, wavesCascadeParams, wavesSliceIndex);
+	const float3 dd = float3(wavesCascadeParams._oneOverTextureRes, 0.0, wavesCascadeParams._texelWidth);
+	half4 data = SampleLod( _LD_TexArray_AnimatedWaves, wavesUV );
 	half3 s = data.xyz;
 	float foamBase = data.w;
-	half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
-	half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
+	half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves, wavesUV + float3(dd.xy, 0.0), dd.y).xyz;
+	half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves, wavesUV + float3(dd.yx, 0.0), dd.y).xyz;
 	float3 disp = s.xyz;
 	float3 disp_x = dd.zyy + sx.xyz;
 	float3 disp_z = dd.yyz + sz.xyz;
@@ -92,7 +96,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// > 1: Stretch
 	// < 1: Squash
 	// < 0: Overlap
-	const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / cascadeData._texelWidth;
+	const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / wavesCascadeParams._texelWidth;
 	// Determinant is < 1 for pinched, < 0 for overlap/inversion
 	const float det = determinant( jacobian );
 	foam += 5.0 * simDeltaTime * _WaveFoamStrength * saturate( _WaveFoamCoverage - det + foamBase * 0.7 );

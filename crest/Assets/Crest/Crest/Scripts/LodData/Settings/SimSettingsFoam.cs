@@ -35,6 +35,11 @@ namespace Crest
         [Range(0f, 1f), Tooltip("How much of the waves generate foam. Higher values will lower the threshold for foam generation, giving a larger area.")]
         public float _waveFoamCoverage = 0.55f;
 
+        [Tooltip("The minimum LOD  to sample waves from. Zero means all waves and increasing will exclude lower wavelengths which can help with too much foam near the camera.")]
+        [SerializeField, Range(0, LodDataMgr.MAX_LOD_COUNT - 2)]
+        internal int _filterWaves;
+        public int FilterWaves => _filterWaves;
+
         [Header("Shoreline")]
         [Range(0.01f, 3f), Tooltip("Foam will be generated in water shallower than this depth. Controls how wide the band of foam at the shoreline will be.")]
         public float _shorelineFoamMaxDepth = 0.65f;
@@ -52,6 +57,25 @@ namespace Crest
             base.AddToSettingsHash(ref settingsHash);
             Hashy.AddInt((int)_renderTextureGraphicsFormat, ref settingsHash);
         }
+
+#if UNITY_EDITOR
+        public override bool Validate(OceanRenderer water, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = base.Validate(water, showMessage);
+
+            if (FilterWaves > water.CurrentLodCount - 2)
+            {
+                showMessage
+                (
+                    "<i>Filter Waves</i> is higher than the recommended maximum (LOD count - 2). There will be no whiecaps.",
+                    "Reduce <i>Filter Waves</i>.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+            }
+
+            return isValid;
+        }
+#endif
     }
 
 #if UNITY_EDITOR

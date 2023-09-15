@@ -34,6 +34,7 @@ namespace Crest
         readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
         readonly int sp_NeedsPrewarming = Shader.PropertyToID("_NeedsPrewarming");
+        readonly int sp_CrestMinimumWavesSlice = Shader.PropertyToID("_CrestMinimumWavesSlice");
 
         public override SimSettingsBase SettingsBase => Settings;
         public SettingsType Settings => _ocean._simSettingsFoam != null ? _ocean._simSettingsFoam : GetDefaultSettings<SettingsType>();
@@ -70,6 +71,7 @@ namespace Crest
             simMaterial.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
             simMaterial.SetVector(OceanRenderer.sp_oceanCenterPosWorld, OceanRenderer.Instance.Root.position);
+            simMaterial.SetInt(sp_CrestMinimumWavesSlice, Settings.FilterWaves);
 
             // assign animated waves - to slot 1 current frame data
             LodDataMgrAnimWaves.Bind(simMaterial);

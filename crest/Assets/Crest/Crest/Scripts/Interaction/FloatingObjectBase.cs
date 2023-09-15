@@ -38,17 +38,6 @@ namespace Crest
                 isValid = false;
             }
 
-            var rbs = GetComponentsInChildren<Rigidbody>();
-            if (rbs.Length != 1)
-            {
-                showMessage
-                (
-                    $"Expected to have one rigidbody on floating object, currently has {rbs.Length} object(s).",
-                    "Remove additional <i>Rigidbody</i> components.",
-                    ValidatedHelper.MessageType.Error, this
-                );
-            }
-
             return isValid;
         }
     }

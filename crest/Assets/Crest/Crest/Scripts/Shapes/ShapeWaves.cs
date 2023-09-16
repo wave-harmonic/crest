@@ -125,7 +125,8 @@ namespace Crest
             public WaveBatch(ShapeWaves shapeWaves, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _shapeWaves = shapeWaves;
-                Wavelength = wavelength;
+                // Need sample higher than Nyquist to get good results, especially when waves flowing.
+                Wavelength = wavelength / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
@@ -133,7 +134,8 @@ namespace Crest
 
             public void UpdateData(float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
-                Wavelength = wavelength;
+                // Need sample higher than Nyquist to get good results, especially when waves flowing.
+                Wavelength = wavelength / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
@@ -163,7 +165,7 @@ namespace Crest
                 if (isBlendPassNeeded || finalWeight > 0f)
                 {
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
-                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
                 }
 
                 if (isBlendPassNeeded)

@@ -22,6 +22,10 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 
 			#include "UnityCG.cginc"
 
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanHelpersNew.hlsl"
+
 			CBUFFER_START(CrestPerOceanInput)
 			float _Radius;
 			float _SimCount;
@@ -40,6 +44,7 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 worldOffsetScaled : TEXCOORD0;
+				float2 positionWS : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)
@@ -60,6 +65,7 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 				newWorldPos.xz -= _DisplacementAtInputPosition.xz;
 				
 				o.positionCS = mul(UNITY_MATRIX_VP, newWorldPos);
+				o.positionWS = newWorldPos.xz;
 
 				return o;
 			}
@@ -80,6 +86,9 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 
 				if (_SimCount > 0.0) // user friendly - avoid nans
 					y /= _SimCount;
+
+				// Feather edges to reduce streaking without introducing reflections.
+				y *= FeatherWeightFromUV(WorldToUV(input.positionWS, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex), 0.1);
 
 				// accelerate velocities
 				return float4(0.0, _SimDeltaTime * y, 0.0, 0.0);

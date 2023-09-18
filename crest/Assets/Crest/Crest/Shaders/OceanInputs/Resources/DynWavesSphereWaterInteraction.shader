@@ -20,7 +20,9 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 			#include "UnityCG.cginc"
 
+			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
+			#include "../../OceanHelpersNew.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _SimDeltaTime;
@@ -38,6 +40,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 offsetXZ : TEXCOORD0;
+				float2 positionWS : TEXCOORD1;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
@@ -69,6 +72,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				vertexWorldPos.xz -= UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _DisplacementAtInputPosition).xz;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
+				o.positionWS = vertexWorldPos.xz;
 
 				float largeWaveMultiplier = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _LargeWaveMultiplier);
 				float radius = UNITY_ACCESS_INSTANCED_PROP(CrestPerInstance, _Radius);
@@ -145,6 +149,9 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				// Helps interaction to work at different scales
 				accel /= _MinWavelength;
+
+				// Feather edges to reduce streaking without introducing reflections.
+				accel *= FeatherWeightFromUV(WorldToUV(input.positionWS, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex), 0.1);
 
 				return half4(0.0, accel * _SimDeltaTime, 0.0, 0.0);
 			}

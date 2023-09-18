@@ -20,7 +20,7 @@ float3 ComputeFlow(float2 undispPos, float minSlice, const float baseScale)
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	PosToSliceIndices(undispPos, minSlice, baseScale, slice0, slice1, lodAlpha);
+	PosToSliceIndices(undispPos, minSlice, _SliceCount, baseScale, slice0, slice1, lodAlpha);
 
 	const float3 uv0 = WorldToUV(undispPos, _CrestCascadeData[slice0], slice0);
 	const float3 uv1 = WorldToUV(undispPos, _CrestCascadeData[slice1], slice1);

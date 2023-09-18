@@ -470,7 +470,8 @@ Shader "Crest/Ocean"
 					half clipValue = 0.0;
 
 					uint slice0; uint slice1; float alpha;
-					PosToSliceIndices(input.worldPos.xz, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, alpha);
+					// Do not go off edge as data will be clamped.
+					PosToSliceIndices(input.worldPos.xz, 0, _SliceCount, _CrestCascadeData[0]._scale, slice0, slice1, alpha);
 
 					const CascadeParams cascadeData0 = _CrestCascadeData[slice0];
 					const CascadeParams cascadeData1 = _CrestCascadeData[slice1];

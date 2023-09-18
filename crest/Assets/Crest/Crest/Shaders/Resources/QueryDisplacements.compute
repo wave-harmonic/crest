@@ -20,7 +20,10 @@ float3 ComputeDisplacement(float2 undispPos, float minSlice, const float baseSca
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	PosToSliceIndices(undispPos, minSlice, baseScale, slice0, slice1, lodAlpha);
+	// Do not use last slice - this is a 'transition' slice used to cross-fade waves
+	// between LOD resolutions to avoid pops. That being said, this will have clamped
+	// samples leading to objects floating on waves that do not exist.
+	PosToSliceIndices(undispPos, minSlice, _SliceCount - 2.0, baseScale, slice0, slice1, lodAlpha);
 
 	const float3 uv0 = WorldToUV(undispPos, _CrestCascadeData[slice0], slice0);
 	const float3 uv1 = WorldToUV(undispPos, _CrestCascadeData[slice1], slice1);

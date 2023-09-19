@@ -470,23 +470,34 @@ Shader "Crest/Ocean"
 					half clipValue = 0.0;
 
 					uint slice0; uint slice1; float alpha;
-					// Do not go off edge as data will be clamped.
-					PosToSliceIndices(input.worldPos.xz, 0, _SliceCount, _CrestCascadeData[0]._scale, slice0, slice1, alpha);
+					// Do not include transition slice to avoid blending as we do a black border instead.
+					PosToSliceIndices(input.worldPos.xz, 0, _SliceCount - 1.0, _CrestCascadeData[0]._scale, slice0, slice1, alpha);
 
 					const CascadeParams cascadeData0 = _CrestCascadeData[slice0];
 					const CascadeParams cascadeData1 = _CrestCascadeData[slice1];
 					const float weight0 = (1.0 - alpha) * cascadeData0._weight;
 					const float weight1 = (1.0 - weight0) * cascadeData1._weight;
 
+					bool clear = false;
 					if (weight0 > 0.001)
 					{
 						const float3 uv = WorldToUV(input.worldPos.xz, cascadeData0, slice0);
 						SampleClip(_LD_TexArray_ClipSurface, uv, weight0, clipValue);
+
+						if (_LD_SliceIndex == _SliceCount - 1 && IsOutsideOfUV(uv.xy, cascadeData0._oneOverTextureRes))
+						{
+							clear = true;
+						}
 					}
 					if (weight1 > 0.001)
 					{
 						const float3 uv = WorldToUV(input.worldPos.xz, cascadeData1, slice1);
 						SampleClip(_LD_TexArray_ClipSurface, uv, weight1, clipValue);
+					}
+
+					if (clear)
+					{
+						clipValue = _CrestClipByDefault;
 					}
 
 					clipValue = lerp(_CrestClipByDefault, clipValue, weight0 + weight1);

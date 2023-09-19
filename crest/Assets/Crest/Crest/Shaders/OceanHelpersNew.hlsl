@@ -171,6 +171,13 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 	io_shadow += i_wt * i_oceanShadowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
 }
 
+bool IsOutsideOfUV(float2 uv, float offset)
+{
+	half2 r = abs(uv - 0.5);
+	const half rMax = 0.5 - offset;
+	return max(r.x, r.y) > rMax;
+}
+
 void PosToSliceIndices
 (
 	const float2 worldXZ,

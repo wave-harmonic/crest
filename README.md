@@ -50,7 +50,7 @@ Full [documentation](https://crest.readthedocs.io/en/latest) is available online
 
 <hr><h3 align="center">REQUIREMENTS</h3><hr>
 
-* Unity: 2020.3, 2021.3 and 2022.2
+* Unity: 2020.3 or later
 * [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above
 * *Crest* does **not** support OpenGL or WebGL backends
 

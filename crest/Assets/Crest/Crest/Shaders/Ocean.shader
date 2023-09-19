@@ -484,7 +484,7 @@ Shader "Crest/Ocean"
 						const float3 uv = WorldToUV(input.worldPos.xz, cascadeData0, slice0);
 						SampleClip(_LD_TexArray_ClipSurface, uv, weight0, clipValue);
 
-						if (_LD_SliceIndex == _SliceCount - 1 && IsOutsideOfUV(uv.xy, cascadeData0._oneOverTextureRes))
+						if ((float)_LD_SliceIndex == _SliceCount - 1.0 && IsOutsideOfUV(uv.xy, cascadeData0._oneOverTextureRes))
 						{
 							clear = true;
 						}

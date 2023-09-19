@@ -240,38 +240,31 @@ namespace Crest
                 _enabled = true;
             }
 
-            // find which lod this object is overlapping
-            var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var lodIdx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
-
-            if (lodIdx > -1)
+            // Need this here or will see NullReferenceException on recompile.
+            if (_mpb == null)
             {
-                // Need this here or will see NullReferenceException on recompile.
-                if (_mpb == null)
-                {
-                    _mpb = new PropertyWrapperMPB();
-                }
+                _mpb = new PropertyWrapperMPB();
+            }
 
-                if (_mode == Mode.Geometry)
-                {
-                    _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
-                }
-                else
-                {
-                    _signedDistancedMaterial.SetKeyword("_INVERTED", _inverted);
-                    _signedDistancedMaterial.SetInt(sp_BlendOp, (int)(_inverted ? BlendOp.Min : BlendOp.Max));
-                }
+            if (_mode == Mode.Geometry)
+            {
+                _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
+            }
+            else
+            {
+                _signedDistancedMaterial.SetKeyword("_INVERTED", _inverted);
+                _signedDistancedMaterial.SetInt(sp_BlendOp, (int)(_inverted ? BlendOp.Min : BlendOp.Max));
+            }
 
-                _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
+            _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
 
-                if (_mode == Mode.Geometry)
-                {
-                    _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
-                }
-                else
-                {
-                    _mpb.SetMatrix(sp_SignedDistanceShapeMatrix, Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale).inverse);
-                }
+            if (_mode == Mode.Geometry)
+            {
+                _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
+            }
+            else
+            {
+                _mpb.SetMatrix(sp_SignedDistanceShapeMatrix, Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale).inverse);
             }
         }
 

@@ -969,7 +969,11 @@ namespace Crest
                     return false;
                 }
 #if UNITY_EDITOR
-                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                if
+                (
+#if !UNITY_2023_1_OR_NEWER
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+#endif
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
                 {

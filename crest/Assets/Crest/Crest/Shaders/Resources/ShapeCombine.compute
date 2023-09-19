@@ -25,7 +25,7 @@
 float _HorizDisplace;
 float _DisplaceClamp;
 
-RWTexture2DArray<half4> _LD_TexArray_AnimatedWaves_Compute;
+RWTexture2DArray<float4> _LD_TexArray_AnimatedWaves_Compute;
 
 void Flow(in const CascadeParams cascadeData, out float2 offsets, out float2 weights)
 {
@@ -38,7 +38,7 @@ void Flow(in const CascadeParams cascadeData, out float2 offsets, out float2 wei
 }
 
 void SampleDisplacementsCompute(
-	in RWTexture2DArray<half4> i_dispSampler,
+	in RWTexture2DArray<float4> i_dispSampler,
 	in float i_width, in float i_height, in float3 i_uv_slice,
 	in float i_wt, inout float3 io_worldPos
 ) {
@@ -145,7 +145,7 @@ void ShapeCombineBase(uint3 id)
 	}
 #endif // _DYNAMIC_WAVE_SIM_ON
 
-	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, variance);
+	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = float4(result, variance);
 }
 
 

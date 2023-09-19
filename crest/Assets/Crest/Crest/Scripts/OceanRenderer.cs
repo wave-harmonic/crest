@@ -1607,7 +1607,7 @@ namespace Crest
                     {
                         Gizmos.color = Color.yellow;
                         var width = _cascadeParams.Current[lodIdx]._texelWidth * _cascadeParams.Current[lodIdx]._textureRes;
-                        Gizmos.DrawWireCube(Root.transform.position, new Vector3(width, 0, width));
+                        Gizmos.DrawWireCube(_cascadeParams.Current[lodIdx]._posSnapped.XNZ(SeaLevel), new Vector3(width, 0, width));
                     }
                 }
             }

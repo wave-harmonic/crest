@@ -238,7 +238,7 @@ namespace Crest
         /// </summary>
         void MoveOriginTransforms(Vector3 newOrigin)
         {
-            var transforms = (_overrideTransformList != null && _overrideTransformList.Length > 0) ? _overrideTransformList : FindObjectsOfType<Transform>();
+            var transforms = (_overrideTransformList != null && _overrideTransformList.Length > 0) ? _overrideTransformList : FindObjectsByType<Transform>(FindObjectsSortMode.None);
             foreach (var t in transforms)
             {
                 if (t.parent == null)
@@ -253,7 +253,7 @@ namespace Crest
         /// </summary>
         void MoveOriginParticles(Vector3 newOrigin)
         {
-            var pss = (_overrideParticleSystemList != null && _overrideParticleSystemList.Length > 0) ? _overrideParticleSystemList : FindObjectsOfType<ParticleSystem>();
+            var pss = (_overrideParticleSystemList != null && _overrideParticleSystemList.Length > 0) ? _overrideParticleSystemList : FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None);
             foreach (var sys in pss)
             {
                 if (sys.main.simulationSpace != ParticleSystemSimulationSpace.World) continue;
@@ -309,7 +309,7 @@ namespace Crest
                 }
 
                 // Gerstner components
-                var gerstners = _overrideGerstnerList != null && _overrideGerstnerList.Length > 0 ? _overrideGerstnerList : FindObjectsOfType<ShapeGerstnerBatched>();
+                var gerstners = _overrideGerstnerList != null && _overrideGerstnerList.Length > 0 ? _overrideGerstnerList : FindObjectsByType<ShapeGerstnerBatched>(FindObjectsSortMode.None);
                 foreach (var gerstner in gerstners)
                 {
                     gerstner.SetOrigin(newOrigin);
@@ -325,7 +325,7 @@ namespace Crest
             if (_physicsThreshold > 0f)
             {
                 var physicsThreshold2 = _physicsThreshold * _physicsThreshold;
-                var rbs = (_overrideRigidbodyList != null && _overrideRigidbodyList.Length > 0) ? _overrideRigidbodyList : FindObjectsOfType<Rigidbody>();
+                var rbs = (_overrideRigidbodyList != null && _overrideRigidbodyList.Length > 0) ? _overrideRigidbodyList : FindObjectsByType<Rigidbody>(FindObjectsSortMode.None);
                 foreach (var rb in rbs)
                 {
                     if (rb.gameObject.transform.position.sqrMagnitude > physicsThreshold2)

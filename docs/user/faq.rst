@@ -28,12 +28,17 @@ Is *Crest* well suited for medium-to-low powered mobile devices?
 ----------------------------------------------------------------
 *Crest* is built to be performant by design and has numerous quality/performance levers.
 However it is also built to be very flexible and powerful and as such can not compete with a minimal, mobile-centric
-ocean renderer such as the one in the *BoatAttack* project.
+water solution such as the one in the *Boat Attack* project.
 Therefore we target *Crest* at PC/console platforms.
+
+That being said, developers have had success with *Crest* on lower powered platforms like the *Nintendo Switch*.
+*Apple* devices are good targets as their processors are quite capable all round.
+*Meta Quest 2* is one device where it will be a struggle to take advantage of *Crest*.
 
 Which platforms does `Crest` support?
 -------------------------------------
-Testing occurs primarily on MacOS/Windows.
+Testing occurs primarily on MacOS and Windows.
+iOS and Android are also periodically tested.
 
 Firstly, make sure your target platform adheres to the :ref:`requirements`.
 
@@ -42,11 +47,11 @@ We have users targeting the following platforms:
 -  Windows
 -  MacOS
 -  Linux \*
--  Playstation \*
+-  PlayStation \*
 -  Xbox \*
 -  Switch \* \*\*
--  iOS \* \*\*
--  Android/Quest \* \*\*
+-  iOS \*\*
+-  Android/Quest \*\*
 
 | \* We do not have access to these platforms ourselves.
 | \*\* Performance is a challenge on these platforms. Please see the previous question.

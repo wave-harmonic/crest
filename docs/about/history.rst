@@ -54,6 +54,16 @@ Performance
    -  Use optimized FindObject(s) methods.
 
 
+.. Trim the history for PDFs.
+.. only:: latex
+
+   | Full version history has been omitted for brevity. It can be found at :link:`Release Notes <{DocLinkBase}/about/history.html>`.
+
+.. raw:: latex
+
+   \iffalse
+
+
 4.18
 ----
 
@@ -118,16 +128,6 @@ Performance
    .. only:: hdrp
 
       -  Skip sampling normal maps if *Normals Strength* is zero. `[HDRP]`
-
-
-.. Trim the history for PDFs.
-.. only:: latex
-
-   | Full version history has been omitted for brevity. It can be found at :link:`Release Notes <{DocLinkBase}/about/history.html>`.
-
-.. raw:: latex
-
-   \iffalse
 
 
 4.17.3

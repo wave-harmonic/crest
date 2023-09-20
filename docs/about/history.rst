@@ -18,8 +18,9 @@ Changed
 .. bullet_list::
 
    -  Add Unity 2023.1 support.
-   -  Add *Wave Resolution Multiplier* to *Animated Waves* settings which improves wave quality at high resolutions (eg 768 *LOD Data Resolution* with *Wave Resolution Multiplier* of 2)
+   -  Add *Wave Resolution Multiplier* to *Animated Waves* settings which improves wave quality at high resolutions (eg 768 *LOD Data Resolution* with *Wave Resolution Multiplier* of 2).
    -  Add *Filter Waves* parameter to foam settings to filter lower wavelengths from foam contribution which can help with too much foam underneath camera.
+      Used in the *Main* example scene.
    -  Remove validation warnings for multiple *Rigidbody* components found in children of floating objects (eg *Boat Probes*).
 
    .. only:: hdrp or urp

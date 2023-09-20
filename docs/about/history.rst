@@ -22,6 +22,10 @@ Changed
    -  Add *Filter Waves* parameter to foam settings to filter lower wavelengths from foam contribution which can help with too much foam underneath camera.
    -  Remove validation warnings for multiple *Rigidbody* components found in children of floating objects (eg *Boat Probes*).
 
+   .. only:: hdrp or urp
+
+      -  Remove unused files. `[HDRP] [URP]`
+
 
 Fixed
 ^^^^^

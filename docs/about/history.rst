@@ -13,6 +13,46 @@ Release Notes
 |version|
 ---------
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Add Unity 2023.1 support.
+   -  Add *Wave Resolution Multiplier* to *Animated Waves* settings which improves wave quality at high resolutions (eg 768 *LOD Data Resolution* with *Wave Resolution Multiplier* of 2)
+   -  Add *Filter Waves* parameter to foam settings to filter lower wavelengths from foam contribution which can help with too much foam underneath camera.
+   -  Remove validation warnings for multiple *Rigidbody* components found in children of floating objects (eg *Boat Probes*).
+
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Silence several obsolete warnings for Unity 2023.1.
+   -  Fix non ping-pong combine pass (compute) for iOS and possibly other platforms.
+   -  Fix *Shape Gerstner* for iOS and possibly other platforms.
+   -  Fix clip surface affecting extents causing popping.
+   -  Fix clip surface inputs getting stuck near the edge of the last LOD.
+   -  Fix shader compiler errors for consoles.
+   -  Fix *Dynamic Waves* reflected waves added at LOD boundaries on camera movement.
+      Reverts *"Better utilise Dynamic Waves data textures by removing soft border"*.
+   -  Fix exceptions/crash in headless/server environment.
+   -  Fix *"#ifdef UNITY_EDITOR … serialized properties"* warning in standalone.
+
+   .. only:: urp
+
+      -  Fix broken rendering and errors spamming console caused by Unity bug on macOS in sample scenes. `[URP]`
+
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Use optimized FindObject(s) methods.
+
+
+4.18
+----
+
 Breaking
 ^^^^^^^^
 .. bullet_list::

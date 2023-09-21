@@ -165,7 +165,7 @@ namespace Crest
                 if (isBlendPassNeeded || finalWeight > 0f)
                 {
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
-                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
+                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f * OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
                 }
 
                 if (isBlendPassNeeded)

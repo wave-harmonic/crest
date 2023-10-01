@@ -33,8 +33,23 @@ This repository targets the built-in renderer. For other render pipelines, see t
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_thrrySB5YQ" target="_blank"><img src="https://img.youtube.com/vi/_thrrySB5YQ/0.jpg" alt="BUCKO • Announcement Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=zCeK_Kdxqa0" target="_blank"><img src="https://img.youtube.com/vi/QvCPhk0e7-I/0.jpg" alt="Of Ships & Scoundrels - Crest Demo" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=EExodzbapmo" target="_blank"><img src="https://img.youtube.com/vi/EExodzbapmo/0.jpg" alt="De Leon Legends VR Game" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=6KC13zGgbOA" target="_blank"><img src="https://img.youtube.com/vi/6KC13zGgbOA/0.jpg" alt="Kredolis | Announcement Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=Qfy5P4Zygvs" target="_blank"><img src="https://img.youtube.com/vi/Qfy5P4Zygvs/0.jpg" alt="Morild Navigator" width="270" height="202" /></a>
+
+<br>
+
+Handful of nice scenes:
+
+<br>
+
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=8l0YaOymTQE" target="_blank"><img src="https://img.youtube.com/vi/8l0YaOymTQE/0.jpg" alt="Tug Symphony" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=yLdjkTSX8E8" target="_blank"><img src="https://img.youtube.com/vi/yLdjkTSX8E8/0.jpg" alt="Unity Beach - Crest Ocean Shader Test [Looped 60FPS]" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=aZScNG8-H2U" target="_blank"><img src="https://img.youtube.com/vi/aZScNG8-H2U/0.jpg" alt="Irval the Dragon in Crest Ocean and Lordenfel Ruins" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=QSfHib7vcg0" target="_blank"><img src="https://img.youtube.com/vi/QSfHib7vcg0/0.jpg" alt="Crest Ocean Unity 3d Submarine Scene 2 Nautilus" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=kmx8CLeZ2Ik" target="_blank"><img src="https://img.youtube.com/vi/kmx8CLeZ2Ik/0.jpg" alt="Mixed Reality Ship Ahoy! with Rift + ZED Mini" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=t867fg_8hP0" target="_blank"><img src="https://img.youtube.com/vi/t867fg_8hP0/0.jpg" alt="ShoreWavesCrest" width="270" height="202" /></a>
+
+<br>
 
 And many more…
 

@@ -3,8 +3,9 @@
 .vsconfig/
 .vscode/
 
-# Ignore asset store tools plugin
-/[Pp]ackages/com.unity.asset-store-tools
+# Ignore local packages.
+/[Pp]ackages/*
+!/[Pp]ackages/manifest.json
 
 # Ignore generated build settings.
 /[Pp]roject[Ss]ettings/BurstAotSettings_*.json

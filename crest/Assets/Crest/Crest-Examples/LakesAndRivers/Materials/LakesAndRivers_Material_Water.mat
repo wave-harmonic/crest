@@ -124,6 +124,7 @@ Material:
     - _NormalsStrengthOverall: 1
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
+    - _PlanarReflectionDistanceFactor: 0
     - _PlanarReflectionIntensity: 1
     - _PlanarReflectionNormalsStrength: 1
     - _PlanarReflections: 0
@@ -133,7 +134,7 @@ Material:
     - _RefractionStrength: 1
     - _RefractiveIndexOfAir: 1
     - _RefractiveIndexOfWater: 1.333
-    - _Roughness: 0
+    - _Roughness: 0.062
     - _S: 1
     - _Shadows: 0
     - _ShorelineFoamMinDepth: 0.27

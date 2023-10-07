@@ -17,6 +17,7 @@ MonoBehaviour:
   _foamFadeRate: 0.5
   _waveFoamStrength: 1.17
   _waveFoamCoverage: 0.517
+  _filterWaves: 0
   _shorelineFoamMaxDepth: 0.65
   _shorelineFoamStrength: 0
   _renderTextureGraphicsFormat: 45

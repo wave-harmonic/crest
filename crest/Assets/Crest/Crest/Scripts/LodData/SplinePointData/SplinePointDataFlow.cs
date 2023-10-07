@@ -11,7 +11,7 @@ namespace Crest
     /// Custom spline point data for flow
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataFlow : CustomMonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataFlow : SplinePointDataBase
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -25,9 +25,10 @@ namespace Crest
         public const float k_defaultSpeed = 2f;
 
         [Tooltip("Flow velocity (speed of flow in direction of spline). Can be negative to flip direction."), SerializeField]
+        [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _flowVelocity = k_defaultSpeed;
 
-        public Vector2 GetData()
+        public override Vector2 GetData()
         {
             return new Vector2(_flowVelocity, 0f);
         }

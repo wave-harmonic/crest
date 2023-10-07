@@ -66,11 +66,11 @@ namespace Crest
 
         [Header("Spline Settings")]
 
-        [SerializeField]
+        [SerializeField, DecoratedField, OnChange(nameof(OnSplineChange))]
         bool _overrideSplineSettings = false;
-        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField]
+        [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField, OnChange(nameof(OnSplineChange))]
         float _radius = 50f;
-        [SerializeField, Predicated("_overrideSplineSettings"), Delayed]
+        [SerializeField, Predicated("_overrideSplineSettings"), Delayed, OnChange(nameof(OnSplineChange))]
         int _subdivisions = 1;
 
         [SerializeField]
@@ -455,11 +455,18 @@ namespace Crest
 
             return false;
         }
+
+        public void OnSplineChange()
+        {
+#if UNITY_EDITOR
+            CreateOrUpdateSplineMesh();
+#endif
+        }
     }
 
 #if UNITY_EDITOR
     // Editor
-    public partial class ShapeWaves : IReceiveSplinePointOnDrawGizmosSelectedMessages
+    public partial class ShapeWaves : IReceiveSplineChangeMessages, IReceiveSplinePointOnDrawGizmosSelectedMessages
     {
         void UpdateEditorOnly()
         {
@@ -496,12 +503,6 @@ namespace Crest
 
         private void OnDrawGizmosSelected()
         {
-            // Restrict this call as it is costly.
-            if (Selection.activeGameObject == gameObject)
-            {
-                CreateOrUpdateSplineMesh();
-            }
-
             DrawMesh();
         }
 
@@ -520,7 +521,6 @@ namespace Crest
 
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)
         {
-            CreateOrUpdateSplineMesh();
             OnDrawGizmosSelected();
         }
 

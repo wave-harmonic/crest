@@ -11,7 +11,7 @@ namespace Crest
     /// Foam tweakable param on spline points
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataFoam : CustomMonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataFoam : SplinePointDataBase
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -23,9 +23,10 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Amount of foam emitted."), SerializeField]
+        [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _foamAmount = 1f;
 
-        public Vector2 GetData()
+        public override Vector2 GetData()
         {
             return new Vector2(_foamAmount, 0f);
         }

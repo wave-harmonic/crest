@@ -11,7 +11,7 @@ namespace Crest
     /// Default data attached to all spline points
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointData : CustomMonoBehaviour, ISplinePointCustomData
+    public class SplinePointData : SplinePointDataBase
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -23,10 +23,11 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Multiplier for spline radius."), SerializeField]
+        [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _radiusMultiplier = 1f;
 
         // Currently returns (radius multiplier, nothing)
-        public Vector2 GetData()
+        public override Vector2 GetData()
         {
             return new Vector2(_radiusMultiplier, 0f);
         }

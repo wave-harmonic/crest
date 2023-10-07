@@ -12,7 +12,7 @@ namespace Crest
     /// in the code when no data is required.
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataNone : CustomMonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataNone : SplinePointDataBase
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -23,7 +23,7 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        public Vector2 GetData()
+        public override Vector2 GetData()
         {
             return Vector2.zero;
         }

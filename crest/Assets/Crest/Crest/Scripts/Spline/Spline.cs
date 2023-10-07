@@ -36,18 +36,31 @@ namespace Crest.Spline
             Right
         }
         [Tooltip("Where generated ribbon should lie relative to spline. If set to Center, ribbon is centered around spline.")]
+        [OnChange(nameof(NotifyOnChange)), DecoratedField]
         public Offset _offset = Offset.Center;
 
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
+        [OnChange(nameof(NotifyOnChange)), DecoratedField]
         public bool _closed = false;
 
-        [SerializeField]
+        [SerializeField, DecoratedField, OnChange(nameof(NotifyOnChange))]
         float _radius = 20f;
-        [SerializeField, UnityEngine.Delayed]
+
+        [SerializeField, Delayed, OnChange(nameof(NotifyOnChange))]
         int _subdivisions = 1;
 
         public float Radius => _radius;
         public int Subdivisions => _subdivisions;
+
+        void NotifyOnChange()
+        {
+#if UNITY_EDITOR
+            foreach (var receiver in transform.GetComponents<IReceiveSplineChangeMessages>())
+            {
+                receiver.OnSplineChange();
+            }
+#endif
+        }
 
         public bool AttachDataToSplinePoint(GameObject splinePoint)
         {

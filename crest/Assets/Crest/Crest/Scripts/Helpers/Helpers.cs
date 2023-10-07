@@ -26,7 +26,7 @@ namespace Crest
         }
 
         public static BindingFlags s_AnyMethod = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-            BindingFlags.Static;
+            BindingFlags.Static | BindingFlags.FlattenHierarchy;
 
         public static T GetCustomAttribute<T>(System.Type type) where T : System.Attribute
         {

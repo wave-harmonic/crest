@@ -12,9 +12,30 @@ namespace Crest.Spline
         Vector2 GetData();
     }
 
+    public abstract class SplinePointDataBase : CustomMonoBehaviour, ISplinePointCustomData
+    {
+        public abstract Vector2 GetData();
+
+        public void NotifyOfSplineChange()
+        {
+            if (transform.parent == null)
+            {
+                return;
+            }
+
+#if UNITY_EDITOR
+            foreach (var receiver in transform.parent.GetComponents<IReceiveSplineChangeMessages>())
+            {
+                receiver.OnSplineChange();
+            }
+#endif
+        }
+    }
+
     /// <summary>
     /// Spline point, intended to be child of Spline object
     /// </summary>
+    [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline Point")]
     public class SplinePoint : CustomMonoBehaviour
     {
@@ -28,6 +49,36 @@ namespace Crest.Spline
 #pragma warning restore 414
 
 #if UNITY_EDITOR
+        void Update()
+        {
+            if (!transform.hasChanged)
+            {
+                return;
+            }
+
+            NotifyOnChange();
+
+            transform.hasChanged = false;
+        }
+
+        void NotifyOnChange()
+        {
+            if (transform.parent == null)
+            {
+                return;
+            }
+
+            foreach (var receiver in transform.parent.GetComponents<IReceiveSplineChangeMessages>())
+            {
+                receiver.OnSplineChange();
+            }
+        }
+
+        void OnDisable()
+        {
+            NotifyOnChange();
+        }
+
         void OnDrawGizmos()
         {
             // We could not get gizmos or handles to work well when 3D Icons is enabled. problems included
@@ -64,6 +115,17 @@ namespace Crest.Spline
     public interface IReceiveSplinePointOnDrawGizmosSelectedMessages
     {
         void OnSplinePointDrawGizmosSelected(SplinePoint point);
+    }
+
+    public interface IReceiveSplineChangeMessages
+    {
+        void OnSplineChange();
+    }
+
+    [CustomEditor(typeof(SplinePointDataBase), editorForChildClasses: true)]
+    public class SplinePointBaseEditor : CustomBaseEditor
+    {
+
     }
 
     [CustomEditor(typeof(SplinePoint))]

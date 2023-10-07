@@ -11,7 +11,7 @@ namespace Crest
     /// Custom spline point data for waves
     /// </summary>
     [AddComponentMenu("")]
-    public class SplinePointDataWaves : CustomMonoBehaviour, ISplinePointCustomData
+    public class SplinePointDataWaves : SplinePointDataBase
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -23,9 +23,10 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Weight multiplier to scale waves."), SerializeField]
+        [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _weight = 1f;
 
-        public Vector2 GetData()
+        public override Vector2 GetData()
         {
             return new Vector2(_weight, 0f);
         }

@@ -306,17 +306,18 @@ namespace Crest
         : RegisterLodDataInput<LodDataType>
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
+        , IReceiveSplineChangeMessages
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
         where LodDataType : LodDataMgr
         where SplinePointCustomData : CustomMonoBehaviour, ISplinePointCustomData
     {
         [Header("Spline settings")]
-        [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField]
+        [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField, OnChange(nameof(OnSplineChange))]
         bool _overrideSplineSettings = false;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField]
+        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField, OnChange(nameof(OnSplineChange))]
         float _radius = 20f;
-        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed]
+        [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed, OnChange(nameof(OnSplineChange))]
         int _subdivisions = 1;
 
         protected Material _splineMaterial;
@@ -397,6 +398,13 @@ namespace Crest
             return true;
         }
 
+        public void OnSplineChange()
+        {
+#if UNITY_EDITOR
+            CreateOrUpdateSplineMesh();
+#endif
+        }
+
 #if UNITY_EDITOR
         protected override void OnDrawGizmosSelected()
         {
@@ -406,19 +414,12 @@ namespace Crest
                 return;
             }
 
-            // Restrict this call as it is costly.
-            if (Selection.activeGameObject == gameObject)
-            {
-                CreateOrUpdateSplineMesh();
-            }
-
             Gizmos.color = GizmoColor;
             Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
         }
 
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)
         {
-            CreateOrUpdateSplineMesh();
             OnDrawGizmosSelected();
         }
 #endif // UNITY_EDITOR

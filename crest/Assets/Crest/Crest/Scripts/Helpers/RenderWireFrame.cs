@@ -5,7 +5,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Triggers the scene render to happen in wireframe. Unfortunately this currently affects the GUI elements as well.
+/// Triggers the scene render to happen in wireframe.
 /// </summary>
 [RequireComponent(typeof(Camera))]
 [AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_DEBUG + "Render Wire Frame")]
@@ -33,6 +33,14 @@ public class RenderWireFrame : MonoBehaviour
         if (enabled)
         {
             GL.wireframe = _wireFrame;
+        }
+    }
+
+    void OnPostRender()
+    {
+        if (enabled)
+        {
+            GL.wireframe = false;
         }
     }
 }

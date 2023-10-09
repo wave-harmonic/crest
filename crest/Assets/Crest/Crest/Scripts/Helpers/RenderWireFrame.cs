@@ -11,28 +11,39 @@ using UnityEngine;
 [AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_DEBUG + "Render Wire Frame")]
 public class RenderWireFrame : MonoBehaviour
 {
-    public bool _gui = true;
+    public bool _enable;
+    public CameraClearFlags _clearFlags = CameraClearFlags.SolidColor;
+    public Color _backgroundColor = new Color(0.1921569f, 0.3019608f, 0.4745098f, 0f);
+    public LayerMask _cullingMask = ~0;
     public static bool _wireFrame = false;
 
     Camera _cam;
-    CameraClearFlags _defaultClearFlags;
+    CameraClearFlags _oldClearFlags;
+    Color _oldBackgroundColor;
+    LayerMask _oldCullingMask;
+
+    public bool Active => _wireFrame || _enable;
 
     void Start()
     {
         _cam = GetComponent<Camera>();
-        _defaultClearFlags = _cam.clearFlags;
+        _oldClearFlags = _cam.clearFlags;
+        _oldBackgroundColor = _cam.backgroundColor;
+        _oldCullingMask = _cam.cullingMask;
     }
 
     void Update()
     {
-        _cam.clearFlags = _wireFrame ? CameraClearFlags.SolidColor : _defaultClearFlags;
+        _cam.clearFlags = Active ? _clearFlags : _oldClearFlags;
+        _cam.backgroundColor = Active ? _backgroundColor : _oldBackgroundColor;
+        _cam.cullingMask = Active ? _cullingMask : _oldCullingMask;
     }
 
     void OnPreRender()
     {
         if (enabled)
         {
-            GL.wireframe = _wireFrame;
+            GL.wireframe = Active;
         }
     }
 

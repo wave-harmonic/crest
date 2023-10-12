@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a287be6c49135cd4f9b2b8666c39d999, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  assetDefaultFramerate: 50
+  assetDefaultFramerate: 60

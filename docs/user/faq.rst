@@ -19,6 +19,12 @@ Why does the ocean not update smoothly in edit mode?
 ----------------------------------------------------
 .. include:: /user/includes/_animated-materials.rst
 
+I am seeing "Crest does not support OpenGL/WebGL backends." in the editor
+-------------------------------------------------------------------------
+It is likely Unity has defaulted to using OpenGL on your platform.
+You will need to switch to a supported graphics API like Vulkan.
+You will need to make Vulkan the default by :link:`overriding the graphics APIs <{UnityDocLink}/GraphicsAPIs.html>`.
+
 Why aren't my prefab mode edits not reflected in the scene view?
 ----------------------------------------------------------------
 Crest does not support running in prefab mode which means dirty state in prefab mode will not be reflected in the scene view.

@@ -733,8 +733,12 @@ Shader "Crest/Ocean"
 				// Fog
 				if (!underwater)
 				{
+					half3 fogged = col;
 					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
-					UNITY_APPLY_FOG(input.fogCoord, col);
+					UNITY_APPLY_FOG(input.fogCoord, fogged);
+					// Does not work when fog is heavy. Will see dark outline of water at a distance.
+					// Does not work with MSAA. Causes an outline around all objects.
+					col = lerp(col, fogged, reflAlpha);
 				}
 #if CREST_UNDERWATER_BEFORE_TRANSPARENT
 				else

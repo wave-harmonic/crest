@@ -9,6 +9,10 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+#if !UNITY_2023_2_OR_NEWER
+    using GraphicsFormatUsage = UnityEngine.Experimental.Rendering.FormatUsage;
+#endif
+
     /// <summary>
     /// Circular buffer to store a multiple sets of data
     /// </summary>
@@ -154,7 +158,7 @@ namespace Crest
         protected virtual void InitData()
         {
             // Find a compatible texture format.
-            var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
+            var formatUsage = NeedToReadWriteTextureData ? GraphicsFormatUsage.LoadStore : GraphicsFormatUsage.Sample;
             CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(RequestedTextureFormat, formatUsage);
             if (CompatibleTextureFormat != RequestedTextureFormat)
             {

@@ -118,8 +118,30 @@ namespace Crest
         }
 
 #if UNITY_EDITOR
-        // Animated waves are always enabled
-        protected override bool FeatureEnabled(OceanRenderer ocean) => true;
+        public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = base.Validate(ocean, showMessage);
+
+            if (ocean != null && FeatureEnabled(ocean) && !ocean._lodDataSeaDepths.Settings._allowVaryingWaterLevel)
+            {
+                // NOTE: This is enabled by default so we will never trigger it for the default settings asset.
+                showMessage
+                (
+                    $"<i>Allow Varing Water Level</i> must be enabled on the <i>Sim Settings Sea Floor Depth</i> asset.",
+                    $"Enable the <i>Allow Varing Water Level</i> option on the <i>Sim Settings Sea Floor Depth</i> asset.",
+                    ValidatedHelper.MessageType.Error, ocean._lodDataSeaDepths.Settings,
+                    (so) => so.FindProperty(nameof(SimSettingsSeaFloorDepth._allowVaryingWaterLevel)).boolValue = true
+                );
+
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        protected override string FeatureToggleName => LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_NAME;
+        protected override string FeatureToggleLabel => LodDataMgrSeaFloorDepth.FEATURE_TOGGLE_LABEL;
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateSeaFloorDepthData;
 #endif // UNITY_EDITOR
     }
 }

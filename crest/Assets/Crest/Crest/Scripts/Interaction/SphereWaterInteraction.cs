@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using UnityEditor;
+using Crest.Internal;
 
 namespace Crest
 {
@@ -47,6 +48,9 @@ namespace Crest
 
         [Tooltip("If the dynamic waves are not visible far enough in the distance from the camera, this can be used to boost the output.")]
         public bool _boostLargeWaves = false;
+
+        [Range(0f, 1f)]
+        public float _flowWeightMultiplier;
 
         [Header("Limits")]
         [Tooltip("Teleport speed (km/h) - if the calculated speed is larger than this amount, the object is deemed to have teleported and the computed velocity is discarded."), SerializeField]
@@ -164,19 +168,25 @@ namespace Crest
 
             // Velocity relative to water
             var relativeVelocity = _velocityClamped;
+            float flowWeight;
             {
                 _sampleFlowHelper.Init(transform.position, 2f * _radius);
                 _sampleFlowHelper.Sample(out var surfaceFlow);
                 relativeVelocity -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
 
                 relativeVelocity.y *= _weightUpDownMul;
+                flowWeight = Mathf.Max(1f, surfaceFlow.magnitude * (1f - Vector2.Dot(surfaceFlow, relativeVelocity.XZ())) * _flowWeightMultiplier);
+
+                Debug.DrawLine(transform.position, transform.position + surfaceFlow.XNZ(), Color.red);
             }
+
+            Debug.DrawLine(transform.position, transform.position + relativeVelocity, Color.magenta);
 
             var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
             s_MPB.SetFloat(sp_simDeltaTime, dt);
 
             // Use weight from user with a multiplier to make interactions look plausible
-            _weightThisFrame = 3.75f * _weight;
+            _weightThisFrame = 3.75f * _weight * flowWeight;
 
             var waterHeight = disp.y + ocean.SeaLevel;
             LateUpdateSphereWeight(waterHeight, ref _weightThisFrame);

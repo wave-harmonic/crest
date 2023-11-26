@@ -306,7 +306,8 @@ namespace Crest
             {
                 var col = 0.7f * (Time.frameCount % 2 == 1 ? Color.green : Color.red);
                 var pos = transform.position - _velocity * (timeBeforeCurrentTime - _velocityOffset);
-                Debug.DrawLine(pos - transform.right + transform.up, pos + transform.right + transform.up, col, 0.5f);
+                var right = Vector3.Cross(Vector3.up, _velocity.normalized);
+                Debug.DrawLine(pos - right + transform.up, pos + right + transform.up, col, 0.5f);
             }
 #endif
 

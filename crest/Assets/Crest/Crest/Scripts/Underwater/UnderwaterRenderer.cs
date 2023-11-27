@@ -55,7 +55,7 @@ namespace Crest
 
         [SerializeField]
         [Tooltip("Rendering mode of the underwater effect (and ocean). See the documentation for more details.")]
-        internal Mode _mode;
+        public Mode _mode;
 
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
@@ -71,7 +71,7 @@ namespace Crest
 
         [SerializeField, Range(0.01f, 1f)]
         [Tooltip("Scales the depth fog density. Useful to reduce the intensity of the depth fog when underwater water only.")]
-        float _depthFogDensityFactor = 1f;
+        public float _depthFogDensityFactor = 1f;
         public static float DepthFogDensityFactor
         {
             get
@@ -90,27 +90,27 @@ namespace Crest
 
         [SerializeField, Predicated("_mode", inverted: false, Mode.FullScreen), DecoratedField]
         [Tooltip("Mesh to use to render the underwater effect.")]
-        internal MeshFilter _volumeGeometry;
+        public MeshFilter _volumeGeometry;
 
         [SerializeField, Predicated("_mode", inverted: true, Mode.Portal), DecoratedField]
         [Tooltip("If enabled, the back faces of the mesh will be used instead of the front faces.")]
-        bool _invertCulling = false;
+        public bool _invertCulling = false;
 
 
         [Header("Advanced")]
 
         [SerializeField]
         [Tooltip("Renders the underwater effect before the transparent pass (instead of after). So one can apply the underwater fog themselves to transparent objects. Cannot be changed at runtime.")]
-        bool _enableShaderAPI = false;
+        public bool _enableShaderAPI = false;
         public bool EnableShaderAPI { get => _enableShaderAPI; set => _enableShaderAPI = value; }
 
         [SerializeField]
         [Tooltip("Copying params each frame ensures underwater appearance stays consistent with ocean material params. Has a small overhead so should be disabled if not needed.")]
-        internal bool _copyOceanMaterialParamsEachFrame = true;
+        public bool _copyOceanMaterialParamsEachFrame = true;
 
         [SerializeField, Range(0f, 1f)]
         [Tooltip("Adjusts the far plane for horizon line calculation. Helps with horizon line issue.")]
-        internal float _farPlaneMultiplier = 0.68f;
+        public float _farPlaneMultiplier = 0.68f;
 
         [Space(10)]
 

@@ -125,7 +125,7 @@ void GetOceanSurfaceAndUnderwaterData
 	;
 
 	// Use backface depth if closest.
-	if (rawDepth < rawGeometryDepth && rawOceanDepth < rawGeometryDepth)
+	if (rawDepth < rawGeometryDepth && rawOceanDepth < rawGeometryDepth && isUnderwater)
 	{
 		// Cancels out caustics.
 		hasCaustics = false;
@@ -146,7 +146,11 @@ void GetOceanSurfaceAndUnderwaterData
 #endif
 		isOceanSurface = true;
 		hasCaustics = false;
+#if CREST_WATER_VOLUME_HAS_BACKFACE
+		rawDepth = rawOceanDepth < rawGeometryDepth ? rawDepth : rawOceanDepth;
+#else
 		rawDepth = rawOceanDepth;
+#endif
 		sceneZ = CrestLinearEyeDepth(CREST_MULTILOAD_DEPTH(_CrestOceanMaskDepthTexture, positionSS, rawDepth));
 	}
 	else

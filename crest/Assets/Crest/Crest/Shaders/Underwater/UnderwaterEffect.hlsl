@@ -131,5 +131,5 @@ real4 Frag (Varyings input) : SV_Target
 
 	float wt = ComputeMeniscusWeight(positionSS, mask, _HorizonNormal, meniscusDepth);
 
-	return half4(wt * sceneColour, 1.0);
+	return half4(wt * sceneColour, rawDepth > 0.0);
 }

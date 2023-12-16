@@ -19,7 +19,7 @@ h4
     margin-top: 1.5rem !important;
 }
 
-h1 + .section > h2, h2 + .section > h3, h3 + .section > h4
+h1 + section > h2, h2 + section > h3, h3 + section > h4
 {
     margin-top: 1.25rem !important;
 }
@@ -46,8 +46,8 @@ h1 + .section > h2, h2 + .section > h3, h3 + .section > h4
     border-bottom: none !important;
 }
 
-#frequent-setup-issues .section h3,
-#q-a .section h2
+#frequent-setup-issues section h3,
+#frequently-asked-questions section h2
 {
     font-size: 110%;
     font-weight: bold;
@@ -130,6 +130,11 @@ article[role="main"] > .admonition:first-child
 .tooltipster-content
 {
     color: var(--color-foreground-primary) !important;
+}
+
+.tooltipster-arrow-border
+{
+    border-right-color: var(--color-background-primary) !important;
 }
 
 /****************************************************************************/

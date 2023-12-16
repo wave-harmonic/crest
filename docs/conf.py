@@ -34,7 +34,7 @@ sponsor_link = "https://github.com/sponsors/wave-harmonic"
 # ones.
 extensions = [
     "sphinx_inline_tabs",
-    "sphinx_panels",
+    "sphinx_design",
     "sphinx_issues",
 
     # For using CONTRIBUTING.md.
@@ -70,6 +70,7 @@ exclude_patterns = [
     "extensions",
     "**/includes",
     "README.md",
+    "design-tabs.js", # We are using inline-tabs and this throws errors/warnings
 ]
 
 # https://github.com/readthedocs/readthedocs.org/issues/4603
@@ -129,13 +130,13 @@ html_static_path = ["_static", "../logo"]
 # These paths are either relative to html_static_path or fully qualified paths (eg. https://...).
 # Increment query parameter to invalidate the cache.
 html_css_files = [
-    'custom.css?v1.1.0',
+    'custom.css',
 ]
 
 html_js_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js',
     'https://p.trellocdn.com/embed.min.js',
-    'custom.js?v1.2.0',
+    'custom.js',
 ]
 
 # -- Options for PDF output --------------------------------------------------

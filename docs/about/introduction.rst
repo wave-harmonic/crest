@@ -33,43 +33,54 @@ Assets
 
 You can find `Crest` on the *Unity Asset Store* for all render pipelines.
 
-.. panels::
-   :header: text-center
-   :column: col-lg-4 col-md-4 col-sm-4 col-xs-12 p-2
+.. only:: html
 
-   ---
-   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/fef53e24-736f-41f9-98de-bfbcdef4a4a8.jpg
+   .. grid:: 3
+      :gutter: 1
+      :margin: 0
+      :padding: 0
 
-   Crest Ocean System
-   ^^^^^^^^^^^^^^^^^^
+      .. grid-item-card:: Crest Ocean System
+         :link: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K
+         :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/fef53e24-736f-41f9-98de-bfbcdef4a4a8.jpg
+         :text-align: center
 
-   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K
-      :type: url
-      :text: Asset Store
-      :classes: btn-outline-primary btn-block stretched-link
+         .. button-link:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K
+            :color: primary
+            :expand:
+            :outline:
 
-   ---
-   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/1e89a1d1-6cae-4163-b3f9-ead226f53160.jpg
+            Asset Store
 
-   Crest Ocean System HDRP
-   ^^^^^^^^^^^^^^^^^^^^^^^
+      .. grid-item-card:: Crest Ocean System HDRP
+         :link: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K
+         :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/1e89a1d1-6cae-4163-b3f9-ead226f53160.jpg
+         :text-align: center
 
-   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K
-      :type: url
-      :text: Asset Store
-      :classes: btn-outline-primary btn-block stretched-link
+         .. button-link:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K
+            :color: primary
+            :expand:
+            :outline:
 
-   ---
-   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/2b640420-1fed-4a76-a54e-e86b9693c2bb.jpg
+            Asset Store
 
-   Crest Ocean System URP
-   ^^^^^^^^^^^^^^^^^^^^^^
+      .. grid-item-card:: Crest Ocean System URP
+         :link: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K
+         :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/2b640420-1fed-4a76-a54e-e86b9693c2bb.jpg
+         :text-align: center
 
-   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K
-      :type: url
-      :text: Asset Store
-      :classes: btn-outline-primary btn-block stretched-link
+         .. button-link:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K
+            :color: primary
+            :expand:
+            :outline:
 
+            Asset Store
+
+.. only:: latex
+
+   *  Crest Ocean System: :link:`Asset Store <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K>`
+   *  Crest Ocean System HDRP: :link:`Asset Store <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K>`
+   *  Crest Ocean System URP: :link:`Asset Store <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K>`
 
 Sponsorship
 -----------

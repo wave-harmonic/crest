@@ -294,6 +294,8 @@ Lighting
 General
 ^^^^^^^
 
+As other shaders would, the ocean will get most its lighting from the primary directional light (AKA sun).
+
 .. only:: birp
 
    .. tab:: `BIRP`
@@ -311,6 +313,8 @@ General
    .. tab:: `URP`
 
       .. include:: includes/_urp-lighting.rst
+
+See :ref:`water-tile-prefab` for advanced configuration.
 
 
 Reflections
@@ -339,6 +343,8 @@ The Index of Refraction setting controls how much reflection contributes for dif
 
       .. include:: includes/_urp-reflections.rst
 
+See :ref:`water-tile-prefab` for advanced configuration.
+
 
 Refractions
 ^^^^^^^^^^^
@@ -348,6 +354,25 @@ Anything rendered in the transparent pass or higher will not be included in refr
 
 See :ref:`transparent-object-before-ocean-surface` for issues with Crest and other refractive materials.
 
+
+.. _water-tile-prefab:
+
+Water Tile Prefab
+^^^^^^^^^^^^^^^^^
+Crest uses *Mesh Renderers* to render chunks of water throughout the scene.
+*Mesh Renderers* have many settings for configuring how a mesh responds to different lighting components like probes.
+
+The *Water Tile Prefab* allows you to provide a pre-configured *Mesh Renderer* to override `Crest`'s defaults.
+Some settings cannot be overriden as they make no sense or require support from `Crest`.
+
+To use this feature, create a prefab with a *Mesh Renderer*.
+The only other requirement is to **not** have a *Water Chunk Renderer* present in the prefab.
+
+Settings which cannot be overriden are:
+- Receive Shadows
+- Motion Vectors
+
+Other settings may not have any effect depending on the level of support with the render pipeline.
 
 
 .. _foam-section:

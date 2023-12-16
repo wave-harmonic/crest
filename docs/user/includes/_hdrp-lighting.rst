@@ -1,4 +1,3 @@
-As other shaders would, the ocean will get its lighting from the primary directional light (AKA sun).
 Like other mesh renderers, this can be masked by setting the *Rendering Layer Mask* property on the *Ocean
 Renderer*.
 Please see the :link:`{HDRP} documentation on light layers <{HDRPDocLink}/Light-Layers.html>` for more information on setup and usage.

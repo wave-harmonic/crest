@@ -97,9 +97,9 @@ Social
 
 .. TODO: Add social icons? Wait for https://github.com/fraoustin/sphinx_fontawesome/issues/7
 
-* **YouTube** `<https://www.youtube.com/channel/UC7_ZKKCXZmH64rRZqe-C0WA>`_
+* **YouTube** `<https://www.youtube.com/@WaveHarmonic>`_
 * **Twitter** `<https://twitter.com/@crest_ocean>`_
-* **Discord** `<https://discord.gg/g7GpjDC>`_
+* **Discord** `<https://discord.gg/JJjx9qcq83>`_
 
 .. raw:: html
 

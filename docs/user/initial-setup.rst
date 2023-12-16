@@ -51,9 +51,9 @@ To augment / complement this written documentation we published a video availabl
 Requirements
 ------------
 
--  Unity Version: `UnityMinVersion` or later
--  Shader compilation target 4.5 or above
--  Crest does not support OpenGL or WebGL backends
+-  Unity: `UnityMinVersion` or later
+-  :link:`Shader compilation target 4.5 <{UnityDocLink}/SL-ShaderCompileTargets.html>` or above
+-  Crest does **not** support OpenGL or WebGL backends
 
 .. only:: birp
 
@@ -206,53 +206,47 @@ Frequent Setup Issues
 
 The following are kinks or bugs with the install process which come up frequently.
 
-Errors present, or visual issues
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. dropdown:: Errors present, or visual issues
 
-Try restarting Unity as a first step.
+   Try restarting Unity as a first step.
 
 
 .. only:: hdrp or urp
 
-   Compile errors in the log, not possible to enter play mode, visual issues in the scene
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   .. dropdown:: Compile errors in the log, not possible to enter play mode, visual issues in the scene
 
-   Verify that render pipeline is installed and enabled in the settings. See the follow for documentation:
+         Verify that render pipeline is installed and enabled in the settings. See the follow for documentation:
 
-   .. only:: hdrp
+         .. only:: hdrp
 
-      :link:`Upgrading to {HDRP} <{HDRPDocLink}/Upgrading-To-HDRP.html>`
+            :link:`Upgrading to {HDRP} <{HDRPDocLink}/Upgrading-To-HDRP.html>`
 
-   .. only:: urp
+         .. only:: urp
 
-      :link:`Installing {URP} into a project <{URPDocLink}/InstallURPIntoAProject.html>`
-
-
-Possible to enter play mode, but errors appear in the log at runtime that mention missing 'kernels'
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Recent versions of Unity have a bug that makes shader import unreliable.
-Please try reimporting the *Crest/Shaders* folder using the right click menu in the project view.
-Or simply close Unity, delete the Library folder and restart which will trigger everything to reimport.
+            :link:`Installing {URP} into a project <{URPDocLink}/InstallURPIntoAProject.html>`
 
 
-Ocean framerate low in edit mode
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. dropdown:: Possible to enter play mode, but errors appear in the log at runtime that mention missing 'kernels'
 
-.. include:: includes/_animated-materials.rst
+   Recent versions of Unity have a bug that makes shader import unreliable.
+   Please try reimporting the *Crest/Shaders* folder using the right click menu in the project view.
+   Or simply close Unity, delete the Library folder and restart which will trigger everything to reimport.
+
+
+.. dropdown:: Ocean framerate low in edit mode
+
+   .. include:: includes/_animated-materials.rst
 
 .. only:: hdrp
 
-   Ocean reflections/lighting/fog looks wrong `[HDRP]`
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   .. dropdown:: Ocean reflections/lighting/fog looks wrong `[HDRP]`
 
-   If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
-   We provide a simple test shadergraph for debugging purposes - enable the *Apply test material* debug option on the *OceanRenderer* component to apply it.
-   If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.
+      If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
+      We provide a simple test shadergraph for debugging purposes - enable the *Apply test material* debug option on the *OceanRenderer* component to apply it.
+      If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.
 
 
-Changes made in prefab mode are not reflected in the scene view
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. dropdown:: Changes made in prefab mode are not reflected in the scene view
 
-Crest does not support running in prefab mode which means dirty state in prefab mode will not be reflected in the scene view.
-Save the prefab to see the changes.
+   Crest does not support running in prefab mode which means dirty state in prefab mode will not be reflected in the scene view.
+   Save the prefab to see the changes.

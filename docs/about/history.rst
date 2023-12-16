@@ -1382,30 +1382,12 @@ Fixed
 
 .. only:: hdrp
 
-   .. Trim the history for PDFs.
-   .. raw:: latex
-
-      \iffalse
-
-
    4.0 `[HDRP]`
    ------------
 
    -  First release!
 
-
-   .. raw:: latex
-
-      \fi
-
-
 .. only:: urp
-
-   .. Trim the history for PDFs.
-   .. raw:: latex
-
-      \iffalse
-
 
    3.8 `[URP]`
    -----------

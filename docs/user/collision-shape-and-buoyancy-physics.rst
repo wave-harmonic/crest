@@ -64,10 +64,6 @@ The result of the query accurately tracks the height of the surface, including a
 Baked FFT Data (CPU)
 ^^^^^^^^^^^^^^^^^^^^
 
-.. admonition:: Preview
-
-   This feature is in preview and may change in the future.
-
 In scenarios where a GPU is not present such as for headless servers, a CPU option is available.
 
 To use this feature, select a *Shape FFT* component that is generating the waves in a scene and enable the **Enable Baked Collision**.

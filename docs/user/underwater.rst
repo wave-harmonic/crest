@@ -118,10 +118,6 @@ Simply attach it to a game object, and it will invoke a UnityEvent when the atta
 Portals & Volumes
 ^^^^^^^^^^^^^^^^^
 
-.. admonition:: Preview
-
-   This feature is in preview and may change in the future.
-
 The underwater effect can be rendered from a provided mesh which will effectively become a portal (2D) or volume (3D).
 Change the *Mode* property to one of your choosing and set the *Volume Geometry* to a *Mesh Filter* (it will use its transform).
 This feature also clips the ocean surface to match.
@@ -132,10 +128,6 @@ A common use case would be a window on a boat.
 
 Underwater Shader API
 ^^^^^^^^^^^^^^^^^^^^^
-
-.. admonition:: Preview
-
-   This feature is in preview and may change in the future.
 
 The underwater effect uses opaque depth and thus will not render correctly for transparent objects.
 Too much fog will be applied as it is as if the transparent object does not exist.

@@ -3,10 +3,6 @@
 Oceans, Rivers and Lakes
 ========================
 
-.. admonition:: Preview
-
-   The features described in this section are in preview and may evolve in future versions.
-
 Oceans
 ------
 

@@ -31,9 +31,9 @@ Unity Bugs
 
 There are some Unity issues that affect `Crest`.
 Some of these may even be blocking new features from being developed.
-If you could vote on these issues, that would be greatly appreciated:
+A list of these issues can be found on :link:`our wiki <{WikiLink}/Unity-Issues>` which can be voted on for Unity to prioritise.
 
--  :link:`Gizmos render over opaque objects with Post-Processing stack. <{UnityIssueLink}/1124862>` `[[BIRP]]`
+As a reminder it is important to always use the latest patched Unity version.
 
 
 Prefab Mode Not Supported

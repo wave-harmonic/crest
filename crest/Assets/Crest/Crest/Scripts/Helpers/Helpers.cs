@@ -237,13 +237,23 @@ namespace Crest
             }
         }
 
+        public static void SetRenderTarget(CommandBuffer buffer, RenderTargetIdentifier target)
+        {
+            buffer.SetRenderTarget(target);
+        }
+
+        public static void SetRenderTarget(CommandBuffer buffer, RenderTargetIdentifier color, RenderTargetIdentifier depth)
+        {
+            buffer.SetRenderTarget(color, depth);
+        }
+
         /// <summary>
         /// Blit using full screen triangle. Supports more features than CommandBuffer.Blit like the RenderPipeline tag
         /// in sub-shaders.
         /// </summary>
         public static void Blit(CommandBuffer buffer, RenderTargetIdentifier target, Material material, int pass, MaterialPropertyBlock properties = null)
         {
-            buffer.SetRenderTarget(target);
+            SetRenderTarget(buffer, target);
             buffer.DrawProcedural
             (
                 Matrix4x4.identity,

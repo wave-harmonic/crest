@@ -61,7 +61,7 @@ namespace Crest.Examples
                 _texture.descriptor = descriptor;
             }
 
-            buffer.SetRenderTarget(_target);
+            Helpers.SetRenderTarget(buffer, _target);
             buffer.ClearRenderTarget(true, true, Color.black);
             buffer.SetGlobalTexture(ShaderIDs.s_FillTexture, _target);
 
@@ -91,7 +91,7 @@ namespace Crest.Examples
         {
             if (_texture != null && _texture.IsCreated())
             {
-                buffer.SetRenderTarget(_target);
+                Helpers.SetRenderTarget(buffer, _target);
                 buffer.ClearRenderTarget(true, true, Color.black);
             }
 

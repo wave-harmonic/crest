@@ -246,7 +246,7 @@ namespace Crest
         internal void PopulateVolume(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget, MaterialPropertyBlock properties = null, Vector2Int targetSize = default)
         {
             // Front faces.
-            buffer.SetRenderTarget(frontTarget);
+            Helpers.SetRenderTarget(buffer, frontTarget);
             // Support RTHandle scaling.
             if (targetSize != Vector2Int.zero) buffer.SetViewport(new Rect(0f, 0f, targetSize.x, targetSize.y));
             buffer.ClearRenderTarget(true, false, Color.black);
@@ -266,7 +266,7 @@ namespace Crest
             if (_mode == Mode.Volume || _mode == Mode.VolumeFlyThrough)
             {
                 // Back faces.
-                buffer.SetRenderTarget(backTarget);
+                Helpers.SetRenderTarget(buffer, backTarget);
                 // Support RTHandle scaling.
                 if (targetSize != Vector2Int.zero) buffer.SetViewport(new Rect(0f, 0f, targetSize.x, targetSize.y));
                 buffer.ClearRenderTarget(true, false, Color.black);
@@ -285,7 +285,7 @@ namespace Crest
 
         internal void SetUpMask(CommandBuffer buffer, RenderTargetIdentifier maskTarget, RenderTargetIdentifier depthTarget)
         {
-            buffer.SetRenderTarget(maskTarget, depthTarget);
+            Helpers.SetRenderTarget(buffer, maskTarget, depthTarget);
             // When using the stencil we are already clearing depth and do not want to clear the stencil too. Clear
             // color only when using the stencil as the horizon effectively clears it when not using it.
             buffer.ClearRenderTarget(!UseStencilBufferOnMask, UseStencilBufferOnMask, Color.black);

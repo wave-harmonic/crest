@@ -431,11 +431,20 @@ Shader "Crest/Ocean"
 				// Data that needs to be sampled at the displaced position
 				half seaLevelOffset = 0.0;
 				o.seaLevelDerivs = 0.0;
-				if (wt_smallerLod > 0.0001)
+
+				float heightWeight0 = wt_smallerLod;
+				float heightWeight1 = wt_biggerLod;
+				if (_LD_SliceIndex == _SliceCount - 1 && lodAlpha <= 0.75)
+				{
+					heightWeight0 = 1.0;
+					heightWeight1 = 0.0;
+				}
+
+				if (heightWeight0 > 0.0001)
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, cascadeData0, _LD_SliceIndex);
 
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData0, o.seaLevelDerivs);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, heightWeight0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData0, o.seaLevelDerivs);
 
 					#if _SHADOWS_ON
 					// The minimum sampling weight is lower than others to fix shallow water colour popping.
@@ -445,11 +454,11 @@ Shader "Crest/Ocean"
 					}
 					#endif
 				}
-				if (wt_biggerLod > 0.0001)
+				if (heightWeight1 > 0.0001)
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData1, o.seaLevelDerivs);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, heightWeight1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset, cascadeData1, o.seaLevelDerivs);
 
 					#if _SHADOWS_ON
 					// The minimum sampling weight is lower than others to fix shallow water colour popping.
@@ -541,7 +550,7 @@ Shader "Crest/Ocean"
 #if _HEIGHTPROXY_ON
 				{
 					const CascadeParams cascade = _CrestCascadeData[_LD_SliceIndex - 1];
-					const float2 halfWidth = cascade._textureRes * cascade._texelWidth * 0.5;
+					const float2 halfWidth = cascade._textureRes * cascade._texelWidth * 0.75;
 					if (all(abs(input.worldPos.xz - cascadeData0._posSnapped) <= halfWidth))
 					{
 						discard;

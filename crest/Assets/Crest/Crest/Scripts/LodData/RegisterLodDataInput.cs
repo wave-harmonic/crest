@@ -326,7 +326,7 @@ namespace Crest
 
         protected Material _splineMaterial;
         Spline.Spline _spline;
-        Mesh _splineMesh;
+        protected Mesh _splineMesh;
         protected Vector3[] _splineBoundingPoints = new Vector3[0];
 
         protected abstract string SplineShaderName { get; }

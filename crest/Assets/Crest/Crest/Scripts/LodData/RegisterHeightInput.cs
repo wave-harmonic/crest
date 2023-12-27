@@ -35,6 +35,9 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => true;
 
+        [Tooltip("Set to Mesh Filter which will proxy the height when off LOD.")]
+        public MeshFilter _meshFilter;
+
         // Debug
         [Space(10)]
 
@@ -62,6 +65,16 @@ namespace Crest
             base.OnDisable();
 
             OceanChunkRenderer.HeightReporters.Remove(this);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (_meshFilter != null && _splineMesh != null)
+            {
+                _meshFilter.sharedMesh = _splineMesh;
+            }
         }
 
         public bool ReportHeight(ref Rect bounds, ref float minimum, ref float maximum)

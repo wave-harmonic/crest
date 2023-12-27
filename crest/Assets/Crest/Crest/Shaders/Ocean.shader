@@ -193,6 +193,8 @@ Shader "Crest/Ocean"
 		[Header(Rendering)]
 		// What projection modes will this material support? Choosing perspective or orthographic is an optimisation.
 		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
+		// Used to render height meshes off LOD.
+		[Toggle] _HeightProxy("Height Proxy", Float) = 0
 
 		[Header(Debug Options)]
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
@@ -271,6 +273,8 @@ Shader "Crest/Ocean"
 
 			#pragma multi_compile _ CREST_FLOATING_ORIGIN
 
+			#pragma shader_feature_local _ _HEIGHTPROXY_ON
+
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
@@ -281,6 +285,11 @@ Shader "Crest/Ocean"
 
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
+
+#if _HEIGHTPROXY_ON
+			#define _LD_SliceIndex _SliceCount - 1
+#endif
+
 			#include "OceanShaderData.hlsl"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanVertHelpers.hlsl"
@@ -298,6 +307,9 @@ Shader "Crest/Ocean"
 			{
 				// The old unity macros require this name and type.
 				float4 vertex : POSITION;
+#if _HEIGHTPROXY_ON
+				float3 normal : NORMAL;
+#endif
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -314,6 +326,10 @@ Shader "Crest/Ocean"
 				#endif
 				half4 grabPos : TEXCOORD9;
 				float2 seaLevelDerivs : TEXCOORD10;
+
+#if _HEIGHTPROXY_ON
+				float3 normal : TEXCOORD2;
+#endif
 
 				UNITY_FOG_COORDS(3)
 
@@ -340,7 +356,8 @@ Shader "Crest/Ocean"
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
-				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
+				float3 worldPos = o.worldPos;
+				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, worldPos, lodAlpha);
 
 				{
 					// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
@@ -353,8 +370,14 @@ Shader "Crest/Ocean"
 					// either not solve gaps at large distances or introduce too many overlaps at small distances. Even
 					// with scaling, there are still unsolvable overlaps underwater (especially at large distances).
 					// 100,000 (0.00001) is the maximum position before Unity warns the user of precision issues.
-					o.worldPos.xz = lerp(tileCenterXZ, o.worldPos.xz, lerp(1.0, 1.01, max(cameraPositionXZ.x, cameraPositionXZ.y) * 0.00001));
+					worldPos.xz = lerp(tileCenterXZ, worldPos.xz, lerp(1.0, 1.01, max(cameraPositionXZ.x, cameraPositionXZ.y) * 0.00001));
 				}
+
+#if _HEIGHTPROXY_ON
+				o.normal = UnityObjectToWorldNormal(v.normal);
+#else
+				o.worldPos = worldPos;
+#endif
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
@@ -437,6 +460,11 @@ Shader "Crest/Ocean"
 					#endif
 				}
 
+#if _HEIGHTPROXY_ON
+				o.seaLevelDerivs = 0;
+				seaLevelOffset = 0;
+#endif
+
 				o.worldPos.y += seaLevelOffset;
 
 				// debug tinting to see which shape textures are used
@@ -509,6 +537,17 @@ Shader "Crest/Ocean"
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
+
+#if _HEIGHTPROXY_ON
+				{
+					const CascadeParams cascade = _CrestCascadeData[_LD_SliceIndex - 1];
+					const float2 halfWidth = cascade._textureRes * cascade._texelWidth * 0.5;
+					if (all(abs(input.worldPos.xz - cascadeData0._posSnapped) <= halfWidth))
+					{
+						discard;
+					}
+				}
+#endif
 
 				#if _UNDERWATER_ON
 				const bool underwater = IsUnderwater(i_isFrontFace, _CrestForceUnderwater);
@@ -592,6 +631,10 @@ Shader "Crest/Ocean"
 				{
 					sss = CREST_SSS_MAXIMUM - CREST_SSS_RANGE;
 				}
+#endif
+
+#if _HEIGHTPROXY_ON
+				n_pixel.xyz = input.normal;
 #endif
 
 				#if _APPLYNORMALMAPPING_ON

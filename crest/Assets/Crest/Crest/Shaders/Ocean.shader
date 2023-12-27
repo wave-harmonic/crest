@@ -434,10 +434,19 @@ Shader "Crest/Ocean"
 
 				float heightWeight0 = wt_smallerLod;
 				float heightWeight1 = wt_biggerLod;
-				if (_LD_SliceIndex == _SliceCount - 1 && lodAlpha <= 0.75)
+				if (_LD_SliceIndex == _SliceCount - 1)
 				{
-					heightWeight0 = 1.0;
-					heightWeight1 = 0.0;
+					if (lodAlpha < 0.99)
+					{
+						heightWeight0 = 1.0;
+						heightWeight1 = 0.0;
+
+					}
+					else
+					{
+						heightWeight0 = 0.0;
+						heightWeight1 = 0.0;
+					}
 				}
 
 				if (heightWeight0 > 0.0001)
@@ -550,8 +559,8 @@ Shader "Crest/Ocean"
 #if _HEIGHTPROXY_ON
 				{
 					const CascadeParams cascade = _CrestCascadeData[_LD_SliceIndex - 1];
-					const float2 halfWidth = cascade._textureRes * cascade._texelWidth * 0.75;
-					if (all(abs(input.worldPos.xz - cascadeData0._posSnapped) <= halfWidth))
+					const float2 nearEdge = cascade._textureRes * cascade._texelWidth * 0.85;
+					if (all(abs(input.worldPos.xz - cascadeData0._posSnapped) <= nearEdge))
 					{
 						discard;
 					}

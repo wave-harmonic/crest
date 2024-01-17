@@ -17,6 +17,46 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Add Unity 2023.2 support.
+   -  Improve documentation.
+   -  Remove "Preview" from everything.
+   -  Improve *Lakes and Rivers* scene.
+   -  Make several *Underwater Renderer* fields public.
+   -  Add *Filter By Wavelength* and *Render After Dynamic Waves* options to *Register Anim Waves Input*.
+      When both are disabled it will render to all LODs and before *Dynamic Waves*.
+      Useful for scaling waves without affecting ripples and wakes.
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix *Underwater Renderer* overwriting alpha channel which prevented XR passthrough from working.
+   -  Fix larger wavelengths ignoring attenuation when using *Wave Resolution Multiplier*.
+   -  Validate that height data is enabled when using height inputs.
+   -  Fix *Sphere Water Interaction* debug line orientation.
+   -  Fix *Underwater Effect* not working
+   -  Fix banding in *Examples* scene.
+   -  Fix seams and double flow in *Lakes and Rivers* scene.
+   -  Silence several warnings.
+
+   .. only:: urp
+
+      -  Fix additional lights subsurface scattering not rendering correctly. `[URP]`
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Improve *Spline* editor performance.
+
+
+4.18
+----
+
+Changed
+^^^^^^^
+.. bullet_list::
+
    -  Add Unity 2023.1 support.
    -  Add *Wave Resolution Multiplier* to *Animated Waves* settings which improves wave quality at high resolutions (eg 768 *LOD Data Resolution* with *Wave Resolution Multiplier* of 2).
    -  Add *Filter Waves* parameter to foam settings to filter lower wavelengths from foam contribution which can help with too much foam underneath camera.

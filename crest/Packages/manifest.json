@@ -15,7 +15,6 @@
     "com.unity.project-auditor": "https://github.com/Unity-Technologies/ProjectAuditor.git",
     "com.unity.quicksearch": "3.0.0-preview.26",
     "com.unity.recorder": "3.0.3",
-    "com.unity.search.extensions": "https://github.com/Unity-Technologies/com.unity.search.extensions.git?path=package",
     "com.unity.test-framework": "1.1.33",
     "com.unity.timeline": "1.4.8",
     "com.unity.ugui": "1.0.0",

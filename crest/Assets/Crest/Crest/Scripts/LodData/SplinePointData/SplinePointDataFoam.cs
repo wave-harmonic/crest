@@ -25,6 +25,7 @@ namespace Crest
         [Tooltip("Amount of foam emitted."), SerializeField]
         [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _foamAmount = 1f;
+        public float FoamAmount { get => _foamAmount; set => _foamAmount = value; }
 
         public override Vector2 GetData()
         {

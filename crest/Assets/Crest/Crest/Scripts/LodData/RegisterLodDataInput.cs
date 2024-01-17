@@ -320,6 +320,10 @@ namespace Crest
         [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), Delayed, OnChange(nameof(OnSplineChange))]
         int _subdivisions = 1;
 
+        public bool OverrideSplineSettings { get => _overrideSplineSettings; set => _overrideSplineSettings = value; }
+        public float Radius { get => _radius; set => _radius = value; }
+        public int Subdivisions { get => _subdivisions; set => _subdivisions = value; }
+
         protected Material _splineMaterial;
         Spline.Spline _spline;
         Mesh _splineMesh;
@@ -400,9 +404,7 @@ namespace Crest
 
         public void OnSplineChange()
         {
-#if UNITY_EDITOR
             CreateOrUpdateSplineMesh();
-#endif
         }
 
 #if UNITY_EDITOR

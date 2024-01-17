@@ -38,6 +38,9 @@ Another typical use case of splines is to add waves aligned to shorelines.
 Relevant data components will automatically be added to spline points.
 For example if the spline is used with a *RegisterFlowInput* component, the *Spline Point Data Flow* component will be added to spline points which can then be used to configure the flow speed.
 
+Any changes to splines via script require calling *Spline.UpdateSpline*.
+Updating splines has not been optimized for runtime performance so use conservatively.
+
 .. _renderer-mode:
 
 Renderer Mode

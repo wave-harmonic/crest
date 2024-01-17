@@ -25,6 +25,7 @@ namespace Crest
         [Tooltip("Weight multiplier to scale waves."), SerializeField]
         [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _weight = 1f;
+        public float Weight { get => _weight; set => _weight = value; }
 
         public override Vector2 GetData()
         {

@@ -111,15 +111,15 @@ namespace Crest.Spline
 #endif
     }
 
+    public interface IReceiveSplineChangeMessages
+    {
+        void OnSplineChange();
+    }
+
 #if UNITY_EDITOR
     public interface IReceiveSplinePointOnDrawGizmosSelectedMessages
     {
         void OnSplinePointDrawGizmosSelected(SplinePoint point);
-    }
-
-    public interface IReceiveSplineChangeMessages
-    {
-        void OnSplineChange();
     }
 
     [CustomEditor(typeof(SplinePointDataBase), editorForChildClasses: true)]

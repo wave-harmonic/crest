@@ -25,6 +25,7 @@ Changed
    -  Add *Filter By Wavelength* and *Render After Dynamic Waves* options to *Register Anim Waves Input*.
       When both are disabled it will render to all LODs and before *Dynamic Waves*.
       Useful for scaling waves without affecting ripples and wakes.
+   -  Add *Spline* API (*Spline.UpdateSpline* and getters/setters) for updating splines in editor and standalone.
 
 Fixed
 ^^^^^

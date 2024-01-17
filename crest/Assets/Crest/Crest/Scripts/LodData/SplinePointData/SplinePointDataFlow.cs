@@ -27,6 +27,7 @@ namespace Crest
         [Tooltip("Flow velocity (speed of flow in direction of spline). Can be negative to flip direction."), SerializeField]
         [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _flowVelocity = k_defaultSpeed;
+        public float FlowVelocity { get => _flowVelocity; set => _flowVelocity = value; }
 
         public override Vector2 GetData()
         {

@@ -25,6 +25,7 @@ namespace Crest
         [Tooltip("Multiplier for spline radius."), SerializeField]
         [DecoratedField, OnChange(nameof(NotifyOfSplineChange))]
         float _radiusMultiplier = 1f;
+        public float RadiusMultiplier { get => _radiusMultiplier; set => _radiusMultiplier = value; }
 
         // Currently returns (radius multiplier, nothing)
         public override Vector2 GetData()

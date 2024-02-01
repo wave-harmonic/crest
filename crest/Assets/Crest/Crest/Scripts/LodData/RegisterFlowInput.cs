@@ -22,6 +22,9 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
+        [Tooltip("Set to Mesh Filter which will proxy the height when off LOD including flow.")]
+        public MeshFilter _meshFilter;
+
         public override bool Enabled => true;
 
         public override float Wavelength => 0f;
@@ -39,6 +42,16 @@ namespace Crest
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = false;
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (_meshFilter != null && _splineMesh != null)
+            {
+                _meshFilter.sharedMesh = _splineMesh;
+            }
+        }
 
 #if UNITY_EDITOR
         protected override string FeatureToggleName => "_createFlowSim";

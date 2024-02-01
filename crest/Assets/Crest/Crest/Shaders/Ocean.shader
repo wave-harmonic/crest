@@ -309,6 +309,8 @@ Shader "Crest/Ocean"
 				float4 vertex : POSITION;
 #if _HEIGHTPROXY_ON
 				float3 normal : NORMAL;
+				float2 axis : TEXCOORD0;
+				float speed : TEXCOORD2;
 #endif
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -394,44 +396,6 @@ Shader "Crest/Ocean"
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = o.worldPos.xz;
 
-				// Data that needs to be sampled at the undisplaced position
-				if (wt_smallerLod > 0.001)
-				{
-					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
-
-					#if _DEBUGVISUALISE_ANIMATEDWAVES
-					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_smallerLod, 0.0);
-					#endif
-
-					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
-					#endif
-
-					#if _FLOW_ON
-					SampleFlow(_LD_TexArray_Flow, uv_slice_smallerLod, wt_smallerLod, o.flow_shadow.xy);
-					#endif
-				}
-				if (wt_biggerLod > 0.001)
-				{
-					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
-
-					#if _DEBUGVISUALISE_ANIMATEDWAVES
-					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_biggerLod, 0.0);
-					#endif
-
-					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
-					#endif
-
-					#if _FLOW_ON
-					SampleFlow(_LD_TexArray_Flow, uv_slice_biggerLod, wt_biggerLod, o.flow_shadow.xy);
-					#endif
-				}
-
-				// Data that needs to be sampled at the displaced position
-				half seaLevelOffset = 0.0;
-				o.seaLevelDerivs = 0.0;
-
 				float heightWeight0 = wt_smallerLod;
 				float heightWeight1 = wt_biggerLod;
 				if (_LD_SliceIndex == _SliceCount - 1)
@@ -448,6 +412,44 @@ Shader "Crest/Ocean"
 						heightWeight1 = 0.0;
 					}
 				}
+
+				// Data that needs to be sampled at the undisplaced position
+				if (heightWeight0 > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
+
+					#if _DEBUGVISUALISE_ANIMATEDWAVES
+					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_smallerLod, 0.0);
+					#endif
+
+					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, heightWeight0, o.worldPos);
+					#endif
+
+					#if _FLOW_ON
+					SampleFlow(_LD_TexArray_Flow, uv_slice_smallerLod, heightWeight0, o.flow_shadow.xy);
+					#endif
+				}
+				if (heightWeight1 > 0.001)
+				{
+					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
+
+					#if _DEBUGVISUALISE_ANIMATEDWAVES
+					o.debugtint = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice_biggerLod, 0.0);
+					#endif
+
+					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, heightWeight1, o.worldPos);
+					#endif
+
+					#if _FLOW_ON
+					SampleFlow(_LD_TexArray_Flow, uv_slice_biggerLod, heightWeight1, o.flow_shadow.xy);
+					#endif
+				}
+
+				// Data that needs to be sampled at the displaced position
+				half seaLevelOffset = 0.0;
+				o.seaLevelDerivs = 0.0;
 
 				if (heightWeight0 > 0.0001)
 				{
@@ -481,6 +483,8 @@ Shader "Crest/Ocean"
 #if _HEIGHTPROXY_ON
 				o.seaLevelDerivs = 0;
 				seaLevelOffset = 0;
+				const float2 axis = v.axis.y * unity_ObjectToWorld._m00_m20 - v.axis.x * unity_ObjectToWorld._m02_m22;
+				o.flow_shadow.xy = axis * v.speed;
 #endif
 
 				o.worldPos.y += seaLevelOffset;

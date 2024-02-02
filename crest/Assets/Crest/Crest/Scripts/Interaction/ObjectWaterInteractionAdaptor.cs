@@ -24,8 +24,7 @@ namespace Crest
 
         public override Vector3 Velocity => _hasVelocity ? _velocity : Vector3.zero;
 
-        Vector3[] _queryPoints = new Vector3[1];
-        Vector3[] _resultDisps = new Vector3[1];
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         float _height = -float.MaxValue;
 
@@ -42,13 +41,13 @@ namespace Crest
                 return;
             }
 
-            _queryPoints[0] = transform.position;
-            var result = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _resultDisps, null, null);
-            if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(result))
+            _sampleHeightHelper.Init(transform.position, ObjectWidth, true);
+
+            if (_sampleHeightHelper.Sample(out Vector3 displacement, out var _, out var _))
             {
                 _hasWaterData = true;
 
-                _height = OceanRenderer.Instance.SeaLevel + _resultDisps[0].y;
+                _height = OceanRenderer.Instance.SeaLevel + displacement.y;
             }
 
             if (Time.deltaTime > 0.00001f)

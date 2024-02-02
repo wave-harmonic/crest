@@ -7,7 +7,9 @@
 // - Half minGridSize
 
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -18,6 +20,9 @@ namespace Crest
     /// the data and then transferring back the results asynchronously. An exception to this is water surface velocities - these can
     /// not be computed on the GPU and are instead computed on the CPU by retaining last frames' query results and computing finite diffs.
     /// </summary>
+#if CREST_BURST_QUERY
+    [BurstCompile]
+#endif
     public abstract class QueryBase
     {
         protected int _kernelHandle;
@@ -49,16 +54,28 @@ namespace Crest
         public const int MAX_QUERY_COUNT_DEFAULT = 4096;
 
         int _maxQueryCount = MAX_QUERY_COUNT_DEFAULT;
+#if CREST_BURST_QUERY
+        NativeArray<Vector3> _queryPosXZ_minGridSize;
+#else
         Vector3[] _queryPosXZ_minGridSize = new Vector3[MAX_QUERY_COUNT_DEFAULT];
+#endif
 
         /// <summary>
         /// Holds information about all query points. Maps from unique hash code to position in point array.
         /// </summary>
+#if CREST_BURST_QUERY
+        struct SegmentRegistrar
+#else
         class SegmentRegistrar
+#endif
         {
             // Map from guids to (segment start index, segment end index, frame number when query was made)
+#if CREST_BURST_QUERY
+            public NativeParallelHashMap<int, Vector3Int> _segments;
+#else
             public Dictionary<int, Vector3Int> _segments = new Dictionary<int, Vector3Int>();
-            public int _numQueries = 0;
+#endif
+            public int _numQueries;
         }
 
         /// <summary>
@@ -75,13 +92,20 @@ namespace Crest
             public int _segmentRelease = 0;
             public int _segmentAcquire = 0;
 
+#if CREST_BURST_QUERY
+            public ref SegmentRegistrar Current => ref _segments[_segmentAcquire];
+#else
             public SegmentRegistrar Current => _segments[_segmentAcquire];
+#endif
 
             public SegmentRegistrarRingBuffer()
             {
                 for (int i = 0; i < _segments.Length; i++)
                 {
                     _segments[i] = new SegmentRegistrar();
+#if CREST_BURST_QUERY
+                    _segments[i]._segments = new NativeParallelHashMap<int, Vector3Int>(16, Allocator.Persistent);
+#endif
                 }
             }
 
@@ -183,6 +207,9 @@ namespace Crest
                 {
                     _segments[i]._numQueries = 0;
                     _segments[i]._segments.Clear();
+#if CREST_BURST_QUERY
+                    _segments[i]._segments.Dispose();
+#endif
                 }
             }
         }
@@ -191,17 +218,29 @@ namespace Crest
 
         NativeArray<Vector3> _queryResults;
         float _queryResultsTime = -1f;
+#if CREST_BURST_QUERY
+        NativeParallelHashMap<int, Vector3Int> _resultSegments;
+#else
         Dictionary<int, Vector3Int> _resultSegments;
+#endif
 
         NativeArray<Vector3> _queryResultsLast;
         float _queryResultsTimeLast = -1f;
+#if CREST_BURST_QUERY
+        NativeParallelHashMap<int, Vector3Int> _resultSegmentsLast;
+#else
         Dictionary<int, Vector3Int> _resultSegmentsLast;
+#endif
 
         struct ReadbackRequest
         {
             public AsyncGPUReadbackRequest _request;
             public float _dataTimestamp;
+#if CREST_BURST_QUERY
+            public NativeParallelHashMap<int, Vector3Int> _segments;
+#else
             public Dictionary<int, Vector3Int> _segments;
+#endif
         }
 
         List<ReadbackRequest> _requests = new List<ReadbackRequest>();
@@ -223,8 +262,17 @@ namespace Crest
             if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
             {
                 _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
+#if CREST_BURST_QUERY
+                _queryPosXZ_minGridSize = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent);
+            }
+            else
+            {
+                _queryPosXZ_minGridSize = new NativeArray<Vector3>(MAX_QUERY_COUNT_DEFAULT, Allocator.Persistent);
+            }
+#else
                 _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
             }
+#endif
 
             _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
             _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
@@ -248,6 +296,169 @@ namespace Crest
         /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
         /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
         /// </summary>
+#if CREST_BURST_QUERY
+        protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, NativeArray<Vector3> queryPoints, NativeArray<Vector3> queryNormals, bool useNormals)
+        {
+            unsafe
+            {
+                var args = new UQPArgs()
+                {
+                    i_ownerHash = i_ownerHash,
+                    i_minSpatialLength = i_minSpatialLength,
+                    queryPoints = queryPoints,
+                    queryNormals = queryNormals,
+                    useNormals = (byte)(useNormals ? 1 : 0),
+                    sqrrbNumQueries = _segmentRegistrarRingBuffer.Current._numQueries,
+                    _maxQueryCount = _maxQueryCount,
+                    sqrrbCurrentSegments = _segmentRegistrarRingBuffer.Current._segments,
+                    _queryPosXZ_minGridSize = _queryPosXZ_minGridSize
+                };
+                var ret = UpdateQueryPoints(UnsafeUtility.AddressOf(ref args));
+
+                _segmentRegistrarRingBuffer.Current._numQueries = args.sqrrbNumQueries;
+                _segmentRegistrarRingBuffer.Current._segments = args.sqrrbCurrentSegments;
+                _queryPosXZ_minGridSize = args._queryPosXZ_minGridSize;
+                return ret;
+            }
+        }
+
+        /*
+         * The below little dance is required to pass native collections as arguments to burst-compiled static functions
+         * on the main thread in unity 22.1 and below. It mirrors what the job system does internally for job structs.
+         * Basically, in 22.1 and below, native collections all have DisposeSentinel objects in them, which
+         * _technically_ makes them managed objects, and which Burst will therefore not accept as arguments to a
+         * Burst-entrypoint static function.
+         *
+         * However, Burst can compile code *using* native collections just fine, which is how bursted jobs can work.
+         * We just need to trick it into having access to them, which we do via UnsafeUtility.AsRef.
+         *
+         * The only difference between what this does and what the job system does is that the job system sets the
+         * disposesentinel fields to null when it copies the job struct to the worker threads, whereas we aren't copying
+         * them anyway, so we just leave them alone.
+         *
+         * In 22.2, DisposeSentinel is no longer a class, and so this can likely be revisited.
+         */
+        struct UQPArgs
+        {
+            public int i_ownerHash;
+            public float i_minSpatialLength;
+            public NativeArray<Vector3> queryPoints;
+            public NativeArray<Vector3> queryNormals;
+            public byte useNormals;
+            public int sqrrbNumQueries;
+            public int _maxQueryCount;
+            public NativeParallelHashMap<int, Vector3Int> sqrrbCurrentSegments;
+            public NativeArray<Vector3> _queryPosXZ_minGridSize;
+        }
+
+        [BurstCompile]
+        protected static unsafe bool UpdateQueryPoints(void* args)
+        {
+            ref var realargs = ref UnsafeUtility.AsRef<UQPArgs>(args);
+
+            if (realargs.queryPoints.Length + realargs.sqrrbNumQueries > realargs._maxQueryCount)
+            {
+                Debug.LogError($"Crest: Max query count ({realargs._maxQueryCount}) exceeded, increase the max query count in the Animated Waves Settings to support a higher number of queries.");
+                return false;
+            }
+
+            var segmentRetrieved = false;
+
+            // We'll send in 3 points to get normals
+            var countPts = realargs.queryPoints.Length;
+            var countNorms = (realargs.useNormals != 0 ? realargs.queryNormals.Length : 0);
+            var countTotal = countPts + countNorms * 3;
+
+            if (realargs.sqrrbCurrentSegments.TryGetValue(realargs.i_ownerHash, out var segment))
+            {
+                var segmentSize = segment.y - segment.x + 1;
+                if (segmentSize == countTotal)
+                {
+                    // Update frame count
+                    segment.z = Time.frameCount;
+                    realargs.sqrrbCurrentSegments[realargs.i_ownerHash] = segment;
+
+                    segmentRetrieved = true;
+                }
+                else
+                {
+                    realargs.sqrrbCurrentSegments.Remove(realargs.i_ownerHash);
+                }
+            }
+
+            if (countTotal == 0)
+            {
+                // No query data
+                return false;
+            }
+
+            if (!segmentRetrieved)
+            {
+                if (realargs.sqrrbCurrentSegments.Count() >= s_maxGuids)
+                {
+                    Debug.LogError("Crest: Too many guids registered with CollProviderCompute. Increase s_maxGuids.");
+                    return false;
+                }
+
+                segment.x = realargs.sqrrbNumQueries;
+                segment.y = segment.x + countTotal - 1;
+                segment.z = Time.frameCount;
+                realargs.sqrrbCurrentSegments.Add(realargs.i_ownerHash, segment);
+
+                realargs.sqrrbNumQueries += countTotal;
+
+                //Debug.Log("Crest: Added points for " + guid);
+            }
+
+            // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
+            // in the last LOD - then this is the best we can do.
+            float minWavelength = realargs.i_minSpatialLength / 2f;
+            float samplesPerWave = 2f;
+            float minGridSize = minWavelength / samplesPerWave;
+
+            if (countPts + segment.x > realargs._queryPosXZ_minGridSize.Length)
+            {
+                Debug.LogError("Crest: Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.");
+                return false;
+            }
+
+            Vector3 tmp;
+            for (int pointi = 0; pointi < countPts; pointi++)
+            {
+                tmp = realargs._queryPosXZ_minGridSize[pointi + segment.x];
+                tmp.x = realargs.queryPoints[pointi].x;
+                tmp.y = realargs.queryPoints[pointi].z;
+                tmp.z = minGridSize;
+                realargs._queryPosXZ_minGridSize[pointi + segment.x] = tmp;
+            }
+
+            // To compute each normal, post 3 query points
+            for (int normi = 0; normi < countNorms; normi++)
+            {
+                var arrIdx = segment.x + countPts + 3 * normi;
+
+                tmp = realargs._queryPosXZ_minGridSize[arrIdx + 0];
+                tmp.x = realargs.queryNormals[normi].x;
+                tmp.y = realargs.queryNormals[normi].z;
+                tmp.z = minGridSize;
+                realargs._queryPosXZ_minGridSize[arrIdx + 0] = tmp;
+
+                tmp = realargs._queryPosXZ_minGridSize[arrIdx + 1];
+                tmp.x = realargs.queryNormals[normi].x + s_finiteDiffDx;
+                tmp.y = realargs.queryNormals[normi].z;
+                tmp.z = minGridSize;
+                realargs._queryPosXZ_minGridSize[arrIdx + 1] = tmp;
+
+                tmp = realargs._queryPosXZ_minGridSize[arrIdx + 2];
+                tmp.x = realargs.queryNormals[normi].x;
+                tmp.y = realargs.queryNormals[normi].z + s_finiteDiffDx;
+                tmp.z = minGridSize;
+                realargs._queryPosXZ_minGridSize[arrIdx + 2] = tmp;
+            }
+
+            return true;
+        }
+#else
         protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, Vector3[] queryPoints, Vector3[] queryNormals)
         {
             if (queryPoints.Length + _segmentRegistrarRingBuffer.Current._numQueries > _maxQueryCount)
@@ -343,6 +554,7 @@ namespace Crest
 
             return true;
         }
+#endif
 
         /// <summary>
         /// Signal that we're no longer servicing queries. Note this leaves an air bubble in the query buffer.
@@ -364,9 +576,17 @@ namespace Crest
         /// <summary>
         /// Copy out displacements, heights, normals. Pass null if info is not required.
         /// </summary>
+#if CREST_BURST_QUERY
+        protected bool RetrieveResults(int guid, NativeArray<Vector3> displacements, NativeArray<float> heights, NativeArray<Vector3> normals)
+#else
         protected bool RetrieveResults(int guid, Vector3[] displacements, float[] heights, Vector3[] normals)
+#endif
         {
+#if CREST_BURST_QUERY
+            if (!_resultSegments.IsCreated)
+#else
             if (_resultSegments == null)
+#endif
             {
                 return false;
             }
@@ -379,18 +599,33 @@ namespace Crest
             }
 
             var countPoints = 0;
+#if CREST_BURST_QUERY
+            if (displacements.Length > 0) countPoints = displacements.Length;
+            if (heights.Length > 0) countPoints = heights.Length;
+            if (displacements.Length > 0 && heights.Length > 0) Debug.Assert(displacements.Length == heights.Length);
+            var countNorms = normals.Length;
+#else
             if (displacements != null) countPoints = displacements.Length;
             if (heights != null) countPoints = heights.Length;
             if (displacements != null && heights != null) Debug.Assert(displacements.Length == heights.Length);
             var countNorms = (normals != null ? normals.Length : 0);
+#endif
 
             if (countPoints > 0)
             {
                 // Retrieve Results
+#if CREST_BURST_QUERY
+                if (displacements.Length > 0) _queryResults.Slice(segment.x, countPoints).CopyTo(displacements);
+#else
                 if (displacements != null) _queryResults.Slice(segment.x, countPoints).CopyTo(displacements);
+#endif
 
                 // Retrieve Result heights
+#if CREST_BURST_QUERY
+                if (heights.Length > 0)
+#else
                 if (heights != null)
+#endif
                 {
                     var seaLevel = OceanRenderer.Instance.SeaLevel;
                     for (int i = 0; i < countPoints; i++)
@@ -412,8 +647,9 @@ namespace Crest
                     var px = dx + _queryResults[firstNorm + 3 * i + 1];
                     var pz = dz + _queryResults[firstNorm + 3 * i + 2];
 
-                    normals[i] = Vector3.Cross(p - px, p - pz).normalized;
-                    normals[i].y *= -1f;
+                    var tmp = Vector3.Cross(p - px, p - pz).normalized;
+                    tmp.y *= -1f;
+                    normals[i] = tmp;
                 }
             }
 
@@ -424,6 +660,77 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
+#if CREST_BURST_QUERY
+        protected unsafe int CalculateVelocities(int i_ownerHash, NativeArray<Vector3> results)
+        {
+            var args = new CVArgs()
+            {
+                i_ownerHash = i_ownerHash,
+                _queryResultsTime = _queryResultsTime,
+                _queryResultsTimeLast = _queryResultsTimeLast,
+                _resultSegments = _resultSegments,
+                _resultSegmentsLast = _resultSegmentsLast,
+                results = results,
+                _queryResults = _queryResults,
+                _queryResultsLast = _queryResultsLast
+            };
+            return CalculateVelocities(UnsafeUtility.AddressOf(ref args));
+        }
+
+        // See comment on UQPArgs as to why we are doing this dance.
+        struct CVArgs
+        {
+            public int i_ownerHash;
+            public float _queryResultsTime;
+            public float _queryResultsTimeLast;
+            public NativeParallelHashMap<int, Vector3Int> _resultSegments;
+            public NativeParallelHashMap<int, Vector3Int> _resultSegmentsLast;
+            public NativeArray<Vector3> results;
+            public NativeArray<Vector3> _queryResults;
+            public NativeArray<Vector3> _queryResultsLast;
+        }
+
+        [BurstCompile]
+        protected static unsafe int CalculateVelocities(void* args)
+        {
+            ref var realargs = ref UnsafeUtility.AsRef<CVArgs>(args);
+            // Need at least 2 returned results to do finite difference
+            if (realargs._queryResultsTime < 0f || realargs._queryResultsTimeLast < 0f)
+            {
+                return 1;
+            }
+
+            if (!realargs._resultSegments.TryGetValue(realargs.i_ownerHash, out var segment))
+            {
+                return (int)QueryStatus.RetrieveFailed;
+            }
+
+            if (!realargs._resultSegmentsLast.TryGetValue(realargs.i_ownerHash, out var segmentLast))
+            {
+                return (int)QueryStatus.NotEnoughDataForVels;
+            }
+
+            if ((segment.y - segment.x) != (segmentLast.y - segmentLast.x))
+            {
+                // Number of queries changed - can't handle that
+                return (int)QueryStatus.VelocityDataInvalidated;
+            }
+
+            var dt = realargs._queryResultsTime - realargs._queryResultsTimeLast;
+            if (dt < 0.0001f)
+            {
+                return (int)QueryStatus.InvalidDtForVelocity;
+            }
+
+            var count = realargs.results.Length;
+            for (var i = 0; i < count; i++)
+            {
+                realargs.results[i] = (realargs._queryResults[i + segment.x] - realargs._queryResultsLast[i + segmentLast.x]) / dt;
+            }
+
+            return 0;
+        }
+#else
         protected int CalculateVelocities(int i_ownerHash, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
@@ -462,6 +769,7 @@ namespace Crest
 
             return 0;
         }
+#endif
 
         public void UpdateQueries()
         {
@@ -554,19 +862,35 @@ namespace Crest
             _queryResults.Dispose();
             _queryResultsLast.Dispose();
 
+#if CREST_BURST_QUERY
+            _queryPosXZ_minGridSize.Dispose();
+#endif
+
             _segmentRegistrarRingBuffer.ClearAll();
         }
 
+#if CREST_BURST_QUERY
+        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels, bool useNormals)
+#else
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+#endif
         {
             var result = (int)QueryStatus.OK;
 
+#if CREST_BURST_QUERY
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, i_queryPoints, useNormals))
+#else
             if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+#endif
             {
                 result |= (int)QueryStatus.PostFailed;
             }
 
+#if CREST_BURST_QUERY
+            if (!RetrieveResults(i_ownerHash, o_resultDisps, default, o_resultNorms))
+#else
             if (!RetrieveResults(i_ownerHash, o_resultDisps, null, o_resultNorms))
+#endif
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
@@ -584,7 +908,11 @@ namespace Crest
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
         }
 
+#if CREST_BURST_QUERY
+        public int ResultGuidCount => _resultSegments.Count();
+#else
         public int ResultGuidCount => _resultSegments != null ? _resultSegments.Count : 0;
+#endif
 
         public int RequestCount => _requests != null ? _requests.Count : 0;
     }

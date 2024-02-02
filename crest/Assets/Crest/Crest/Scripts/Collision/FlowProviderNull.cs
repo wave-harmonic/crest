@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -11,7 +12,11 @@ namespace Crest
     /// </summary>
     public class FlowProviderNull : IFlowProvider
     {
+#if CREST_BURST_QUERY
+        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultFlows)
+#else
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultFlows)
+#endif
         {
             if (o_resultFlows != null)
             {

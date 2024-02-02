@@ -398,7 +398,7 @@ Shader "Crest/Ocean"
 
 				float heightWeight0 = wt_smallerLod;
 				float heightWeight1 = wt_biggerLod;
-				if (_LD_SliceIndex == _SliceCount - 1)
+				if (_LD_SliceIndex == (uint)_SliceCount - 1)
 				{
 					if (lodAlpha < 0.99)
 					{

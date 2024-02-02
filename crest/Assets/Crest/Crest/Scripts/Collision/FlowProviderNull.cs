@@ -14,20 +14,17 @@ namespace Crest
     {
 #if CREST_BURST_QUERY
         public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultFlows)
-#else
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultFlows)
-#endif
         {
-            if (o_resultFlows != null)
-            {
-                for (int i = 0; i < o_resultFlows.Length; i++)
-                {
-                    o_resultFlows[i] = Vector3.zero;
-                }
-            }
-
+            for (int i = 0; i < o_resultFlows.Length; i++) o_resultFlows[i] = Vector3.zero;
             return 0;
         }
+#else
+        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultFlows)
+        {
+            for (int i = 0; i < o_resultFlows?.Length; i++) o_resultFlows[i] = Vector3.zero;
+            return 0;
+        }
+#endif
 
         public bool RetrieveSucceeded(int queryStatus)
         {

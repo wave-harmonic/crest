@@ -123,6 +123,15 @@ namespace Crest
 #endif
         }
 
+#if CREST_BURST_QUERY
+        void OnDestroy()
+        {
+            _queryPoints.Dispose();
+            _queryResultDisps.Dispose();
+            _queryResultVels.Dispose();
+        }
+#endif
+
         void CalcTotalWeight()
         {
             _totalWeight = 0f;

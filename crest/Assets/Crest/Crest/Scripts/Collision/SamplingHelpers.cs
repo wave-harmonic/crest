@@ -31,7 +31,9 @@ namespace Crest
         static NativeArray<Vector3> _tmpQueryResult;
         static NativeArray<Vector3> _tmpQueryResultNormal;
         static NativeArray<Vector3> _tmpQueryResultVel;
+#if UNITY_EDITOR
         private static bool HaveRegisteredDomainUnload = false;
+#endif
 #else
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];
@@ -264,7 +266,9 @@ namespace Crest
         // See comment on SampleHeightHelper about why these are static and more.
         private static NativeArray<Vector3> _tmpQueryPos;
         private static NativeArray<Vector3> _tmpQueryResult;
+#if UNITY_EDITOR
         private static bool HaveRegisteredDomainUnload = false;
+#endif
 #else
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];

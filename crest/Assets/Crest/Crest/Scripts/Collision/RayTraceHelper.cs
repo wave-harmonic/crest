@@ -48,13 +48,19 @@ namespace Crest
             }
 
 #if CREST_BURST_QUERY
-            if (_queryPos.IsCreated) _queryPos.Dispose();
             _queryPos = new NativeArray<Vector3>(stepCount, Allocator.Persistent);
-            if (_queryResult.IsCreated) _queryResult.Dispose();
             _queryResult = new NativeArray<Vector3>(stepCount, Allocator.Persistent);
 #else
             _queryPos = new Vector3[stepCount];
             _queryResult = new Vector3[stepCount];
+#endif
+        }
+
+        public void Dispose()
+        {
+#if CREST_BURST_QUERY
+            _queryPos.Dispose();
+            _queryResult.Dispose();
 #endif
         }
 

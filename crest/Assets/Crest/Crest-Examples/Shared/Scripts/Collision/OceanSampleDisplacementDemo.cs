@@ -43,12 +43,20 @@ namespace Crest.Examples
         float _samplesRadius = 5f;
 
 #if CREST_BURST_QUERY
-        void Start()
+        void OnEnable()
         {
             _markerPos = new NativeArray<Vector3>(3, Allocator.Persistent);
             _resultDisps = new NativeArray<Vector3>(3, Allocator.Persistent);
             _resultNorms = new NativeArray<Vector3>(3, Allocator.Persistent);
             _resultVels = new NativeArray<Vector3>(3, Allocator.Persistent);
+        }
+
+        void OnDisable()
+        {
+            _markerPos.Dispose();
+            _resultDisps.Dispose();
+            _resultNorms.Dispose();
+            _resultVels.Dispose();
         }
 #endif
 

@@ -264,6 +264,7 @@ namespace Crest
         // See comment on SampleHeightHelper about why these are static and more.
         private static NativeArray<Vector3> _tmpQueryPos;
         private static NativeArray<Vector3> _tmpQueryResult;
+        private static bool HaveRegisteredDomainUnload = false;
 #else
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];
@@ -287,7 +288,28 @@ namespace Crest
             _queryPos[0] = i_queryPos;
 #endif
             _minLength = i_minLength;
+
+#if UNITY_EDITOR
+#if CREST_BURST_QUERY
+            // If we do this registration on every init, it wastes lots of time and garbage. But if we never do it,
+            // we leak memory. So, do it once if we can't tell that we've done it before.
+            if (!HaveRegisteredDomainUnload)
+            {
+                System.AppDomain.CurrentDomain.DomainUnload -= OnDomainUnload;
+                System.AppDomain.CurrentDomain.DomainUnload += OnDomainUnload;
+                HaveRegisteredDomainUnload = true;
+            }
+#endif
+#endif
         }
+
+#if CREST_BURST_QUERY
+        static void OnDomainUnload(object sender, System.EventArgs e)
+        {
+            _tmpQueryPos.Dispose();
+            _tmpQueryResult.Dispose();
+        }
+#endif
 
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().

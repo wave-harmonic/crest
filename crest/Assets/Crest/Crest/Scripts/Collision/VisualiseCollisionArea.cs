@@ -51,6 +51,16 @@ namespace Crest
         Vector3[] _samplePositions;
 #endif
 
+#if CREST_BURST_QUERY
+        void OnDisable()
+        {
+            if (_resultHeights.IsCreated) _resultHeights.Dispose();
+            if (_resultDisps.IsCreated) _resultDisps.Dispose();
+            if (_resultNorms.IsCreated) _resultNorms.Dispose();
+            if (_samplePositions.IsCreated) _samplePositions.Dispose();
+        }
+#endif
+
         void Update()
         {
             if (OceanRenderer.Instance == null || OceanRenderer.Instance.CollisionProvider == null)
@@ -61,6 +71,7 @@ namespace Crest
             if (_resultHeights == null || _resultHeights.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
+                if (_resultHeights.IsCreated) _resultHeights.Dispose();
                 _resultHeights = new NativeArray<float>(_steps * _steps, Allocator.Persistent);
 #else
                 _resultHeights = new float[_steps * _steps];
@@ -69,6 +80,7 @@ namespace Crest
             if (_resultDisps == null || _resultDisps.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
+                if (_resultDisps.IsCreated) _resultDisps.Dispose();
                 _resultDisps = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
 #else
                 _resultDisps = new Vector3[_steps * _steps];
@@ -77,6 +89,7 @@ namespace Crest
             if (_resultNorms == null || _resultNorms.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
+                if (_resultNorms.IsCreated) _resultNorms.Dispose();
                 _resultNorms = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
 #else
                 _resultNorms = new Vector3[_steps * _steps];
@@ -90,6 +103,7 @@ namespace Crest
             if (_samplePositions == null || _samplePositions.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
+                if (_samplePositions.IsCreated) _samplePositions.Dispose();
                 _samplePositions = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
 #else
                 _samplePositions = new Vector3[_steps * _steps];

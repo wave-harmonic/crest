@@ -182,8 +182,7 @@ namespace Crest
             _queryPoints[_forcePoints.Length] = transform.position;
 
 #if CREST_BURST_QUERY
-            var oResultNorms = new NativeArray<Vector3>();
-            collProvider.Query(GetHashCode(), ObjectWidth, ref _queryPoints, ref _queryResultDisps, ref oResultNorms, ref _queryResultVels, false);
+            collProvider.Query(GetHashCode(), ObjectWidth, ref _queryPoints, ref _queryResultDisps, ref QueryHelper.s_Skip, ref _queryResultVels);
 #else
             collProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _queryResultDisps, null, _queryResultVels);
 #endif

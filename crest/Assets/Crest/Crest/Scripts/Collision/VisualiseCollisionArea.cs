@@ -112,8 +112,7 @@ namespace Crest
             if (_useDisplacements)
             {
 #if CREST_BURST_QUERY
-                var oResultVels = new NativeArray<Vector3>();
-                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, ref _samplePositions, ref _resultDisps, ref _resultNorms, ref oResultVels, _useNormals)))
+                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, ref _samplePositions, ref _resultDisps, ref _useNormals ? ref _resultNorms : ref QueryHelper.s_Skip, ref QueryHelper.s_Skip)))
 #else
                 if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultDisps, _useNormals ? _resultNorms : null, null)))
 #endif
@@ -136,8 +135,7 @@ namespace Crest
             else
             {
 #if CREST_BURST_QUERY
-                var oResultVels = new NativeArray<Vector3>();
-                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, ref _samplePositions, ref _resultHeights, ref _resultNorms, ref oResultVels)))
+                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, ref _samplePositions, ref _resultHeights, ref _useNormals ? ref _resultNorms : ref QueryHelper.s_Skip, ref QueryHelper.s_Skip)))
 #else
                 if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, _useNormals ? _resultNorms : null, null)))
 #endif

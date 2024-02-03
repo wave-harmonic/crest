@@ -766,7 +766,7 @@ namespace Crest
             throw new System.NotImplementedException(k_NotSupportedMessage);
         }
 
-        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels, bool useNormals)
+        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels)
         {
             throw new System.NotImplementedException(k_NotSupportedMessage);
         }

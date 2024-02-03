@@ -109,10 +109,8 @@ namespace Crest
             }
 
 #if CREST_BURST_QUERY
-            var oResultNorms = new NativeArray<Vector3>();
-            var oResultVels = new NativeArray<Vector3>();
             _tmpQueryPos[0] = _queryPos;
-            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref oResultNorms, ref oResultVels, false);
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref QueryHelper.s_Skip, ref QueryHelper.s_Skip);
             _queryResult = _tmpQueryResult[0];
 #else
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
@@ -144,9 +142,8 @@ namespace Crest
             }
 
 #if CREST_BURST_QUERY
-            NativeArray<Vector3> oResultVels = new NativeArray<Vector3>();
             _tmpQueryPos[0] = _queryPos;
-            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref oResultVels, true);
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref QueryHelper.s_Skip);
             _queryResult = _tmpQueryResult[0];
             _queryResultNormal = _tmpQueryResultNormal[0];
 #else
@@ -183,7 +180,7 @@ namespace Crest
 
 #if CREST_BURST_QUERY
             _tmpQueryPos[0] = _queryPos;
-            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref _tmpQueryResultVel, true);
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref _tmpQueryResultVel);
             _queryResult = _tmpQueryResult[0];
             _queryResultNormal = _tmpQueryResultNormal[0];
             _queryResultVel = _tmpQueryResultVel[0];
@@ -225,7 +222,7 @@ namespace Crest
 
 #if CREST_BURST_QUERY
             _tmpQueryPos[0] = _queryPos;
-            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref _tmpQueryResultVel, true);
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref _tmpQueryResultVel);
             _queryResult = _tmpQueryResult[0];
             _queryResultNormal = _tmpQueryResultNormal[0];
             _queryResultVel = _tmpQueryResultVel[0];

@@ -15,6 +15,17 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+#if CREST_BURST_QUERY
+    public static class QueryHelper
+    {
+        /// <summary>
+        /// Pass this to query methods where you want to skip computing/fetching the result.
+        /// Do not edit this value or use elsewhere.
+        /// </summary>
+        public static NativeArray<Vector3> s_Skip = default;
+    }
+#endif
+
     /// <summary>
     /// Provides heights and other physical data about the water surface. Works by uploading query positions to GPU and computing
     /// the data and then transferring back the results asynchronously. An exception to this is water surface velocities - these can
@@ -870,7 +881,7 @@ namespace Crest
         }
 
 #if CREST_BURST_QUERY
-        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels, bool useNormals)
+        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels)
 #else
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
 #endif
@@ -878,9 +889,19 @@ namespace Crest
             var result = (int)QueryStatus.OK;
 
 #if CREST_BURST_QUERY
-            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, i_queryPoints, useNormals))
+            var useDisplacement = o_resultDisps.Length > 0;
+            var useNormal = o_resultNorms.Length > 0;
+            var useVelocity = o_resultVels.Length > 0;
 #else
-            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+            var useDisplacement = o_resultDisps?.Length > 0;
+            var useNormal = o_resultNorms?.Length > 0;
+            var useVelocity = o_resultVels?.Length > 0;
+#endif
+
+#if CREST_BURST_QUERY
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, i_queryPoints, useNormal))
+#else
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, useNormal ? i_queryPoints : null))
 #endif
             {
                 result |= (int)QueryStatus.PostFailed;
@@ -895,7 +916,7 @@ namespace Crest
                 result |= (int)QueryStatus.RetrieveFailed;
             }
 
-            if (o_resultVels != null)
+            if (useVelocity)
             {
                 result |= CalculateVelocities(i_ownerHash, o_resultVels);
             }

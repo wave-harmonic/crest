@@ -233,7 +233,7 @@ namespace Crest
 #endif
         {
             // Return data - get segment from finished jobs
-            if (o_resultHeights != null && _queryDataHeights._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
+            if (_queryDataHeights._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
             {
                 // Copy results to output. Could be avoided if query api was changed to NAs.
                 for (int i = 0; i < o_resultHeights.Length; i++)
@@ -253,7 +253,7 @@ namespace Crest
 #endif
         {
             // Return data - get segment from finished jobs
-            if (o_resultDisps != null && _queryDataDisps._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
+            if (_queryDataDisps._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
             {
                 // Copy results to output. Could be avoided if query api was changed to NAs.
                 Vector3 disp;
@@ -276,7 +276,7 @@ namespace Crest
         bool RetrieveNorms(int i_ownerHash, Vector3[] o_resultNorms)
 #endif
         {
-            if (o_resultNorms != null && _queryDataNorms._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
+            if (_queryDataNorms._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
             {
                 // Copy results to output. Could be avoided if query api was changed to NAs.
                 Vector3 norm;
@@ -299,7 +299,7 @@ namespace Crest
         bool RetrieveVels(int i_ownerHash, Vector3[] o_resultVels)
 #endif
         {
-            if (o_resultVels != null && _queryDataVels._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
+            if (_queryDataVels._segmentRegistryQueriesResults.TryGetValue(i_ownerHash, out var computedQuerySegment))
             {
                 // Copy results to output. Could be avoided if query api was changed to NAs.
                 Vector3 vel = Vector3.zero;
@@ -330,11 +330,21 @@ namespace Crest
 #endif
             )
         {
-            var dataCopiedOutHeights = RetrieveHeights(i_ownerHash, o_resultHeights);
-            var dataCopiedOutNorms = RetrieveNorms(i_ownerHash, o_resultNorms);
-            var dataCopiedOutVels = RetrieveVels(i_ownerHash, o_resultVels);
+#if CREST_BURST_QUERY
+            var useHeight = o_resultHeights.Length > 0;
+            var useNormal = o_resultNorms.Length > 0;
+            var useVelocity = o_resultVels.Length > 0;
+#else
+            var useHeight = o_resultHeights?.Length > 0;
+            var useNormal = o_resultNorms?.Length > 0;
+            var useVelocity = o_resultVels?.Length > 0;
+#endif
 
-            if (o_resultHeights != null)
+            var dataCopiedOutHeights = !useHeight || RetrieveHeights(i_ownerHash, o_resultHeights);
+            var dataCopiedOutNorms = !useNormal || RetrieveNorms(i_ownerHash, o_resultNorms);
+            var dataCopiedOutVels = !useVelocity || RetrieveVels(i_ownerHash, o_resultVels);
+
+            if (useHeight)
             {
 #if CREST_BURST_QUERY
                 _queryDataHeights.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
@@ -342,7 +352,7 @@ namespace Crest
                 _queryDataHeights.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
 #endif
             }
-            if (o_resultNorms != null)
+            if (useNormal)
             {
 #if CREST_BURST_QUERY
                 _queryDataNorms.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
@@ -350,7 +360,7 @@ namespace Crest
                 _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
 #endif
             }
-            if (o_resultVels != null)
+            if (useVelocity)
             {
 #if CREST_BURST_QUERY
                 _queryDataVels.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
@@ -359,9 +369,7 @@ namespace Crest
 #endif
             }
 
-            var allCopied = (dataCopiedOutHeights || o_resultHeights == null)
-                && (dataCopiedOutNorms || o_resultNorms == null)
-                && (dataCopiedOutVels || o_resultVels == null);
+            var allCopied = dataCopiedOutHeights && dataCopiedOutNorms && dataCopiedOutVels;
 
             return allCopied ? (int)QueryStatus.Success : (int)QueryStatus.ResultsNotReadyYet;
         }
@@ -373,8 +381,7 @@ namespace Crest
             ref NativeArray<Vector3> i_queryPoints,
             ref NativeArray<Vector3> o_resultDisps,
             ref NativeArray<Vector3> o_resultNorms,
-            ref NativeArray<Vector3> o_resultVels,
-            bool useNormals
+            ref NativeArray<Vector3> o_resultVels
 #else
             Vector3[] i_queryPoints,
             Vector3[] o_resultDisps,
@@ -383,11 +390,21 @@ namespace Crest
 #endif
             )
         {
-            var dataCopiedOutDisps = RetrieveDisps(i_ownerHash, o_resultDisps);
-            var dataCopiedOutNorms = RetrieveNorms(i_ownerHash, o_resultNorms);
-            var dataCopiedOutVels = RetrieveVels(i_ownerHash, o_resultVels);
+#if CREST_BURST_QUERY
+            var useDisplacement = o_resultDisps.Length > 0;
+            var useNormal = o_resultNorms.Length > 0;
+            var useVelocity = o_resultVels.Length > 0;
+#else
+            var useDisplacement = o_resultDisps?.Length > 0;
+            var useNormal = o_resultNorms?.Length > 0;
+            var useVelocity = o_resultVels?.Length > 0;
+#endif
 
-            if (o_resultDisps != null)
+            var dataCopiedOutDisps = !useDisplacement || RetrieveDisps(i_ownerHash, o_resultDisps);
+            var dataCopiedOutNorms = !useNormal || RetrieveNorms(i_ownerHash, o_resultNorms);
+            var dataCopiedOutVels = !useVelocity || RetrieveVels(i_ownerHash, o_resultVels);
+
+            if (useDisplacement)
             {
 #if CREST_BURST_QUERY
                 _queryDataDisps.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
@@ -395,7 +412,7 @@ namespace Crest
                 _queryDataDisps.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
 #endif
             }
-            if (o_resultNorms != null)
+            if (useNormal)
             {
 #if CREST_BURST_QUERY
                 _queryDataNorms.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
@@ -403,7 +420,7 @@ namespace Crest
                 _queryDataNorms.RegisterQueryPoints(i_ownerHash, i_queryPoints, 1 - _dataBeingUsedByJobs);
 #endif
             }
-            if (o_resultVels != null)
+            if (useVelocity)
             {
 #if CREST_BURST_QUERY
                 _queryDataVels.RegisterQueryPoints(i_ownerHash, ref i_queryPoints, 1 - _dataBeingUsedByJobs);
@@ -412,9 +429,7 @@ namespace Crest
 #endif
             }
 
-            var allCopied = (dataCopiedOutDisps || o_resultDisps == null)
-                && (dataCopiedOutNorms || o_resultNorms == null)
-                && (dataCopiedOutVels || o_resultVels == null);
+            var allCopied = dataCopiedOutDisps && dataCopiedOutNorms && dataCopiedOutVels;
 
             return allCopied ? (int)QueryStatus.Success : (int)QueryStatus.ResultsNotReadyYet;
         }

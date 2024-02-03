@@ -27,9 +27,7 @@ namespace Crest
 #if CREST_BURST_QUERY
         public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultFlows)
         {
-            var norms = default(NativeArray<Vector3>);
-            var vels = default(NativeArray<Vector3>);
-            return Query(i_ownerHash, i_minSpatialLength, ref i_queryPoints, ref o_resultFlows, ref norms, ref vels, false);
+            return Query(i_ownerHash, i_minSpatialLength, ref i_queryPoints, ref o_resultFlows, ref QueryHelper.s_Skip, ref QueryHelper.s_Skip);
         }
 #else
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultFlows)

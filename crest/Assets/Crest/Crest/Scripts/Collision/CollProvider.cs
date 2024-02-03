@@ -39,8 +39,7 @@ namespace Crest
         /// <param name="o_resultNorms">Water normals at the query positions. Pass null if this information is not required.</param>
         /// <param name="o_resultVels">Water surface velocities at the query positions. Pass null if this information is not required.</param>
 #if CREST_BURST_QUERY
-        /// <param name="useNormals"></param>
-        int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels, bool useNormals);
+        int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels);
 #else
         int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels);
 #endif

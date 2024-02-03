@@ -84,9 +84,7 @@ namespace Crest
             o_distance = -1f;
 
 #if CREST_BURST_QUERY
-            var norms = default(NativeArray<Vector3>);
-            var vels = default(NativeArray<Vector3>);
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, ref _queryPos, ref _queryResult, ref norms, ref vels, false);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, ref _queryPos, ref _queryResult, ref QueryHelper.s_Skip, ref QueryHelper.s_Skip);
 #else
             var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
 #endif

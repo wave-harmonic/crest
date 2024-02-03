@@ -36,14 +36,21 @@ namespace Crest
 #endif
         {
             var result = (int)QueryStatus.OK;
+
 #if CREST_BURST_QUERY
-            var useNormals = o_resultNorms.Length > 0;
+            var useHeight = o_resultHeights.Length > 0;
+            var useNormal = o_resultNorms.Length > 0;
+            var useVelocity = o_resultVels.Length > 0;
+#else
+            var useHeight = o_resultHeights?.Length > 0;
+            var useNormal = o_resultNorms?.Length > 0;
+            var useVelocity = o_resultVels?.Length > 0;
 #endif
 
 #if CREST_BURST_QUERY
-            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, useNormals ? i_queryPoints : default, useNormals))
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, useNormal ? i_queryPoints : default, useNormal))
 #else
-            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, useNormal ? i_queryPoints : null))
 #endif
             {
                 result |= (int)QueryStatus.PostFailed;
@@ -58,11 +65,7 @@ namespace Crest
                 result |= (int)QueryStatus.RetrieveFailed;
             }
 
-#if CREST_BURST_QUERY
-            if (o_resultVels.Length > 0)
-#else
-            if (o_resultVels != null)
-#endif
+            if (useVelocity)
             {
                 result |= CalculateVelocities(i_ownerHash, o_resultVels);
             }

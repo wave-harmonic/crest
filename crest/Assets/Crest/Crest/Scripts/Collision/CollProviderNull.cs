@@ -13,7 +13,7 @@ namespace Crest
     public class CollProviderNull : ICollProvider
     {
 #if CREST_BURST_QUERY
-        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels, bool useNormals)
+        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels)
         {
             for (int i = 0; i < o_resultDisps.Length; i++) o_resultDisps[i] = Vector3.zero;
             for (int i = 0; i < o_resultNorms.Length; i++) o_resultNorms[i] = Vector3.up;

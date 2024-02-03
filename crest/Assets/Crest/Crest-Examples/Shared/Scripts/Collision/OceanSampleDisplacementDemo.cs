@@ -72,7 +72,7 @@ namespace Crest.Examples
             var collProvider = OceanRenderer.Instance.CollisionProvider;
 
 #if CREST_BURST_QUERY
-            var status = collProvider.Query(GetHashCode(), _minGridSize, ref _markerPos, ref _resultDisps, ref _resultNorms, ref _resultVels, true);
+            var status = collProvider.Query(GetHashCode(), _minGridSize, ref _markerPos, ref _resultDisps, ref _resultNorms, ref _resultVels);
 #else
             var status = collProvider.Query(GetHashCode(), _minGridSize, _markerPos, _resultDisps, _resultNorms, _resultVels);
 #endif

@@ -35,6 +35,9 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => true;
 
+        [Tooltip("Set to Mesh Collider which will receive spline mesh.")]
+        public MeshCollider _collider;
+
         // Debug
         [Space(10)]
 
@@ -47,6 +50,15 @@ namespace Crest
             public bool _drawBounds;
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            if (_collider != null && _splineMesh != null)
+            {
+                _collider.sharedMesh = _splineMesh;
+            }
+        }
 
         Rect _rect;
 

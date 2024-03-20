@@ -193,8 +193,9 @@ half3 OceanEmission
 	if (!i_underwater)
 	{
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-		const float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(i_uvDepth + refractOffset);
+		float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(i_uvDepth + refractOffset);
 		half2 uvBackgroundRefract;
+		float sceneZ = i_sceneZ;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
 #if UNITY_REVERSED_Z
@@ -204,21 +205,24 @@ half3 OceanEmission
 #endif
 		{
 			uvBackgroundRefract = uvBackground + refractOffset;
-			depthFogDistance = CrestLinearEyeDepth(CREST_MULTISAMPLE_SCENE_DEPTH(uvBackgroundRefract, rawDepth)) - i_pixelZ;
+			rawDepth = CREST_MULTISAMPLE_SCENE_DEPTH(uvBackgroundRefract, rawDepth);
+			sceneZ = CrestLinearEyeDepth(rawDepth);
+			depthFogDistance = sceneZ - i_pixelZ;
 		}
 		else
 		{
-			// It seems that when MSAA is enabled this can sometimes be negative
-			depthFogDistance = max(CrestLinearEyeDepth(CREST_MULTISAMPLE_SCENE_DEPTH(uvBackground, i_rawDepth)) - i_pixelZ, 0.0);
-
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;
+			rawDepth = CREST_MULTISAMPLE_SCENE_DEPTH(uvBackground, i_rawDepth);
+			sceneZ = CrestLinearEyeDepth(rawDepth);
+			// It seems that when MSAA is enabled this can sometimes be negative
+			depthFogDistance = max(sceneZ - i_pixelZ, 0.0);
 		}
 
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
-		float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
-		ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, i_positionSS, scenePos, i_lightDir, i_sceneZ, i_underwater, sceneColour, _LD_SliceIndex + 1, cascadeData1);
+		float3 scenePos = _WorldSpaceCameraPos - i_view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
+		ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, uvBackgroundRefract * _ScreenParams.xy, scenePos, i_lightDir, sceneZ, i_underwater, sceneColour, _LD_SliceIndex + 1, cascadeData1);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

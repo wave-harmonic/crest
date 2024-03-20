@@ -189,11 +189,18 @@ half3 OceanEmission
 	half3 alpha = 0.;
 	float depthFogDistance;
 
+	half2 refractOffset = _RefractionStrength * i_n_pixel.xz;
+	if (!i_underwater)
+	{
+		refractOffset *= min(1.0, 0.5 * (i_sceneZ - i_pixelZ)) / i_sceneZ;
+	}
+
+	const half2 uvDepthRefract = i_uvDepth + refractOffset;
+	float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepthRefract);
+
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)
 	{
-		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-		float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(i_uvDepth + refractOffset);
 		half2 uvBackgroundRefract;
 		float sceneZ = i_sceneZ;
 
@@ -228,8 +235,8 @@ half3 OceanEmission
 	}
 	else
 	{
-		half2 uvBackgroundRefractSky = uvBackground + _RefractionStrength * i_n_pixel.xz;
-		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefractSky).rgb;
+		const half2 uvBackgroundRefract = rawDepth < i_rawPixelZ ? uvBackground + refractOffset : uvBackground;
+		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 		depthFogDistance = i_pixelZ;
 		// keep alpha at 0 as UnderwaterReflection shader handles the blend
 		// appropriately when looking at water from below

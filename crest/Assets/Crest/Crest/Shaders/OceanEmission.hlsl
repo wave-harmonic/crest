@@ -205,11 +205,7 @@ half3 OceanEmission
 		float sceneZ = i_sceneZ;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
-#if UNITY_REVERSED_Z
 		if (rawDepth < i_rawPixelZ)
-#else
-		if (rawDepth > i_rawPixelZ)
-#endif
 		{
 			uvBackgroundRefract = uvBackground + refractOffset;
 			rawDepth = CREST_MULTISAMPLE_SCENE_DEPTH(uvBackgroundRefract, rawDepth);

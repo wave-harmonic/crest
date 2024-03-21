@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest.Examples
@@ -27,12 +28,37 @@ namespace Crest.Examples
         public float _minGridSize = 0f;
 
         GameObject[] _markerObjects = new GameObject[3];
+#if CREST_BURST_QUERY
+        NativeArray<Vector3> _markerPos;
+        NativeArray<Vector3> _resultDisps;
+        NativeArray<Vector3> _resultNorms;
+        NativeArray<Vector3> _resultVels;
+#else
         Vector3[] _markerPos = new Vector3[3];
         Vector3[] _resultDisps = new Vector3[3];
         Vector3[] _resultNorms = new Vector3[3];
         Vector3[] _resultVels = new Vector3[3];
+#endif
 
         float _samplesRadius = 5f;
+
+#if CREST_BURST_QUERY
+        void OnEnable()
+        {
+            _markerPos = new NativeArray<Vector3>(3, Allocator.Persistent);
+            _resultDisps = new NativeArray<Vector3>(3, Allocator.Persistent);
+            _resultNorms = new NativeArray<Vector3>(3, Allocator.Persistent);
+            _resultVels = new NativeArray<Vector3>(3, Allocator.Persistent);
+        }
+
+        void OnDisable()
+        {
+            _markerPos.Dispose();
+            _resultDisps.Dispose();
+            _resultNorms.Dispose();
+            _resultVels.Dispose();
+        }
+#endif
 
         void Update()
         {
@@ -53,7 +79,11 @@ namespace Crest.Examples
 
             var collProvider = OceanRenderer.Instance.CollisionProvider;
 
+#if CREST_BURST_QUERY
+            var status = collProvider.Query(GetHashCode(), _minGridSize, ref _markerPos, ref _resultDisps, ref _resultNorms, ref _resultVels);
+#else
             var status = collProvider.Query(GetHashCode(), _minGridSize, _markerPos, _resultDisps, _resultNorms, _resultVels);
+#endif
 
             if (collProvider.RetrieveSucceeded(status))
             {

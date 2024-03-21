@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using UnityEditor;
+using Unity.Collections;
 
 namespace Crest
 {
@@ -757,6 +758,19 @@ namespace Crest
             return true;
         }
 
+#if CREST_BURST_QUERY
+        const string k_NotSupportedMessage = "Crest: ShapeGerstnerBatched does not support CREST_BURST_QUERY. Use something else or remove the defines.";
+
+        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<float> o_resultHeights, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels)
+        {
+            throw new System.NotImplementedException(k_NotSupportedMessage);
+        }
+
+        public int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultDisps, ref NativeArray<Vector3> o_resultNorms, ref NativeArray<Vector3> o_resultVels)
+        {
+            throw new System.NotImplementedException(k_NotSupportedMessage);
+        }
+#else
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             if (o_resultDisps != null)
@@ -785,6 +799,7 @@ namespace Crest
 
             return 0;
         }
+#endif
 
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {

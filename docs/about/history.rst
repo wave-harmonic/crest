@@ -32,6 +32,7 @@ Fixed
 .. bullet_list::
 
    -  Fix *Underwater Renderer* overwriting alpha channel which prevented XR passthrough from working.
+   -  Fix underwater objects being refracted when they are in front of the surface.
    -  Fix larger wavelengths ignoring attenuation when using *Wave Resolution Multiplier*.
    -  Validate that height data is enabled when using height inputs.
    -  Fix *Sphere Water Interaction* debug line orientation.
@@ -39,6 +40,10 @@ Fixed
    -  Fix banding in *Examples* scene.
    -  Fix seams and double flow in *Lakes and Rivers* scene.
    -  Silence several warnings.
+
+   .. only:: birp or urp
+
+      -  Fix refraction artifacts causing an outline/ghosting like effect for underwater objects. `[BIRP] [URP]`
 
    .. only:: urp
 
@@ -51,7 +56,17 @@ Performance
    -  Improve *Spline* editor performance.
 
 
-4.18
+.. Trim the history for PDFs.
+.. only:: latex
+
+   | Full version history has been omitted for brevity. It can be found at :link:`Release Notes <{DocLinkBase}/about/history.html>`.
+
+.. raw:: latex
+
+   \iffalse
+
+
+4.19
 ----
 
 Changed
@@ -94,16 +109,6 @@ Performance
 .. bullet_list::
 
    -  Use optimized FindObject(s) methods.
-
-
-.. Trim the history for PDFs.
-.. only:: latex
-
-   | Full version history has been omitted for brevity. It can be found at :link:`Release Notes <{DocLinkBase}/about/history.html>`.
-
-.. raw:: latex
-
-   \iffalse
 
 
 4.18

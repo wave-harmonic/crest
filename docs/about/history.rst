@@ -45,6 +45,10 @@ Fixed
 
       -  Fix refraction artifacts causing an outline/ghosting like effect for underwater objects. `[BIRP] [URP]`
 
+   .. only:: hdrp
+
+      -  Fix shader errors when enabling raytracing features. `[HDRP]`
+
    .. only:: urp
 
       -  Fix additional lights subsurface scattering not rendering correctly. `[URP]`

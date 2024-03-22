@@ -48,9 +48,9 @@
 
 // Texture abstraction.
 
-#define TEXTURE2D(textureName)                Texture2D textureName
-#define TEXTURE2D_ARRAY(textureName)          Texture2DArray textureName
-#define TEXTURECUBE(textureName)              TextureCube textureName
+#define TEXTURE2D(textureName)                UNITY_DECLARE_TEX2D_NOSAMPLER(textureName)
+#define TEXTURE2D_ARRAY(textureName)          UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(textureName)
+#define TEXTURECUBE(textureName)              UNITY_DECLARE_TEXCUBE_NOSAMPLER(textureName)
 // #define TEXTURECUBE_ARRAY(textureName)        TextureCubeArray textureName
 // #define TEXTURE3D(textureName)                Texture3D textureName
 
@@ -119,8 +119,9 @@
 // #define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)       textureName, samplerName
 // #define TEXTURECUBE_ARRAY_SHADOW_ARGS(textureName, samplerName) textureName, samplerName
 
+// We cannot use Unity's macros because we need samplerName unchanged.
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                               textureName.Sample(samplerName, coord2)
-// #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod)                      textureName.SampleLevel(samplerName, coord2, lod)
+#define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod)                      textureName.SampleLevel(samplerName, coord2, lod)
 // #define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias)                    textureName.SampleBias(samplerName, coord2, bias)
 // #define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, dpdx, dpdy)              textureName.SampleGrad(samplerName, coord2, dpdx, dpdy)
 #define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index)                  textureName.Sample(samplerName, float3(coord2, index))

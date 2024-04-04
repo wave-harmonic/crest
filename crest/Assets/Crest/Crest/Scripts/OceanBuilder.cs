@@ -152,6 +152,8 @@ namespace Crest
 
         public static Transform GenerateMesh(OceanRenderer ocean, List<OceanChunkRenderer> tiles, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
+            OceanChunkRenderer.s_Count = 0;
+
             if (lodCount < 1)
             {
                 Debug.LogError("Crest: Invalid LOD count: " + lodCount.ToString(), ocean);

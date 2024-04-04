@@ -63,6 +63,21 @@ namespace Crest
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
 
+        // Time slicing.
+        public int _index;
+        internal static int s_Count;
+
+        void OnEnable()
+        {
+            _index = s_Count;
+            s_Count += 1;
+        }
+
+        void OnDisable()
+        {
+            s_Count -= 1;
+        }
+
         void Start()
         {
             Rend = GetComponent<Renderer>();
@@ -90,6 +105,12 @@ namespace Crest
 
         private void Update()
         {
+            // Time slice update to distribute the load.
+            if (_index != Time.frameCount % s_Count)
+            {
+                return;
+            }
+
             // This needs to be called on Update because the bounds depend on transform scale which can change. Also OnWillRenderObject depends on
             // the bounds being correct. This could however be called on scale change events, but would add slightly more complexity.
             UpdateMeshBounds();

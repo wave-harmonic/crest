@@ -58,6 +58,7 @@ Performance
 .. bullet_list::
 
    -  Improve *Spline* editor performance.
+   -  Improve per frame script performance by time slicing chunk bounds updates.
 
 
 .. Trim the history for PDFs.

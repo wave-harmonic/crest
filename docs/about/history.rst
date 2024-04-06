@@ -41,6 +41,11 @@ Fixed
    -  Fix seams and double flow in *Lakes and Rivers* scene.
    -  Silence several warnings.
 
+   .. only:: birp
+
+      -  Fix *Depth Fog Density Factor* not supporting *Shader API*. `[BIRP]`
+      -  Fix *Depth Fog Density Factor* not supporting *Portals & Volumes* feature. `[BIRP]`
+
    .. only:: birp or urp
 
       -  Fix refraction artifacts causing an outline/ghosting like effect for underwater objects. `[BIRP] [URP]`

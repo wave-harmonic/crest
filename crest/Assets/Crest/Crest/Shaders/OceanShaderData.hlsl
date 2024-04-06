@@ -63,6 +63,7 @@ half3 _DiffuseShadow;
 half _RefractionStrength;
 #endif
 half4 _DepthFogDensity;
+half4 _CrestDepthFogDensity;
 
 // ----------------------------------------------------------------------------
 // Normals

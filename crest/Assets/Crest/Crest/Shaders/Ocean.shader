@@ -740,7 +740,7 @@ Shader "Crest/Ocean"
 				else
 				{
 					// underwater - do depth fog
-					col = lerp(col, scatterCol, saturate(1. - exp(-_DepthFogDensity.xyz * pixelZ)));
+					col = lerp(col, scatterCol, saturate(1. - exp(-_CrestDepthFogDensity.xyz * pixelZ)));
 				}
 #endif
 

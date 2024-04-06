@@ -525,7 +525,7 @@ Shader "Crest/Ocean"
 				half2 uvDepth = screenPos.xy / screenPos.z;
 
 #if CREST_WATER_VOLUME
-				ApplyVolumeToOceanSurface(input.positionCS);
+				float rawFrontFaceZ = ApplyVolumeToOceanSurface(input.positionCS);
 #endif
 
 				#if _CLIPUNDERTERRAIN_ON
@@ -739,8 +739,12 @@ Shader "Crest/Ocean"
 #if CREST_UNDERWATER_BEFORE_TRANSPARENT
 				else
 				{
+					float depthFogDistance = pixelZ;
+#if CREST_WATER_VOLUME
+					depthFogDistance -= CrestLinearEyeDepth(rawFrontFaceZ);
+#endif
 					// underwater - do depth fog
-					col = lerp(col, scatterCol, saturate(1. - exp(-_CrestDepthFogDensity.xyz * pixelZ)));
+					col = lerp(col, scatterCol, saturate(1. - exp(-_CrestDepthFogDensity.xyz * depthFogDistance)));
 				}
 #endif
 

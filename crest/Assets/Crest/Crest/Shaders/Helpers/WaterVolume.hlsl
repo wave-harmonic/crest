@@ -9,7 +9,7 @@ TEXTURE2D_X(_CrestWaterVolumeFrontFaceTexture);
 TEXTURE2D_X(_CrestWaterVolumeBackFaceTexture);
 
 #if CREST_WATER_VOLUME
-void ApplyVolumeToOceanSurface(const float4 i_positionCS)
+float ApplyVolumeToOceanSurface(const float4 i_positionCS)
 {
 #if CREST_WATER_VOLUME_HAS_BACKFACE
 	// Discard ocean after volume or when not on pixel.
@@ -34,6 +34,8 @@ void ApplyVolumeToOceanSurface(const float4 i_positionCS)
 		discard;
 	}
 #endif // CREST_WATER_VOLUME_2D
+
+	return rawFrontFaceZ;
 }
 #endif
 

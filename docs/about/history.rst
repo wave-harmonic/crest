@@ -49,10 +49,12 @@ Fixed
 
       -  Fix *Depth Fog Density Factor* not supporting *Shader API*. `[BIRP]`
       -  Fix *Depth Fog Density Factor* not supporting *Portals & Volumes* feature. `[BIRP]`
+      -  Fix underwater surface and volume having visibly different colors when using gamma color space and *Underwater Renderer > Shader API*. `[BIRP]`
 
    .. only:: birp or urp
 
       -  Fix refraction artifacts causing an outline/ghosting like effect for underwater objects. `[BIRP] [URP]`
+      -  Fix underwater colors being incorrect when using gamma color space. `[BIRP] [URP]`
 
    .. only:: hdrp
 

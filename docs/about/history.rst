@@ -27,6 +27,10 @@ Changed
       Useful for scaling waves without affecting ripples and wakes.
    -  Add *Spline* API (*Spline.UpdateSpline* and getters/setters) for updating splines in editor and standalone.
 
+   .. only:: birp or urp
+
+      -  *Ocean Planar Reflections* now work in edit mode. `[BIRP] [URP]`
+
 Fixed
 ^^^^^
 .. bullet_list::

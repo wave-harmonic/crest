@@ -342,6 +342,11 @@ namespace Crest
                 }
             }
 
+            public static Color MaybeLinear(this Color color)
+            {
+                return QualitySettings.activeColorSpace == ColorSpace.Linear ? color.linear : color;
+            }
+
             ///<summary>
             /// Sets the msaaSamples property to the highest supported MSAA level in the settings.
             ///</summary>

@@ -143,7 +143,7 @@ namespace Crest
                 // Unity does not set up lighting for us so we will get the last value which could incorrect.
                 // SetGlobalColor is just an alias for SetGlobalVector (no color space conversion like Material.SetColor):
                 // https://docs.unity3d.com/2017.4/Documentation/ScriptReference/Shader.SetGlobalColor.html
-                _underwaterEffectCommandBuffer.SetGlobalVector(ShaderIDs.s_LightColor0, (RenderSettings.sun.color * RenderSettings.sun.intensity).linear);
+                _underwaterEffectCommandBuffer.SetGlobalVector(ShaderIDs.s_LightColor0, (RenderSettings.sun.color * RenderSettings.sun.intensity).MaybeLinear());
                 _underwaterEffectCommandBuffer.SetGlobalVector(ShaderIDs.s_WorldSpaceLightPos0, -RenderSettings.sun.transform.forward);
             }
 
@@ -263,10 +263,10 @@ namespace Crest
         {
             // We will have the wrong color values if we do not use linear:
             // https://forum.unity.com/threads/fragment-shader-output-colour-has-incorrect-values-when-hardcoded.377657/
-            Shader.SetGlobalColor(ShaderIDs.s_CrestDiffuse, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_Diffuse).linear);
-            Shader.SetGlobalColor(ShaderIDs.s_CrestDiffuseGrazing, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_DiffuseGrazing).linear);
-            Shader.SetGlobalColor(ShaderIDs.s_CrestDiffuseShadow, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_DiffuseShadow).linear);
-            Shader.SetGlobalColor(ShaderIDs.s_CrestSubSurfaceColour, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_SubSurfaceColour).linear);
+            Shader.SetGlobalColor(ShaderIDs.s_CrestDiffuse, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_Diffuse).MaybeLinear());
+            Shader.SetGlobalColor(ShaderIDs.s_CrestDiffuseGrazing, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_DiffuseGrazing).MaybeLinear());
+            Shader.SetGlobalColor(ShaderIDs.s_CrestDiffuseShadow, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_DiffuseShadow).MaybeLinear());
+            Shader.SetGlobalColor(ShaderIDs.s_CrestSubSurfaceColour, oceanMaterial.GetColor(OceanRenderer.ShaderIDs.s_SubSurfaceColour).MaybeLinear());
             Shader.SetGlobalFloat(ShaderIDs.s_CrestSubSurfaceSun, oceanMaterial.GetFloat(OceanRenderer.ShaderIDs.s_SubSurfaceSun));
             Shader.SetGlobalFloat(ShaderIDs.s_CrestSubSurfaceBase, oceanMaterial.GetFloat(OceanRenderer.ShaderIDs.s_SubSurfaceBase));
             Shader.SetGlobalFloat(ShaderIDs.s_CrestSubSurfaceSunFallOff, oceanMaterial.GetFloat(OceanRenderer.ShaderIDs.s_SubSurfaceSunFallOff));

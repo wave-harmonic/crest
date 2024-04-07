@@ -77,6 +77,7 @@ namespace Crest
     /// <summary>
     /// Attach to a camera to generate a reflection texture which can be sampled in the ocean shader.
     /// </summary>
+    [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Planar Reflections")]
     public class OceanPlanarReflection : CustomMonoBehaviour
     {
@@ -152,6 +153,15 @@ namespace Crest
                 Debug.LogWarning("Crest: Planar reflections are not enabled on the current ocean material and will not be visible.", this);
             }
 #endif
+
+#if UNITY_EDITOR
+            // Otherwise will not work without entering/exiting play mode.
+            if (_camViewpoint.CompareTag("MainCamera"))
+            {
+                enabled = false;
+                enabled = true;
+            }
+#endif
         }
 
         void LateUpdate()
@@ -163,6 +173,35 @@ namespace Crest
             {
                 return;
             }
+
+#if UNITY_EDITOR
+            // Work in edit mode.
+            var editorCamera = OceanRenderer.Instance.ViewCamera;
+            if (_camViewpoint.CompareTag("MainCamera") && editorCamera != null && editorCamera.cameraType == CameraType.SceneView)
+            {
+                if (!editorCamera.TryGetComponent<OceanPlanarReflection>(out var editor))
+                {
+                    editor = editorCamera.gameObject.AddComponent<OceanPlanarReflection>();
+                }
+
+                if (editor != null)
+                {
+                    editor._reflectionLayers = _reflectionLayers;
+                    editor._disableOcclusionCulling = _disableOcclusionCulling;
+                    editor._disablePixelLights = _disablePixelLights;
+                    editor._disableShadows = _disableShadows;
+                    editor._textureSize = _textureSize;
+                    editor._clipPlaneOffset = _clipPlaneOffset;
+                    editor._hdr = _hdr;
+                    editor._stencil = _stencil;
+                    editor._hideCameraGameobject = _hideCameraGameobject;
+                    editor._allowMSAA = _allowMSAA;
+                    editor._farClipPlane = _farClipPlane;
+                    editor._forceForwardRenderingPath = _forceForwardRenderingPath;
+                    editor._clearFlags = _clearFlags;
+                }
+            }
+#endif
 
             CreateWaterObjects(_camViewpoint);
 

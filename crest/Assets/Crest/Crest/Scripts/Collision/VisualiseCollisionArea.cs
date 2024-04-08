@@ -68,28 +68,51 @@ namespace Crest
                 return;
             }
 
-            if (_resultHeights == null || _resultHeights.Length != _steps * _steps)
+
+            var isNull = false;
+
+#if CREST_BURST_QUERY
+            isNull = !_resultHeights.IsCreated;
+#else
+            isNull = _resultHeights == null;
+#endif
+
+            if (isNull || _resultHeights.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
-                if (_resultHeights.IsCreated) _resultHeights.Dispose();
+                if (!isNull) _resultHeights.Dispose();
                 _resultHeights = new NativeArray<float>(_steps * _steps, Allocator.Persistent);
 #else
                 _resultHeights = new float[_steps * _steps];
 #endif
             }
-            if (_resultDisps == null || _resultDisps.Length != _steps * _steps)
+
+#if CREST_BURST_QUERY
+            isNull = !_resultDisps.IsCreated;
+#else
+            isNull = _resultDisps == null;
+#endif
+
+            if (isNull || _resultDisps.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
-                if (_resultDisps.IsCreated) _resultDisps.Dispose();
+                if (!isNull) _resultDisps.Dispose();
                 _resultDisps = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
 #else
                 _resultDisps = new Vector3[_steps * _steps];
 #endif
             }
-            if (_resultNorms == null || _resultNorms.Length != _steps * _steps)
+
+#if CREST_BURST_QUERY
+            isNull = !_resultNorms.IsCreated;
+#else
+            isNull = _resultNorms == null;
+#endif
+
+            if (isNull || _resultNorms.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
-                if (_resultNorms.IsCreated) _resultNorms.Dispose();
+                if (!isNull) _resultNorms.Dispose();
                 _resultNorms = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
 #else
                 _resultNorms = new Vector3[_steps * _steps];
@@ -100,10 +123,17 @@ namespace Crest
                     _resultNorms[i] = Vector3.up;
                 }
             }
-            if (_samplePositions == null || _samplePositions.Length != _steps * _steps)
+
+#if CREST_BURST_QUERY
+            isNull = !_samplePositions.IsCreated;
+#else
+            isNull = _samplePositions == null;
+#endif
+
+            if (isNull || _samplePositions.Length != _steps * _steps)
             {
 #if CREST_BURST_QUERY
-                if (_samplePositions.IsCreated) _samplePositions.Dispose();
+                if (!isNull) _samplePositions.Dispose();
                 _samplePositions = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
 #else
                 _samplePositions = new Vector3[_steps * _steps];

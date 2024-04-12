@@ -2,10 +2,10 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 
 namespace Crest
 {
@@ -22,7 +22,22 @@ namespace Crest
             "CREST_OCEAN",
         };
 
-// NOTE: All of the above symbols must be checked here like so: !SYMBOL_1 || !SYMBOL_2
+#if UNITY_2022_3_OR_NEWER
+        // Because there is no other way to get this…
+        public static NamedBuildTarget CurrentNamedBuildTarget
+        {
+            get
+            {
+#if UNITY_SERVER
+                return NamedBuildTarget.Server;
+#else
+                return NamedBuildTarget.FromBuildTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
+#endif
+            }
+        }
+#endif
+
+        // NOTE: All of the above symbols must be checked here like so: !SYMBOL_1 || !SYMBOL_2
 #if !CREST_OCEAN
         [InitializeOnLoadMethod]
         static void OnProjectLoadedInEditor()
@@ -48,8 +63,7 @@ namespace Crest
         static void AddDefineSymbols()
         {
             // We remove our symbols from the list first to prevent duplicates - just to be safe.
-            var symbols = string.Join(";", GetDefineSymbolsList().Except(Symbols).Concat(Symbols));
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup, symbols);
+            SetScriptingDefineSymbols(GetDefineSymbolsList().Except(Symbols).Concat(Symbols).ToArray());
         }
 
         /// <summary>
@@ -57,17 +71,34 @@ namespace Crest
         /// </summary>
         static void RemoveDefineSymbols()
         {
-            var symbols = string.Join(";", GetDefineSymbolsList().Except(Symbols));
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup, symbols);
+            SetScriptingDefineSymbols(GetDefineSymbolsList().Except(Symbols).ToArray());
         }
 
         /// <summary>
         /// Get scripting define symbols as a list.
         /// </summary>
-        static List<string> GetDefineSymbolsList()
+        static string[] GetDefineSymbolsList()
         {
+#if UNITY_2022_3_OR_NEWER
+            return PlayerSettings.GetScriptingDefineSymbols(CurrentNamedBuildTarget)
+#else
             return PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup)
-                .Split(';').ToList();
+#endif
+                .Split(';');
+        }
+
+        static void SetScriptingDefineSymbols(string[] symbols)
+        {
+            SetScriptingDefineSymbols(string.Join(";", symbols));
+        }
+
+        static void SetScriptingDefineSymbols(string symbols)
+        {
+#if UNITY_2022_3_OR_NEWER
+            PlayerSettings.SetScriptingDefineSymbols(CurrentNamedBuildTarget, symbols);
+#else
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup, symbols);
+#endif
         }
 
         /// <summary>

@@ -1910,6 +1910,9 @@ namespace Crest
             // LOD data resolution multiple of 2 for general GPU texture reasons (like pixel quads)
             _lodDataResolution -= _lodDataResolution % 2;
 
+            // Round to divisble by 128 as it is the smallest number which is robust enough.
+            _lodDataResolution = (int)(128f * Mathf.Ceil(_lodDataResolution / 128f));
+
             _geometryDownSampleFactor = Mathf.ClosestPowerOfTwo(Mathf.Max(_geometryDownSampleFactor, 1));
 
             var remGeo = _lodDataResolution % _geometryDownSampleFactor;

@@ -218,7 +218,7 @@ namespace Crest
         [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
         float _dropDetailHeightBasedOnWaves = 0.2f;
 
-        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384.")]
+        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Must be intervals of 128 (eg 256, 384, 512).")]
         int _lodDataResolution = 384;
         public int LodDataResolution => _lodDataResolution;
 

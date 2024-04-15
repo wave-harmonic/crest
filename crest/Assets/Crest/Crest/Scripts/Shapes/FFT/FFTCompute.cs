@@ -146,8 +146,12 @@ namespace Crest
             _spectrumInit.name = "CrestFFTSpectrumInit";
             _spectrumInit.Create();
 
-            rtd.colorFormat = RenderTextureFormat.RGFloat;
-
+#if UNITY_2021_3_OR_NEWER
+            if (SystemInfo.SupportsRandomWriteOnRenderTextureFormat(RenderTextureFormat.RGFloat))
+#endif
+            {
+                rtd.colorFormat = RenderTextureFormat.RGFloat;
+            }
 
             Helpers.SafeCreateRenderTexture(ref _spectrumHeight, rtd);
             _spectrumHeight.name = "CrestFFTSpectrumHeight";

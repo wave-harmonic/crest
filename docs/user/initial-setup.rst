@@ -115,21 +115,8 @@ Importing Crest
 
 Import the `Crest` package into project using the *Asset Store* window in the Unity Editor.
 
-.. note::
-   The files under Crest-Examples are not required by our core functionality, but are provided for illustrative
-   purposes. We recommend first time users import them as they may provide useful guidance.
-
-.. only:: birp
-
-   .. tab:: `BIRP`
-
-      .. include:: includes/_importing-crest-birp.rst
-
-.. only:: urp
-
-   .. tab:: `URP`
-
-      .. include:: includes/_importing-crest-urp.rst
+The files under Crest-Examples are not required by our core functionality, but are provided for illustrative
+purposes. We recommend first time users import them as they may provide useful guidance.
 
 .. tip::
 

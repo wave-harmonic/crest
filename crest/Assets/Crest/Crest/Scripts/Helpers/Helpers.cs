@@ -6,6 +6,7 @@ namespace Crest
 {
     using System.Reflection;
     using UnityEngine;
+    using UnityEngine.Experimental.Rendering;
     using UnityEngine.Rendering;
 
     /// <summary>
@@ -135,6 +136,58 @@ namespace Crest
             var temp = b;
             b = a;
             a = temp;
+        }
+
+        // R16G16B16A16_SFloat appears to be the most compatible format.
+        // https://docs.unity3d.com/Manual/class-TextureImporterOverride.html#texture-compression-support-platforms
+        // https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads#supported-formats-and-api-calls
+        readonly static GraphicsFormat s_FallbackGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+
+#if UNITY_2021_3_OR_NEWER
+        static bool SupportsRandomWriteOnRenderTextureFormat(GraphicsFormat format)
+        {
+            var rtFormat = GraphicsFormatUtility.GetRenderTextureFormat(format);
+            return System.Enum.IsDefined(typeof(RenderTextureFormat), rtFormat)
+                && SystemInfo.SupportsRandomWriteOnRenderTextureFormat(rtFormat);
+        }
+#endif
+
+        internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, FormatUsage usage, bool randomWrite = false)
+        {
+            var useFallback = false;
+            var result = SystemInfo.GetCompatibleFormat(format, usage);
+
+            if (result == GraphicsFormat.None)
+            {
+                Debug.Log($"Crest: The graphics device does not support the render texture format {format}. Will attempt to use fallback.");
+                useFallback = true;
+            }
+            else if (result != format)
+            {
+                Debug.Log($"Crest: Using render texture format {result} instead of {format}.");
+            }
+
+#if UNITY_2021_3_OR_NEWER
+            if (!useFallback && randomWrite && !SupportsRandomWriteOnRenderTextureFormat(result))
+            {
+                Debug.Log($"Crest: The graphics device does not support the render texture format {result} with random read/write. Will attempt to use fallback.");
+                useFallback = true;
+            }
+#endif
+
+            // Check if fallback is compatible before using it.
+            if (useFallback && format == s_FallbackGraphicsFormat)
+            {
+                Debug.Log($"Crest: Fallback {s_FallbackGraphicsFormat} is not supported on this device. Please inform us.");
+                useFallback = false;
+            }
+
+            if (useFallback)
+            {
+                result = s_FallbackGraphicsFormat;
+            }
+
+            return result;
         }
 
         public static void SetGlobalKeyword(string keyword, bool enabled)

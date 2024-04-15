@@ -663,9 +663,6 @@ Shader "Crest/Ocean"
 				half3 scatterCol = ScatterColour
 				(
 					input.lodAlpha_worldXZUndisplaced_oceanDepth.w,
-#if defined(CREST_UNDERWATER_BEFORE_TRANSPARENT) && defined(_SHADOWS_ON)
-					underwater ? UnderwaterShadowSSS(_WorldSpaceCameraPos.xz) :
-#endif
 					shadow.x,
 					sss,
 					view,
@@ -739,6 +736,24 @@ Shader "Crest/Ocean"
 #if CREST_UNDERWATER_BEFORE_TRANSPARENT
 				else
 				{
+					half shadows = 1.0;
+
+#if _SHADOWS_ON
+					// If shadows are enabled then we need to recalculate the scattering with the
+					// global shadow value.
+					scatterCol = ScatterColour
+					(
+						input.lodAlpha_worldXZUndisplaced_oceanDepth.w,
+						UnderwaterShadowSSS(_WorldSpaceCameraPos.xz),
+						sss,
+						view,
+						_CrestAmbientLighting,
+						lightDir,
+						lightCol,
+						underwater
+					);
+#endif
+
 					float depthFogDistance = pixelZ;
 #if CREST_WATER_VOLUME
 					depthFogDistance -= CrestLinearEyeDepth(rawFrontFaceZ);

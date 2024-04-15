@@ -26,10 +26,16 @@ Changed
       When both are disabled it will render to all LODs and before *Dynamic Waves*.
       Useful for scaling waves without affecting ripples and wakes.
    -  Add *Spline* API (*Spline.UpdateSpline* and getters/setters) for updating splines in editor and standalone.
+   -  Validate that *Lod Data Resolution* is divisible by 128 which is the smallest interval that is robust enough.
+   -  Clarify *Lod Data Resolution* tooltip about 128 intervals.
 
    .. only:: birp or urp
 
       -  *Ocean Planar Reflections* now work in edit mode. `[BIRP] [URP]`
+
+   .. only:: urp
+
+      -  Validate all configured assets for *Opaque Texture* option rather than just the active one. `[URP]`
 
 Fixed
 ^^^^^
@@ -38,6 +44,10 @@ Fixed
    -  Fix *Underwater Renderer* overwriting alpha channel which prevented XR passthrough from working.
    -  Fix underwater objects being refracted when they are in front of the surface.
    -  Fix larger wavelengths ignoring attenuation when using *Wave Resolution Multiplier*.
+   -  Fix texture "random writes" format error for *Shape FFT* on some devices.
+      Requires Unity 2021.3+.
+   -  Fix possible texture "random writes" format error for LOD textures on some devices.
+      Requires Unity 2021.3+.
    -  Validate that height data is enabled when using height inputs.
    -  Fix *Sphere Water Interaction* debug line orientation.
    -  Fix *Underwater Effect* not working
@@ -49,6 +59,7 @@ Fixed
 
       -  Fix *Depth Fog Density Factor* not supporting *Shader API*. `[BIRP]`
       -  Fix *Depth Fog Density Factor* not supporting *Portals & Volumes* feature. `[BIRP]`
+      -  Fix *Shader API* not apply shadow scattering to underside of surface. `[BIRP]`
       -  Fix underwater surface and volume having visibly different colors when using gamma color space and *Underwater Renderer > Shader API*. `[BIRP]`
 
    .. only:: birp or urp
@@ -59,10 +70,17 @@ Fixed
    .. only:: hdrp
 
       -  Fix shader errors when enabling raytracing features. `[HDRP]`
+      -  Fix *Rendering Layer Mask* changes not applying immediately. `[HDRP]`
+
+   .. only:: hdrp or urp
+
+      -  Fix errors when searching the scene. `[HDRP] [URP]`
 
    .. only:: urp
 
       -  Fix additional lights subsurface scattering not rendering correctly. `[URP]`
+      -  Fix broken rendering with *Depth Texture Mode > Depth After Transparent*. `[URP]`
+      -  Fix broken rendering when *Depth Texture* is disabled. `[URP]`
 
 Performance
 ^^^^^^^^^^^

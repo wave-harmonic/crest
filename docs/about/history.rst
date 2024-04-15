@@ -33,10 +33,6 @@ Changed
 
       -  *Ocean Planar Reflections* now work in edit mode. `[BIRP] [URP]`
 
-   .. only:: urp
-
-      -  Validate all configured assets for *Opaque Texture* option rather than just the active one. `[URP]`
-
 Fixed
 ^^^^^
 .. bullet_list::
@@ -81,6 +77,7 @@ Fixed
       -  Fix additional lights subsurface scattering not rendering correctly. `[URP]`
       -  Fix broken rendering with *Depth Texture Mode > Depth After Transparent*. `[URP]`
       -  Fix broken rendering when *Depth Texture* is disabled. `[URP]`
+      -  Fix broken rendering when *Opaque Texture* is disabled. `[URP]`
 
 Performance
 ^^^^^^^^^^^

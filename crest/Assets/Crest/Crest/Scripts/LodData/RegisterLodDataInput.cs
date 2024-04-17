@@ -59,6 +59,7 @@ namespace Crest
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
         public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
+        public static int sp_FeatherWidth = Shader.PropertyToID("_FeatherWidth");
 
         // By default do not follow horizontal motion of waves. This means that the ocean input will appear on the surface at its XZ location, instead
         // of moving horizontally with the waves.
@@ -313,6 +314,12 @@ namespace Crest
         where SplinePointCustomData : CustomMonoBehaviour, ISplinePointCustomData
     {
         [Header("Spline settings")]
+
+        [Tooltip("Feathers along the spline. To feather the start/end, use spline point data. Not applicable to height input.")]
+        [Predicated(typeof(Spline.Spline))]
+        [DecoratedField, SerializeField]
+        float _featherWidth;
+
         [SerializeField, Predicated(typeof(Spline.Spline)), DecoratedField, OnChange(nameof(OnSplineChange))]
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings", typeof(Spline.Spline)), DecoratedField, OnChange(nameof(OnSplineChange))]
@@ -382,6 +389,7 @@ namespace Crest
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                buf.SetGlobalFloat(sp_FeatherWidth, _featherWidth);
                 buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
             }
             else

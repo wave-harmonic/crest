@@ -16,11 +16,8 @@ Shader "Hidden/Crest/Inputs/Foam/Spline Geometry"
 
 			#include "UnityCG.cginc"
 
-			CBUFFER_START( GerstnerPerMaterial )
-			half _FeatherWaveStart;
-			CBUFFER_END
-
 			CBUFFER_START(CrestPerOceanInput)
+			half _FeatherWidth;
 			float3 _DisplacementAtInputPosition;
 			float _Weight;
 			CBUFFER_END
@@ -59,11 +56,14 @@ Shader "Hidden/Crest/Inputs/Foam/Spline Geometry"
 				float wt = input.invNormDistToShoreline_weight.y;
 
 				// Feather at front/back
-				if( input.invNormDistToShoreline_weight.x > 0.5 )
+				if (_FeatherWidth > 0.0)
 				{
-					input.invNormDistToShoreline_weight.x = 1.0 - input.invNormDistToShoreline_weight.x;
+					if( input.invNormDistToShoreline_weight.x > 0.5 )
+					{
+						input.invNormDistToShoreline_weight.x = 1.0 - input.invNormDistToShoreline_weight.x;
+					}
+					wt *= min( input.invNormDistToShoreline_weight.x / _FeatherWidth, 1.0 );
 				}
-				wt *= min( input.invNormDistToShoreline_weight.x / _FeatherWaveStart, 1.0 );
 
 				return 0.02 * wt;
 			}

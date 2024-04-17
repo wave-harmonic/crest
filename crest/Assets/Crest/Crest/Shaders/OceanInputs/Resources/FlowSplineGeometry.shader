@@ -55,11 +55,8 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float speed : TEXCOORD5;
             };
 
-            CBUFFER_START(GerstnerPerMaterial)
-            half _FeatherWaveStart;
-            CBUFFER_END
-
             CBUFFER_START(CrestPerOceanInput)
+            half _FeatherWidth;
             float _Weight;
             CBUFFER_END
 
@@ -88,9 +85,13 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
             {
                 float wt = _Weight;
 
-                // Feather at front/back
-                if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
-                wt *= min( input.invNormDistToShoreline / _FeatherWaveStart, 1.0 );
+
+                if (_FeatherWidth > 0.0)
+                {
+                    // Feather at front/back
+                    if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
+                    wt *= min( input.invNormDistToShoreline / _FeatherWidth, 1.0 );
+                }
 
                 return wt * input.speed * input.axis;
             }

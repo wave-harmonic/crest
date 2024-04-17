@@ -72,6 +72,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             CBUFFER_END
 
             CBUFFER_START(CrestPerOceanInput)
+            half _FeatherWidth;
             int _WaveBufferSliceIndex;
             float _AverageWavelength;
             float _AttenuationInShallows;
@@ -121,6 +122,16 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
                 // Feature at front/back
                 wt *= min( input.invNormDistToShoreline_weight.x / _FeatherWaveStart, 1.0 );
+
+                if (_FeatherWidth > 0.0)
+                {
+                    // Feather at front/back
+                    if( input.invNormDistToShoreline_weight.x > 0.5 )
+                    {
+                        input.invNormDistToShoreline_weight.x = 1.0 - input.invNormDistToShoreline_weight.x;
+                    }
+                    wt *= min( input.invNormDistToShoreline_weight.x / _FeatherWidth, 1.0 );
+                }
 
                 // Quantize wave direction and interpolate waves
                 float axisHeading = atan2( input.axis.y, input.axis.x ) + 2.0 * 3.141592654;

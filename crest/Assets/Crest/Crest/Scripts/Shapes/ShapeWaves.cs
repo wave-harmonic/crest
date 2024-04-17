@@ -66,6 +66,11 @@ namespace Crest
 
         [Header("Spline Settings")]
 
+        [Tooltip("Feathers along the spline. To feather the start/end, use spline point data.")]
+        [Predicated(typeof(Spline.Spline))]
+        [DecoratedField, SerializeField]
+        float _featherWidth;
+
         [SerializeField, DecoratedField, OnChange(nameof(OnSplineChange))]
         bool _overrideSplineSettings = false;
         [SerializeField, Predicated("_overrideSplineSettings"), DecoratedField, OnChange(nameof(OnSplineChange))]
@@ -114,6 +119,8 @@ namespace Crest
         {
             readonly ShapeWaves _shapeWaves;
 
+            float _featherWidth;
+
             Material _material;
             Mesh _mesh;
 
@@ -122,7 +129,7 @@ namespace Crest
             static Component _previousShapeComponent;
             static int _previousLodIndex = -1;
 
-            public WaveBatch(ShapeWaves shapeWaves, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
+            public WaveBatch(ShapeWaves shapeWaves, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh, float featherWidth)
             {
                 _shapeWaves = shapeWaves;
                 // Need sample higher than Nyquist to get good results, especially when waves flowing.
@@ -130,15 +137,17 @@ namespace Crest
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
+                _featherWidth = featherWidth;
             }
 
-            public void UpdateData(float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
+            public void UpdateData(float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh, float featherWidth)
             {
                 // Need sample higher than Nyquist to get good results, especially when waves flowing.
                 Wavelength = wavelength / OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
+                _featherWidth = featherWidth;
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -167,6 +176,8 @@ namespace Crest
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f * OceanRenderer.Instance._lodDataAnimWaves.Settings.WaveResolutionMultiplier);
                 }
+
+                buf.SetGlobalFloat(RegisterLodDataInputBase.sp_FeatherWidth, _featherWidth);
 
                 if (isBlendPassNeeded)
                 {
@@ -346,11 +357,11 @@ namespace Crest
 
                 if (_batches[i] == null)
                 {
-                    _batches[i] = new WaveBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
+                    _batches[i] = new WaveBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves, _spline != null ? _featherWidth : 0f);
                 }
                 else
                 {
-                    _batches[i].UpdateData(MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
+                    _batches[i].UpdateData(MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves, _spline != null ? _featherWidth : 0f);
                 }
 
                 RegisterLodDataInput<LodDataMgrAnimWaves>.RegisterInput(_batches[i], queue, subQueue);

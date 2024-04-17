@@ -57,8 +57,8 @@ namespace Crest
             get
             {
 #if _XR_ENABLED
-                // TODO: What about multiview?
-                return IsRunning && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced;
+                return IsRunning && (XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassInstanced ||
+                    XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePassMultiview);
 #else
                 return false;
 #endif

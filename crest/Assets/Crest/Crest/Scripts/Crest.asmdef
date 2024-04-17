@@ -5,7 +5,8 @@
         "Unity.Postprocessing.Runtime",
         "Unity.InputSystem",
         "Unity.Mathematics",
-        "Unity.Burst"
+        "Unity.Burst",
+        "Unity.Splines"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -44,6 +45,11 @@
             "name": "com.unity.inputsystem",
             "expression": "",
             "define": "CREST_UNITY_INPUT"
+        },
+        {
+            "name": "com.unity.splines",
+            "expression": "",
+            "define": "CREST_UNITY_SPLINES"
         }
     ],
     "noEngineReferences": false

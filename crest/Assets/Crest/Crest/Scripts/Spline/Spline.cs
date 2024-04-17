@@ -71,6 +71,27 @@ namespace Crest.Spline
             splinePoint.AddComponent<SplinePointData>();
             return true;
         }
+
+#if CREST_UNITY_SPLINES
+        void OnEnable()
+        {
+            UnityEngine.Splines.Spline.Changed -= OnSplineChanged;
+            UnityEngine.Splines.Spline.Changed += OnSplineChanged;
+        }
+
+        void OnDisable()
+        {
+            UnityEngine.Splines.Spline.Changed -= OnSplineChanged;
+        }
+
+        void OnSplineChanged(UnityEngine.Splines.Spline spline, int index, UnityEngine.Splines.SplineModification modification)
+        {
+            if (TryGetComponent<UnityEngine.Splines.SplineContainer>(out var container) && container.Spline == spline)
+            {
+                UpdateSpline();
+            }
+        }
+#endif
     }
 
     // Version handling - perform data migration after data loaded.
@@ -100,7 +121,7 @@ namespace Crest.Spline
     {
         public void OnDrawGizmos()
         {
-            var points = GetComponentsInChildren<SplinePoint>();
+            var points = GetComponentsInChildren<SplinePoint>(includeInactive: false);
             for (int i = 0; i < points.Length - 1; i++)
             {
                 SetLineColor(points[i], points[i + 1], false);
@@ -141,6 +162,14 @@ namespace Crest.Spline
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+#if CREST_UNITY_SPLINES
+            // Skip validation as there may be temporary hidden objects in the hierarchy.
+            if (TryGetComponent<UnityEngine.Splines.SplineInstantiate>(out var _))
+            {
+                return isValid;
+            }
+#endif
 
             for (int i = 0; i < transform.childCount; i++)
             {
@@ -194,38 +223,138 @@ namespace Crest.Spline
     [CustomEditor(typeof(Spline))]
     public class SplineEditor : CustomBaseEditor
     {
+#if CREST_UNITY_SPLINES
+        int _instantiatedSplinePointCount;
+#endif
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
             var targetSpline = target as Spline;
 
-            if (GUILayout.Button("Add point (extend)"))
-            {
-                ExtendSpline(targetSpline);
-            }
+#if CREST_UNITY_SPLINES
+            var points = targetSpline.GetComponentsInChildren<SplinePoint>(includeInactive: false);
+            var hasInstantiate = targetSpline.TryGetComponent<UnityEngine.Splines.SplineInstantiate>(out var instantiate);
+            var hasContainer = targetSpline.TryGetComponent<UnityEngine.Splines.SplineContainer>(out var container);
 
-            GUILayout.BeginHorizontal();
-            var pointCount = targetSpline.transform.childCount;
-            GUI.enabled = pointCount > 0;
-            if (GUILayout.Button("Select first point"))
+            if (!hasInstantiate)
+#endif
             {
-                Selection.activeGameObject = targetSpline.transform.GetChild(0).gameObject;
-            }
-            if (GUILayout.Button("Select last point"))
-            {
-                Selection.activeGameObject = targetSpline.transform.GetChild(pointCount - 1).gameObject;
-            }
-            GUI.enabled = true;
-            GUILayout.EndHorizontal();
-
-            if (GUILayout.Button("Reverse"))
-            {
-                for (int i = 1; i < targetSpline.transform.childCount; i++)
+                if (GUILayout.Button("Add point (extend)"))
                 {
-                    targetSpline.transform.GetChild(i).SetSiblingIndex(0);
+                    ExtendSpline(targetSpline);
+                }
+
+                GUILayout.BeginHorizontal();
+                var pointCount = targetSpline.transform.childCount;
+                GUI.enabled = pointCount > 0;
+                if (GUILayout.Button("Select first point"))
+                {
+                    Selection.activeGameObject = targetSpline.transform.GetChild(0).gameObject;
+                }
+                if (GUILayout.Button("Select last point"))
+                {
+                    Selection.activeGameObject = targetSpline.transform.GetChild(pointCount - 1).gameObject;
+                }
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
+
+                if (GUILayout.Button("Reverse"))
+                {
+                    for (int i = 1; i < targetSpline.transform.childCount; i++)
+                    {
+                        targetSpline.transform.GetChild(i).SetSiblingIndex(0);
+                    }
                 }
             }
+
+#if CREST_UNITY_SPLINES
+            if (hasInstantiate)
+            {
+                if (_instantiatedSplinePointCount != points.Length)
+                {
+                    targetSpline.UpdateSpline();
+                    _instantiatedSplinePointCount = points.Length;
+                }
+
+                // Enable rich text in help boxes. Store original so we can revert since this might be a "hack".
+                var styleRichText = GUI.skin.GetStyle("HelpBox").richText;
+                GUI.skin.GetStyle("HelpBox").richText = true;
+
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("Spline is being controlled by <i>Spline Instantiate</i>. If you want to change data on the points, click <i>Bake Instances</i>.", MessageType.Info);
+
+                // Revert skin since it persists.
+                GUI.skin.GetStyle("HelpBox").richText = styleRichText;
+            }
+            else
+            {
+                EditorGUILayout.Space();
+
+                // Destroy instantiate temporary.
+                {
+                    var temporary = targetSpline.transform.Find("Crest Temporary");
+                    if (temporary != null) Helpers.Destroy(temporary.gameObject);
+                }
+
+                // Generation buttons.
+                if (points.Length == 0)
+                {
+                    if (GUILayout.Button("Generate From Unity Spline"))
+                    {
+                        var temporary = new GameObject
+                        {
+                            name = "Crest Temporary",
+                            hideFlags = HideFlags.HideInHierarchy,
+                        };
+
+                        temporary.SetActive(false);
+                        temporary.transform.SetParent(targetSpline.transform, worldPositionStays: true);
+
+                        var go = new GameObject
+                        {
+                            name = "Spline Point",
+                            hideFlags = HideFlags.HideInHierarchy,
+                        };
+
+                        go.transform.parent = targetSpline.transform;
+                        go.transform.SetParent(temporary.transform, worldPositionStays: true);
+
+                        go.AddComponent<SplinePoint>();
+                        go.AddComponent<SplinePointData>();
+
+                        instantiate = Undo.AddComponent<UnityEngine.Splines.SplineInstantiate>(targetSpline.gameObject);
+                        instantiate.itemsToInstantiate = new UnityEngine.Splines.SplineInstantiate.InstantiableItem[]
+                        {
+                            new() { Prefab = go },
+                        };
+
+                        instantiate.InstantiateMethod = UnityEngine.Splines.SplineInstantiate.Method.SpacingDistance;
+                        instantiate.MinSpacing = 5;
+                        instantiate.MaxSpacing = 5;
+
+                        Undo.RegisterCreatedObjectUndo(temporary, "Generate Spline");
+                        Undo.RegisterCreatedObjectUndo(go, "Generate Spline");
+                    }
+
+                    if (hasContainer && GUILayout.Button("Generate From Unity Spline Knots"))
+                    {
+                        foreach (var point in container.Spline)
+                        {
+                            var go = new GameObject();
+                            go.name = "Spline Point";
+                            go.transform.parent = targetSpline.transform;
+                            go.transform.position = container.transform.TransformPoint(point.Position);
+                            go.AddComponent<SplinePoint>();
+                            go.AddComponent<SplinePointData>();
+                            Undo.RegisterCreatedObjectUndo(go, "Generate Spline From Knots");
+                        }
+                    }
+                }
+
+            }
+#endif // CREST_UNITY_SPLINES
 
             // Helpers to quickly attach ocean inputs
             EditorGUILayout.Space();

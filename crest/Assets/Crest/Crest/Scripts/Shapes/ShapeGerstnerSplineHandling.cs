@@ -23,7 +23,7 @@ namespace Crest
             minHeight = 10000f;
             maxHeight = -10000f;
 
-            var splinePoints = spline.GetComponentsInChildren<SplinePoint>();
+            var splinePoints = spline.GetComponentsInChildren<SplinePoint>(includeInactive: false);
 
             foreach (var sp in splinePoints)
             {

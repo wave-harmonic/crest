@@ -354,8 +354,14 @@ namespace Crest
 
             var radius = _overrideSplineSettings ? _radius : _spline.Radius;
             var subdivs = _overrideSplineSettings ? _subdivisions : _spline.Subdivisions;
-            ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs,
+            var success = ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, subdivs,
                 radius, DefaultCustomData, ref _splineMesh, out _splinePointHeightMin, out _splinePointHeightMax, ref _splineBoundingPoints);
+
+            // If failed then destroy mesh.
+            if (!success)
+            {
+                _splineMesh = null;
+            }
 
             if (_splineMaterial == null)
             {

@@ -120,7 +120,7 @@ purposes. We recommend first time users import them as they may provide useful g
 
 .. tip::
 
-   If you are starting from scratch we recommend :link:`creating a project using a template in the Unity Hub <{UnityDocLink}/ProjectTemplates.html>`.
+   If you are starting from scratch we recommend :link:`creating a project using a template in the Unity Hub <https://docs.unity3d.com/hub/manual/Templates.html>`.
 
 
 .. _add-crest-to-scene-section:

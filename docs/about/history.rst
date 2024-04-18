@@ -25,6 +25,8 @@ Changed
    -  Add *Filter By Wavelength* and *Render After Dynamic Waves* options to *Register Anim Waves Input*.
       When both are disabled it will render to all LODs and before *Dynamic Waves*.
       Useful for scaling waves without affecting ripples and wakes.
+   -  Add feathering to spline inputs.
+   -  Add basic Unity Splines integration to generate our spline from theirs.
    -  Add *Spline* API (*Spline.UpdateSpline* and getters/setters) for updating splines in editor and standalone.
    -  Validate that *Lod Data Resolution* is divisible by 128 which is the smallest interval that is robust enough.
    -  Clarify *Lod Data Resolution* tooltip about 128 intervals.
@@ -44,6 +46,7 @@ Fixed
       Requires Unity 2021.3+.
    -  Fix possible texture "random writes" format error for LOD textures on some devices.
       Requires Unity 2021.3+.
+   -  Fix many cases where splines would not update in the editor.
    -  Validate that height data is enabled when using height inputs.
    -  Fix *Sphere Water Interaction* debug line orientation.
    -  Fix *Underwater Effect* not working
@@ -53,6 +56,7 @@ Fixed
 
    .. only:: birp
 
+      -  Fix underwater multi-view rendering (primarily *Meta Quest*). `[BIRP]`
       -  Fix *Depth Fog Density Factor* not supporting *Shader API*. `[BIRP]`
       -  Fix *Depth Fog Density Factor* not supporting *Portals & Volumes* feature. `[BIRP]`
       -  Fix *Shader API* not apply shadow scattering to underside of surface. `[BIRP]`

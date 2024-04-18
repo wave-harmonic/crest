@@ -341,6 +341,9 @@ namespace Crest
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
                 bounds = mesh.bounds;
+                // Increase snapping allowance (see #1148). Value was chosen by observation with a
+                // custom debug mode to show pixels that were out of bounds.
+                dx *= 3f;
                 bounds.extents = new Vector3(bounds.extents.x + dx, bounds.extents.y, bounds.extents.z + dx);
                 mesh.bounds = bounds;
                 mesh.name = pt.ToString();

@@ -35,6 +35,10 @@ Changed
 
       -  *Ocean Planar Reflections* now work in edit mode. `[BIRP] [URP]`
 
+   .. only:: hdrp
+
+      -  Alert users if they have the wrong `Crest` package downloaded for their Unity version. `[HDRP]`
+
 Fixed
 ^^^^^
 .. bullet_list::
@@ -46,6 +50,7 @@ Fixed
       Requires Unity 2021.3+.
    -  Fix possible texture "random writes" format error for LOD textures on some devices.
       Requires Unity 2021.3+.
+   -  Fix water chunks being incorrectly culled (ie missing) at screen edges.
    -  Fix many cases where splines would not update in the editor.
    -  Validate that height data is enabled when using height inputs.
    -  Fix *Sphere Water Interaction* debug line orientation.
@@ -66,6 +71,8 @@ Fixed
 
       -  Fix refraction artifacts causing an outline/ghosting like effect for underwater objects. `[BIRP] [URP]`
       -  Fix underwater colors being incorrect when using gamma color space. `[BIRP] [URP]`
+      -  Only warn about post-processing bug when using the bugged version.
+         Recommend upgrading to fixed version. `[BIRP] [URP]`
 
    .. only:: hdrp
 

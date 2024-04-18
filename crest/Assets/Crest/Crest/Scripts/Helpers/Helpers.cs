@@ -9,6 +9,10 @@ namespace Crest
     using UnityEngine.Experimental.Rendering;
     using UnityEngine.Rendering;
 
+#if !UNITY_2023_2_OR_NEWER
+    using GraphicsFormatUsage = UnityEngine.Experimental.Rendering.FormatUsage;
+#endif
+
     /// <summary>
     /// General purpose helpers which, at the moment, do not warrant a seperate file.
     /// </summary>
@@ -152,8 +156,8 @@ namespace Crest
         }
 #endif
 
-        internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, FormatUsage usage, bool randomWrite = false)
-        {
+    internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, GraphicsFormatUsage usage, bool randomWrite = false)
+    {
             var useFallback = false;
             var result = SystemInfo.GetCompatibleFormat(format, usage);
 

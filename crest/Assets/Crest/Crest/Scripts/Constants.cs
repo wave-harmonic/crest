@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Crest.Examples")]
+
 namespace Crest.CrestEditor { }
 namespace Crest.EditorHelpers { }
 namespace UnityEditor.EditorTools { }

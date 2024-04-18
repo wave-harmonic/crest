@@ -8,6 +8,7 @@
 #define INPUT_SYSTEM_ENABLED
 #endif
 
+using Crest.Internal;
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -76,7 +77,7 @@ namespace Crest
 
         private const float WATER_DENSITY = 1000;
 
-        public override Vector3 Velocity => _rb.velocity;
+        public override Vector3 Velocity => _rb.LinearVelocity();
 
         Rigidbody _rb;
 
@@ -231,7 +232,7 @@ namespace Crest
         void FixedUpdateDrag(Vector3 waterSurfaceVel)
         {
             // Apply drag relative to water
-            var _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+            var _velocityRelativeToWater = Velocity - waterSurfaceVel;
 
             var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
             _rb.AddForceAtPosition(_dragInWaterUp * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * Vector3.up, forcePosition, ForceMode.Acceleration);

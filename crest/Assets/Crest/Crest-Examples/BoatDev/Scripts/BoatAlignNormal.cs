@@ -6,6 +6,7 @@
 #define INPUT_SYSTEM_ENABLED
 #endif
 
+using Crest.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -73,7 +74,7 @@ namespace Crest.Examples
         bool _inWater;
         public override bool InWater => _inWater;
 
-        public override Vector3 Velocity => _rb.velocity;
+        public override Vector3 Velocity => _rb.LinearVelocity();
 
         Rigidbody _rb;
 
@@ -132,7 +133,7 @@ namespace Crest.Examples
                     new Color(1, 1, 1, 0.6f));
             }
 
-            var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+            var velocityRelativeToWater = Velocity - waterSurfaceVel;
 
             float bottomDepth = height - transform.position.y - _bottomH;
 

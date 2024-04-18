@@ -431,6 +431,15 @@ namespace Crest
                 descriptor.msaaSamples = Helpers.IsMSAAEnabled(camera) ? Mathf.Max(QualitySettings.antiAliasing, 1) : 1;
                 descriptor.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(descriptor);
             }
+
+            public static Vector3 LinearVelocity(this Rigidbody rigidbody)
+            {
+#if UNITY_2023_3_OR_NEWER
+                return rigidbody.linearVelocity;
+#else
+                return rigidbody.velocity;
+#endif
+            }
         }
     }
 

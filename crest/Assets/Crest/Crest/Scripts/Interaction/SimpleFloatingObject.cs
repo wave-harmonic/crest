@@ -4,6 +4,7 @@
 
 // Thanks to @VizzzU for contributing this.
 
+using Crest.Internal;
 using UnityEngine;
 
 namespace Crest
@@ -55,7 +56,7 @@ namespace Crest
         bool _inWater;
         public override bool InWater => _inWater;
 
-        public override Vector3 Velocity => _rb.velocity;
+        public override Vector3 Velocity => _rb.LinearVelocity();
 
         Rigidbody _rb;
 
@@ -99,7 +100,7 @@ namespace Crest
                     new Color(1, 1, 1, 0.6f));
             }
 
-            var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+            var velocityRelativeToWater = Velocity - waterSurfaceVel;
 
             float height = disp.y + OceanRenderer.Instance.SeaLevel;
 

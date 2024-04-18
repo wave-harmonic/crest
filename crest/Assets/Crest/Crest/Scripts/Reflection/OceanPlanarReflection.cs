@@ -79,7 +79,7 @@ namespace Crest
     /// </summary>
     [ExecuteDuringEditMode]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Planar Reflections")]
-    public class OceanPlanarReflection : CustomMonoBehaviour
+    public partial class OceanPlanarReflection : CustomMonoBehaviour
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should
@@ -102,7 +102,9 @@ namespace Crest
         [SerializeField] bool _allowMSAA = false;           //allow MSAA on reflection camera
         [SerializeField] float _farClipPlane = 1000;             //far clip plane for reflection camera on all layers
         [SerializeField] bool _forceForwardRenderingPath = true;
-        [SerializeField] CameraClearFlags _clearFlags = CameraClearFlags.Color;
+
+        [Tooltip("The Color option will skip skybox rendering and fallback to global reflections (minor optimization), but any alpha shaders that do not write alpha will not appear in planar reflections (eg tree leaves). Use Skybox for best compatibility.")]
+        [SerializeField] CameraClearFlags _clearFlags = CameraClearFlags.Skybox;
 
         /// <summary>
         /// Refresh reflection every x frames(1-every frame)
@@ -444,4 +446,28 @@ namespace Crest
             }
         }
     }
+
+#if UNITY_EDITOR
+    public partial class OceanPlanarReflection : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (_clearFlags != CameraClearFlags.Skybox)
+            {
+                showMessage
+                (
+                    "The <i>Clear Flags</i> is not set to <i>Skybox</i>. " +
+                    "Any shaders which do not write alpha (eg some tree leaves) will not appear in the final reflections.",
+                    "Change <i>Clear Flags</i> to <i>Skybox</i>.",
+                    ValidatedHelper.MessageType.Info, this,
+                    (x) => x.FindProperty(nameof(_clearFlags)).intValue = (int)CameraClearFlags.Skybox
+                );
+            }
+
+            return isValid;
+        }
+    }
+#endif
 }

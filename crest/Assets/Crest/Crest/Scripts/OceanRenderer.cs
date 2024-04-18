@@ -1774,7 +1774,7 @@ namespace Crest
                     );
                 }
 
-#if UNITY_POSTPROCESSING_ENABLED
+#if UNITY_POSTPROCESSING_BROKEN_ENABLED
                 // Validate "Post-Processing".
                 // Only check built-in renderer and Camera.main with enabled PostProcessLayer component.
                 if (GraphicsSettings.currentRenderPipeline == null && Camera.main != null &&
@@ -1783,10 +1783,10 @@ namespace Crest
                 {
                     showMessage
                     (
-                        "<i>Post Processing</i> is enabled on the scene view. " +
+                        "<i>Post-Processing</i> is enabled on the scene view. " +
                         "There is a Unity bug where gizmos and grid lines will render over opaque objects. " +
-                        "Please see <i>Known Issues</i> in the documentation for a link to vote on having this issue resolved.",
-                        "Disable <i>Post Processing</i> on the scene view.",
+                        "This has been resolved in <i>Post-Processing</i> version 3.4.0.",
+                        "Disable <i>Post-Processing</i> on the scene view or upgrade to version 3.4.0.",
                         ValidatedHelper.MessageType.Warning, ocean,
                         _ =>
                         {

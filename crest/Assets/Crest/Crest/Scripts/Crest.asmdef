@@ -18,8 +18,8 @@
     "versionDefines": [
         {
             "name": "com.unity.postprocessing",
-            "expression": "",
-            "define": "UNITY_POSTPROCESSING_ENABLED"
+            "expression": "(,3.4.0)",
+            "define": "UNITY_POSTPROCESSING_BROKEN_ENABLED"
         },
         {
             "name": "com.unity.modules.vr",

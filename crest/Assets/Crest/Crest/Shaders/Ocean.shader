@@ -208,7 +208,9 @@ Shader "Crest/Ocean"
 			// out the gbuffer data and do post processing before running it. Discussion of this in issue #53.
 			"Queue"="Geometry+510"
 			"IgnoreProjector"="True"
-			"RenderType"="Opaque"
+			// RenderType is used for shader replacement which will never work well.
+			// Transparent prevents water being rendered into depth+normals which fixes SAO.
+			"RenderType"="Transparent"
 			"DisableBatching"="True"
 		}
 

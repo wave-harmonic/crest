@@ -8,6 +8,9 @@ namespace Crest
 {
     public static class TextureArrayHelpers
     {
+        // Set to true to enable the legacy clear which is proven to not cause problems.
+        static readonly bool s_UseLegacyClear = false;
+
         private const string CLEAR_TO_BLACK_SHADER_NAME = "ClearToBlack";
         private const int SMALL_TEXTURE_DIM = 4;
 
@@ -40,6 +43,12 @@ namespace Crest
         // https://github.com/wave-harmonic/crest/commit/9160898972051a276f12eff0bd9b832d2992ae62
         public static void ClearToBlack(RenderTexture dst)
         {
+            if (!s_UseLegacyClear)
+            {
+                Helpers.ClearRenderTexture(dst, Color.black, depth: false);
+                return;
+            }
+
             if (s_clearToBlackShader == null)
             {
                 return;

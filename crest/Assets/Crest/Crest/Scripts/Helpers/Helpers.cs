@@ -142,6 +142,22 @@ namespace Crest
             a = temp;
         }
 
+        public static void ClearRenderTexture(RenderTexture texture, Color clear, bool depth = true, bool color = true)
+        {
+            var active = RenderTexture.active;
+
+            // Using RenderTexture.active will not write to all slices.
+            Graphics.SetRenderTarget(texture, 0, CubemapFace.Unknown, -1);
+            // TODO: Do we need to disable GL.sRGBWrite as it is linear to linear.
+            GL.Clear(depth, color, clear);
+
+            // Graphics.SetRenderTarget can be equivalent to setting RenderTexture.active:
+            // https://docs.unity3d.com/ScriptReference/Graphics.SetRenderTarget.html
+            // Restore previous active texture or it can incur a warning when releasing:
+            // Releasing render texture that is set to be RenderTexture.active!
+            RenderTexture.active = active;
+        }
+
         // R16G16B16A16_SFloat appears to be the most compatible format.
         // https://docs.unity3d.com/Manual/class-TextureImporterOverride.html#texture-compression-support-platforms
         // https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads#supported-formats-and-api-calls

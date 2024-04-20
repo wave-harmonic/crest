@@ -17,7 +17,7 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
-   -  Add Unity 2023.2 support.
+   -  Add Unity 6 beta support.
    -  Improve documentation.
    -  Remove "Preview" from everything.
    -  Improve *Lakes and Rivers* scene.
@@ -30,14 +30,22 @@ Changed
    -  Add *Spline* API (*Spline.UpdateSpline* and getters/setters) for updating splines in editor and standalone.
    -  Validate that *Lod Data Resolution* is divisible by 128 which is the smallest interval that is robust enough.
    -  Clarify *Lod Data Resolution* tooltip about 128 intervals.
+   -  Improve texture format compatibility.
+   -  Remove random write access requirement for Shadow render texture.
 
    .. only:: birp or urp
 
       -  *Ocean Planar Reflections* now work in edit mode. `[BIRP] [URP]`
+      -  Make *Skybox* the default *Clear Flags* for *Ocean Planar Reflections* as this is more compatible with custom shaders. `[BIRP] [URP]`
+      -  Warn if Clear Flags on *Ocean Planar Reflections* is not Skybox and inform that it is more compatible with custom shaders. `[BIRP] [URP]`
 
    .. only:: hdrp
 
       -  Alert users if they have the wrong `Crest` package downloaded for their Unity version. `[HDRP]`
+
+   .. only:: urp
+
+      -  Add support for Render Graph in Unity 6 beta. `[URP]`
 
 Fixed
 ^^^^^
@@ -57,6 +65,7 @@ Fixed
    -  Fix *Underwater Effect* not working
    -  Fix banding in *Examples* scene.
    -  Fix seams and double flow in *Lakes and Rivers* scene.
+   -  Fix "Failed to create Physics Mesh from source mesh" in 2023.3.
    -  Silence several warnings.
 
    .. only:: birp
@@ -66,6 +75,7 @@ Fixed
       -  Fix *Depth Fog Density Factor* not supporting *Portals & Volumes* feature. `[BIRP]`
       -  Fix *Shader API* not apply shadow scattering to underside of surface. `[BIRP]`
       -  Fix underwater surface and volume having visibly different colors when using gamma color space and *Underwater Renderer > Shader API*. `[BIRP]`
+      -  Fix water being affected by `SAO` and other effects by setting Render Type to Transparent.
 
    .. only:: birp or urp
 
@@ -78,6 +88,7 @@ Fixed
 
       -  Fix shader errors when enabling raytracing features. `[HDRP]`
       -  Fix *Rendering Layer Mask* changes not applying immediately. `[HDRP]`
+      -  Throw an error if the wrong package version was downloaded for the Unity version. `[HDRP]`
 
    .. only:: hdrp or urp
 
@@ -89,6 +100,7 @@ Fixed
       -  Fix broken rendering with *Depth Texture Mode > Depth After Transparent*. `[URP]`
       -  Fix broken rendering when *Depth Texture* is disabled. `[URP]`
       -  Fix broken rendering when *Opaque Texture* is disabled. `[URP]`
+      -  Warn about *SSAO* and *Depth Priming* bug. `[URP]`
 
 Performance
 ^^^^^^^^^^^

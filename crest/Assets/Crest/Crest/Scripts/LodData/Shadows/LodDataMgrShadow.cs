@@ -503,7 +503,7 @@ namespace Crest
 
                     LodDataMgrSeaFloorDepth.Bind(_renderMaterial[lodIdx]);
 
-                    Helpers.Blit(buffer, new RenderTargetIdentifier(_targets.Current, 0, CubemapFace.Unknown, lodIdx), _renderMaterial[lodIdx].material, -1);
+                    Helpers.Blit(buffer, _targets.Current, _renderMaterial[lodIdx].material, depthSlice: lodIdx);
                 }
 
                 // Process registered inputs.

@@ -322,11 +322,30 @@ namespace Crest
 
         /// <summary>
         /// Blit using full screen triangle. Supports more features than CommandBuffer.Blit like the RenderPipeline tag
-        /// in sub-shaders.
+        /// in sub-shaders. Never use for data.
         /// </summary>
-        public static void Blit(CommandBuffer buffer, RenderTargetIdentifier target, Material material, int pass, MaterialPropertyBlock properties = null)
+        public static void Blit(CommandBuffer buffer, RenderTargetIdentifier target, Material material, int pass = -1, MaterialPropertyBlock properties = null)
         {
             SetRenderTarget(buffer, target);
+            buffer.DrawProcedural
+            (
+                Matrix4x4.identity,
+                material,
+                pass,
+                MeshTopology.Triangles,
+                vertexCount: 3,
+                instanceCount: 1,
+                properties
+            );
+        }
+
+        /// <summary>
+        /// Blit using full screen triangle. Supports more features than CommandBuffer.Blit like the RenderPipeline tag
+        /// in sub-shaders. Never use for fullscreen effects.
+        /// </summary>
+        public static void Blit(CommandBuffer buffer, RenderTexture target, Material material, int pass = -1, int depthSlice = -1, MaterialPropertyBlock properties = null)
+        {
+            buffer.SetRenderTarget(target, mipLevel: 0, CubemapFace.Unknown, depthSlice);
             buffer.DrawProcedural
             (
                 Matrix4x4.identity,

@@ -32,7 +32,7 @@ This section provides a summary of common steps for setting up water with links 
    It also has limited support for headless servers.
    See section :ref:`network-synchronisation`.
 
--  **Open Worlds**: *Crest* comes with 'floating origin' support to enable large open worlds.
+-  **Open Worlds**: *Crest* comes with 'shifting origin' support to enable large open worlds.
    See section :ref:`floating-origin`.
 
 .. tip::

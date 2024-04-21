@@ -6,13 +6,12 @@ Open Worlds
 
 .. _floating-origin:
 
-Floating Origin
+Shifting Origin
 ---------------
 
-*Crest* has support for 'floating origin' functionality, based on code from the *Unity Community Wiki*.
-See the :link:`Floating Origin wiki page <https://wiki.unity3d.com/index.php/Floating_Origin>` for an overview and original code.
+*Crest* has support for 'shifting origin' functionality, based on code from the *Unity Community Wiki* which is no longer available.
 
-By default the *FloatingOrigin* script will call *FindObjectsOfType()* for a few different component types, which is a notoriously expensive operation.
+By default the *ShiftingOrigin* script will call *FindObjectsOfType()* for a few different component types, which is a notoriously expensive operation.
 It is possible to provide custom lists of components to the "override" fields, either by hand or programmatically, to avoid searching the entire scene(s) for the components.
 Managing these lists at run-time is left to the user.
 

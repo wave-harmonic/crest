@@ -290,7 +290,7 @@ Changed
    -  Add *Update Saved Cache File* button to *Ocean Depth Cache*.
    -  Automatically set *Ocean Depth Cache* to *Baked* and set texture after baking.
    -  Show `Crest` version on *Ocean Renderer*.
-   -  Add helpbox to *Floating Origin* directing users to documentation for solving potential popping issues.
+   -  Add helpbox to *Shifting Origin* directing users to documentation for solving potential popping issues.
    -  Improve spacing for spectrum power slider labels.
 
    .. only:: birp or urp
@@ -599,9 +599,9 @@ Fixed
    -  Fix shadow bleeding at shorelines by using the *Sea Floor Depth* data to reject invalid shadows. :pr:`947`
    -  Fix exceptions thrown for server/headless builds.
    -  Fix exceptions thrown if foam, dynamic waves and shadows all were disabled.
-   -  Fix *Floating Origin* for *Shape Gerstner* and *Shape FFT*.
-   -  Fix ocean textures popping (normals, caustics etc) when *Floating Origin* teleports.
-   -  Fix collision queries (eg buoyancy) popping when *Floating Origin* teleports.
+   -  Fix *Shifting Origin* for *Shape Gerstner* and *Shape FFT*.
+   -  Fix ocean textures popping (normals, caustics etc) when *Shifting Origin* teleports.
+   -  Fix collision queries (eg buoyancy) popping when *Shifting Origin* teleports.
    -  Fix ocean scale smoothing on first frame and teleports.
       This issue appears as the ocean detail being low and slowly becoming high detailed.
    -  Fix shadow data not always clearing.

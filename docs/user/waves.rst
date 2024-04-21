@@ -155,7 +155,7 @@ The dynamic wave simulation is added on top of the animated FFT waves to give th
 
 The dynamic wave simulation is not suitable for use further than approximately 10km from the origin.
 At this kind of distance the stability of the simulation can be compromised.
-Use the *FloatingOrigin*  component to avoid travelling far distances from the world origin.
+Use the *ShiftingOrigin*  component to avoid travelling far distances from the world origin.
 
 .. _adding-interaction-forces:
 

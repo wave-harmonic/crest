@@ -1309,7 +1309,7 @@ namespace Crest
                 {
                     // Find the distance. Adding the FO offset will exclude FO shifts so we can determine a normal teleport.
                     // FO shifts are visually the same position and it is incorrect to treat it as a normal teleport.
-                    var teleportDistanceSqr = (_oldViewerPosition - camera.transform.position - FloatingOrigin.TeleportOriginThisFrame).sqrMagnitude;
+                    var teleportDistanceSqr = (_oldViewerPosition - camera.transform.position - ShiftingOrigin.TeleportOriginThisFrame).sqrMagnitude;
                     // Threshold as sqrMagnitude.
                     var thresholdSqr = _teleportThreshold * _teleportThreshold;
                     hasTeleported = teleportDistanceSqr > thresholdSqr;

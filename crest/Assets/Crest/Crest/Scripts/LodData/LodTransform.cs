@@ -10,7 +10,7 @@ namespace Crest
     /// <summary>
     /// This script is attached to the parent GameObject of each LOD. It provides helper functionality related to each LOD.
     /// </summary>
-    public class LodTransform : IFloatingOrigin
+    public class LodTransform : IShiftingOrigin
     {
         // Anything higher (minus 1 for near plane) will be clipped.
         const float k_RenderAboveSeaLevel = 10000f;
@@ -177,8 +177,8 @@ namespace Crest
         {
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                // All _posSnapped values will be updated on Floating Origin shift so we need to recopy them.
-                var frames = FloatingOrigin.HasTeleportedThisFrame ? _renderData[lodIdx].Size : 1;
+                // All _posSnapped values will be updated on shift so we need to recopy them.
+                var frames = ShiftingOrigin.HasTeleportedThisFrame ? _renderData[lodIdx].Size : 1;
                 for (var frame = 0; frame < frames; frame++)
                 {
                     cascadeParams.Previous(frame)[lodIdx]._posSnapped[0] = _renderData[lodIdx].Previous(frame)._posSnapped[0];

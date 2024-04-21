@@ -95,7 +95,7 @@ void ComputeFoam
 	worldXZ.undisplaced1 = i_worldXZUndisplaced;
 
 #if CREST_FLOATING_ORIGIN
-	// Apply tiled floating origin offset. Only needed if:
+	// Apply tiled shifting origin offset. Only needed if:
 	//  - _FoamScale is a non integer value
 	//  - _FoamScale is over 48
 	worldXZ.displaced0   -= i_texture.FloatingOriginOffset(cascadeData0);

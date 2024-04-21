@@ -25,7 +25,7 @@ half2 SampleNormalMaps
 	float2 worldXZUndisplaced = i_worldXZUndisplaced;
 
 #if CREST_FLOATING_ORIGIN
-	// Apply tiled floating origin offset. Always needed.
+	// Apply tiled shifting origin offset. Always needed.
 	worldXZUndisplaced -= i_texture.FloatingOriginOffset(cascadeData);
 #endif
 

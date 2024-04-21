@@ -16,7 +16,7 @@ namespace Crest
     [ExecuteDuringEditMode(ExecuteDuringEditModeAttribute.Include.None)]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner Batched")]
     [HelpURL(Internal.Constants.HELP_URL_BASE_USER + "waves.html" + Internal.Constants.HELP_URL_RP)]
-    public partial class ShapeGerstnerBatched : CustomMonoBehaviour, ICollProvider, IFloatingOrigin
+    public partial class ShapeGerstnerBatched : CustomMonoBehaviour, ICollProvider, IShiftingOrigin
     {
         /// <summary>
         /// The version of this asset. Can be used to migrate across versions. This value should

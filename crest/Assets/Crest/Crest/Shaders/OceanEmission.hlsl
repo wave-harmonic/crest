@@ -96,7 +96,7 @@ void ApplyCaustics
 		float surfacePosScale = 1.37;
 
 #if CREST_FLOATING_ORIGIN
-		// Apply tiled floating origin offset. Always needed.
+		// Apply tiled shifting origin offset. Always needed.
 		surfacePosXZ -= i_causticsTexture.FloatingOriginOffset();
 		// Scale was causing popping.
 		surfacePosScale = 1.0;
@@ -121,7 +121,7 @@ void ApplyCaustics
 		float2 surfacePosXZ = i_scenePos.xz;
 
 #if CREST_FLOATING_ORIGIN
-		// Apply tiled floating origin offset. Always needed.
+		// Apply tiled shifting origin offset. Always needed.
 		surfacePosXZ -= i_distortionTexture.FloatingOriginOffset();
 #endif
 

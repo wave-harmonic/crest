@@ -23,16 +23,16 @@ namespace Crest.Examples
         [Header("Translation")]
         public Vector3 _axis = Vector3.up;
         Vector3 _orthoAxis;
-        [Range(0, 15)]
+        [UnityEngine.Range(0, 15)]
         public float _amplitude = 1f;
-        [Range(0, 5)]
+        [UnityEngine.Range(0, 5)]
         public float _freq = 1f;
 
-        [Range(0, 1)]
+        [UnityEngine.Range(0, 1)]
         public float _orthogonalMotion = 0f;
 
         [Header("Rotation")]
-        [Range(0, 5)]
+        [UnityEngine.Range(0, 5)]
         public float _rotationFreq = 1f;
         public float _rotationVel = 0f;
 

@@ -39,7 +39,7 @@ namespace Crest
         [Tooltip("Render to all LODs before the combine step where Dynamic Waves are added to the Animated Waves. Useful for scaling waves etc without affecting ripples and wakes.")]
         [Predicated(nameof(_filterByWavelength), inverted: true)]
         [SerializeField, DecoratedField]
-        bool _renderAfterDynamicWaves;
+        bool _renderAfterDynamicWaves = true;
 
         public readonly static Color s_gizmoColor = new Color(0f, 1f, 0f, 0.5f);
         protected override Color GizmoColor => s_gizmoColor;

@@ -9,7 +9,7 @@ namespace Crest
     public static class TextureArrayHelpers
     {
         // Set to true to enable the legacy clear which is proven to not cause problems.
-        static readonly bool s_UseLegacyClear = false;
+        internal static readonly bool s_UseLegacyClear = false;
 
         private const string CLEAR_TO_BLACK_SHADER_NAME = "ClearToBlack";
         private const int SMALL_TEXTURE_DIM = 4;

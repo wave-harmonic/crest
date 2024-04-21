@@ -18,7 +18,7 @@ namespace Crest
         public override string SimName => "ClipSurface";
 
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
-        protected override bool NeedToReadWriteTextureData => true;
+        protected override bool NeedToReadWriteTextureData => TextureArrayHelpers.s_UseLegacyClear;
         static Texture2DArray s_nullTexture => TextureArrayHelpers.BlackTextureArray;
         protected override Texture2DArray NullTexture => s_nullTexture;
 

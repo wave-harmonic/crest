@@ -31,7 +31,9 @@ Changed
    -  Validate that *Lod Data Resolution* is divisible by 128 which is the smallest interval that is robust enough.
    -  Clarify *Lod Data Resolution* tooltip about 128 intervals.
    -  Improve texture format compatibility.
-   -  Remove random write access requirement for Shadow render texture.
+   -  Remove random write access requirement for Shadow and Clip Surface Lod render texture.
+   -  Rename *Floating Origin* to *Shifting Origin*.
+      If you see "Overriding existing asset with new GUID from package" warning, this is expected.
 
    .. only:: birp or urp
 
@@ -76,6 +78,7 @@ Fixed
       -  Fix *Shader API* not apply shadow scattering to underside of surface. `[BIRP]`
       -  Fix underwater surface and volume having visibly different colors when using gamma color space and *Underwater Renderer > Shader API*. `[BIRP]`
       -  Fix water being affected by `SAO` and other effects by setting Render Type to Transparent.
+      -  Fix reflected waves example rendering issues in *Examples* scene.
 
    .. only:: birp or urp
 
@@ -101,6 +104,12 @@ Fixed
       -  Fix broken rendering when *Depth Texture* is disabled. `[URP]`
       -  Fix broken rendering when *Opaque Texture* is disabled. `[URP]`
       -  Warn about *SSAO* and *Depth Priming* bug. `[URP]`
+
+Removed
+^^^^^^^
+.. bullet_list::
+
+   -  Remove row boat sample.
 
 Performance
 ^^^^^^^^^^^

@@ -1597,7 +1597,7 @@ namespace Crest
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnReLoadScripts()
         {
-            Instance = FindFirstObjectByType<OceanRenderer>();
+            Instance = Helpers.FindFirstObjectByType<OceanRenderer>();
         }
 
         private void OnDrawGizmos()
@@ -1662,7 +1662,7 @@ namespace Crest
         {
             ocean.Validate(ocean, ValidatedHelper.DebugLog);
 
-            foreach (var component in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<IValidated>())
+            foreach (var component in Helpers.FindObjectsByType<MonoBehaviour>().OfType<IValidated>())
             {
                 if (component is OceanRenderer) continue;
                 component.Validate(ocean, ValidatedHelper.DebugLog);
@@ -1693,7 +1693,7 @@ namespace Crest
             }
 
             // OceanRenderer
-            if (FindObjectsByType<OceanRenderer>(FindObjectsSortMode.None).Length > 1)
+            if (Helpers.FindObjectsByType<OceanRenderer>().Length > 1)
             {
                 showMessage
                 (
@@ -1704,9 +1704,9 @@ namespace Crest
             }
 
             // ShapeGerstnerBatched
-            var gerstnerBatches = FindObjectsByType<ShapeGerstnerBatched>(FindObjectsSortMode.None);
-            var gerstners = FindObjectsByType<ShapeGerstner>(FindObjectsSortMode.None);
-            var ffts = FindObjectsByType<ShapeFFT>(FindObjectsSortMode.None);
+            var gerstnerBatches = Helpers.FindObjectsByType<ShapeGerstnerBatched>();
+            var gerstners = Helpers.FindObjectsByType<ShapeGerstner>();
+            var ffts = Helpers.FindObjectsByType<ShapeFFT>();
             if (gerstnerBatches.Length == 0 && gerstners.Length == 0 && ffts.Length == 0)
             {
                 showMessage

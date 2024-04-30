@@ -164,6 +164,7 @@ namespace Crest
         readonly static GraphicsFormat s_FallbackGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
 #if UNITY_2021_3_OR_NEWER
+#if CREST_VERIFYRANDOMWRITESUPPORT
         static bool SupportsRandomWriteOnRenderTextureFormat(GraphicsFormat format)
         {
             var rtFormat = GraphicsFormatUtility.GetRenderTextureFormat(format);
@@ -171,9 +172,10 @@ namespace Crest
                 && SystemInfo.SupportsRandomWriteOnRenderTextureFormat(rtFormat);
         }
 #endif
+#endif
 
-    internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, GraphicsFormatUsage usage, bool randomWrite = false)
-    {
+        internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, GraphicsFormatUsage usage, bool randomWrite = false)
+        {
             var useFallback = false;
             var result = SystemInfo.GetCompatibleFormat(format, usage);
 
@@ -188,11 +190,13 @@ namespace Crest
             }
 
 #if UNITY_2021_3_OR_NEWER
+#if CREST_VERIFYRANDOMWRITESUPPORT
             if (!useFallback && randomWrite && !SupportsRandomWriteOnRenderTextureFormat(result))
             {
                 Debug.Log($"Crest: The graphics device does not support the render texture format {result} with random read/write. Will attempt to use fallback.");
                 useFallback = true;
             }
+#endif
 #endif
 
             // Check if fallback is compatible before using it.

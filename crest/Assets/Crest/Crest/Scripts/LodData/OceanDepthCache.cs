@@ -165,11 +165,7 @@ namespace Crest
             }
             else
             {
-#if UNITY_EDITOR_WIN
-                fmt = RenderTextureFormat.DefaultHDR;
-#else
                 fmt = RenderTextureFormat.RHalf;
-#endif
             }
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "Crest: The graphics device does not support the render texture format " + fmt.ToString());

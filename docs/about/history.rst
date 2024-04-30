@@ -17,6 +17,36 @@ Changed
 ^^^^^^^
 .. bullet_list::
 
+   -  Relax *Lod Resolution* being divisible by 128 requirement to divisible by 16.
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix "'FindObjectsByType' does not exist in the current context" etc errors by reverting "Use optimized FindObject(s) methods" due to no way to conditionally compile them.
+      Unity 6+ will keep these changes.
+   -  Fix spurious format changes by reverting "Improve texture format compatibility".
+      Add CREST_VERIFYRANDOMWRITESUPPORT symbol to keep these changes but not recommended.
+   -  Fix *Ocean Depth Cache* not working on Windows when switched to Android build target.
+
+   .. only:: hdrp
+
+      -  Fix *Surface Type > Opaque* missing scattering colors. `[HDRP]`
+      -  Fix water rendering over volumetric clouds when viewed from above (requires Unity 6+).
+         This required adding a refraction model which has an overhead.
+         Set *Refraction Model* to *Planar/Box* otherwise it is recommended to keep it as *None*. `[HDRP]`
+
+   .. only:: urp
+
+      -  Fix "Warn about *SSAO* and *Depth Priming* bug" warning on fixed Unity versions. `[URP]`
+
+4.20
+----
+
+Changed
+^^^^^^^
+.. bullet_list::
+
    -  Add Unity 6 beta support.
    -  Improve documentation.
    -  Remove "Preview" from everything.

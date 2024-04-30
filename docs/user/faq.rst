@@ -139,3 +139,14 @@ Frequently Asked Questions
 .. dropdown:: Can I render transparent objects behind the ocean surface?
 
    See :ref:`transparent-object-after-ocean-surface`.
+
+.. dropdown:: How can I fix the water rendering over the top of `HDRP`'s volumetric clouds when viewing from above?
+
+   When viewing volumetric clouds from above, the water may render over them.
+
+   For Unity 6 and above, set the *Refraction Model* on the water material to something other than *None* (like *Planar*).
+   This has an overhead so it is recommended to set it to *None* if not required.
+
+   For earlier Unity versions, the only way is to set *Surface Type* to *Opaque*.
+   This can be done.
+   The water will look difference in shallow areas so it is advise to set this only when needed.

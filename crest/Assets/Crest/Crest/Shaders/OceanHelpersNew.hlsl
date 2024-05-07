@@ -95,7 +95,7 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 		const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
 		// Determinant is < 1 for pinched, < 0 for overlap/inversion
 		const float det = determinant( jacobian );
-		io_sss += i_wt * saturate( CREST_SSS_MAXIMUM - CREST_SSS_RANGE * det );
+		io_sss += i_wt * det;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 

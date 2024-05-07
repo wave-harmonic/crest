@@ -592,8 +592,10 @@ Shader "Crest/Ocean"
 				// Extents need the default SSS to avoid popping and not being noticeably different.
 				if (_LD_SliceIndex == ((uint)_SliceCount - 1))
 				{
-					sss = CREST_SSS_MAXIMUM - CREST_SSS_RANGE;
+					sss += 1.0 - wt_smallerLod;
 				}
+
+				sss = saturate(CREST_SSS_MAXIMUM - CREST_SSS_RANGE * sss);
 #endif
 
 				#if _APPLYNORMALMAPPING_ON

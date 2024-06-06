@@ -127,6 +127,12 @@ namespace Crest
             }
         }
 
+        void OnDisable()
+        {
+            if (_camDepthCache != null) Helpers.Destroy(_camDepthCache.gameObject);
+            if (_drawCacheQuad != null) Helpers.Destroy(_drawCacheQuad);
+        }
+
 #if UNITY_EDITOR
         void Update()
         {

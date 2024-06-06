@@ -227,7 +227,8 @@ namespace Crest
             if (_disableClipSurfaceWhenTooFarFromSurface)
             {
                 var position = transform.position;
-                _sampleHeightHelper.Init(position, 0f);
+                // allowMultipleCallsPerFrame because we are calling before the time values are updated.
+                _sampleHeightHelper.Init(position, i_minLength: 0f, allowMultipleCallsPerFrame: true, context: this);
 
                 if (_sampleHeightHelper.Sample(out float waterHeight))
                 {

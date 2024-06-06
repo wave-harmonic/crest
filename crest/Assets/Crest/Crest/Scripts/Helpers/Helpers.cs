@@ -461,6 +461,21 @@ namespace Crest
                 return QualitySettings.activeColorSpace == ColorSpace.Linear ? color.linear : color;
             }
 
+            public static Color MaybeGamma(this Color color)
+            {
+                return QualitySettings.activeColorSpace == ColorSpace.Linear ? color : color.gamma;
+            }
+
+            public static Color FinalColor(this Light light)
+            {
+                var linear = GraphicsSettings.lightsUseLinearIntensity;
+                var color = linear ? light.color.linear : light.color;
+                color *= light.intensity;
+                if (linear && light.useColorTemperature) color *= Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                if (!linear) color = color.MaybeLinear();
+                return linear ? color.MaybeGamma() : color;
+            }
+
             ///<summary>
             /// Sets the msaaSamples property to the highest supported MSAA level in the settings.
             ///</summary>

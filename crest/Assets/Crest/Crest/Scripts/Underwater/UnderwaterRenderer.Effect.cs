@@ -143,7 +143,7 @@ namespace Crest
                 // Unity does not set up lighting for us so we will get the last value which could incorrect.
                 // SetGlobalColor is just an alias for SetGlobalVector (no color space conversion like Material.SetColor):
                 // https://docs.unity3d.com/2017.4/Documentation/ScriptReference/Shader.SetGlobalColor.html
-                _underwaterEffectCommandBuffer.SetGlobalVector(ShaderIDs.s_LightColor0, (RenderSettings.sun.color * RenderSettings.sun.intensity).MaybeLinear());
+                _underwaterEffectCommandBuffer.SetGlobalVector(ShaderIDs.s_LightColor0, RenderSettings.sun.FinalColor());
                 _underwaterEffectCommandBuffer.SetGlobalVector(ShaderIDs.s_WorldSpaceLightPos0, -RenderSettings.sun.transform.forward);
             }
 

@@ -28,7 +28,7 @@ This repository targets the built-in renderer. For other render pipelines, see t
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=JsEWfFlkPxM" target="_blank"><img src="https://img.youtube.com/vi/JsEWfFlkPxM/0.jpg" alt="Wavetale | Accolades Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=1edWpAlRd8Y" target="_blank"><img src="https://img.youtube.com/vi/1edWpAlRd8Y/0.jpg" alt="Critter Cove | Official Announcement Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=zz_Yrw0Zang" target="_blank"><img src="https://img.youtube.com/vi/zz_Yrw0Zang/0.jpg" alt="Vertigo 2 - Launch Trailer" width="270" height="202" /></a>
-<a href="https://www.youtube.com/watch?feature=player_embedded&v=rdPdxXsgI9c" target="_blank"><img src="https://img.youtube.com/vi/rdPdxXsgI9c/0.jpg" alt="Blade and Sorcery | Official Update 10 Trailer - The Dungeons Update" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=sDLtIxyaLWM" target="_blank"><img src="https://img.youtube.com/vi/sDLtIxyaLWM/0.jpg" alt="Sea Legends Simple Teaser" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_Rq5dfZfQ1k" target="_blank"><img src="https://img.youtube.com/vi/_Rq5dfZfQ1k/0.jpg" alt="Out of Reach: Treasure Royale - Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_thrrySB5YQ" target="_blank"><img src="https://img.youtube.com/vi/_thrrySB5YQ/0.jpg" alt="BUCKO • Announcement Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=zCeK_Kdxqa0" target="_blank"><img src="https://img.youtube.com/vi/QvCPhk0e7-I/0.jpg" alt="Of Ships & Scoundrels - Crest Demo" width="270" height="202" /></a>
@@ -95,8 +95,3 @@ If you are using any of the following *Unity* versions, then use the provided *C
 With your support we aim to increase our development bandwidth significantly. Please see our sponsor page for sponsor tiers:
 
 [🩷 Sponsor](https://github.com/sponsors/wave-harmonic)
-
-#### Sponsors
-
-🥇 [@holdingjason](https://github.com/holdingjason)
-🚀 [@ipthgil](https://github.com/ipthgil)

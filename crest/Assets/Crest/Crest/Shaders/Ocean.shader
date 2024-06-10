@@ -526,10 +526,6 @@ Shader "Crest/Ocean"
 				half3 screenPos = input.screenPosXYW;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 
-#if CREST_WATER_VOLUME
-				float rawFrontFaceZ = ApplyVolumeToOceanSurface(input.positionCS);
-#endif
-
 				#if _CLIPUNDERTERRAIN_ON
 				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);
 				#endif
@@ -540,6 +536,12 @@ Shader "Crest/Ocean"
 				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
 				float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepth);
+
+#if CREST_WATER_VOLUME
+				float rawFrontFaceZ;
+				bool backface = ApplyVolumeToOceanSurface(input.positionCS, rawFrontFaceZ, rawDepth);
+#endif
+
 				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float3 lightDir = WaveHarmonic::Crest::WorldSpaceLightDir(input.worldPos);
@@ -693,6 +695,9 @@ Shader "Crest/Ocean"
 					bubbleCol,
 					underwater,
 					scatterCol,
+#if CREST_WATER_VOLUME
+					backface,
+#endif
 					cascadeData0,
 					cascadeData1
 				);

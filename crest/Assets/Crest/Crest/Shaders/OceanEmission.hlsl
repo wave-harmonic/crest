@@ -171,6 +171,9 @@ half3 OceanEmission
 	in const half3 i_bubbleCol,
 	in const bool i_underwater,
 	in const half3 i_scatterCol,
+#if CREST_WATER_VOLUME
+	in const bool i_backface,
+#endif
 	in const CascadeParams cascadeData0,
 	in const CascadeParams cascadeData1
 )
@@ -198,6 +201,11 @@ half3 OceanEmission
 	const half2 uvDepthRefract = i_uvDepth + refractOffset;
 	float rawDepth = CREST_SAMPLE_SCENE_DEPTH_X(uvDepthRefract);
 
+	bool caustics = true;
+#if CREST_WATER_VOLUME_HAS_BACKFACE
+	bool backface = ApplyVolumeToOceanSurfaceRefractions(uvDepthRefract, i_rawDepth, i_underwater, rawDepth, caustics);
+#endif
+
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)
 	{
@@ -208,7 +216,12 @@ half3 OceanEmission
 		if (rawDepth < i_rawPixelZ)
 		{
 			uvBackgroundRefract = uvBackground + refractOffset;
-			rawDepth = CREST_MULTISAMPLE_SCENE_DEPTH(uvBackgroundRefract, rawDepth);
+#if CREST_WATER_VOLUME_HAS_BACKFACE
+			if (!backface)
+#endif
+			{
+				rawDepth = CREST_MULTISAMPLE_SCENE_DEPTH(uvBackgroundRefract, rawDepth);
+			}
 			sceneZ = CrestLinearEyeDepth(rawDepth);
 			depthFogDistance = sceneZ - i_pixelZ;
 		}
@@ -216,7 +229,13 @@ half3 OceanEmission
 		{
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;
-			rawDepth = CREST_MULTISAMPLE_SCENE_DEPTH(uvBackground, i_rawDepth);
+			rawDepth = i_rawDepth;
+#if CREST_WATER_VOLUME_HAS_BACKFACE
+			if (!i_backface)
+#endif
+			{
+				rawDepth = CREST_MULTISAMPLE_SCENE_DEPTH(uvBackground, rawDepth);
+			}
 			sceneZ = CrestLinearEyeDepth(rawDepth);
 			// It seems that when MSAA is enabled this can sometimes be negative
 			depthFogDistance = max(sceneZ - i_pixelZ, 0.0);
@@ -224,8 +243,13 @@ half3 OceanEmission
 
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
-		float3 scenePos = _WorldSpaceCameraPos - i_view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
-		ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, uvBackgroundRefract * _ScreenParams.xy, scenePos, i_lightDir, sceneZ, i_underwater, sceneColour, _LD_SliceIndex + 1, cascadeData1);
+#if CREST_WATER_VOLUME_HAS_BACKFACE
+		if (caustics)
+#endif
+		{
+			float3 scenePos = _WorldSpaceCameraPos - i_view * sceneZ / dot(unity_CameraToWorld._m02_m12_m22, -i_view);
+			ApplyCaustics(_CausticsTiledTexture, _CausticsDistortionTiledTexture, uvBackgroundRefract * _ScreenParams.xy, scenePos, i_lightDir, sceneZ, i_underwater, sceneColour, _LD_SliceIndex + 1, cascadeData1);
+		}
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

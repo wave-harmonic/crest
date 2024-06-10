@@ -12,3 +12,6 @@ float4x4 _InvViewProjectionRight;
 #else
 #define UNITY_MATRIX_I_VP _InvViewProjection
 #endif
+
+// Not set and _ScreenParams.zw is "1.0 + 1.0 / _ScreenParams.xy"
+#define _ScreenSize float4(_ScreenParams.xy, float2(1.0, 1.0) / _ScreenParams.xy)

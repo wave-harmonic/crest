@@ -423,7 +423,7 @@ namespace Crest
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(50f));
                     // Disable slider if authoring with model.
                     GUI.enabled = !canEditSpectrum && !spDisabled_i.boolValue;
-                    powerValue = GUILayout.HorizontalSlider(powerValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
+                    powerValue = EditorGUILayout.Slider(powerValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
                     GUI.enabled = true;
                     EditorGUILayout.EndHorizontal();
                     // This will create a tooltip for slider.

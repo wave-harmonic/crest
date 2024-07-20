@@ -271,6 +271,8 @@ namespace Crest
 
         void OnEnable()
         {
+            _posLast = transform.position;
+
             if (s_Material == null)
             {
                 s_Material = new Material(Shader.Find("Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"));

@@ -147,12 +147,16 @@ namespace Crest
             s_InstanceDataNeedsClearing = false;
         }
 
+        static int _lastFrameCleared = -1;
+
         void LateUpdate()
         {
-            if (s_InstanceDataNeedsClearing)
+            if (Time.frameCount != _lastFrameCleared)
             {
                 ClearInstanceData();
             }
+
+            _lastFrameCleared = Time.frameCount;
 
             var ocean = OceanRenderer.Instance;
             if (ocean == null) return;

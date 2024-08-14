@@ -92,7 +92,7 @@ namespace Crest
 
         internal static List<SphereWaterInteraction> s_Instances = new List<SphereWaterInteraction>();
         static int s_InstanceIndex;
-        static bool s_InstanceDataNeedsClearing;
+        static int s_ClearedFrameCount = -1;
 
         static int sp_velocity = Shader.PropertyToID("_Velocity");
         static int sp_weight = Shader.PropertyToID("_Weight");
@@ -144,12 +144,12 @@ namespace Crest
             s_MPB?.Clear();
 
             s_InstanceIndex = 0;
-            s_InstanceDataNeedsClearing = false;
+            s_ClearedFrameCount = Time.frameCount;
         }
 
         void LateUpdate()
         {
-            if (s_InstanceDataNeedsClearing)
+            if (Time.frameCount != s_ClearedFrameCount)
             {
                 ClearInstanceData();
             }
@@ -363,8 +363,6 @@ namespace Crest
             // Clear any arrays modified in Draw as this is per LOD.
             s_WeightProperties.Clear();
             s_InstanceIndex = 0;
-            // Other arrays are cleared next frame.
-            s_InstanceDataNeedsClearing = true;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

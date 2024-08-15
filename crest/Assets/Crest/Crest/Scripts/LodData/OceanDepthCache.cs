@@ -177,7 +177,7 @@ namespace Crest
             }
             else
             {
-                fmt = RenderTextureFormat.RHalf;
+                fmt = RenderTextureFormat.RFloat;
             }
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "Crest: The graphics device does not support the render texture format " + fmt.ToString());
@@ -527,6 +527,27 @@ namespace Crest
                 ti.wrapMode = TextureWrapMode.Clamp;
                 // Values are slightly different with NPOT Scale applied.
                 ti.npotScale = TextureImporterNPOTScale.None;
+
+#if UNITY_2021_3_OR_NEWER
+                // Code will compile in earlier versions, but the importer does not support this
+                // configuration.
+
+                // Set single component.
+                {
+                    var settings = new TextureImporterSettings();
+                    ti.ReadTextureSettings(settings);
+                    settings.singleChannelComponent = TextureImporterSingleChannelComponent.Red;
+                    ti.SetTextureSettings(settings);
+                }
+
+                // Set format.
+                {
+                    var settings = ti.GetDefaultPlatformTextureSettings();
+                    settings.format = TextureImporterFormat.RFloat;
+                    ti.SetPlatformTextureSettings(settings);
+                }
+#endif
+
                 ti.SaveAndReimport();
 
                 Debug.Log("Crest: Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));

@@ -64,6 +64,12 @@ namespace Crest
         float _terrainPixelErrorOverride = 0f;
 #endif
 
+        [Tooltip("Overrides the LOD bias. Best at infinity (highest quality) unless using real-time cache."), SerializeField]
+        float _lodBiasOverride = Mathf.Infinity;
+
+        [Tooltip("Overrides the maximum LOD level. Best at zero (highest quality) unless using real-time cache."), SerializeField]
+        int _maximumLodLevelOverride = 0;
+
         [Tooltip("Will render into the cache every frame. Intended for debugging, will generate garbage."), SerializeField]
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
@@ -337,6 +343,11 @@ namespace Crest
             QualitySettings.terrainPixelError = _terrainPixelErrorOverride;
 #endif
 
+            var oldLodBias = QualitySettings.lodBias;
+            QualitySettings.lodBias = _lodBiasOverride;
+            var oldMaximumLodLevel = QualitySettings.maximumLODLevel;
+            QualitySettings.maximumLODLevel = _maximumLodLevelOverride;
+
             try
             {
                 // Render scene, saving depths in depth buffer.
@@ -348,6 +359,9 @@ namespace Crest
                 QualitySettings.terrainQualityOverrides = oldTerrainOverrides;
                 QualitySettings.terrainPixelError = oldPixelError;
 #endif
+
+                QualitySettings.lodBias = oldLodBias;
+                QualitySettings.maximumLODLevel = oldMaximumLodLevel;
 
                 // Built-in only.
                 {

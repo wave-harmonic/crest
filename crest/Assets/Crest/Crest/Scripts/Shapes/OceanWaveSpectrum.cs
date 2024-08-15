@@ -182,7 +182,7 @@ namespace Crest
             power = Mathf.Pow(10f, power);
 
             // Empirical wind influence based on alpha-beta spectrum that underlies empirical spectra
-            var gravity = _gravityScale * Mathf.Abs(Physics.gravity.y);
+            var gravity = _gravityScale * OceanRenderer.Instance.Gravity;
             var B = 1.291f;
             var wm = 0.87f * gravity / windSpeed;
             DeepDispersion(2f * Mathf.PI / wavelength, gravity, out var w);
@@ -206,7 +206,7 @@ namespace Crest
         {
             // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
             // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-            var g = Mathf.Abs(Physics.gravity.y) * gravityMultiplier;
+            var g = OceanRenderer.Instance.Gravity * gravityMultiplier;
             var k = 2f * Mathf.PI / wavelength;
             //float h = max(depth, 0.01);
             //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);

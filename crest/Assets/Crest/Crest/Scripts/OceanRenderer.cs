@@ -201,7 +201,7 @@ namespace Crest
 
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
-        public float Gravity => _gravityMultiplier * Physics.gravity.magnitude;
+        public float Gravity => _gravityMultiplier * Mathf.Abs(Physics.gravity.y);
 
         [Tooltip("Whether 'Water Body' components will cull the ocean tiles. Disable if you want to use the 'Water Body' 'Material Override' feature and still have an ocean.")]
         public bool _waterBodyCulling = true;

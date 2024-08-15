@@ -46,7 +46,7 @@ namespace Crest
         [Range(0f, 1f), Tooltip("Clamp displacement to help prevent self-intersection in steep waves. Zero means unclamped.")]
         public float _displaceClamp = 0.3f;
 
-        [Range(0f, 64f), Tooltip("Multiplier for gravity. More gravity means dynamic waves will travel faster.")]
+        [Range(0f, 64f), Tooltip("Multiplier for gravity. More gravity means dynamic waves will travel faster. Higher values can be a source of instability.")]
         public float _gravityMultiplier = 1f;
     }
 

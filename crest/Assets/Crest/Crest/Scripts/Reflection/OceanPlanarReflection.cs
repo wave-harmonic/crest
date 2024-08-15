@@ -216,20 +216,6 @@ namespace Crest
             Vector3 planePos = OceanRenderer.Instance.Root.position;
             Vector3 planeNormal = Vector3.up;
 
-            // Optionally disable pixel lights for reflection/refraction
-            int oldPixelLightCount = QualitySettings.pixelLightCount;
-            if (_disablePixelLights)
-            {
-                QualitySettings.pixelLightCount = 0;
-            }
-
-            // Optionally disable shadows for reflection/refraction
-            ShadowQuality oldShadowQuality = QualitySettings.shadows;
-            if (_disableShadows)
-            {
-                QualitySettings.shadows = ShadowQuality.Disable;
-            }
-
             UpdateCameraModes();
 
             // Reflect camera around reflection plane
@@ -251,10 +237,6 @@ namespace Crest
 
             _camReflections.targetTexture = _reflectionTexture;
 
-            // Invert culling because view is mirrored
-            bool oldCulling = GL.invertCulling;
-            GL.invertCulling = !oldCulling;
-
             _camReflections.transform.position = newpos;
             Vector3 euler = _camViewpoint.transform.eulerAngles;
             _camReflections.transform.eulerAngles = new Vector3(-euler.x, euler.y, euler.z);
@@ -265,23 +247,31 @@ namespace Crest
             // We do not want the water plane when rendering planar reflections.
             OceanRenderer.Instance.Root.gameObject.SetActive(false);
 
-            _camReflections.Render();
+            // Invert culling because view is mirrored
+            bool oldCulling = GL.invertCulling;
+            GL.invertCulling = !oldCulling;
+
+            // Optionally disable pixel lights for reflection/refraction
+            int oldPixelLightCount = QualitySettings.pixelLightCount;
+            if (_disablePixelLights) QualitySettings.pixelLightCount = 0;
+
+            // Optionally disable shadows for reflection/refraction
+            ShadowQuality oldShadowQuality = QualitySettings.shadows;
+            if (_disableShadows) QualitySettings.shadows = ShadowQuality.Disable;
+
+            try
+            {
+                _camReflections.Render();
+            }
+            finally
+            {
+                // Restore global settings.
+                GL.invertCulling = oldCulling;
+                if (_disableShadows) QualitySettings.shadows = oldShadowQuality;
+                if (_disablePixelLights) QualitySettings.pixelLightCount = oldPixelLightCount;
+            }
 
             OceanRenderer.Instance.Root.gameObject.SetActive(true);
-
-            GL.invertCulling = oldCulling;
-
-            // Restore shadows
-            if (_disableShadows)
-            {
-                QualitySettings.shadows = oldShadowQuality;
-            }
-
-            // Restore pixel light count
-            if (_disablePixelLights)
-            {
-                QualitySettings.pixelLightCount = oldPixelLightCount;
-            }
 
             // Remember this frame as last refreshed.
             Refreshed(Time.renderedFrameCount);

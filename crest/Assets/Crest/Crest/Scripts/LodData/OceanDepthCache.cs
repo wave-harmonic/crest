@@ -337,17 +337,22 @@ namespace Crest
             QualitySettings.terrainPixelError = _terrainPixelErrorOverride;
 #endif
 
-            // Render scene, saving depths in depth buffer.
-            _camDepthCache.Render();
-
+            try
+            {
+                // Render scene, saving depths in depth buffer.
+                _camDepthCache.Render();
+            }
+            finally
+            {
 #if UNITY_2022_2_OR_NEWER
-            QualitySettings.terrainQualityOverrides = oldTerrainOverrides;
-            QualitySettings.terrainPixelError = oldPixelError;
+                QualitySettings.terrainQualityOverrides = oldTerrainOverrides;
+                QualitySettings.terrainPixelError = oldPixelError;
 #endif
 
-            // Built-in only.
-            {
-                QualitySettings.shadowDistance = oldShadowDistance;
+                // Built-in only.
+                {
+                    QualitySettings.shadowDistance = oldShadowDistance;
+                }
             }
 
             if (_copyDepthMaterial == null)

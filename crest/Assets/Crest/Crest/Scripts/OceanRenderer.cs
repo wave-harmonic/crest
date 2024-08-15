@@ -199,9 +199,19 @@ namespace Crest
         int _layer = 4; // Water
         public int Layer => _layer;
 
+        [Tooltip("Provide your own gravity value instead of Physics.gravity.")]
+        [SerializeField]
+        bool _overrideGravity;
+
+        [Tooltip("Gravity for all wave calculations.")]
+        [Predicated(nameof(_overrideGravity))]
+        [DecoratedField]
+        [SerializeField]
+        float _gravity = -9.8f;
+
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
-        public float Gravity => _gravityMultiplier * Mathf.Abs(Physics.gravity.y);
+        public float Gravity => _gravityMultiplier * Mathf.Abs(_overrideGravity ? _gravity : Physics.gravity.y);
 
         [Tooltip("Whether 'Water Body' components will cull the ocean tiles. Disable if you want to use the 'Water Body' 'Material Override' feature and still have an ocean.")]
         public bool _waterBodyCulling = true;

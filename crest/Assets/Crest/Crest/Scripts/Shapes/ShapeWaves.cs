@@ -268,6 +268,16 @@ namespace Crest
             UpdateEditorOnly();
 #endif
 
+            if (_spectrum != null)
+            {
+                _activeSpectrum = _spectrum;
+            }
+
+            if (_activeSpectrum == null)
+            {
+                _activeSpectrum = DefaultSpectrum;
+            }
+
             // Ensure batches assigned to correct slots.
             if (_firstUpdate || UpdateDataEachFrame)
             {
@@ -481,16 +491,6 @@ namespace Crest
     {
         void UpdateEditorOnly()
         {
-            if (_spectrum != null)
-            {
-                _activeSpectrum = _spectrum;
-            }
-
-            if (_activeSpectrum == null)
-            {
-                _activeSpectrum = DefaultSpectrum;
-            }
-
             // Unassign mesh
             if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _) && !TryGetComponent<MeshRenderer>(out _))
             {

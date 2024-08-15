@@ -153,7 +153,7 @@ namespace Crest
             // The ocean input system uses this to decide which lod this batch belongs in
             public float Wavelength { get; private set; }
 
-            public bool Enabled { get => true; set { } }
+            public bool Enabled { get => OceanRenderer.Instance.Gravity != 0f; set { } }
 
             public bool IgnoreTransitionWeight => _shapeWaves._blendMode == ShapeBlendMode.Blend;
 

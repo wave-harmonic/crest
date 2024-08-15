@@ -183,6 +183,8 @@ namespace Crest
 
             // Empirical wind influence based on alpha-beta spectrum that underlies empirical spectra
             var gravity = _gravityScale * OceanRenderer.Instance.Gravity;
+            // Zero gravity will cause NaNs, and they have always been flat.
+            if (gravity <= 0f) return 0f;
             var B = 1.291f;
             var wm = 0.87f * gravity / windSpeed;
             DeepDispersion(2f * Mathf.PI / wavelength, gravity, out var w);

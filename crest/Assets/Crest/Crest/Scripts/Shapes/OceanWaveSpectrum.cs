@@ -346,7 +346,7 @@ namespace Crest
 
             base.OnInspectorGUI();
 
-            bool beingEditedOnGerstnerComponent = _hostComponentType == typeof(ShapeGerstner);
+            bool beingEditedOnGerstnerComponent = _hostComponentType == typeof(ShapeGerstner) || _hostComponentType == typeof(ShapeGerstnerBatched);
 
             bool showAdvancedControls = false;
             if (beingEditedOnGerstnerComponent)

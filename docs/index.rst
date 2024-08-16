@@ -34,6 +34,7 @@ Crest Ocean System
    :caption: About
 
    about/introduction
+   about/integrations
    about/known-issues
    about/roadmap
    about/history

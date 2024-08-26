@@ -47,7 +47,7 @@ Shader "Crest/Inputs/Shape Waves/Sample Spectrum"
 			const half depth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
 			// Attenuate if depth is less than half of the average wavelength.
 			half weight = saturate(2.0 * depth / _AverageWavelength);
-			if (_MaximumAttenuationDepth < CREST_OCEAN_DEPTH_BASELINE)
+			if (_MaximumAttenuationDepth < CREST_MAXIMUM_ATTENUATION_DEPTH)
 			{
 				weight = lerp(weight, 1.0, saturate(depth / _MaximumAttenuationDepth));
 			}

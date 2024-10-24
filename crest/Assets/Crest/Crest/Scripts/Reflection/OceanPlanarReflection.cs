@@ -256,8 +256,8 @@ namespace Crest
             if (_disablePixelLights) QualitySettings.pixelLightCount = 0;
 
             // Optionally disable shadows for reflection/refraction
-            ShadowQuality oldShadowQuality = QualitySettings.shadows;
-            if (_disableShadows) QualitySettings.shadows = ShadowQuality.Disable;
+            var oldShadowQuality = QualitySettings.shadows;
+            if (_disableShadows) QualitySettings.shadows = UnityEngine.ShadowQuality.Disable;
 
             try
             {

@@ -113,7 +113,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 const half2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice, 0.0).xy;
                 const half depth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
                 half depth_wt = saturate(2.0 * depth / _AverageWavelength);
-                if (_MaximumAttenuationDepth < CREST_OCEAN_DEPTH_BASELINE)
+                if (_MaximumAttenuationDepth < CREST_MAXIMUM_ATTENUATION_DEPTH)
                 {
                     depth_wt = lerp(depth_wt, 1.0, saturate(depth / _MaximumAttenuationDepth));
                 }

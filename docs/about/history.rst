@@ -10,148 +10,176 @@ Release Notes
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
 
-|version|
----------
-
-Changed
-^^^^^^^
-.. bullet_list::
-
-   -  Relax *Lod Resolution* being divisible by 128 requirement to divisible by 16.
-
-Fixed
-^^^^^
-.. bullet_list::
-
-   -  Fix "'FindObjectsByType' does not exist in the current context" etc errors by reverting "Use optimized FindObject(s) methods" due to no way to conditionally compile them.
-      Unity 6+ will keep these changes.
-   -  Fix spurious format changes by reverting "Improve texture format compatibility".
-      Add CREST_VERIFYRANDOMWRITESUPPORT symbol to keep these changes but not recommended.
-   -  Fix *Ocean Depth Cache* not working on Windows when switched to Android build target.
-
-   .. only:: hdrp
-
-      -  Fix *Surface Type > Opaque* missing scattering colors. `[HDRP]`
-      -  Fix water rendering over volumetric clouds when viewed from above (requires Unity 6+).
-         This required adding a refraction model which has an overhead.
-         Set *Refraction Model* to *Planar/Box* otherwise it is recommended to keep it as *None*. `[HDRP]`
-
-   .. only:: urp
-
-      -  Fix "Warn about *SSAO* and *Depth Priming* bug" warning on fixed Unity versions. `[URP]`
-
-4.20
+4.21
 ----
 
 Changed
 ^^^^^^^
 .. bullet_list::
 
-   -  Add Unity 6 beta support.
-   -  Improve documentation.
-   -  Remove "Preview" from everything.
-   -  Improve *Lakes and Rivers* scene.
-   -  Make several *Underwater Renderer* fields public.
-   -  Add *Filter By Wavelength* and *Render After Dynamic Waves* options to *Register Anim Waves Input*.
-      When both are disabled it will render to all LODs and before *Dynamic Waves*.
-      Useful for scaling waves without affecting ripples and wakes.
-   -  Add feathering to spline inputs.
-   -  Add basic Unity Splines integration to generate our spline from theirs.
-   -  Add *Spline* API (*Spline.UpdateSpline* and getters/setters) for updating splines in editor and standalone.
-   -  Validate that *Lod Data Resolution* is divisible by 128 which is the smallest interval that is robust enough.
-   -  Clarify *Lod Data Resolution* tooltip about 128 intervals.
-   -  Improve texture format compatibility.
-   -  Remove random write access requirement for Shadow and Clip Surface Lod render texture.
-   -  Rename *Floating Origin* to *Shifting Origin*.
-      If you see "Overriding existing asset with new GUID from package" warning, this is expected.
-
-   .. only:: birp or urp
-
-      -  *Ocean Planar Reflections* now work in edit mode. `[BIRP] [URP]`
-      -  Make *Skybox* the default *Clear Flags* for *Ocean Planar Reflections* as this is more compatible with custom shaders. `[BIRP] [URP]`
-      -  Warn if Clear Flags on *Ocean Planar Reflections* is not Skybox and inform that it is more compatible with custom shaders. `[BIRP] [URP]`
+   -  Take mesh back-face into account when using the underwater Volume feature
+   -  Scale water mesh extents with LOD count so it more likely reaches the horizon
+   -  Remove delay in scale changes when not needed (no varied water level)
+   -  Add LOD Bias and Maximum LOD Level overrides to Ocean Depth Cache
+   -  Add gravity override to Ocean Renderer
+   -  Expose float field for wave spectrum power values
+   -  Update Dynamic Waves gravity multiplier tooltip to note that it can be a source of instability
+   -  Guard against corrupting global settings
+   -  Unify wave gravity implementation
 
    .. only:: hdrp
 
-      -  Alert users if they have the wrong `Crest` package downloaded for their Unity version. `[HDRP]`
+      -  Greatly improve water lighting response quality to Physically Based Sky `[HDRP]`
 
    .. only:: urp
 
-      -  Add support for Render Graph in Unity 6 beta. `[URP]`
+      -  Warn about opaque down sampling outline `[URP]`
+      -  Support non-uniform foveated rendering (untested) `[URP]`
+      -  Support additional lights for Forward+ `[URP]`
+      -  Support rendering layers for additional lights `[URP]`
+      -  Update warning about SSAO/Depth Priming bug to include new fixed version 2021.3.45f1 `[URP]`
 
 Fixed
 ^^^^^
 .. bullet_list::
 
-   -  Fix *Underwater Renderer* overwriting alpha channel which prevented XR passthrough from working.
-   -  Fix underwater objects being refracted when they are in front of the surface.
-   -  Fix larger wavelengths ignoring attenuation when using *Wave Resolution Multiplier*.
-   -  Fix texture "random writes" format error for *Shape FFT* on some devices.
-      Requires Unity 2021.3+.
-   -  Fix possible texture "random writes" format error for LOD textures on some devices.
-      Requires Unity 2021.3+.
-   -  Fix water chunks being incorrectly culled (ie missing) at screen edges.
-   -  Fix many cases where splines would not update in the editor.
-   -  Validate that height data is enabled when using height inputs.
-   -  Fix *Sphere Water Interaction* debug line orientation.
-   -  Fix banding in *Examples* scene.
-   -  Fix seams and double flow in *Lakes and Rivers* scene.
-   -  Fix "Failed to create Physics Mesh from source mesh" in 2023.3.
-   -  Silence several warnings.
+   -  Fix artifacts (bright spots) at the horizon when using MSAA
+   -  Fix "SampleHeightHelper.Init() called multiple times in one frame" warning
+   -  Fix orphaned Ocean Depth Cache component on undo
+   -  Fix Sphere Water Interaction spike in OnEnable
+   -  Fix Sphere Water Interaction not working correctly with frame rates outside of the set simulation frequency
+   -  Fix "There are too many instances of SphereWaterInteraction. A maximum of 1023 instances is supported" warning
+   -  Fix wave spectrum parameters missing when editing from a ShapeGerstnerBatched
+   -  Fix rendering issues (black) and exceptions when Physics.gravity is zero
+   -  Fix exception in builds if no wave spectrum is set
+   -  Fix Ocean Depth Cache issues with Android by using more compatible texture format
+   -  Fix Ocean Depth Cache baked texture issues with Android (2021.3+ only)
+   -  Fix potentially missing example scene lighting for Unity 6
 
    .. only:: birp
 
-      -  Fix underwater multi-view rendering (primarily *Meta Quest*). `[BIRP]`
-      -  Fix *Depth Fog Density Factor* not supporting *Shader API*. `[BIRP]`
-      -  Fix *Depth Fog Density Factor* not supporting *Portals & Volumes* feature. `[BIRP]`
-      -  Fix *Shader API* not apply shadow scattering to underside of surface. `[BIRP]`
-      -  Fix underwater surface and volume having visibly different colors when using gamma color space and *Underwater Renderer > Shader API*. `[BIRP]`
-      -  Fix water being affected by `SAO` and other effects by setting Render Type to Transparent.
-      -  Fix reflected waves example rendering issues in *Examples* scene.
-
-   .. only:: birp or urp
-
-      -  Fix *Underwater Effect* not working. `[BIRP] [URP]`
-      -  Fix refraction artifacts causing an outline/ghosting like effect for underwater objects. `[BIRP] [URP]`
-      -  Fix underwater colors being incorrect when using gamma color space. `[BIRP] [URP]`
-      -  Only warn about post-processing bug when using the bugged version.
-         Recommend upgrading to fixed version. `[BIRP] [URP]`
+      -  Fix underwater lighting being different when using color temperature or linear lighting `[BIRP]`
 
    .. only:: hdrp
 
-      -  Fix shader errors when enabling raytracing features. `[HDRP]`
-      -  Fix *Rendering Layer Mask* changes not applying immediately. `[HDRP]`
-      -  Throw an error if the wrong package version was downloaded for the Unity version. `[HDRP]`
-
-   .. only:: hdrp or urp
-
-      -  Fix errors when searching the scene. `[HDRP] [URP]`
+      -  Fix "Object.FindFirstObjectByType" missing script compilation errors `[HDRP]`
 
    .. only:: urp
 
-      -  Fix additional lights subsurface scattering not rendering correctly. `[URP]`
-      -  Fix broken rendering with *Depth Texture Mode > Depth After Transparent*. `[URP]`
-      -  Fix broken rendering when *Depth Texture* is disabled. `[URP]`
-      -  Fix broken rendering when *Opaque Texture* is disabled. `[URP]`
-      -  Warn about *SSAO* and *Depth Priming* bug. `[URP]`
+      -  Fix obsolete warnings for Unity 6 `[URP]`
+      -  Fix "spherical culling" errors in Unity 6 when using OceanPlanarReflections `[URP]`
+      -  Fix errors on certain Unity versions when using OceanDepthCache `[URP]`
 
-Removed
-^^^^^^^
-.. bullet_list::
+.. only:: urp
 
-   -  Remove row boat sample.
+   Performance
+   ^^^^^^^^^^^
+   .. bullet_list::
 
-Performance
-^^^^^^^^^^^
-.. bullet_list::
+      -  No longer multi-sample depth for 2022.3+, as Unity now handles this correctly `[URP]`
 
-   -  Improve *Spline* editor performance.
-   -  Improve per frame script performance by time slicing chunk bounds updates.
 
 .. Trim PDF history
 .. raw:: latex
 
    \iffalse
+
+
+4.20.1
+------
+
+Changed
+^^^^^^^
+-  Relax *Lod Resolution* being divisible by 128 requirement to divisible by 16.
+
+Fixed
+^^^^^
+-  Fix "'FindObjectsByType' does not exist in the current context" etc errors by reverting "Use optimized FindObject(s) methods" due to no way to conditionally compile them.
+   Unity 6+ will keep these changes.
+-  Fix spurious format changes by reverting "Improve texture format compatibility".
+   Add CREST_VERIFYRANDOMWRITESUPPORT symbol to keep these changes but not recommended.
+-  Fix *Ocean Depth Cache* not working on Windows when switched to Android build target.
+-  Fix *Surface Type > Opaque* missing scattering colors. `[HDRP]`
+-  Fix water rendering over volumetric clouds when viewed from above (requires Unity 6+).
+   This required adding a refraction model which has an overhead.
+   Set *Refraction Model* to *Planar/Box* otherwise it is recommended to keep it as *None*. `[HDRP]`
+-  Fix "Warn about *SSAO* and *Depth Priming* bug" warning on fixed Unity versions. `[URP]`
+
+4.20
+----
+
+Changed
+^^^^^^^
+-  Add Unity 6 beta support.
+-  Improve documentation.
+-  Remove "Preview" from everything.
+-  Improve *Lakes and Rivers* scene.
+-  Make several *Underwater Renderer* fields public.
+-  Add *Filter By Wavelength* and *Render After Dynamic Waves* options to *Register Anim Waves Input*.
+   When both are disabled it will render to all LODs and before *Dynamic Waves*.
+   Useful for scaling waves without affecting ripples and wakes.
+-  Add feathering to spline inputs.
+-  Add basic Unity Splines integration to generate our spline from theirs.
+-  Add *Spline* API (*Spline.UpdateSpline* and getters/setters) for updating splines in editor and standalone.
+-  Validate that *Lod Data Resolution* is divisible by 128 which is the smallest interval that is robust enough.
+-  Clarify *Lod Data Resolution* tooltip about 128 intervals.
+-  Improve texture format compatibility.
+-  Remove random write access requirement for Shadow and Clip Surface Lod render texture.
+-  Rename *Floating Origin* to *Shifting Origin*.
+   If you see "Overriding existing asset with new GUID from package" warning, this is expected.
+-  *Ocean Planar Reflections* now work in edit mode. `[BIRP] [URP]`
+-  Make *Skybox* the default *Clear Flags* for *Ocean Planar Reflections* as this is more compatible with custom shaders. `[BIRP] [URP]`
+-  Warn if Clear Flags on *Ocean Planar Reflections* is not Skybox and inform that it is more compatible with custom shaders. `[BIRP] [URP]`
+-  Alert users if they have the wrong `Crest` package downloaded for their Unity version. `[HDRP]`
+-  Add support for Render Graph in Unity 6 beta. `[URP]`
+
+Fixed
+^^^^^
+-  Fix *Underwater Renderer* overwriting alpha channel which prevented XR passthrough from working.
+-  Fix underwater objects being refracted when they are in front of the surface.
+-  Fix larger wavelengths ignoring attenuation when using *Wave Resolution Multiplier*.
+-  Fix texture "random writes" format error for *Shape FFT* on some devices.
+   Requires Unity 2021.3+.
+-  Fix possible texture "random writes" format error for LOD textures on some devices.
+   Requires Unity 2021.3+.
+-  Fix water chunks being incorrectly culled (ie missing) at screen edges.
+-  Fix many cases where splines would not update in the editor.
+-  Validate that height data is enabled when using height inputs.
+-  Fix *Sphere Water Interaction* debug line orientation.
+-  Fix banding in *Examples* scene.
+-  Fix seams and double flow in *Lakes and Rivers* scene.
+-  Fix "Failed to create Physics Mesh from source mesh" in 2023.3.
+-  Silence several warnings.
+-  Fix underwater multi-view rendering (primarily *Meta Quest*). `[BIRP]`
+-  Fix *Depth Fog Density Factor* not supporting *Shader API*. `[BIRP]`
+-  Fix *Depth Fog Density Factor* not supporting *Portals & Volumes* feature. `[BIRP]`
+-  Fix *Shader API* not apply shadow scattering to underside of surface. `[BIRP]`
+-  Fix underwater surface and volume having visibly different colors when using gamma color space and *Underwater Renderer > Shader API*. `[BIRP]`
+-  Fix water being affected by `SAO` and other effects by setting Render Type to Transparent.
+-  Fix reflected waves example rendering issues in *Examples* scene.
+-  Fix *Underwater Effect* not working. `[BIRP] [URP]`
+-  Fix refraction artifacts causing an outline/ghosting like effect for underwater objects. `[BIRP] [URP]`
+-  Fix underwater colors being incorrect when using gamma color space. `[BIRP] [URP]`
+-  Only warn about post-processing bug when using the bugged version.
+   Recommend upgrading to fixed version. `[BIRP] [URP]`
+-  Fix shader errors when enabling raytracing features. `[HDRP]`
+-  Fix *Rendering Layer Mask* changes not applying immediately. `[HDRP]`
+-  Throw an error if the wrong package version was downloaded for the Unity version. `[HDRP]`
+-  Fix errors when searching the scene. `[HDRP] [URP]`
+-  Fix additional lights subsurface scattering not rendering correctly. `[URP]`
+-  Fix broken rendering with *Depth Texture Mode > Depth After Transparent*. `[URP]`
+-  Fix broken rendering when *Depth Texture* is disabled. `[URP]`
+-  Fix broken rendering when *Opaque Texture* is disabled. `[URP]`
+-  Warn about *SSAO* and *Depth Priming* bug. `[URP]`
+
+Removed
+^^^^^^^
+-  Remove row boat sample.
+
+Performance
+^^^^^^^^^^^
+-  Improve *Spline* editor performance.
+-  Improve per frame script performance by time slicing chunk bounds updates.
 
 
 4.19.1

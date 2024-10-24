@@ -199,7 +199,6 @@ rst_prolog = rst_prolog + """
 .. set:: DocLinkBase https://crest.readthedocs.io/en/{AssetVersion}
 .. set:: GitHubLink \https://github.com/wave-harmonic/crest
 .. set:: WikiLink \{GitHubLink}/wiki
-.. set:: RoadmapLink \https://trello.com/b/L7iejCPI
 
 .. set:: SGDocLink {UPMDocLinkBase}/com.unity.shadergraph@{RPMinVersion}/manual
 

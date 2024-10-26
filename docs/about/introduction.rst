@@ -31,7 +31,7 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
 Assets
 ------
 
-You can find `Crest` on the *Unity Asset Store* for all render pipelines.
+You can find Crest 4 on the *Unity Asset Store* for all render pipelines (:link:`Crest 5 is also available <https://docs.crest.waveharmonic.com/About/Introduction.html>`):
 
 .. only:: html
 
@@ -81,15 +81,6 @@ You can find `Crest` on the *Unity Asset Store* for all render pipelines.
    *  Crest Ocean System: :link:`Asset Store <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K>`
    *  Crest Ocean System HDRP: :link:`Asset Store <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K>`
    *  Crest Ocean System URP: :link:`Asset Store <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K>`
-
-Sponsorship
------------
-
-.. sponsor::
-
-   Sponsor Wave Harmonic on :link:`GitHub Sponsors <{SponsorLink}?o=esb>` to increase development time on Crest.
-
-   Throughout the documentation, you will see sponsor admonitions like this one for features where only expanded funding can help cover development costs.
 
 
 Social

@@ -9,6 +9,16 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.21.1
+------
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix underwater rendering issues when using MSAA `[URP]`
+   -  Fix "Graphics.CopyTexture called with mismatching texture sizes" error with underwater and `STPP` `[URP]`
+   -  Fix underwater rendering issues with `STPP` when Dynamic Resolution is disabled on the camera (likely Unity bug) `[URP]`
 
 4.21
 ----

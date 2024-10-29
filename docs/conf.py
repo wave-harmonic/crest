@@ -242,6 +242,7 @@ rst_prolog = rst_prolog + """
 .. set:: SSR :abbr:`SSR (Screen-Space Reflections)`
 .. set:: SSAO :abbr:`SSAO (Screen-Space Ambient Occlusion)`
 .. set:: SAO :abbr:`SSAO (Scalable Ambient Occlusion)`
+.. set:: STPP :abbr:`STPP (Spatial-Temporal Post-Processing)`
 
 .. set:: DWP2 :abbr:`DWP2 (Dynamic Water Physics 2)`
 

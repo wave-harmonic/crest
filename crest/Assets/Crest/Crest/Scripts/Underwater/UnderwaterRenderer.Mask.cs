@@ -91,10 +91,7 @@ namespace Crest
 
         internal void OnEnableMask()
         {
-            if (_volumeMaterial == null)
-            {
-                _volumeMaterial = new Material(Shader.Find(k_ShaderPathWaterVolumeGeometry));
-            }
+            SetUpMaterials();
 
             // Create a reference to handle the RT. The RT properties will be replaced with a descriptor before the
             // native object is created, and since it is lazy it is near zero cost.
@@ -129,6 +126,14 @@ namespace Crest
             Shader.DisableKeyword(k_KeywordVolumeHasBackFace);
         }
 
+        internal void SetUpMaterials()
+        {
+            if (_volumeMaterial == null)
+            {
+                _volumeMaterial = new Material(Shader.Find(k_ShaderPathWaterVolumeGeometry));
+            }
+        }
+
         internal void SetUpFixMaskArtefactsShader()
         {
             if (_fixMaskComputeShader != null)
@@ -154,6 +159,19 @@ namespace Crest
                 return;
             }
 
+            descriptor = GetMaskColorRTD(descriptor);
+
+            _maskRT.Release();
+            _maskRT.descriptor = descriptor;
+
+            descriptor = GetMaskDepthRTD(descriptor);
+
+            _depthRT.Release();
+            _depthRT.descriptor = descriptor;
+        }
+
+        internal RenderTextureDescriptor GetMaskColorRTD(RenderTextureDescriptor descriptor)
+        {
             // This will disable MSAA for our textures as MSAA will break sampling later on. This looks safe to do as
             // Unity's CopyDepthPass does the same, but a possible better way or supporting MSAA is worth looking into.
             descriptor.msaaSamples = 1;
@@ -165,15 +183,16 @@ namespace Crest
             descriptor.depthBufferBits = 0;
             descriptor.enableRandomWrite = true;
 
-            _maskRT.Release();
-            _maskRT.descriptor = descriptor;
+            return descriptor;
+        }
 
+        internal RenderTextureDescriptor GetMaskDepthRTD(RenderTextureDescriptor descriptor)
+        {
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 24;
             descriptor.enableRandomWrite = false;
 
-            _depthRT.Release();
-            _depthRT.descriptor = descriptor;
+            return descriptor;
         }
 
         internal void SetUpVolumeTextures(RenderTextureDescriptor descriptor)
@@ -221,7 +240,8 @@ namespace Crest
             if (_mode != Mode.FullScreen && _volumeGeometry != null)
             {
                 SetUpVolumeTextures(descriptor);
-                PopulateVolume(_oceanMaskCommandBuffer, _volumeFrontFaceTarget, _volumeBackFaceTarget);
+                PopulateVolumeFront(_oceanMaskCommandBuffer, _volumeFrontFaceTarget, _volumeBackFaceTarget);
+                PopulateVolumeBack(_oceanMaskCommandBuffer, _volumeFrontFaceTarget, _volumeBackFaceTarget);
                 // Copy only the stencil by copying everything and clearing depth.
                 _oceanMaskCommandBuffer.CopyTexture(_mode == Mode.Portal ? _volumeFrontFaceTarget : _volumeBackFaceTarget, _depthTarget);
                 Helpers.Blit(_oceanMaskCommandBuffer, _depthTarget, Helpers.UtilityMaterial, (int)Helpers.UtilityPass.ClearDepth);
@@ -243,7 +263,7 @@ namespace Crest
             FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor, _maskTarget);
         }
 
-        internal void PopulateVolume(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget, MaterialPropertyBlock properties = null, Vector2Int targetSize = default)
+        internal void PopulateVolumeFront(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget, MaterialPropertyBlock properties = null, Vector2Int targetSize = default)
         {
             // Front faces.
             Helpers.SetRenderTarget(buffer, frontTarget);
@@ -262,7 +282,10 @@ namespace Crest
                 properties
             );
             buffer.SetInvertCulling(false);
+        }
 
+        internal void PopulateVolumeBack(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget, MaterialPropertyBlock properties = null, Vector2Int targetSize = default)
+        {
             if (_mode == Mode.Volume || _mode == Mode.VolumeFlyThrough)
             {
                 // Back faces.

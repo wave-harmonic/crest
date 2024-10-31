@@ -183,7 +183,7 @@ namespace Crest
 
         void FixedUpdateEngine()
         {
-            var forcePosition = _rb.position;
+            var forcePosition = _rb.worldCenterOfMass;
 
             var forward = _engineBias;
             if (_playerControlled) forward +=
@@ -234,7 +234,7 @@ namespace Crest
             // Apply drag relative to water
             var _velocityRelativeToWater = Velocity - waterSurfaceVel;
 
-            var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
+            var forcePosition = _rb.worldCenterOfMass + _forceHeightOffset * Vector3.up;
             _rb.AddForceAtPosition(_dragInWaterUp * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * Vector3.up, forcePosition, ForceMode.Acceleration);
             _rb.AddForceAtPosition(_dragInWaterRight * Vector3.Dot(transform.right, -_velocityRelativeToWater) * transform.right, forcePosition, ForceMode.Acceleration);
             _rb.AddForceAtPosition(_dragInWaterForward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * transform.forward, forcePosition, ForceMode.Acceleration);

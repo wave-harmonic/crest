@@ -158,7 +158,7 @@ namespace Crest.Examples
             }
 
             // apply drag relative to water
-            var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
+            var forcePosition = _rb.worldCenterOfMass + _forceHeightOffset * Vector3.up;
             _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
             _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
             _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);

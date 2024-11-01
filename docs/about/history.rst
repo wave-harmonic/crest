@@ -9,6 +9,28 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.21.2
+------
+
+.. only:: urp
+
+   Breaking
+   ^^^^^^^^
+   .. bullet_list::
+
+      -  Remove foveated rendering support from 2022.3.
+         Please use Unity 6 if you need this feature `[URP]`
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix buoyancy behaving erratically in Unity 6
+
+   .. only:: urp
+
+      -  Fix shader compilation errors due to foveated rendering in 2022.3 `[URP]`
+
 4.21.1
 ------
 

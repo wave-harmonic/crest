@@ -9,6 +9,15 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.21.3
+------
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix underwater rendering for Unity 6 `[HDRP]`
+
 4.21.2
 ------
 

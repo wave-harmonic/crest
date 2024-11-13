@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -37,11 +38,28 @@ namespace Crest
         [SerializeField]
         bool _useNormals;
 
+#if CREST_BURST_QUERY
+        NativeArray<float> _resultHeights;
+        NativeArray<Vector3> _resultDisps;
+        NativeArray<Vector3> _resultNorms;
+        NativeArray<Vector3> _samplePositions;
+#else
         float[] _resultHeights;
         Vector3[] _resultDisps;
         Vector3[] _resultNorms;
 
         Vector3[] _samplePositions;
+#endif
+
+#if CREST_BURST_QUERY
+        void OnDisable()
+        {
+            if (_resultHeights.IsCreated) _resultHeights.Dispose();
+            if (_resultDisps.IsCreated) _resultDisps.Dispose();
+            if (_resultNorms.IsCreated) _resultNorms.Dispose();
+            if (_samplePositions.IsCreated) _samplePositions.Dispose();
+        }
+#endif
 
         void Update()
         {
@@ -50,26 +68,76 @@ namespace Crest
                 return;
             }
 
-            if (_resultHeights == null || _resultHeights.Length != _steps * _steps)
+
+            var isNull = false;
+
+#if CREST_BURST_QUERY
+            isNull = !_resultHeights.IsCreated;
+#else
+            isNull = _resultHeights == null;
+#endif
+
+            if (isNull || _resultHeights.Length != _steps * _steps)
             {
+#if CREST_BURST_QUERY
+                if (!isNull) _resultHeights.Dispose();
+                _resultHeights = new NativeArray<float>(_steps * _steps, Allocator.Persistent);
+#else
                 _resultHeights = new float[_steps * _steps];
+#endif
             }
-            if (_resultDisps == null || _resultDisps.Length != _steps * _steps)
+
+#if CREST_BURST_QUERY
+            isNull = !_resultDisps.IsCreated;
+#else
+            isNull = _resultDisps == null;
+#endif
+
+            if (isNull || _resultDisps.Length != _steps * _steps)
             {
+#if CREST_BURST_QUERY
+                if (!isNull) _resultDisps.Dispose();
+                _resultDisps = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
+#else
                 _resultDisps = new Vector3[_steps * _steps];
+#endif
             }
-            if (_resultNorms == null || _resultNorms.Length != _steps * _steps)
+
+#if CREST_BURST_QUERY
+            isNull = !_resultNorms.IsCreated;
+#else
+            isNull = _resultNorms == null;
+#endif
+
+            if (isNull || _resultNorms.Length != _steps * _steps)
             {
+#if CREST_BURST_QUERY
+                if (!isNull) _resultNorms.Dispose();
+                _resultNorms = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
+#else
                 _resultNorms = new Vector3[_steps * _steps];
+#endif
 
                 for (int i = 0; i < _resultNorms.Length; i++)
                 {
                     _resultNorms[i] = Vector3.up;
                 }
             }
-            if (_samplePositions == null || _samplePositions.Length != _steps * _steps)
+
+#if CREST_BURST_QUERY
+            isNull = !_samplePositions.IsCreated;
+#else
+            isNull = _samplePositions == null;
+#endif
+
+            if (isNull || _samplePositions.Length != _steps * _steps)
             {
+#if CREST_BURST_QUERY
+                if (!isNull) _samplePositions.Dispose();
+                _samplePositions = new NativeArray<Vector3>(_steps * _steps, Allocator.Persistent);
+#else
                 _samplePositions = new Vector3[_steps * _steps];
+#endif
             }
 
             var collProvider = OceanRenderer.Instance.CollisionProvider;
@@ -78,15 +146,20 @@ namespace Crest
             {
                 for (int j = 0; j < _steps; j++)
                 {
-                    _samplePositions[j * _steps + i] = new Vector3(((i + 0.5f) - _steps / 2f) * _stepSize, 0f, ((j + 0.5f) - _steps / 2f) * _stepSize);
-                    _samplePositions[j * _steps + i].x += transform.position.x;
-                    _samplePositions[j * _steps + i].z += transform.position.z;
+                    var tmp = new Vector3(((i + 0.5f) - _steps / 2f) * _stepSize, 0f, ((j + 0.5f) - _steps / 2f) * _stepSize);
+                    tmp.x += transform.position.x;
+                    tmp.z += transform.position.z;
+                    _samplePositions[j * _steps + i] = tmp;
                 }
             }
 
             if (_useDisplacements)
             {
+#if CREST_BURST_QUERY
+                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, ref _samplePositions, ref _resultDisps, ref _useNormals ? ref _resultNorms : ref QueryHelper.s_Skip, ref QueryHelper.s_Skip)))
+#else
                 if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultDisps, _useNormals ? _resultNorms : null, null)))
+#endif
                 {
                     for (int i = 0; i < _steps; i++)
                     {
@@ -105,7 +178,11 @@ namespace Crest
             }
             else
             {
+#if CREST_BURST_QUERY
+                if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, ref _samplePositions, ref _resultHeights, ref _useNormals ? ref _resultNorms : ref QueryHelper.s_Skip, ref QueryHelper.s_Skip)))
+#else
                 if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, _useNormals ? _resultNorms : null, null)))
+#endif
                 {
                     for (int i = 0; i < _steps; i++)
                     {

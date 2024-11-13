@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Burst;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -10,12 +12,34 @@ namespace Crest
     /// Helper to obtain the ocean surface height at a single location per frame. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
+#if CREST_BURST_QUERY
+    [BurstCompile]
+#endif
     public class SampleHeightHelper
     {
+#if CREST_BURST_QUERY
+        Vector3 _queryPos;
+        Vector3 _queryResult;
+        Vector3 _queryResultNormal;
+        Vector3 _queryResultVel;
+
+        // These are only ever used on the main thread, and they're filled in when they're used, so we only need one
+        // global copy of them. if we had one for every sample height helper, we would spend forever creating and
+        // destroying nativearrays. consider revisiting this when 22.2 is the minspec, because then nativearray becomes
+        // fully unmanaged. Also, obviously revisit if their usage is ever jobified.
+        static NativeArray<Vector3> _tmpQueryPos;
+        static NativeArray<Vector3> _tmpQueryResult;
+        static NativeArray<Vector3> _tmpQueryResultNormal;
+        static NativeArray<Vector3> _tmpQueryResultVel;
+#if UNITY_EDITOR
+        private static bool HaveRegisteredDomainUnload = false;
+#endif
+#else
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];
         Vector3[] _queryResultNormal = new Vector3[1];
         Vector3[] _queryResultVel = new Vector3[1];
+#endif
 
         float _minLength = 0f;
 
@@ -33,7 +57,15 @@ namespace Crest
         /// <param name="allowMultipleCallsPerFrame">Pass true if calling from FixedUpdate(). This will omit a warning when there on multipled-FixedUpdate frames.</param>
         public void Init(Vector3 i_queryPos, float i_minLength = 0f, bool allowMultipleCallsPerFrame = false, Object context = null)
         {
+#if CREST_BURST_QUERY
+            _queryPos = i_queryPos;
+            if (!_tmpQueryPos.IsCreated) _tmpQueryPos = new NativeArray<Vector3>(1, Allocator.Persistent);
+            if (!_tmpQueryResult.IsCreated) _tmpQueryResult = new NativeArray<Vector3>(1, Allocator.Persistent);
+            if (!_tmpQueryResultNormal.IsCreated) _tmpQueryResultNormal = new NativeArray<Vector3>(1, Allocator.Persistent);
+            if (!_tmpQueryResultVel.IsCreated) _tmpQueryResultVel = new NativeArray<Vector3>(1, Allocator.Persistent);
+#else
             _queryPos[0] = i_queryPos;
+#endif
             _minLength = i_minLength;
 
 #if UNITY_EDITOR
@@ -42,8 +74,29 @@ namespace Crest
                 Debug.LogWarning($"Crest: SampleHeightHelper.Init() called multiple times in one frame which is not expected. Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly. (_lastFrame = {_lastFrame})", context);
             }
             _lastFrame = OceanRenderer.FrameCount;
+
+#if CREST_BURST_QUERY
+            // If we do this registration on every init, it wastes lots of time and garbage. But if we never do it,
+            // we leak memory. So, do it once if we can't tell that we've done it before.
+            if (!HaveRegisteredDomainUnload)
+            {
+                System.AppDomain.CurrentDomain.DomainUnload -= OnDomainUnload;
+                System.AppDomain.CurrentDomain.DomainUnload += OnDomainUnload;
+                HaveRegisteredDomainUnload = true;
+            }
+#endif
 #endif
         }
+
+#if CREST_BURST_QUERY
+        static void OnDomainUnload(object sender, System.EventArgs e)
+        {
+            _tmpQueryPos.Dispose();
+            _tmpQueryResult.Dispose();
+            _tmpQueryResultNormal.Dispose();
+            _tmpQueryResultVel.Dispose();
+        }
+#endif
 
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().
@@ -57,7 +110,13 @@ namespace Crest
                 return false;
             }
 
+#if CREST_BURST_QUERY
+            _tmpQueryPos[0] = _queryPos;
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref QueryHelper.s_Skip, ref QueryHelper.s_Skip);
+            _queryResult = _tmpQueryResult[0];
+#else
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
+#endif
 
             if (!collProvider.RetrieveSucceeded(status))
             {
@@ -65,7 +124,11 @@ namespace Crest
                 return false;
             }
 
+#if CREST_BURST_QUERY
+            o_height = _queryResult.y + OceanRenderer.Instance.SeaLevel;
+#else
             o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+#endif
 
             return true;
         }
@@ -80,7 +143,14 @@ namespace Crest
                 return false;
             }
 
+#if CREST_BURST_QUERY
+            _tmpQueryPos[0] = _queryPos;
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref QueryHelper.s_Skip);
+            _queryResult = _tmpQueryResult[0];
+            _queryResultNormal = _tmpQueryResultNormal[0];
+#else
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, null);
+#endif
 
             if (!collProvider.RetrieveSucceeded(status))
             {
@@ -89,9 +159,13 @@ namespace Crest
                 return false;
             }
 
+#if CREST_BURST_QUERY
+            o_height = _queryResult.y + OceanRenderer.Instance.SeaLevel;
+            o_normal = _queryResultNormal;
+#else
             o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
             o_normal = _queryResultNormal[0];
-
+#endif
             return true;
         }
 
@@ -106,7 +180,15 @@ namespace Crest
                 return false;
             }
 
+#if CREST_BURST_QUERY
+            _tmpQueryPos[0] = _queryPos;
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref _tmpQueryResultVel);
+            _queryResult = _tmpQueryResult[0];
+            _queryResultNormal = _tmpQueryResultNormal[0];
+            _queryResultVel = _tmpQueryResultVel[0];
+#else
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+#endif
 
             if (!collProvider.RetrieveSucceeded(status))
             {
@@ -116,9 +198,15 @@ namespace Crest
                 return false;
             }
 
+#if CREST_BURST_QUERY
+            o_height = _queryResult.y + OceanRenderer.Instance.SeaLevel;
+            o_normal = _queryResultNormal;
+            o_surfaceVel = _queryResultVel;
+#else
             o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
             o_normal = _queryResultNormal[0];
             o_surfaceVel = _queryResultVel[0];
+#endif
 
             return true;
         }
@@ -133,7 +221,16 @@ namespace Crest
                 o_surfaceVel = Vector3.zero;
                 return false;
             }
+
+#if CREST_BURST_QUERY
+            _tmpQueryPos[0] = _queryPos;
+            var status = collProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult, ref _tmpQueryResultNormal, ref _tmpQueryResultVel);
+            _queryResult = _tmpQueryResult[0];
+            _queryResultNormal = _tmpQueryResultNormal[0];
+            _queryResultVel = _tmpQueryResultVel[0];
+#else
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+#endif
 
             if (!collProvider.RetrieveSucceeded(status))
             {
@@ -143,10 +240,15 @@ namespace Crest
                 return false;
             }
 
+#if CREST_BURST_QUERY
+            o_displacementToPoint = _queryResult;
+            o_normal = _queryResultNormal;
+            o_surfaceVel = _queryResultVel;
+#else
             o_displacementToPoint = _queryResult[0];
             o_normal = _queryResultNormal[0];
             o_surfaceVel = _queryResultVel[0];
-
+#endif
             return true;
         }
     }
@@ -157,8 +259,20 @@ namespace Crest
     /// </summary>
     public class SampleFlowHelper
     {
+#if CREST_BURST_QUERY
+        private Vector3 _queryPos;
+        Vector3 _queryResult;
+
+        // See comment on SampleHeightHelper about why these are static and more.
+        private static NativeArray<Vector3> _tmpQueryPos;
+        private static NativeArray<Vector3> _tmpQueryResult;
+#if UNITY_EDITOR
+        private static bool HaveRegisteredDomainUnload = false;
+#endif
+#else
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];
+#endif
 
         float _minLength = 0f;
 
@@ -170,9 +284,36 @@ namespace Crest
         /// pass in the boats width. Larger objects will filter out detailed flow information.</param>
         public void Init(Vector3 i_queryPos, float i_minLength)
         {
+#if CREST_BURST_QUERY
+            _queryPos = i_queryPos;
+            if (!_tmpQueryPos.IsCreated) _tmpQueryPos = new NativeArray<Vector3>(1, Allocator.Persistent);
+            if (!_tmpQueryResult.IsCreated) _tmpQueryResult = new NativeArray<Vector3>(1, Allocator.Persistent);
+#else
             _queryPos[0] = i_queryPos;
+#endif
             _minLength = i_minLength;
+
+#if UNITY_EDITOR
+#if CREST_BURST_QUERY
+            // If we do this registration on every init, it wastes lots of time and garbage. But if we never do it,
+            // we leak memory. So, do it once if we can't tell that we've done it before.
+            if (!HaveRegisteredDomainUnload)
+            {
+                System.AppDomain.CurrentDomain.DomainUnload -= OnDomainUnload;
+                System.AppDomain.CurrentDomain.DomainUnload += OnDomainUnload;
+                HaveRegisteredDomainUnload = true;
+            }
+#endif
+#endif
         }
+
+#if CREST_BURST_QUERY
+        static void OnDomainUnload(object sender, System.EventArgs e)
+        {
+            _tmpQueryPos.Dispose();
+            _tmpQueryResult.Dispose();
+        }
+#endif
 
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().
@@ -185,7 +326,14 @@ namespace Crest
                 o_flow = Vector2.zero;
                 return false;
             }
+
+#if CREST_BURST_QUERY
+            _tmpQueryPos[0] = _queryPos;
+            var status = flowProvider.Query(GetHashCode(), _minLength, ref _tmpQueryPos, ref _tmpQueryResult);
+            _queryResult = _tmpQueryResult[0];
+#else
             var status = flowProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
+#endif
 
             if (!flowProvider.RetrieveSucceeded(status))
             {
@@ -194,8 +342,13 @@ namespace Crest
             }
 
             // We don't support float2 queries unfortunately, so unpack from float3
+#if CREST_BURST_QUERY
+            o_flow.x = _queryResult.x;
+            o_flow.y = _queryResult.z;
+#else
             o_flow.x = _queryResult[0].x;
             o_flow.y = _queryResult[0].z;
+#endif
 
             return true;
         }

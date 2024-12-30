@@ -197,7 +197,7 @@ half3 ApplyUnderwaterEffect
 		}
 #endif // _SHADOWS_ON
 
-		half seaFloorDepth = CREST_OCEAN_DEPTH_BASELINE;
+		half seaFloorDepth = 0.0;
 #if _SUBSURFACESHALLOWCOLOUR_ON
 		{
 			// compute scatter colour from cam pos. two scenarios this can be called:

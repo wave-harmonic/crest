@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -18,7 +19,11 @@ namespace Crest
         /// <param name="i_minSpatialLength">The min spatial length of the object, such as the width of a boat. Useful for filtering out detail when not needed. Set to 0 to get full available detail.</param>
         /// <param name="i_queryPoints">The world space points that will be queried.</param>
         /// <param name="o_resultVels">Water surface flow velocities at the query positions.</param>
+#if CREST_BURST_QUERY
+        int Query(int i_ownerHash, float i_minSpatialLength, ref NativeArray<Vector3> i_queryPoints, ref NativeArray<Vector3> o_resultFlows);
+#else
         int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultFlows);
+#endif
 
         /// <summary>
         /// Check if query results could be retrieved successfully using return code from Query() function

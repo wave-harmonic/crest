@@ -320,6 +320,10 @@ namespace Crest
         internal const float UNDERWATER_CULL_LIMIT_MINIMUM = 0.000001f;
         internal const float UNDERWATER_CULL_LIMIT_MAXIMUM = 0.01f;
 
+        [Tooltip("If you experience non mesh renderer inputs (like particles) flickering, then try enabling this option. It can cause other issues like GUI freezing when rendering Crest camera to a render texture.")]
+        [SerializeField]
+        public bool _fixFlickeringParticleInput;
+
 
         [Header("Edit Mode Params")]
 

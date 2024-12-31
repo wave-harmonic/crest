@@ -111,7 +111,7 @@ namespace Crest
 
             BuildLodData(OceanRenderer.Instance, _buf);
 
-            if (OceanRenderer.Instance.ViewCamera != null)
+            if (OceanRenderer.Instance._fixFlickeringParticleInput && OceanRenderer.Instance.ViewCamera != null)
             {
                 // Fixes flickering non mesh renderer renderers (like particles). Method is undocumented.
                 Camera.SetupCurrent(OceanRenderer.Instance.ViewCamera);

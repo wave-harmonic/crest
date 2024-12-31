@@ -1346,7 +1346,7 @@ namespace Crest
             (
                 _viewerHeightAboveWaterSmooth,
                 ViewerHeightAboveWater,
-                _teleportTimerForHeightQueries > 0f || !_lodDataSeaDepths.Settings._allowVaryingWaterLevel ? 1f : 0.05f
+                _teleportTimerForHeightQueries > 0f || _lodDataSeaDepths == null || !_lodDataSeaDepths.Settings._allowVaryingWaterLevel ? 1f : 0.05f
             );
         }
 

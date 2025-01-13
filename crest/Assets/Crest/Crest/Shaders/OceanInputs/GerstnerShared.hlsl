@@ -26,7 +26,8 @@ CBUFFER_END
 half3 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 {
 	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-	const half2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xy;
+	half2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xy;
+	terrainHeight_seaLevelOffset.x = max(terrainHeight_seaLevelOffset.x, -CREST_FLOAT_MAXIMUM);
 	const half depth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
 
 	// Preferred wave directions

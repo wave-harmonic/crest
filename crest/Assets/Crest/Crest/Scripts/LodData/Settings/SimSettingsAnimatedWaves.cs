@@ -35,8 +35,8 @@ namespace Crest
         public float AttenuationInShallows => _attenuationInShallows;
 
         [Tooltip("Any water deeper than this will receive full wave strength. The lower the value, the less effective the depth cache will be at attenuating very large waves. Set to the maximum value (1,000) to disable.")]
-        [SerializeField, Range(1f, LodDataMgrSeaFloorDepth.k_DepthBaseline)]
-        float _shallowsMaxDepth = LodDataMgrSeaFloorDepth.k_DepthBaseline;
+        [SerializeField, Range(1f, 1000f)]
+        float _shallowsMaxDepth = 1000f;
         public float MaximumAttenuationDepth => _shallowsMaxDepth;
 
         public enum CollisionSources

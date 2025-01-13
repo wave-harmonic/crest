@@ -43,11 +43,12 @@ Shader "Crest/Inputs/Shape Waves/Sample Spectrum"
 
 		half GetAttenuationInShallowsWeight(const Texture2DArray i_texture, const float3 i_uv)
 		{
-			const half2 terrainHeight_seaLevelOffset = i_texture.SampleLevel(LODData_linear_clamp_sampler, i_uv, 0.0).xy;
+			half2 terrainHeight_seaLevelOffset = i_texture.SampleLevel(LODData_linear_clamp_sampler, i_uv, 0.0).xy;
+			terrainHeight_seaLevelOffset.x = max(terrainHeight_seaLevelOffset.x, -CREST_FLOAT_MAXIMUM);
 			const half depth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
 			// Attenuate if depth is less than half of the average wavelength.
 			half weight = saturate(2.0 * depth / _AverageWavelength);
-			if (_MaximumAttenuationDepth < CREST_OCEAN_DEPTH_BASELINE)
+			if (_MaximumAttenuationDepth < CREST_MAXIMUM_ATTENUATION_DEPTH)
 			{
 				weight = lerp(weight, 1.0, saturate(depth / _MaximumAttenuationDepth));
 			}

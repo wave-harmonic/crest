@@ -236,9 +236,7 @@ namespace Crest
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
                 _camDepthCache.orthographic = true;
-                _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
-                // Clear to 'very deep'
-                _camDepthCache.backgroundColor = Color.white * LodDataMgrSeaFloorDepth.k_DepthBaseline;
+                _camDepthCache.clearFlags = CameraClearFlags.Depth;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
                 _camDepthCache.allowDynamicResolution = false;

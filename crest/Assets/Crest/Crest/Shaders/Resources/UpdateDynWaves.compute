@@ -71,7 +71,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
-	const float2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xy;
+	float2 terrainHeight_seaLevelOffset = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xy;
+	terrainHeight_seaLevelOffset.x = max(terrainHeight_seaLevelOffset.x, -CREST_FLOAT_MAXIMUM);
 	const float waterDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
 
 	// Wave reflections off geometry.

@@ -2,22 +2,34 @@
 
 ![Header](https://github.com/wave-harmonic/crest/blob/master/img/Header.jpg?raw=true)
 
-<hr><h3>CREST OCEAN SYSTEM</h3><hr>
+<hr><h3>CREST WATER 4</h3><hr>
 
 <p align="center">
   An advanced water system implemented in Unity<br>
   <a href="https://crest.readthedocs.io/en/latest">Documentation</a> •
   <a href="https://discord.gg/JJjx9qcq83">Discord</a> •
-  <a href="https://www.youtube.com/channel/UC7_ZKKCXZmH64rRZqe-C0WA">YouTube</a> •
-  <a href="https://twitter.com/@crest_ocean">Twitter</a> •
+  <a href="https://www.youtube.com/c/WaveHarmonic">YouTube</a> •
+  <a href="https://x.com/WaveHarmonicX">X</a> •
+  <a href="https://assetstore.unity.com/publishers/41652">Unity Asset Store</a> •
   <a href="https://github.com/sponsors/wave-harmonic">Sponsorship</a>
 </p>
 
 This repository targets the built-in renderer. For other render pipelines, see the following:
 
-|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/fef53e24-736f-41f9-98de-bfbcdef4a4a8.jpg" alt="Crest Ocean System BIRP Asset" width="240" height="160"/></a>|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/1e89a1d1-6cae-4163-b3f9-ead226f53160.jpg" alt="Crest Ocean System HDRP Asset" width="240" height="160"/></a>|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/2b640420-1fed-4a76-a54e-e86b9693c2bb.jpg" alt="Crest Ocean System URP Asset" width="240" height="160"/></a>|
-:-:|:-:|:-:|
-[Crest Ocean System](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-252194?aid=1011lic2K)|[Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158?aid=1011lic2K)|[Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674?aid=1011lic2K)
+
+
+
+|<a href="https://assetstore.unity.com/packages/slug/252194?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/fef53e24-736f-41f9-98de-bfbcdef4a4a8.jpg" alt="Crest Water 4 BIRP Asset" width="240" height="160"/></a>|<a href="https://assetstore.unity.com/packages/slug/164158?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/1e89a1d1-6cae-4163-b3f9-ead226f53160.jpg" alt="Crest Water 4 HDRP Asset" width="240" height="160"/></a>|<a href="https://assetstore.unity.com/packages/slug/141674?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/2b640420-1fed-4a76-a54e-e86b9693c2bb.jpg" alt="Crest Water 4 URP Asset" width="240" height="160"/></a>|
+|:-:|:-:|:-:|
+|[Crest Water 4 BIRP](https://assetstore.unity.com/packages/slug/252194?aid=1011lic2K)|[Crest Water 4 HDRP](https://assetstore.unity.com/packages/slug/164158?aid=1011lic2K)|[Crest Water 4 URP](https://assetstore.unity.com/packages/slug/141674?aid=1011lic2K)|
+
+<br>
+
+Crest Water 5 is now available.
+
+|<a href="https://assetstore.unity.com/packages/slug/268614?aid=1011lic2K" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/95ef713d-ee91-4fad-b2df-52b48c5dc527.jpg" alt="Crest Water 4 BIRP Asset" width="240" height="160"/></a>|
+|:-:|
+|[Crest Water 5](https://assetstore.unity.com/packages/slug/268614?aid=1011lic2K)|
 
 <br>
 

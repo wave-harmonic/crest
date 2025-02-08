@@ -129,6 +129,11 @@ namespace Crest
         const int CULL_DISTANCE_COUNT = 32;
         float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
+#if UNITY_EDITOR
+        bool _isSceneCamera;
+        float _changeViewTimer;
+#endif
+
         private void Start()
         {
             if (OceanRenderer.Instance == null)
@@ -184,6 +189,7 @@ namespace Crest
                 if (!editorCamera.TryGetComponent<OceanPlanarReflection>(out var editor))
                 {
                     editor = editorCamera.gameObject.AddComponent<OceanPlanarReflection>();
+                    editor._isSceneCamera = true;
                 }
 
                 if (editor != null)
@@ -211,6 +217,34 @@ namespace Crest
             {
                 return;
             }
+
+#if UNITY_EDITOR
+            // Fix "Screen position out of view frustum" when 2D view activated.
+            // Always had an exception on exiting 2D mode, so resorted to a timer.
+            if (_isSceneCamera)
+            {
+                var sceneView = UnityEditor.SceneView.lastActiveSceneView;
+
+                if (sceneView == null)
+                {
+                    _camReflections.enabled = false;
+                    return;
+                }
+
+                if (sceneView.in2DMode)
+                {
+                    _changeViewTimer = 1f;
+                }
+
+                _camReflections.enabled = _changeViewTimer <= 0f;
+
+                if (!_camReflections.enabled)
+                {
+                    _changeViewTimer -= 0.02f;
+                    return;
+                }
+            }
+#endif
 
             // Find out the reflection plane: position and normal in world space
             Vector3 planePos = OceanRenderer.Instance.Root.position;
@@ -423,16 +457,18 @@ namespace Crest
                 PreparedReflections.Remove(_camViewpoint.GetHashCode());
             }
 
+            if (_camReflections)
+            {
+                _camReflections.targetTexture = null;
+                Helpers.Destroy(_camReflections.gameObject);
+                _camReflections = null;
+            }
+
             // Cleanup all the objects we possibly have created
             if (_reflectionTexture)
             {
                 Helpers.Destroy(_reflectionTexture);
                 _reflectionTexture = null;
-            }
-            if (_camReflections)
-            {
-                Helpers.Destroy(_camReflections.gameObject);
-                _camReflections = null;
             }
         }
     }

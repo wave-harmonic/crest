@@ -199,7 +199,7 @@ Shader "Crest/Underwater Curtain"
 				const half shadow = 1.0;
 				const half sss = 0.0;
 
-				half seaFloorDepth = CREST_OCEAN_DEPTH_BASELINE;
+				half seaFloorDepth = 0.0;
 #if _SUBSURFACESHALLOWCOLOUR_ON
 				{
 					// compute scatter colour from cam pos. two scenarios this can be called:

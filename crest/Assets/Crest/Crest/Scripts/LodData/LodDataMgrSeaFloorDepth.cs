@@ -17,13 +17,13 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         // NOTE: Must match CREST_OCEAN_DEPTH_BASELINE in OceanConstants.hlsl.
-        internal const float k_DepthBaseline = 1_000f;
+        internal const float k_DepthBaseline = Mathf.Infinity;
 
         public override string SimName => "SeaFloorDepth";
         protected override GraphicsFormat RequestedTextureFormat => Settings._allowVaryingWaterLevel ? GraphicsFormat.R32G32_SFloat : GraphicsFormat.R16_SFloat;
         protected override bool NeedToReadWriteTextureData => false;
-        // We want the clear colour to be the min terrain height (-1000m) in X, and sea level offset 0m in Y.
-        readonly static Color s_nullColor = Color.red * -k_DepthBaseline;
+        // Lowest possible scene height in X, and sea level offset 0m in Y.
+        readonly static Color s_nullColor = new Color(-k_DepthBaseline, 0, 0, 0);
         static Texture2DArray s_nullTexture;
         protected override Texture2DArray NullTexture => s_nullTexture;
 

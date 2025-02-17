@@ -43,6 +43,7 @@ groupshared float2 _ScratchX[SIZE];
 groupshared float2 _IntermediatesZ[SIZE];
 groupshared float2 _ScratchZ[SIZE];
 
+#if defined(SHADER_API_METAL)
 // reversebits function appears to not make it across to Metal
 #if !defined(reversebits)
 uint reversebits( uint x )
@@ -54,6 +55,7 @@ uint reversebits( uint x )
 	x = ((x >> 16) & 0xffffu) | ((x & 0xffffu) << 16);
 	return x;
 }
+#endif
 #endif
 
 void ButterflyPass(float2 butterfly, uint coord, uint passIndex, uint cascade)

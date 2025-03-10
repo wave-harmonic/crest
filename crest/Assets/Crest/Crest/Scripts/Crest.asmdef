@@ -6,11 +6,12 @@
         "Unity.InputSystem",
         "Unity.Mathematics",
         "Unity.Burst",
-        "Unity.Splines"
+        "Unity.Splines",
+        "Unity.Collections"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

@@ -124,23 +124,25 @@ void SampleAlbedo(in Texture2DArray i_oceanAlbedoSampler, in float3 i_uv_slice, 
 
 void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth)
 {
-	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice.xyz, 0.0).xy;
+	half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice.xyz, 0.0).xy;
+	terrainHeight_seaLevelOffset.x = max(terrainHeight_seaLevelOffset.x, -CREST_FLOAT_MAXIMUM);
 	const half waterDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
-	io_oceanDepth += i_wt * (waterDepth - CREST_OCEAN_DEPTH_BASELINE);
+	io_oceanDepth += i_wt * waterDepth;
 }
 
 void SampleSingleSeaDepth(Texture2DArray i_oceanDepthSampler, float3 i_uv_slice, inout half io_oceanDepth, inout half io_seaLevelOffset)
 {
-	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
-	const half waterDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
-	io_oceanDepth = waterDepth - CREST_OCEAN_DEPTH_BASELINE;
+	half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
+	terrainHeight_seaLevelOffset.x = max(terrainHeight_seaLevelOffset.x, -CREST_FLOAT_MAXIMUM);
+	io_oceanDepth = _OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y;
 	io_seaLevelOffset = terrainHeight_seaLevelOffset.y;
 }
 
 void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth, inout half io_seaLevelOffset, const CascadeParams i_cascadeParams, inout float2 io_seaLevelDerivs)
 {
-	const half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 ).xy;
-	io_oceanDepth += i_wt * (_OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y - CREST_OCEAN_DEPTH_BASELINE);
+	half2 terrainHeight_seaLevelOffset = i_oceanDepthSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice, 0.0 ).xy;
+	terrainHeight_seaLevelOffset.x = max(terrainHeight_seaLevelOffset.x, -CREST_FLOAT_MAXIMUM);
+	io_oceanDepth += i_wt * (_OceanCenterPosWorld.y - terrainHeight_seaLevelOffset.x + terrainHeight_seaLevelOffset.y);
 	io_seaLevelOffset += i_wt * terrainHeight_seaLevelOffset.y;
 
 	{
@@ -159,6 +161,7 @@ void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice,
 void SampleTerrainHeight(const Texture2DArray i_texture, const float3 i_uv, inout half io_terrainHeight)
 {
 	io_terrainHeight = i_texture.SampleLevel(LODData_linear_clamp_sampler, i_uv, 0.0).x;
+	io_terrainHeight = max(io_terrainHeight, -CREST_FLOAT_MAXIMUM);
 }
 
 void SampleSeaLevelOffset(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_seaLevelOffset)

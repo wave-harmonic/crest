@@ -126,6 +126,11 @@ namespace Crest
             public bool _disableArtifactCorrection = false;
         }
 
+        /// <summary>
+        /// Raised after copying the water material properties to the underwater material.
+        /// </summary>
+        public static System.Action<Material> AfterCopyMaterial { get; set; }
+
         internal Camera _camera;
         bool _firstRender = true;
 

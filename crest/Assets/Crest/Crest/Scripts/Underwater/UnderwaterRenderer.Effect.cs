@@ -327,6 +327,8 @@ namespace Crest
                         // Measured this at approx 0.05ms on Dell laptop.
                         underwaterPostProcessMaterial.CopyPropertiesFromMaterial(material);
 
+                        AfterCopyMaterial?.Invoke(material);
+
                         if (setGlobalShaderData)
                         {
                             UpdateGlobals(material);

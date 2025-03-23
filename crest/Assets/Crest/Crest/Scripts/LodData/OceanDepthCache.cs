@@ -133,7 +133,17 @@ namespace Crest
             }
         }
 
+        void OnEnable()
+        {
+            if (_drawCacheQuad != null) _drawCacheQuad.SetActive(true);
+        }
+
         void OnDisable()
+        {
+            if (_drawCacheQuad != null) _drawCacheQuad.SetActive(false);
+        }
+
+        void OnDestroy()
         {
             if (_camDepthCache != null) Helpers.Destroy(_camDepthCache.gameObject);
             if (_drawCacheQuad != null) Helpers.Destroy(_drawCacheQuad);

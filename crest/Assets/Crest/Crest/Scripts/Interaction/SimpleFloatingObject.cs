@@ -66,23 +66,16 @@ namespace Crest
         void Start()
         {
             _rb = GetComponent<Rigidbody>();
-
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
         }
 
         void FixedUpdate()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("SimpleFloatingObject.FixedUpdate");
-
             if (OceanRenderer.Instance == null)
             {
-                UnityEngine.Profiling.Profiler.EndSample();
                 return;
             }
+
+            UnityEngine.Profiling.Profiler.BeginSample("SimpleFloatingObject.FixedUpdate");
 
             _sampleHeightHelper.Init(transform.position, _objectWidth, true);
             _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);

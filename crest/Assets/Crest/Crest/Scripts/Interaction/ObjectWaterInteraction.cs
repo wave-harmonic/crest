@@ -53,12 +53,6 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
@@ -66,13 +60,6 @@ namespace Crest
                 return;
             }
 #endif
-
-            if (OceanRenderer.Instance._lodDataDynWaves == null)
-            {
-                // Don't run without a dyn wave sim
-                enabled = false;
-                return;
-            }
 
             _localOffset = transform.localPosition;
             _renderer = GetComponent<Renderer>();
@@ -92,6 +79,12 @@ namespace Crest
                 return;
             }
 
+            if (OceanRenderer.Instance._lodDataDynWaves == null)
+            {
+                // Don't run without a dyn wave sim.
+                return;
+            }
+
             // which lod is this object in (roughly)?
             var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
             var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
@@ -108,7 +101,6 @@ namespace Crest
             // counting non-existent sims is expensive - stop updating if none found
             if (simsPresent == 0)
             {
-                enabled = false;
                 return;
             }
 
@@ -188,7 +180,7 @@ namespace Crest
                 ValidatedHelper.MessageType.Warning, this
             );
 
-            if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
+            if (ocean != null && !ocean.CreateDynamicWaveSim)
             {
                 showMessage
                 (

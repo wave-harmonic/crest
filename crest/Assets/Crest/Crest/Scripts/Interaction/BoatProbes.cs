@@ -97,12 +97,6 @@ namespace Crest
             _rb = GetComponent<Rigidbody>();
             _rb.centerOfMass = _centerOfMass;
 
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
             CalcTotalWeight();
 
             _queryPoints = new Vector3[_forcePoints.Length + 1];

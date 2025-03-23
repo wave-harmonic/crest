@@ -108,29 +108,15 @@ namespace Crest
 
         public bool IgnoreTransitionWeight => false;
 
+#if UNITY_EDITOR
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
+            if (EditorApplication.isPlaying)
             {
-                enabled = false;
-                return;
-            }
-
-#if UNITY_EDITOR
-            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
-            {
-                enabled = false;
-                return;
-            }
-#endif
-
-            if (OceanRenderer.Instance._lodDataDynWaves == null)
-            {
-                // Don't run without a dyn wave sim
-                enabled = false;
-                return;
+                Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
             }
         }
+#endif
 
         static void ClearInstanceData()
         {
@@ -156,6 +142,7 @@ namespace Crest
 
             var ocean = OceanRenderer.Instance;
             if (ocean == null) return;
+            if (ocean._lodDataDynWaves == null) return;
 
             _sampleHeightHelper.Init(transform.position, 2f * _radius);
             _sampleHeightHelper.Sample(out Vector3 disp, out _, out _);
@@ -381,7 +368,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (ocean != null && !ocean.CreateDynamicWaveSim && showMessage == ValidatedHelper.HelpBox)
+            if (ocean != null && !ocean.CreateDynamicWaveSim)
             {
                 showMessage
                 (

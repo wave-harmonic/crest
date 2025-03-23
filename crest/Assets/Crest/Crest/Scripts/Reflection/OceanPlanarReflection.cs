@@ -136,12 +136,6 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
             if (!TryGetComponent(out _camViewpoint))
             {
                 Debug.LogWarning("Crest: Disabling planar reflections as no camera found on gameobject to generate reflection from.", this);

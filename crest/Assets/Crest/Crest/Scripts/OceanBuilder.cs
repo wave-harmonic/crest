@@ -484,7 +484,10 @@ namespace Crest
                 // the rest of the tiles by LOD index. all this happens before layer 0 - the sorting layer takes priority over the
                 // render queue it seems! ( https://cdry.wordpress.com/2017/04/28/unity-render-queues-vs-sorting-layers/ ). This pushes
                 // ocean rendering way early, so transparent objects will by default render afterwards, which is typical for water rendering.
-                mr.sortingOrder = -lodCount + (patchTypes[i] == PatchType.Interior ? -1 : lodIndex);
+                if (!ocean._enableRenderQueueSorting)
+                {
+                    mr.sortingOrder = -lodCount + (patchTypes[i] == PatchType.Interior ? -1 : lodIndex);
+                }
 
                 // This setting is ignored by Unity for the transparent ocean shader.
                 mr.receiveShadows = false;

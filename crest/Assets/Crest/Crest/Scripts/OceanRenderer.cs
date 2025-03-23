@@ -324,6 +324,9 @@ namespace Crest
         [SerializeField]
         public bool _fixFlickeringParticleInput;
 
+        [Tooltip("Enables render queue sorting within a pass (eg transparent). This disables the front-to-back sort optimization.")]
+        public bool _enableRenderQueueSorting;
+
 
         [Header("Edit Mode Params")]
 
@@ -1048,6 +1051,7 @@ namespace Crest
             Hashy.AddInt(_geometryDownSampleFactor, ref settingsHash);
             Hashy.AddInt(_lodCount, ref settingsHash);
             Hashy.AddFloat(_extentsSizeMultiplier, ref settingsHash);
+            Hashy.AddBool(_enableRenderQueueSorting, ref settingsHash);
             Hashy.AddBool(_debug._forceBatchMode, ref settingsHash);
             Hashy.AddBool(_debug._forceNoGPU, ref settingsHash);
             Hashy.AddBool(_debug._showOceanTileGameObjects, ref settingsHash);

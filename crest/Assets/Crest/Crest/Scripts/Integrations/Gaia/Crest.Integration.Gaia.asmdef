@@ -1,0 +1,22 @@
+{
+    "name": "Crest.Integration.Gaia",
+    "rootNamespace": "",
+    "references": [
+        "GUID:5b35af79ebbe89647a157055d52c59d3",
+        "GUID:532136e3ad79fba44b9e7d74f4e53abe",
+        "GUID:cc49c744ac0d6fa459f6fb20f0066991"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "GAIA_2023"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

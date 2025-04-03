@@ -88,6 +88,7 @@ namespace Crest
             internal bool _isCapturing;
             internal bool _shiftNextX;
             internal bool _shiftNextY;
+            internal bool _shiftNextZ;
         }
 
         int _lastUpdateFrame;
@@ -161,7 +162,7 @@ namespace Crest
                 }
             }
 
-            if (Mathf.Abs(transform.position.z) > _threshold)
+            if (Mathf.Abs(transform.position.y) > _threshold)
             {
 #if UNITY_EDITOR
                 if (_debug._pauseBeforeShift && !_debug._shiftNextY)
@@ -173,9 +174,28 @@ namespace Crest
 #endif // UNITY_EDITOR
                 {
                     // Teleport by threshold value intervals to avoid popping.
-                    newOrigin.z += Mathf.Floor(transform.position.z / _threshold) * _threshold;
+                    newOrigin.y += Mathf.Floor(transform.position.y / _threshold) * _threshold;
 #if UNITY_EDITOR
                     _debug._shiftNextY = false;
+#endif
+                }
+            }
+
+            if (Mathf.Abs(transform.position.z) > _threshold)
+            {
+#if UNITY_EDITOR
+                if (_debug._pauseBeforeShift && !_debug._shiftNextZ)
+                {
+                    _debug._shiftNextZ = true;
+                    UnityEditor.EditorApplication.isPaused = true;
+                }
+                else
+#endif // UNITY_EDITOR
+                {
+                    // Teleport by threshold value intervals to avoid popping.
+                    newOrigin.z += Mathf.Floor(transform.position.z / _threshold) * _threshold;
+#if UNITY_EDITOR
+                    _debug._shiftNextZ = false;
 #endif
                 }
             }
@@ -350,12 +370,14 @@ namespace Crest
             public bool _captureOnShift;
             [Tooltip("Whether to update the X axis.")]
             public bool _updateX = false;
+            [Tooltip("Whether to update the Y axis.")]
+            public bool _updateY = false;
             [Tooltip("Whether to update the Z axis.")]
             public bool _updateZ = false;
             [Tooltip("Adds an extra offset so transform can skip thresholds (eg with value of 900 and for 512 threshold, transform will be at 1024).")]
-            public Vector2 _positionOffset = Vector2.zero;
+            public Vector3 _positionOffset = Vector3.zero;
             [Tooltip("How far from the threshold will the transform be?")]
-            public Vector2 _offsetFromThreshold = Vector2.one * 0.01f;
+            public Vector3 _offsetFromThreshold = Vector3.one * 0.01f;
             [Tooltip("Teleport distance when using \"Teleport\" button.")]
             public Vector3 _teleport;
         }
@@ -412,10 +434,16 @@ namespace Crest.CrestEditor
                     target._threshold - target._debug._offsetFromThreshold.x;
             }
 
+            if (target._debug._updateY)
+            {
+                position.y = Mathf.Floor(target._debug._positionOffset.y / target._threshold) * target._threshold +
+                    target._threshold - target._debug._offsetFromThreshold.y;
+            }
+
             if (target._debug._updateZ)
             {
-                position.z = Mathf.Floor(target._debug._positionOffset.y / target._threshold) * target._threshold +
-                    target._threshold - target._debug._offsetFromThreshold.y;
+                position.z = Mathf.Floor(target._debug._positionOffset.z / target._threshold) * target._threshold +
+                    target._threshold - target._debug._offsetFromThreshold.z;
             }
 
             target.transform.position = position;

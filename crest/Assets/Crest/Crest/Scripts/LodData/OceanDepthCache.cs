@@ -159,6 +159,11 @@ namespace Crest
             {
                 PopulateCache(updateComponents: true);
             }
+
+            if (_camDepthCache != null)
+            {
+                _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
+            }
         }
 #endif
 
@@ -248,7 +253,6 @@ namespace Crest
                 _camDepthCache.transform.position = CalculateCacheCameraPosition();
                 _camDepthCache.orthographicSize = CalculateCacheCameraOrthographicSize();
                 _camDepthCache.cullingMask = _layers;
-                _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
             }
 
             if (updateComponents && IsCacheTextureOutdated(_camDepthCache.targetTexture))

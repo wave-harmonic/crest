@@ -55,6 +55,9 @@ namespace Crest
         [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
         public int _resolution = 512;
 
+        [Tooltip("The far clip plane for the depth capture.")]
+        public float _cameraFarClipPlane = 10000f;
+
         // A big hill will still want to write its height into the depth texture
         [Tooltip("The 'near plane' for the depth cache camera (top down)."), SerializeField]
         float _cameraMaxTerrainHeight = 100f;
@@ -250,6 +253,7 @@ namespace Crest
             if (updateComponents || isDepthCacheCameraCreation)
             {
                 // Calculate here so it is always updated.
+                _camDepthCache.farClipPlane = _cameraFarClipPlane;
                 _camDepthCache.transform.position = CalculateCacheCameraPosition();
                 _camDepthCache.orthographicSize = CalculateCacheCameraOrthographicSize();
                 _camDepthCache.cullingMask = _layers;
@@ -426,7 +430,7 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : CustomBaseEditor
     {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layers", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_terrainPixelErrorOverride", "_relative" };
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layers", "_resolution", "_cameraMaxTerrainHeight", "_cameraFarClipPlane", "_forceAlwaysUpdateDebug", "_terrainPixelErrorOverride", "_relative" };
 
         public override void OnInspectorGUI()
         {
@@ -463,6 +467,7 @@ namespace Crest
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layers"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraFarClipPlane"));
 #if UNITY_2022_2_OR_NEWER
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_terrainPixelErrorOverride"));
 #endif
@@ -578,6 +583,7 @@ namespace Crest
             return _camDepthCache.orthographicSize != CalculateCacheCameraOrthographicSize() ||
                 _camDepthCache.transform.position != CalculateCacheCameraPosition() ||
                 IsCacheTextureOutdated(_camDepthCache.targetTexture) ||
+                _camDepthCache.farClipPlane != _cameraFarClipPlane ||
                 IsCacheTextureOutdated(_cacheTexture);
         }
 

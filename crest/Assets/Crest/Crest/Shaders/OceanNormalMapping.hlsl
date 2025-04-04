@@ -17,7 +17,6 @@ half2 SampleNormalMaps
 	in const PerCascadeInstanceData instanceData
 )
 {
-	const float lodDataGridSize = cascadeData._texelWidth;
 	float2 normalScrollSpeeds = instanceData._normalScrollSpeeds;
 
 	const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
@@ -31,7 +30,7 @@ half2 SampleNormalMaps
 
 	worldXZUndisplaced -= offset;
 
-	float nstretch = i_texture._scale * lodDataGridSize; // normals scaled with geometry
+	float nstretch = i_texture._scale * cascadeData._scale / 100.0; // normals scaled with geometry
 	const float spdmulL = normalScrollSpeeds[0];
 	half2 norm =
 		UnpackNormal(i_texture.Sample((v0 * _CrestTime * spdmulL + worldXZUndisplaced) / nstretch)).xy +

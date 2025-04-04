@@ -26,10 +26,14 @@ half WhiteFoamTexture
 	in const CascadeParams cascadeData1
 )
 {
+	const float2 uvOffset = offset + _CrestTime / 10.0;
+	// 25.0 magic number to match previous defaults.
+	const float scale = i_texture._scale * cascadeData0._scale / 25.0;
+
 	half ft = lerp
 	(
-		i_texture.Sample((1.25 * i_worldXZ.undisplaced0 + offset + _CrestTime / 10.0) / (4.0 * cascadeData0._texelWidth * i_texture._scale)).r,
-		i_texture.Sample((1.25 * i_worldXZ.undisplaced1 + offset + _CrestTime / 10.0) / (4.0 * cascadeData1._texelWidth * i_texture._scale)).r,
+		i_texture.Sample((1.25 * i_worldXZ.undisplaced0 + uvOffset) / scale).r,
+		i_texture.Sample((1.25 * i_worldXZ.undisplaced1 + uvOffset) / (scale * 2.0)).r,
 		lodVal
 	);
 
@@ -60,8 +64,8 @@ half BubbleFoamTexture
 	float2 parallaxOffset = -_FoamBubbleParallax * i_view.xz / dot(i_n, i_view);
 	half ft = lerp
 	(
-		i_texture.SampleLevel((scale * foamUVBubbles0 + parallaxOffset) / (4.0 * cascadeData0._texelWidth), 3.0).r,
-		i_texture.SampleLevel((scale * foamUVBubbles1 + parallaxOffset) / (4.0 * cascadeData1._texelWidth), 3.0).r,
+		i_texture.SampleLevel((scale * foamUVBubbles0 + parallaxOffset) / (cascadeData0._scale / 25.0), 3.0).r,
+		i_texture.SampleLevel((scale * foamUVBubbles1 + parallaxOffset) / (cascadeData1._scale / 25.0), 3.0).r,
 		lodVal
 	);
 

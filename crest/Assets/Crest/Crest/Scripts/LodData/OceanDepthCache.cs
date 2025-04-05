@@ -59,8 +59,8 @@ namespace Crest
         public float _cameraFarClipPlane = 10000f;
 
         // A big hill will still want to write its height into the depth texture
-        [Tooltip("The 'near plane' for the depth cache camera (top down)."), SerializeField]
-        float _cameraMaxTerrainHeight = 100f;
+        [Tooltip("The 'near plane' for the depth cache camera (top down).")]
+        public float _cameraMaxTerrainHeight = 100f;
 
 #if UNITY_2022_2_OR_NEWER
         [Tooltip("Overrides the pixel error value for terrains. Best at zero (highest precision) unless using real-time cache."), SerializeField]

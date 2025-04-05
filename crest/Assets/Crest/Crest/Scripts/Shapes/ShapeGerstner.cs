@@ -22,7 +22,7 @@ namespace Crest
         /// </summary>
         [SerializeField, HideInInspector]
 #pragma warning disable 414
-        int _version = 0;
+        int _version = 1;
 #pragma warning restore 414
 
         [Header("Wave Conditions")]
@@ -507,5 +507,22 @@ namespace Crest
             }
         }
 #endif
+    }
+
+    public partial class ShapeGerstner : ISerializationCallbackReceiver
+    {
+        public void OnBeforeSerialize()
+        {
+
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (_version == 0)
+            {
+                _overrideGlobalWindDirection = true;
+                _version = 1;
+            }
+        }
     }
 }

@@ -38,6 +38,10 @@ namespace Crest
         [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f, power: 2f)]
         public float _globalWindSpeed = 150f;
 
+        [Tooltip("Base wind direction. Controls wave conditions. Can be overriden on Shape components.")]
+        [Range(-180, 180)]
+        public float _globalWindDirectionAngle = 0f;
+
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint

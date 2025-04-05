@@ -20,14 +20,14 @@ namespace Crest
         /// </summary>
         [SerializeField, HideInInspector]
 #pragma warning disable 414
-        int _version = 0;
+        int _version = 1;
 #pragma warning restore 414
 
         [Header("Wave Conditions")]
         [Tooltip("Impacts how aligned waves are with wind.")]
         [Range(0, 1)]
         public float _windTurbulence = 0.145f;
-        public float WindDirRadForFFT => _meshForDrawingWaves != null ? 0f : _waveDirectionHeadingAngle * Mathf.Deg2Rad;
+        public float WindDirRadForFFT => _meshForDrawingWaves != null ? 0f : WaveDirectionHeadingAngle * Mathf.Deg2Rad;
 
         [Header("Culling")]
         [Tooltip("Maximum amount surface will be displaced vertically from sea level. Increase this if gaps appear at bottom of screen."), SerializeField]
@@ -136,6 +136,23 @@ namespace Crest
             }
         }
 #endif
+    }
+
+    public partial class ShapeFFT : ISerializationCallbackReceiver
+    {
+        public void OnBeforeSerialize()
+        {
+
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (_version == 0)
+            {
+                _overrideGlobalWindDirection = true;
+                _version = 1;
+            }
+        }
     }
 
 #if UNITY_EDITOR

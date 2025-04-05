@@ -23,9 +23,13 @@ namespace Crest
         [Tooltip("When true, the wave spectrum is evaluated once on startup in editor play mode and standalone builds, rather than every frame. This is less flexible but reduces the performance cost significantly."), SerializeField]
         bool _spectrumFixedAtRuntime = true;
 
+        [Tooltip("When true, uses the wind direction on this component rather than the wind direction from the Ocean Renderer component.")]
+        public bool _overrideGlobalWindDirection;
+
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
         public float _waveDirectionHeadingAngle = 0f;
-        public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
+        public float WaveDirectionHeadingAngle => _overrideGlobalWindDirection ? _waveDirectionHeadingAngle : OceanRenderer.Instance._globalWindDirectionAngle;
+        public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * WaveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * WaveDirectionHeadingAngle / 180f));
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
         public bool _overrideGlobalWindSpeed = false;

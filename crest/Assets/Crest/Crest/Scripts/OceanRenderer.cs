@@ -42,6 +42,10 @@ namespace Crest
         [Range(-180, 180)]
         public float _globalWindDirectionAngle = 0f;
 
+        [Tooltip("Base wind turbulence. Controls wave conditions. Can be overriden on ShapeFFT components.")]
+        [Range(0, 1)]
+        public float _globalWindTurbulence = 0.145f;
+
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint

@@ -24,6 +24,11 @@ namespace Crest
 #pragma warning restore 414
 
         [Header("Wave Conditions")]
+
+        [Tooltip("When true, uses the wind turbulence on this component rather than the wind turbulence from the Ocean Renderer component.")]
+        public bool _overrideGlobalWindTurbulence;
+        public float WindTurbulence => _overrideGlobalWindTurbulence ? _windTurbulence : OceanRenderer.Instance._globalWindTurbulence;
+
         [Tooltip("Impacts how aligned waves are with wind.")]
         [Range(0, 1)]
         public float _windTurbulence = 0.145f;
@@ -96,14 +101,14 @@ namespace Crest
             float loopPeriod = LoopPeriod;
 
             // Don't create tons of generators when values are varying. Notify so that existing generators may be adapted.
-            if (_windTurbulenceOld != _windTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _activeSpectrum)
+            if (_windTurbulenceOld != WindTurbulence || _windDirRadOld != windDirRad || _windSpeedOld != windSpeedMPS || _spectrumOld != _activeSpectrum)
             {
-                FFTCompute.OnGenerationDataUpdated(_resolution, loopPeriod, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, _windTurbulence, windDirRad, windSpeedMPS, _activeSpectrum);
+                FFTCompute.OnGenerationDataUpdated(_resolution, loopPeriod, _windTurbulenceOld, _windDirRadOld, _windSpeedOld, _spectrumOld, WindTurbulence, windDirRad, windSpeedMPS, _activeSpectrum);
             }
 
-            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, loopPeriod, _windTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, UpdateDataEachFrame);
+            var waveData = FFTCompute.GenerateDisplacements(buf, _resolution, loopPeriod, WindTurbulence, windDirRad, windSpeedMPS, OceanRenderer.Instance.CurrentTime, _activeSpectrum, UpdateDataEachFrame);
 
-            _windTurbulenceOld = _windTurbulence;
+            _windTurbulenceOld = WindTurbulence;
             _windDirRadOld = windDirRad;
             _windSpeedOld = windSpeedMPS;
             _spectrumOld = _activeSpectrum;
@@ -132,7 +137,7 @@ namespace Crest
         {
             if (_debug._drawSlicesInEditor)
             {
-                FFTCompute.OnGUI(_resolution, LoopPeriod, _windTurbulence, WindDirRadForFFT, WindSpeed, _activeSpectrum);
+                FFTCompute.OnGUI(_resolution, LoopPeriod, WindTurbulence, WindDirRadForFFT, WindSpeed, _activeSpectrum);
             }
         }
 #endif

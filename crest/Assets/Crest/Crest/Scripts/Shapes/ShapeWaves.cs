@@ -101,18 +101,20 @@ namespace Crest
 
         protected Mesh _meshForDrawingWaves;
 
-        static OceanWaveSpectrum s_DefaultSpectrum;
-        protected static OceanWaveSpectrum DefaultSpectrum
+        protected virtual OceanWaveSpectrum DefaultSpectrum => WindSpectrum;
+
+        static OceanWaveSpectrum s_WindSpectrum;
+        protected static OceanWaveSpectrum WindSpectrum
         {
             get
             {
-                if (s_DefaultSpectrum == null)
+                if (s_WindSpectrum == null)
                 {
-                    s_DefaultSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                    s_DefaultSpectrum.name = "Default Waves (auto)";
+                    s_WindSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                    s_WindSpectrum.name = "Wind Waves (auto)";
                 }
 
-                return s_DefaultSpectrum;
+                return s_WindSpectrum;
             }
         }
 
@@ -276,8 +278,7 @@ namespace Crest
             {
                 _activeSpectrum = _spectrum;
             }
-
-            if (_activeSpectrum == null)
+            else
             {
                 _activeSpectrum = DefaultSpectrum;
             }
@@ -394,9 +395,9 @@ namespace Crest
             {
                 DestroySharedResources();
 
-                if (s_DefaultSpectrum != null)
+                if (s_WindSpectrum != null)
                 {
-                    Helpers.Destroy(s_DefaultSpectrum);
+                    Helpers.Destroy(s_WindSpectrum);
                 }
             }
         }
@@ -410,8 +411,7 @@ namespace Crest
             {
                 _activeSpectrum = _spectrum;
             }
-
-            if (_activeSpectrum == null)
+            else
             {
                 _activeSpectrum = DefaultSpectrum;
             }

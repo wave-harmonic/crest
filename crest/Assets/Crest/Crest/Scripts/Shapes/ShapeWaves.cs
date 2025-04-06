@@ -28,7 +28,7 @@ namespace Crest
 
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
         public float _waveDirectionHeadingAngle = 0f;
-        public float WaveDirectionHeadingAngle => _overrideGlobalWindDirection ? _waveDirectionHeadingAngle : OceanRenderer.Instance._globalWindDirectionAngle;
+        public float WaveDirectionHeadingAngle => _overrideGlobalWindDirection ? _waveDirectionHeadingAngle : OceanRenderer.Instance.WindDirectionAngle;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * WaveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * WaveDirectionHeadingAngle / 180f));
 
         [Tooltip("When true, uses the wind speed on this component rather than the wind speed from the Ocean Renderer component.")]
@@ -36,7 +36,7 @@ namespace Crest
 
         [Tooltip("Wind speed in km/h. Controls wave conditions."), Range(0, 150f, power: 2f), Predicated("_overrideGlobalWindSpeed")]
         public float _windSpeed = 20f;
-        public float WindSpeed => (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance._globalWindSpeed) / 3.6f;
+        public float WindSpeed => (_overrideGlobalWindSpeed ? _windSpeed : OceanRenderer.Instance.WindSpeedKPH) / 3.6f;
 
         [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
         public float _respectShallowWaterAttenuation = 1f;

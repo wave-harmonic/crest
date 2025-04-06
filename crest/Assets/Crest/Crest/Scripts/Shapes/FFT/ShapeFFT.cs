@@ -27,7 +27,7 @@ namespace Crest
 
         [Tooltip("When true, uses the wind turbulence on this component rather than the wind turbulence from the Ocean Renderer component.")]
         public bool _overrideGlobalWindTurbulence;
-        public float WindTurbulence => _overrideGlobalWindTurbulence ? _windTurbulence : OceanRenderer.Instance._globalWindTurbulence;
+        public float WindTurbulence => _overrideGlobalWindTurbulence ? _windTurbulence : OceanRenderer.Instance.WindTurbulence;
 
         [Tooltip("Impacts how aligned waves are with wind.")]
         [Range(0, 1)]

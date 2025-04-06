@@ -35,16 +35,25 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
+        [Tooltip("Uses a provided WindZone as the source of global wind. Must be directional. Wind speed units is assumed to be in m/s.")]
+        public WindZone _globalWindZone;
+
         [Tooltip("Base wind speed in km/h. Controls wave conditions. Can be overridden on ShapeGerstner components."), Range(0, 150f, power: 2f)]
+        [Predicated(nameof(_globalWindZone), inverted: true, null)]
         public float _globalWindSpeed = 150f;
+        public float WindSpeedKPH => _globalWindZone != null ? _globalWindZone.windMain * 3.6f : _globalWindSpeed;
 
         [Tooltip("Base wind direction. Controls wave conditions. Can be overriden on Shape components.")]
+        [Predicated(nameof(_globalWindZone), inverted: true, null)]
         [Range(-180, 180)]
         public float _globalWindDirectionAngle = 0f;
+        public float WindDirectionAngle => _globalWindZone != null ? Mathf.Atan2(_globalWindZone.transform.forward.z, _globalWindZone.transform.forward.x) * Mathf.Rad2Deg : _globalWindDirectionAngle;
 
         [Tooltip("Base wind turbulence. Controls wave conditions. Can be overriden on ShapeFFT components.")]
+        [Predicated(nameof(_globalWindZone), inverted: true, null)]
         [Range(0, 1)]
         public float _globalWindTurbulence = 0.145f;
+        public float WindTurbulence => _globalWindZone != null ? _globalWindZone.windTurbulence : _globalWindTurbulence;
 
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;

@@ -164,11 +164,11 @@ namespace Crest
 #if CREST_UNITY_MATHEMATICS
                 if (_bakedFFTData != null)
                 {
-                    if (!Mathf.Approximately(_bakedFFTData._parameters._windSpeed * 3.6f, ocean._globalWindSpeed))
+                    if (!Mathf.Approximately(_bakedFFTData._parameters._windSpeed * 3.6f, ocean.WindSpeedKPH))
                     {
                         showMessage
                         (
-                            $"Wind speed on ocean component {ocean._globalWindSpeed} does not match wind speed of baked FFT data {_bakedFFTData._parameters._windSpeed * 3.6f}, collision shape may not match visual surface.",
+                            $"Wind speed on ocean component {ocean.WindSpeedKPH} does not match wind speed of baked FFT data {_bakedFFTData._parameters._windSpeed * 3.6f}, collision shape may not match visual surface.",
                             $"Set global wind speed on ocean component to {_bakedFFTData._parameters._windSpeed * 3.6f}.",
                             ValidatedHelper.MessageType.Warning, ocean,
                             FixOceanWindSpeed
@@ -218,6 +218,12 @@ namespace Crest
                 && OceanRenderer.Instance._simSettingsAnimatedWaves != null
                 && OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData != null)
             {
+                if (OceanRenderer.Instance._globalWindZone != null)
+                {
+                    Debug.LogError($"Crest: Cannot change wind as using wind zone (update the wind zone). Wind zones are generally not supported when baking waves.");
+                    return;
+                }
+
                 Undo.RecordObject(OceanRenderer.Instance, "Set global wind speed to match baked data");
                 OceanRenderer.Instance._globalWindSpeed = OceanRenderer.Instance._simSettingsAnimatedWaves._bakedFFTData._parameters._windSpeed * 3.6f;
                 EditorUtility.SetDirty(OceanRenderer.Instance);

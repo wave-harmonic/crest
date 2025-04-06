@@ -32,6 +32,18 @@ The following have provided instructions to integrate with Crest.
 
             Asset Store
 
+      .. grid-item-card:: Buto
+         :link: https://assetstore.unity.com/packages/package/258881?aid=1011lic2K
+         :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/2b5f19a5-e4b1-43ac-882c-261c6000d915.jpg
+         :text-align: center
+
+         .. button-link:: https://assetstore.unity.com/packages/package/258881?aid=1011lic2K
+            :color: primary
+            :expand:
+            :outline:
+
+            Asset Store
+
       .. grid-item-card:: Cozy 3
          :link: https://assetstore.unity.com/packages/package/271742?aid=1011lic2K
          :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/914ea050-6617-4d3d-9b91-8e4d504c69b9.jpg
@@ -125,6 +137,18 @@ World building assets can provide presets to place Crest into the world.
       :gutter: 1
       :margin: 0
       :padding: 0
+
+      .. grid-item-card:: Gaia Pro
+         :link: https://assetstore.unity.com/packages/package/263149?aid=1011lic2K
+         :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/483670e6-b94e-454a-9b40-2df204d74b61.jpg
+         :text-align: center
+
+         .. button-link:: https://assetstore.unity.com/packages/package/263149?aid=1011lic2K
+            :color: primary
+            :expand:
+            :outline:
+
+            Asset Store
 
       .. grid-item-card:: MicroVerse
          :link: https://assetstore.unity.com/packages/package/232972?aid=1011lic2K

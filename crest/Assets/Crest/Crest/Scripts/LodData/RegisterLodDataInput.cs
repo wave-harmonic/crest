@@ -306,8 +306,8 @@ namespace Crest
     public abstract partial class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
         : RegisterLodDataInput<LodDataType>
         , ISplinePointCustomDataSetup
-#if UNITY_EDITOR
         , IReceiveSplineChangeMessages
+#if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
         where LodDataType : LodDataMgr

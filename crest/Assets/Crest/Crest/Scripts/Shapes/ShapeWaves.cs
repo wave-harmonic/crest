@@ -479,18 +479,19 @@ namespace Crest
 
             return false;
         }
+    }
 
+    public partial class ShapeWaves : IReceiveSplineChangeMessages
+    {
         public void OnSplineChange()
         {
-#if UNITY_EDITOR
             CreateOrUpdateSplineMesh();
-#endif
         }
     }
 
 #if UNITY_EDITOR
     // Editor
-    public partial class ShapeWaves : IReceiveSplineChangeMessages, IReceiveSplinePointOnDrawGizmosSelectedMessages
+    public partial class ShapeWaves : IReceiveSplinePointOnDrawGizmosSelectedMessages
     {
         void UpdateEditorOnly()
         {

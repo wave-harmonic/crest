@@ -323,8 +323,6 @@ namespace Crest
 
             if (_firstUpdate)
             {
-                CreateOrUpdateSplineMesh();
-
                 if (!_spline && TryGetComponent(out _renderer) && TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh)
                 {
                     _meshForDrawingWaves = meshFilter.sharedMesh;
@@ -386,6 +384,7 @@ namespace Crest
         void Awake()
         {
             s_InstanceCount++;
+            CreateOrUpdateSplineMesh();
         }
 
         void OnDestroy()

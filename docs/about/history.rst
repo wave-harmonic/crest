@@ -9,6 +9,66 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.22
+----
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Add *Gaia Pro VS* integration
+   -  Add Wind Zone support (directional only)
+   -  Add *Global Wind Direction* to WaterRenderer
+   -  Add *Global Wind Turbulence* to WaterRenderer
+   -  Add *Swell* preset to ShapeGerstner
+   -  Add *Enable Render Queue Sorting* option to allow changing the render queue within the transparent pass.
+      This is useful for some third-party integrations
+   -  Add *Far Clip Plane* property to OceanDepthCache
+   -  Add UnderwaterRenderer.AfterCopyMaterial event to allow easy underwater material changes via script
+   -  No longer disable components silently if they fail validation
+   -  Improve shifting origin handling for tiled textures (like foam)
+   -  Add vertical axis support to shifting origin
+   -  Make some more properties public
+   -  Make Ocean-Underwater material the default
+
+   .. only:: hdrp
+
+      -  Validate that refraction is enabled if using transparency `[HDRP]`
+      -  Validate that custom passes are enabled if using underwater `[HDRP]`
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix "Screen position out of view frustum" with 2D scene view when planar reflections is active
+   -  Fix PSSL shader compilation error for FFT waves
+   -  Fix OceanDepthCache not working after disabling then enabling in builds
+   -  Fix *Hide Depth Cache Cam* not applying immediately
+   -  Fix OceanDepthCache's very short capture range (from 1,000 to 10,000 and now configurable)
+   -  Fix effects being incorrect based on water depth when sea level is not zero
+   -  Fix missing caustics when using shifting origin on mobile devices
+   -  Fix tiled texture quality being dependent on *LOD Resolution*.
+      They are now scaled by LOD scale.
+      This may require changing your scale values for these textures to look as they did before
+   -  Fix Spline.UpdateSpline not working in builds
+   -  Fix wave spline initialization causing inconsistency between editor and builds
+
+   .. only:: urp
+
+      -  Fix Unity fog when using orthographic projection `[URP]`
+      -  Fix Unity 6.1 "USE_FORWARD_PLUS" shader compiler warning  `[URP]`
+
+   .. only:: hdrp or urp
+
+      -  Fix errors when inspecting Shader Graph nodes `[HDRP] [URP]`
+
+
+.. Trim PDF history
+.. raw:: latex
+
+   \iffalse
+
+
 4.21.4
 ------
 
@@ -136,13 +196,6 @@ Fixed
    .. bullet_list::
 
       -  No longer multi-sample depth for 2022.3+, as Unity now handles this correctly `[URP]`
-
-
-.. Trim PDF history
-.. raw:: latex
-
-   \iffalse
-
 
 4.20.1
 ------

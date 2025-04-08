@@ -32,6 +32,18 @@ The following have provided instructions to integrate with Crest.
 
             Asset Store
 
+      .. grid-item-card:: Azure[Sky]
+         :link: https://assetstore.unity.com/packages/package/36050?aid=1011lic2K
+         :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/cc7f26ea-6411-4f78-9a25-6e9b77f0191d.jpg
+         :text-align: center
+
+         .. button-link:: https://assetstore.unity.com/packages/package/36050?aid=1011lic2K
+            :color: primary
+            :expand:
+            :outline:
+
+            Asset Store
+
       .. grid-item-card:: Buto
          :link: https://assetstore.unity.com/packages/package/258881?aid=1011lic2K
          :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/2b5f19a5-e4b1-43ac-882c-261c6000d915.jpg
@@ -95,6 +107,8 @@ The following have provided instructions to integrate with Crest.
 .. only:: latex
 
    *  Atmospheric Height Fog: :link:`Asset Store <https://assetstore.unity.com/packages/package/143825?aid=1011lic2K>`
+   *  Azure[Sky]: :link:`Asset Store <https://assetstore.unity.com/packages/package/36050?aid=1011lic2K>`
+   *  Buto: :link:`Asset Store <https://assetstore.unity.com/packages/package/258881?aid=1011lic2K>`
    *  Cozy 3: :link:`Asset Store <https://assetstore.unity.com/packages/package/271742?aid=1011lic2K>`
    *  Enviro 3: :link:`Asset Store <https://assetstore.unity.com/packages/package/236601?aid=1011lic2K>`
    *  Expanse: :link:`Asset Store <https://assetstore.unity.com/packages/package/192456?aid=1011lic2K>`
@@ -164,6 +178,7 @@ World building assets can provide presets to place Crest into the world.
 
 .. only:: latex
 
+   *  Gaia Pro: :link:`Asset Store <https://assetstore.unity.com/packages/package/263149?aid=1011lic2K>`
    *  MicroVerse: :link:`Asset Store <https://assetstore.unity.com/packages/package/232972?aid=1011lic2K>`
 
 Miscellaneous

@@ -76,10 +76,10 @@ namespace Crest
         [Tooltip("Will render into the cache every frame. Intended for debugging, will generate garbage."), SerializeField]
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
-#pragma warning restore 414
 
         [Tooltip("Hides the depth cache camera, for cleanliness. Disable to make it visible in the Hierarchy."), SerializeField]
         bool _hideDepthCacheCam = true;
+#pragma warning restore 414
 
         [Tooltip("Baked depth cache. Baking button available in play mode."), SerializeField]
 #pragma warning disable 649

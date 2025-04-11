@@ -400,6 +400,9 @@ namespace Crest
             if (!_camReflections)
             {
                 _camReflections = new GameObject("Crest Water Reflection Camera").AddComponent<Camera>();
+#if UNITY_EDITOR
+                _camReflections.name = $"Crest Water Reflection Camera ({currentCamera.name})";
+#endif
                 _camReflections.enabled = false;
                 _camReflections.transform.SetPositionAndRotation(transform.position, transform.rotation);
                 _camReflectionsSkybox = _camReflections.gameObject.AddComponent<Skybox>();

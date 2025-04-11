@@ -13,7 +13,7 @@ namespace Gaia
         internal static T FindObjectByType<T>(bool includeInactive = false) where T : Object
         {
 #if UNITY_2023_3_OR_NEWER
-            return Object.FindObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            return Object.FindFirstObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
 #else
             return Object.FindObjectOfType<T>(includeInactive);
 #endif

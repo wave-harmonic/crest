@@ -240,8 +240,18 @@ namespace Crest
 
             UpdateCameraModes();
 
+            var offset = _clipPlaneOffset;
+            {
+                var viewpoint = _camViewpoint.transform;
+                if (offset == 0f && viewpoint.position.y == planePos.y)
+                {
+                    // Minor offset to prevent "Screen position out of view frustum". Could be BIRP only.
+                    offset = -0.00001f;
+                }
+            }
+
             // Reflect camera around reflection plane
-            float d = -Vector3.Dot(planeNormal, planePos) - _clipPlaneOffset;
+            float d = -Vector3.Dot(planeNormal, planePos) - offset;
             Vector4 reflectionPlane = new Vector4(planeNormal.x, planeNormal.y, planeNormal.z, d);
 
             Matrix4x4 reflection = Matrix4x4.zero;
@@ -251,7 +261,7 @@ namespace Crest
 
             // Setup oblique projection matrix so that near plane is our reflection
             // plane. This way we clip everything below/above it for free.
-            Vector4 clipPlane = CameraSpacePlane(_camReflections, planePos, planeNormal, 1.0f);
+            Vector4 clipPlane = CameraSpacePlane(_camReflections, planePos, planeNormal, 1.0f, offset);
             _camReflections.projectionMatrix = _camViewpoint.CalculateObliqueMatrix(clipPlane);
 
             // Set custom culling matrix from the current camera
@@ -408,9 +418,9 @@ namespace Crest
         }
 
         // Given position/normal of the plane, calculates plane in camera space.
-        Vector4 CameraSpacePlane(Camera cam, Vector3 pos, Vector3 normal, float sideSign)
+        Vector4 CameraSpacePlane(Camera cam, Vector3 pos, Vector3 normal, float sideSign, float offset)
         {
-            Vector3 offsetPos = pos + normal * _clipPlaneOffset;
+            Vector3 offsetPos = pos + normal * offset;
             Matrix4x4 m = cam.worldToCameraMatrix;
             Vector3 cpos = m.MultiplyPoint(offsetPos);
             Vector3 cnormal = m.MultiplyVector(normal).normalized * sideSign;

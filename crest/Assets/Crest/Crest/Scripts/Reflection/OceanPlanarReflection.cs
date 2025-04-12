@@ -219,8 +219,16 @@ namespace Crest
             {
                 var sceneView = UnityEditor.SceneView.lastActiveSceneView;
 
+                if (Application.isPlaying)
+                {
+                    _camReflections.targetTexture = null;
+                    _camReflections.enabled = false;
+                    return;
+                }
+
                 if (sceneView == null)
                 {
+                    _camReflections.targetTexture = null;
                     _camReflections.enabled = false;
                     return;
                 }
@@ -234,6 +242,7 @@ namespace Crest
 
                 if (!_camReflections.enabled)
                 {
+                    _camReflections.targetTexture = null;
                     _changeViewTimer -= 0.02f;
                     return;
                 }

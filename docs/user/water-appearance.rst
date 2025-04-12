@@ -369,6 +369,7 @@ To use this feature, create a prefab with a *Mesh Renderer*.
 The only other requirement is to **not** have a *Water Chunk Renderer* present in the prefab.
 
 Settings which cannot be overriden are:
+
 - Receive Shadows
 - Motion Vectors
 

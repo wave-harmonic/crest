@@ -213,39 +213,24 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            // Fix "Screen position out of view frustum" when 2D view activated.
-            // Always had an exception on exiting 2D mode, so resorted to a timer.
+            // Only run one camera at a time.
             if (_isSceneCamera)
             {
-                var sceneView = UnityEditor.SceneView.lastActiveSceneView;
-
                 if (Application.isPlaying)
                 {
-                    _camReflections.targetTexture = null;
-                    _camReflections.enabled = false;
                     return;
                 }
 
-                if (sceneView == null)
+                // Fix "Screen position out of view frustum" when 2D view activated.
+                var sceneView = UnityEditor.SceneView.lastActiveSceneView;
+                if (sceneView != null && sceneView.in2DMode)
                 {
-                    _camReflections.targetTexture = null;
-                    _camReflections.enabled = false;
                     return;
                 }
-
-                if (sceneView.in2DMode)
-                {
-                    _changeViewTimer = 1f;
-                }
-
-                _camReflections.enabled = _changeViewTimer <= 0f;
-
-                if (!_camReflections.enabled)
-                {
-                    _camReflections.targetTexture = null;
-                    _changeViewTimer -= 0.02f;
-                    return;
-                }
+            }
+            else if (!Application.isPlaying)
+            {
+                return;
             }
 #endif
 

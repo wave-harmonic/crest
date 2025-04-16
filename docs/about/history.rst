@@ -9,6 +9,30 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.22.1
+------
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Add game/scene to planar reflection camera name to better distinguish them
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix script compilation error when Gaia is installed on Unity 6+
+   -  Fix CS0414 script warning on build
+   -  Fix planar reflection "release target texture" exception
+   -  Fix planar reflection capturing inverted geometry in edit mode
+   -  Fix both scene and game view planar reflection camera executing, when only one should
+   -  Fix several cases of "Screen position out of view frustum" when using planar reflections
+
+   .. only:: hdrp
+
+      -  Fix underwater not working in play mode when domain reload is enabled when entering play mode `[HDRP]`
+
 4.22
 ----
 

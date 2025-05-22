@@ -22,6 +22,9 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
+        [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
+        bool _followHorizontalMotion = false;
+
         public override bool Enabled => true;
 
         public override float Wavelength => 0f;
@@ -30,7 +33,7 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Albedo";
 
-        protected override bool FollowHorizontalMotion => false;
+        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
 
 #if UNITY_EDITOR
         protected override string FeatureToggleName => "_createAlbedoData";

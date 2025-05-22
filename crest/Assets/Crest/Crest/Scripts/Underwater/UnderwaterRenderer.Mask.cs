@@ -243,6 +243,7 @@ namespace Crest
                 PopulateVolumeFront(_oceanMaskCommandBuffer, _volumeFrontFaceTarget, _volumeBackFaceTarget);
                 PopulateVolumeBack(_oceanMaskCommandBuffer, _volumeFrontFaceTarget, _volumeBackFaceTarget);
                 // Copy only the stencil by copying everything and clearing depth.
+                if (!_depthRT.IsCreated()) _depthRT.Create();
                 _oceanMaskCommandBuffer.CopyTexture(_mode == Mode.Portal ? _volumeFrontFaceTarget : _volumeBackFaceTarget, _depthTarget);
                 Helpers.Blit(_oceanMaskCommandBuffer, _depthTarget, Helpers.UtilityMaterial, (int)Helpers.UtilityPass.ClearDepth);
             }

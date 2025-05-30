@@ -224,6 +224,8 @@ Shader "Crest/Ocean"
 			// Culling user defined - can be inverted for under water
 			Cull [_CullMode]
 
+			Blend SrcAlpha OneMinusSrcAlpha
+
 			Tags
 			{
 				// Tell Unity we're going to render water in forward manner and we're going to do lighting and it will set
@@ -736,12 +738,12 @@ Shader "Crest/Ocean"
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
-					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, screenPos.xyzz, scatterCol, reflAlpha, col);
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, screenPos.xyzz, scatterCol, 1.0, col);
 				}
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, screenPos.xyzz, pixelZ, reflAlpha, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, screenPos.xyzz, pixelZ, 1.0, col);
 				}
 
 				// Override final result with white foam - bubbles on surface
@@ -751,7 +753,7 @@ Shader "Crest/Ocean"
 
 				// Composite albedo input on top
 				#if _ALBEDO_ON
-				col = lerp(col, albedo.xyz, albedo.w * reflAlpha);
+				col = lerp(col, albedo.xyz, albedo.w);
 				#endif
 
 				// Fog
@@ -804,7 +806,7 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
-				return half4(col, 1.);
+				return half4(col, reflAlpha);
 			}
 
 			ENDCG

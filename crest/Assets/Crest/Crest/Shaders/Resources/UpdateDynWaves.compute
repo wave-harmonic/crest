@@ -47,7 +47,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	// Off either end of the cascade - not useful to sample anything from previous frame. Always initialise
 	// with 0 values.
-	if (sliceIndexSource < 0.0 || sliceIndexSource >= depth - 1.0)
+	if (sliceIndexSource < 0.0 || sliceIndexSource >= depth)
 	{
 		_LD_TexArray_Target[id] = (float2)0;
 		return;
@@ -98,21 +98,14 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float3 X = float3(1.0, 0.0, 0.0);
 	const float3 Y = float3(-X.y, X.x, 0.0);
 
-	// no border wrap mode for RTs in unity it seems,
-	// so make any off-array reads 0 manually
-	const bool insideTarget = sliceIndexSource <= depth && sliceIndexSource >= 0;
-
 	float fxm, fym, fxp, fyp; float2 ft_v;
 	ft_v = fxm = fym = fxp = fyp = 0.0;
 
-	if (insideTarget)
-	{
-		fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * X).x; // x minus
-		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
-		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
-		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
-		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
-	}
+	fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * X).x; // x minus
+	fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
+	fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
+	fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
+	ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
 
 	// wave propagation
 

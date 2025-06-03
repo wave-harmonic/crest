@@ -274,7 +274,7 @@ namespace Crest
 
             _beforeTransparentCommands.Clear();
             _beforeTransparentCommands.CopyTexture(BuiltinRenderTextureType.Depth, _depthRT2);
-            _beforeTransparentCommands.SetGlobalTexture(Shader.PropertyToID("_CameraDepthTexture"), _depthRT2);
+            _beforeTransparentCommands.SetGlobalTexture(Shader.PropertyToID("_CameraDepthTexture2"), _depthRT2);
         }
 
         internal void PopulateVolumeFront(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget, MaterialPropertyBlock properties = null, Vector2Int targetSize = default)

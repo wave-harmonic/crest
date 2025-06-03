@@ -10,12 +10,12 @@
 /////////////////////////////
 // Samplers
 
-TEXTURE2D_X(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
+TEXTURE2D_X(_CameraDepthTexture2); SAMPLER(sampler_CameraDepthTexture2);
 UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
 
 half3 _CrestAmbientLighting;
 
-float4 _CameraDepthTexture_TexelSize;
+float4 _CameraDepthTexture2_TexelSize;
 
 #if defined(_APPLYNORMALMAPPING_ON) || defined(_CAUSTICS_ON)
 Texture2D _Normals;

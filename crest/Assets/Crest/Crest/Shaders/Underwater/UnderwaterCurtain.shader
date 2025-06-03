@@ -185,7 +185,7 @@ Shader "Crest/Underwater Curtain"
 				const float pixelZ = LinearEyeDepth(input.positionCS.z);
 				const half3 screenPos = input.foam_screenPos.yzw;
 				const half2 uvDepth = screenPos.xy / screenPos.z;
-				const float sceneZ01 = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uvDepth).x;
+				const float sceneZ01 = SAMPLE_TEXTURE2D_X(_CameraDepthTexture2, sampler_CameraDepthTexture2, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];

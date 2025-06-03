@@ -72,7 +72,7 @@ real4 Frag (Varyings input) : SV_Target
 
 	const int2 positionSS = input.positionCS.xy;
 	half3 sceneColour = LOAD_TEXTURE2D_X(_CrestCameraColorTexture, positionSS).rgb;
-	float rawDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+	float rawDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture2, positionSS).r;
 	const float mask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, positionSS).r;
 	const float rawOceanDepth = LOAD_TEXTURE2D_X(_CrestOceanMaskDepthTexture, positionSS).r;
 

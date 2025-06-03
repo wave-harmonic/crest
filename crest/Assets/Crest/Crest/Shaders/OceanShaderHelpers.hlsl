@@ -16,14 +16,14 @@
 #if defined(SHADERGRAPH_SAMPLE_SCENE_DEPTH)
 #define CREST_SAMPLE_SCENE_DEPTH(uv) SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv)
 #else
-#define CREST_SAMPLE_SCENE_DEPTH(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
-#define CREST_SAMPLE_SCENE_DEPTH_X(uv) SAMPLE_DEPTH_TEXTURE_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
+#define CREST_SAMPLE_SCENE_DEPTH(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture2, sampler_CameraDepthTexture2, uv)
+#define CREST_SAMPLE_SCENE_DEPTH_X(uv) SAMPLE_DEPTH_TEXTURE_X(_CameraDepthTexture2, sampler_CameraDepthTexture2, uv)
 #endif
 
 #define CREST_MULTISAMPLE_DEPTH(texture, uv, depth) CrestMultiSampleDepth(texture, sampler##texture, texture##_TexelSize.xy, uv, _CrestDepthTextureOffset, depth)
-#define CREST_MULTISAMPLE_SCENE_DEPTH(uv, depth) CREST_MULTISAMPLE_DEPTH(_CameraDepthTexture, uv, depth)
+#define CREST_MULTISAMPLE_SCENE_DEPTH(uv, depth) CREST_MULTISAMPLE_DEPTH(_CameraDepthTexture2, uv, depth)
 #define CREST_MULTILOAD_DEPTH(texture, uv, depth) CrestMultiLoadDepth(texture, uv, _CrestDepthTextureOffset, depth)
-#define CREST_MULTILOAD_SCENE_DEPTH(uv, depth) CREST_MULTILOAD_DEPTH(_CameraDepthTexture, uv, depth)
+#define CREST_MULTILOAD_SCENE_DEPTH(uv, depth) CREST_MULTILOAD_DEPTH(_CameraDepthTexture2, uv, depth)
 
 #if UNITY_REVERSED_Z
 #define CREST_DEPTH_COMPARE(depth1, depth2) min(depth1, depth2)

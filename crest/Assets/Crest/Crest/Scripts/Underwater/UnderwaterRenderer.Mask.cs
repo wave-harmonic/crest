@@ -54,6 +54,7 @@ namespace Crest
 
         internal RenderTargetIdentifier _maskTarget;
         internal RenderTargetIdentifier _depthTarget;
+        internal RenderTargetIdentifier _depthTarget2;
 
         internal Plane[] _cameraFrustumPlanes;
         CommandBuffer _oceanMaskCommandBuffer;
@@ -65,6 +66,7 @@ namespace Crest
 
         RenderTexture _maskRT;
         RenderTexture _depthRT;
+        RenderTexture _depthRT2;
         RenderTexture _volumeFrontFaceRT;
         RenderTexture _volumeBackFaceRT;
 
@@ -99,6 +101,8 @@ namespace Crest
             _maskRT.name = "_CrestOceanMaskTexture";
             Helpers.CreateRenderTargetTextureReference(ref _depthRT, ref _depthTarget);
             _depthRT.name = "_CrestOceanMaskDepthTexture";
+            Helpers.CreateRenderTargetTextureReference(ref _depthRT2, ref _depthTarget2);
+            _depthRT2.name = "_CameraDepthTexture2";
             Helpers.CreateRenderTargetTextureReference(ref _volumeFrontFaceRT, ref _volumeFrontFaceTarget);
             _volumeFrontFaceRT.name = "_CrestVolumeFrontFaceTexture";
             Helpers.CreateRenderTargetTextureReference(ref _volumeBackFaceRT, ref _volumeBackFaceTarget);
@@ -112,6 +116,7 @@ namespace Crest
             DisableOceanMaskKeywords();
             if (_maskRT != null) _maskRT.Release();
             if (_depthRT != null) _depthRT.Release();
+            if (_depthRT2 != null) _depthRT2.Release();
             if (_volumeFrontFaceRT != null) _volumeFrontFaceRT.Release();
             if (_volumeBackFaceRT != null) _volumeBackFaceRT.Release();
         }
@@ -168,6 +173,10 @@ namespace Crest
 
             _depthRT.Release();
             _depthRT.descriptor = descriptor;
+
+            _depthRT2.Release();
+            _depthRT2.descriptor = descriptor;
+            _depthRT2.Create();
         }
 
         internal RenderTextureDescriptor GetMaskColorRTD(RenderTextureDescriptor descriptor)
@@ -262,6 +271,10 @@ namespace Crest
             );
 
             FixMaskArtefacts(_oceanMaskCommandBuffer, descriptor, _maskTarget);
+
+            _beforeTransparentCommands.Clear();
+            _beforeTransparentCommands.CopyTexture(BuiltinRenderTextureType.Depth, _depthRT2);
+            _beforeTransparentCommands.SetGlobalTexture(Shader.PropertyToID("_CameraDepthTexture"), _depthRT2);
         }
 
         internal void PopulateVolumeFront(CommandBuffer buffer, RenderTargetIdentifier frontTarget, RenderTargetIdentifier backTarget, MaterialPropertyBlock properties = null, Vector2Int targetSize = default)

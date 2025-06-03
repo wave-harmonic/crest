@@ -185,6 +185,9 @@ namespace Crest
                     return false;
                 }
 
+                // force for now
+                _debug._disableHeightAboveWaterOptimization = true;
+
                 // Only run optimisation in play mode otherwise shared height above water will cause rendering to be
                 // skipped for other cameras which could be confusing. This issue will also be present in play mode but
                 // game view camera is always dominant camera which is less confusing.
@@ -308,8 +311,13 @@ namespace Crest
             }
         }
 
+        CommandBuffer _beforeTransparentCommands;
+
         void AddCommandBuffers(Camera camera)
         {
+            _beforeTransparentCommands ??= new CommandBuffer();
+            camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _beforeTransparentCommands);
+
             // Handle both forward and deferred.
             camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
             camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
@@ -318,6 +326,8 @@ namespace Crest
 
         void RemoveCommandBuffers(Camera camera)
         {
+            camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _beforeTransparentCommands);
+
             if (_oceanMaskCommandBuffer != null)
             {
                 // Handle both forward and deferred.
@@ -347,6 +357,7 @@ namespace Crest
             {
                 _oceanMaskCommandBuffer?.Clear();
                 _underwaterEffectCommandBuffer?.Clear();
+                _beforeTransparentCommands?.Clear();
                 return;
             }
 #endif
@@ -359,6 +370,7 @@ namespace Crest
                 {
                     _oceanMaskCommandBuffer?.Clear();
                     _underwaterEffectCommandBuffer?.Clear();
+                    _beforeTransparentCommands?.Clear();
                 }
 
                 return;
@@ -368,6 +380,7 @@ namespace Crest
             {
                 _oceanMaskCommandBuffer?.Clear();
                 _underwaterEffectCommandBuffer?.Clear();
+                _beforeTransparentCommands?.Clear();
                 return;
             }
 
@@ -376,6 +389,7 @@ namespace Crest
             {
                 _oceanMaskCommandBuffer?.Clear();
                 _underwaterEffectCommandBuffer?.Clear();
+                _beforeTransparentCommands?.Clear();
                 return;
             }
 #endif
@@ -490,6 +504,7 @@ namespace Crest
                 {
                     renderer._oceanMaskCommandBuffer?.Clear();
                     renderer._underwaterEffectCommandBuffer?.Clear();
+                    renderer._beforeTransparentCommands?.Clear();
                 }
 
                 return false;

@@ -1838,6 +1838,16 @@ namespace Crest
 #endif
             }
 
+            if (_primaryLight != null && _primaryLight.type != LightType.Directional)
+            {
+                showMessage
+                (
+                    "The primary light is not a directional light. The water surface may appear magenta/pink.",
+                    "Please set the primary light to a directional light.",
+                    ValidatedHelper.MessageType.Warning, ocean
+                );
+            }
+
             // SimSettingsAnimatedWaves
             if (_simSettingsAnimatedWaves)
             {

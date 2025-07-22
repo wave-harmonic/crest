@@ -12,18 +12,17 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 	// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
 	// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
-	#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
-	#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
-	#pragma multi_compile_local __ _CAUSTICS_ON
-	#pragma multi_compile_local __ _SHADOWS_ON
-	#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
+	#pragma multi_compile_local_fragment __ _SUBSURFACESCATTERING_ON
+	#pragma multi_compile_local_fragment __ _SUBSURFACESHALLOWCOLOUR_ON
+	#pragma multi_compile_local_fragment __ _CAUSTICS_ON
+	#pragma multi_compile_local_fragment __ _SHADOWS_ON
 
-	#pragma multi_compile_local __ CREST_MENISCUS
-	#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
-	#pragma multi_compile_local __ _DEBUG_VIEW_STENCIL
+	#pragma multi_compile_local_fragment __ CREST_MENISCUS
+	#pragma multi_compile_local_fragment __ _DEBUG_VIEW_OCEAN_MASK
+	#pragma multi_compile_local_fragment __ _DEBUG_VIEW_STENCIL
 
-	#pragma multi_compile _ CREST_UNDERWATER_BEFORE_TRANSPARENT
-	#pragma multi_compile _ CREST_FLOATING_ORIGIN
+	#pragma multi_compile_fragment _ CREST_UNDERWATER_BEFORE_TRANSPARENT
+	#pragma multi_compile_fragment _ CREST_FLOATING_ORIGIN
 
 	#include "UnityCG.cginc"
 	#include "Lighting.cginc"
@@ -47,7 +46,7 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 			HLSLPROGRAM
 			// Both "__" and "_FULL_SCREEN_EFFECT" are fullscreen triangles. The latter only denotes an optimisation of
 			// whether to skip the horizon calculation.
-			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
+			#pragma multi_compile_local_fragment __ _FULL_SCREEN_EFFECT
 
 			#include "../UnderwaterEffect.hlsl"
 			ENDHLSL

@@ -9,6 +9,43 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.22.2
+------
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Add *Follow Horizontal Motion* option to Albedo inputs
+   -  Add *Repair Shaders* button to OceanRenderer
+   -  Warn if primary light is not directional
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix underwater shader variants potentially being incorrect in builds by making stripping deterministic
+   -  Fix dynamic waves not scaling correctly across LODs
+
+   .. only:: birp
+
+      -  Fix "Graphics.CopyTexture could not find destination D3D11 texture object" `[BIRP]`
+
+   .. only:: hdrp
+
+      -  Fix potential null exceptions `[HDRP]`
+
+   .. only:: birp or urp
+
+      -  Fix atmospheric fog causing hard edges where water intersects the scene `[BIRP] [URP]`
+
+Performance
+^^^^^^^^^^^
+.. bullet_list::
+
+   -  Reduce underwater shader variants
+   -  Strip underwater debug variants in builds
+
 4.22.1
 ------
 

@@ -79,7 +79,11 @@ namespace Crest
                 {
                     foreach (var keyword in keywords)
                     {
+#if UNITY_2021_3_OR_NEWER
+                        var name = keyword.name;
+#else
                         var name = ShaderKeyword.GetKeywordName(shader, keyword);
+#endif
                         if (!string.IsNullOrEmpty(name) && name.StartsWithNoAlloc("_DEBUG_"))
                         {
                             // Strip variant.

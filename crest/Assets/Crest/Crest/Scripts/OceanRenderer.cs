@@ -2076,6 +2076,12 @@ namespace Crest
                 OceanRenderer.RunValidation(target);
             }
 
+            // Repair by re-importing.
+            if (target._material != null && target._material.shader != null && GUILayout.Button("Repair Shaders"))
+            {
+                AssetDatabase.ImportAsset(System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(target._material.shader)), ImportAssetOptions.ImportRecursive | ImportAssetOptions.DontDownloadFromCacheServer);
+            }
+
             if (GUILayout.Button("Open Material Online Help"))
             {
                 Application.OpenURL(Internal.Constants.HELP_URL_BASE_USER + "water-appearance.html" + Internal.Constants.HELP_URL_RP + "#material-parameters");

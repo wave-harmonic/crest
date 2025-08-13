@@ -310,13 +310,13 @@ Shader "Crest/Ocean"
 			{
 				float4 positionCS : SV_POSITION;
 				half4 flow_shadow : TEXCOORD1;
-				half3 screenPosXYW : TEXCOORD4;
+				float3 screenPosXYW : TEXCOORD4;
 				float4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 				float3 worldPos : TEXCOORD7;
 				#if defined(_DEBUGVISUALISE_SHAPESAMPLE) || defined(_DEBUGVISUALISE_ANIMATEDWAVES)
 				half3 debugtint : TEXCOORD8;
 				#endif
-				half4 grabPos : TEXCOORD9;
+				float4 grabPos : TEXCOORD9;
 				float2 seaLevelDerivs : TEXCOORD10;
 
 				UNITY_FOG_COORDS(3)
@@ -525,8 +525,8 @@ Shader "Crest/Ocean"
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 
-				half3 screenPos = input.screenPosXYW;
-				half2 uvDepth = screenPos.xy / screenPos.z;
+				const float3 screenPos = input.screenPosXYW;
+				const float2 uvDepth = screenPos.xy / screenPos.z;
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 

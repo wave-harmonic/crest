@@ -35,6 +35,9 @@ Shader "Hidden/Crest/Underwater/Underwater Effect"
 
 	SubShader
 	{
+		// Set alpha where we write underwater similar to skybox.
+		Blend One Zero, One One
+		BlendOp Add
 		ZWrite Off
 
 		Pass

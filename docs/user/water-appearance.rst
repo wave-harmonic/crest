@@ -559,13 +559,17 @@ To tag GameObjects to render onto the water, attach the *RegisterAlbedoInput* co
 Orthographic Projection
 -----------------------
 
-Crest supports orthographic projection out-of-the-box, but it might require some configuration to get a desired appearance.
+Crest supports orthographic projection, but it might require some configuration to get a desired appearance.
 
 Crest uses the camera's position for the LOD system which can be awkward for orthographic which uses the size property on the camera.
 Use the *Viewpoint* property on the *Ocean Renderer* to override the camera's
 position.
+Increasing the minimum scale (:menuselection:`Ocean Renderer --> Detail Params --> Min Scale`) will help spread the detail out to make the water appear more uniform.
+Pick a minimum scale that looks best.
 
-Underwater effects do *not* currently support orthographic projection.
+For rendering to look correct, the height of the camera needs to be the same as, or higher than, the camera's size value.
+
+Underwater only works with a positive near clip plane.
 
 
 .. _ocean_construction_parameters:

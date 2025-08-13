@@ -9,6 +9,27 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.22.3
+------
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix underwater alpha channel handling causing problems with certain post-processing settings
+
+   .. only:: birp or urp
+
+      -  Fix artifacts and/or missing chunks of water on mobile platforms `[BIRP] [URP]`
+
+   .. only:: hdrp
+
+      -  Fix "VolumeManager" InvalidOperationException `[HDRP]`
+
+   .. only:: hdrp or urp
+
+      -  Fix exceptions and broken rendering when using Portal mode `[HDRP] [URP]`
+
 4.22.2
 ------
 

@@ -22,7 +22,17 @@ namespace Crest
         int _version = 0;
 #pragma warning restore 414
 
-        RayTraceHelper _rayTrace = new RayTraceHelper(50f, 2f);
+        RayTraceHelper _rayTrace;
+
+        void OnEnable()
+        {
+            _rayTrace = new RayTraceHelper(50f, 2f);
+        }
+
+        void OnDisable()
+        {
+            _rayTrace?.Dispose();
+        }
 
         void Update()
         {

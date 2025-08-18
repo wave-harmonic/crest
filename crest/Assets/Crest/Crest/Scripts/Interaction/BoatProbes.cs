@@ -10,6 +10,7 @@
 
 using Crest.Internal;
 using System;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -86,9 +87,15 @@ namespace Crest
 
         float _totalWeight;
 
+#if CREST_BURST_QUERY
+        NativeArray<Vector3> _queryPoints;
+        NativeArray<Vector3> _queryResultDisps;
+        NativeArray<Vector3> _queryResultVels;
+#else
         Vector3[] _queryPoints;
         Vector3[] _queryResultDisps;
         Vector3[] _queryResultVels;
+#endif
 
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
@@ -99,10 +106,25 @@ namespace Crest
 
             CalcTotalWeight();
 
+#if CREST_BURST_QUERY
+            _queryPoints = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+            _queryResultDisps = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+            _queryResultVels = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+#else
             _queryPoints = new Vector3[_forcePoints.Length + 1];
             _queryResultDisps = new Vector3[_forcePoints.Length + 1];
             _queryResultVels = new Vector3[_forcePoints.Length + 1];
+#endif
         }
+
+#if CREST_BURST_QUERY
+        void OnDestroy()
+        {
+            _queryPoints.Dispose();
+            _queryResultDisps.Dispose();
+            _queryResultVels.Dispose();
+        }
+#endif
 
         void CalcTotalWeight()
         {
@@ -162,7 +184,11 @@ namespace Crest
             }
             _queryPoints[_forcePoints.Length] = transform.position;
 
+#if CREST_BURST_QUERY
+            collProvider.Query(GetHashCode(), ObjectWidth, ref _queryPoints, ref _queryResultDisps, ref QueryHelper.s_Skip, ref _queryResultVels);
+#else
             collProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _queryResultDisps, null, _queryResultVels);
+#endif
 
             if (_debug._drawQueries)
             {

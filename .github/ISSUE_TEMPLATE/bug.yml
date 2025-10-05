@@ -1,6 +1,7 @@
 name: Bug Report
 description: Create a report to help us resolve the issue.
-labels: [Bug, Needs Triage]
+type: Bug
+labels: [Needs Triage]
 body:
 - type: checkboxes
   attributes:

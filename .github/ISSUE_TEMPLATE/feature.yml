@@ -1,6 +1,7 @@
 name: Feature Request
 description: Suggest an idea for this project.
-labels: [Enhancement, Needs Triage]
+type: Feature
+labels: [Needs Triage]
 body:
 - type: textarea
   attributes:

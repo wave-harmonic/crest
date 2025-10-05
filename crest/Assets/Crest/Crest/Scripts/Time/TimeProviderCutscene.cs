@@ -40,7 +40,7 @@ namespace Crest
 
         bool _initialised = false;
 
-        private void OnStart()
+        void Start()
         {
             Initialise(true);
         }

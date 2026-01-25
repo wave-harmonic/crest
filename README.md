@@ -43,7 +43,7 @@ Crest Water 5 is now available.
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=sDLtIxyaLWM" target="_blank"><img src="https://img.youtube.com/vi/sDLtIxyaLWM/0.jpg" alt="Sea Legends Simple Teaser" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_Rq5dfZfQ1k" target="_blank"><img src="https://img.youtube.com/vi/_Rq5dfZfQ1k/0.jpg" alt="Out of Reach: Treasure Royale - Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_thrrySB5YQ" target="_blank"><img src="https://img.youtube.com/vi/_thrrySB5YQ/0.jpg" alt="BUCKO • Announcement Trailer" width="270" height="202" /></a>
-<a href="https://www.youtube.com/watch?feature=player_embedded&v=zCeK_Kdxqa0" target="_blank"><img src="https://img.youtube.com/vi/QvCPhk0e7-I/0.jpg" alt="Of Ships & Scoundrels - Crest Demo" width="270" height="202" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=LZfXQbVEaYc" target="_blank"><img src="https://img.youtube.com/vi/LZfXQbVEaYc/0.jpg" alt="Sonorous" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=EExodzbapmo" target="_blank"><img src="https://img.youtube.com/vi/EExodzbapmo/0.jpg" alt="De Leon Legends VR Game" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=6KC13zGgbOA" target="_blank"><img src="https://img.youtube.com/vi/6KC13zGgbOA/0.jpg" alt="Kredolis | Announcement Trailer" width="270" height="202" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=Qfy5P4Zygvs" target="_blank"><img src="https://img.youtube.com/vi/Qfy5P4Zygvs/0.jpg" alt="Morild Navigator" width="270" height="202" /></a>

@@ -202,8 +202,7 @@ namespace Crest
             // Check if fallback is compatible before using it.
             if (useFallback && format == s_FallbackGraphicsFormat)
             {
-                Debug.Log($"Crest: Fallback {s_FallbackGraphicsFormat} is not supported on this device. Please inform us.");
-                useFallback = false;
+                Debug.Log($"Crest: Fallback {s_FallbackGraphicsFormat} is not supported on this device. This may be a false positive. Please inform us if you have any issues.");
             }
 
             if (useFallback)

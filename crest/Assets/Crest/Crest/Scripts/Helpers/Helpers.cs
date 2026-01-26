@@ -176,18 +176,19 @@ namespace Crest
 
         internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, GraphicsFormatUsage usage, bool randomWrite = false)
         {
-            var useFallback = false;
             var result = SystemInfo.GetCompatibleFormat(format, usage);
+            var useFallback = result == GraphicsFormat.None;
 
-            if (result == GraphicsFormat.None)
+#if CREST_DEBUG_LOG_FORMAT_CHANGES
+            if (useFallback)
             {
                 Debug.Log($"Crest: The graphics device does not support the render texture format {format}. Will attempt to use fallback.");
-                useFallback = true;
             }
             else if (result != format)
             {
                 Debug.Log($"Crest: Using render texture format {result} instead of {format}.");
             }
+#endif
 
 #if UNITY_2021_3_OR_NEWER
 #if CREST_VERIFYRANDOMWRITESUPPORT
@@ -199,11 +200,13 @@ namespace Crest
 #endif
 #endif
 
+#if CREST_DEBUG_LOG_FORMAT_CHANGES
             // Check if fallback is compatible before using it.
             if (useFallback && format == s_FallbackGraphicsFormat)
             {
                 Debug.Log($"Crest: Fallback {s_FallbackGraphicsFormat} is not supported on this device. This may be a false positive. Please inform us if you have any issues.");
             }
+#endif
 
             if (useFallback)
             {

@@ -2,6 +2,10 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if CREST_UNITY_INPUT && ENABLE_INPUT_SYSTEM
+#define INPUT_SYSTEM_ENABLED
+#endif
+
 namespace Crest.Examples
 {
     using UnityEditor;
@@ -9,12 +13,6 @@ namespace Crest.Examples
 
     public class ExamplesController : CustomMonoBehaviour
     {
-        [SerializeField, Predicated(typeof(ExamplesController), "IsController"), DecoratedField]
-        KeyCode _previous = KeyCode.Comma;
-
-        [SerializeField, Predicated(typeof(ExamplesController), "IsController"), DecoratedField]
-        KeyCode _next = KeyCode.Period;
-
         public void Previous() => Cycle(true);
         public void Next() => Cycle(false);
 
@@ -38,11 +36,19 @@ namespace Crest.Examples
 
         void Update()
         {
-            if (Input.GetKeyUp(_previous))
+#if INPUT_SYSTEM_ENABLED
+            if (UnityEngine.InputSystem.Keyboard.current[UnityEngine.InputSystem.Key.N].wasReleasedThisFrame)
+#else
+            if (Input.GetKeyUp(KeyCode.N))
+#endif
             {
                 Previous();
             }
-            else if (Input.GetKeyUp(_next))
+#if INPUT_SYSTEM_ENABLED
+            else if (UnityEngine.InputSystem.Keyboard.current[UnityEngine.InputSystem.Key.M].wasReleasedThisFrame)
+#else
+            else if (Input.GetKeyUp(KeyCode.M))
+#endif
             {
                 Next();
             }

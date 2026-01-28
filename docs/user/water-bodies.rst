@@ -45,3 +45,43 @@ The *Add Feature* section of the *Spline* inspector has helper buttons to quickl
 .. admonition:: Example
 
    The *LakesAndRivers.unity* scene contains an example of a river connecting two lakes.
+
+
+.. _water-body-component:
+
+Water Body Component
+--------------------
+The Waterbody component can cull water chunks outside its bounds, clip water outside its bounds at the texel level, and override the material of chunks inside its bounds.
+The typical use case is for creating :link:`Closed Lakes <https://en.wikipedia.org/wiki/Open_and_closed_lakes#Closed_lake>`, but it is not required.
+
+Clipping
+^^^^^^^^
+The Water Body component turns off tiles that do not overlap the desired area.
+The Clip Surface feature can be used to precisely remove any remaining water outside the intended area.
+Additionally, the clipping system can be configured to clip everything by default, and then areas can be defined where water should be included.
+See the :ref:`clip-surface-section` section.
+
+Material Override
+^^^^^^^^^^^^^^^^^
+The Water Body can override the water material on the water chunks.
+This can be used to give closed lakes a distinct appearance.
+
+.. important::
+
+   It is important to understand that since this feature cannot be applied partially to a water chunk, and a water chunk can overlap two water bodies, this feature does not work well with bordering water bodies - including bording an ocean.
+   Typically it works best with only a single lake in the scene.
+
+Usage
+^^^^^
+The Water Body component, if present, marks areas of the scene where water should be present.
+It can be created by attaching this component to a Game Object and setting the X/Z scale to set the size of the water body.
+If gizmos are enabled, an outline showing the size will be drawn in the Scene View.
+
+1. Add WaterBody component to a GameObject
+2. Position and expand the scale (XZ only) of the GameObject so the bounds covers the desired area (bounds visible with gizmos)
+3. Configure clip and material overrides as desired
+4. If clipping is enabled, set :menuselection:`Ocean Renderer --> Simulation Params --> Default Clipping State` to *Everything Clipped*
+
+.. tip::
+
+   If you only want the material override feature, then disable :menuselection:`Ocean Renderer --> Ocean Params --> Water Body Culling`.

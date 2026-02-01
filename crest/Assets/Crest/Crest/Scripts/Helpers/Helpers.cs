@@ -164,7 +164,7 @@ namespace Crest
         readonly static GraphicsFormat s_FallbackGraphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
 #if UNITY_2021_3_OR_NEWER
-#if CREST_VERIFYRANDOMWRITESUPPORT
+#if !CREST_DISABLE_RANDOMWRITE_CHECK
         static bool SupportsRandomWriteOnRenderTextureFormat(GraphicsFormat format)
         {
             var rtFormat = GraphicsFormatUtility.GetRenderTextureFormat(format);
@@ -174,27 +174,55 @@ namespace Crest
 #endif
 #endif
 
-        internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, GraphicsFormatUsage usage, bool randomWrite = false)
+        internal static readonly GraphicsFormatUsage s_DataGraphicsFormatUsage =
+            // Ensures a non compressed format is returned.
+            GraphicsFormatUsage.LoadStore |
+            // All these textures are sampled at some point.
+            GraphicsFormatUsage.Sample |
+            // Always use linear filtering.
+            GraphicsFormatUsage.Linear;
+
+        internal static GraphicsFormat GetCompatibleTextureFormat(GraphicsFormat format, GraphicsFormatUsage usage, string label, bool randomWrite = false)
         {
             var result = SystemInfo.GetCompatibleFormat(format, usage);
             var useFallback = result == GraphicsFormat.None;
+            var isMetal = GraphicsDeviceType.Metal == SystemInfo.graphicsDeviceType;
+
+#if CREST_DISABLE_PLATFORM_RTFORMAT_OVERRIDES
+            isMetal = false;
+#endif
+
+#if !UNITY_6000_0_OR_NEWER
+            // Weird bug on macOS where unknown format is returned, but R32G32B32A32_SFloat
+            // works, and what is returned in Unity 6+.
+            if (isMetal && (int)result == 89)
+            {
+                result = GraphicsFormat.R32G32B32A32_SFloat;
+            }
+#endif
 
 #if CREST_DEBUG_LOG_FORMAT_CHANGES
             if (useFallback)
             {
-                Debug.Log($"Crest: The graphics device does not support the render texture format {format}. Will attempt to use fallback.");
+                Debug.Log($"Crest: The graphics device does not support the render texture format {format}. Will attempt to use fallback. ({label})");
             }
             else if (result != format)
             {
-                Debug.Log($"Crest: Using render texture format {result} instead of {format}.");
+                Debug.Log($"Crest: Using render texture format {result} instead of {format}. ({label})");
             }
 #endif
 
 #if UNITY_2021_3_OR_NEWER
-#if CREST_VERIFYRANDOMWRITESUPPORT
-            if (!useFallback && randomWrite && !SupportsRandomWriteOnRenderTextureFormat(result))
+#if !CREST_DISABLE_RANDOMWRITE_CHECK
+            // Metal will return false for any two channel texture, as per the below link, but
+            // they work without issue. Lets trust the API, but only for other platforms.
+            // https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+            if (!isMetal && !useFallback && randomWrite && !SupportsRandomWriteOnRenderTextureFormat(result))
             {
-                Debug.Log($"Crest: The graphics device does not support the render texture format {result} with random read/write. Will attempt to use fallback.");
+#if CREST_DEBUG_LOG_FORMAT_CHANGES
+                Debug.Log($"Crest: The graphics device does not support the render texture format {result} with random read/write. Will attempt to use fallback. ({label})");
+#endif
+
                 useFallback = true;
             }
 #endif
@@ -204,7 +232,7 @@ namespace Crest
             // Check if fallback is compatible before using it.
             if (useFallback && format == s_FallbackGraphicsFormat)
             {
-                Debug.Log($"Crest: Fallback {s_FallbackGraphicsFormat} is not supported on this device. This may be a false positive. Please inform us if you have any issues.");
+                Debug.Log($"Crest: Fallback {s_FallbackGraphicsFormat} is not supported on this device. This may be a false positive. Please inform us if you have any issues. ({label})");
             }
 #endif
 

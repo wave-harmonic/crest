@@ -139,19 +139,14 @@ namespace Crest
             rtd.enableRandomWrite = true;
             rtd.depthBufferBits = 0;
             rtd.volumeDepth = CASCADE_COUNT;
-            rtd.colorFormat = RenderTextureFormat.ARGBFloat;
+            rtd.graphicsFormat = GraphicsFormat.R32G32B32A32_SFloat;
             rtd.msaaSamples = 1;
 
             Helpers.SafeCreateRenderTexture(ref _spectrumInit, rtd);
             _spectrumInit.name = "CrestFFTSpectrumInit";
             _spectrumInit.Create();
 
-#if UNITY_2021_3_OR_NEWER
-            if (SystemInfo.SupportsRandomWriteOnRenderTextureFormat(RenderTextureFormat.RGFloat))
-#endif
-            {
-                rtd.colorFormat = RenderTextureFormat.RGFloat;
-            }
+            rtd.graphicsFormat = Helpers.GetCompatibleTextureFormat(GraphicsFormat.R32G32_SFloat, Helpers.s_DataGraphicsFormatUsage, "FFT", true);
 
             Helpers.SafeCreateRenderTexture(ref _spectrumHeight, rtd);
             _spectrumHeight.name = "CrestFFTSpectrumHeight";

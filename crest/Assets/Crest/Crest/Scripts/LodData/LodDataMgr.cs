@@ -83,14 +83,6 @@ namespace Crest
         // NOTE: This is a temporary solution to keywords having prefixes downstream.
         internal static readonly string MATERIAL_KEYWORD_PREFIX = "";
 
-        static readonly GraphicsFormatUsage s_GraphicsFormatUsage =
-            // Ensures a non compressed format is returned.
-            GraphicsFormatUsage.LoadStore |
-            // All these textures are sampled at some point.
-            GraphicsFormatUsage.Sample |
-            // Always use linear filtering.
-            GraphicsFormatUsage.Linear;
-
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
         protected abstract bool NeedToReadWriteTextureData { get; }
@@ -166,7 +158,7 @@ namespace Crest
         protected virtual void InitData()
         {
             // Find a compatible texture format.
-            CompatibleTextureFormat = Helpers.GetCompatibleTextureFormat(RequestedTextureFormat, s_GraphicsFormatUsage, NeedToReadWriteTextureData);
+            CompatibleTextureFormat = Helpers.GetCompatibleTextureFormat(RequestedTextureFormat, Helpers.s_DataGraphicsFormatUsage, SimName, NeedToReadWriteTextureData);
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 

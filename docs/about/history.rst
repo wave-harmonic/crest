@@ -9,6 +9,33 @@ Release Notes
    \setcounter{secnumdepth}{0}
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
+4.22.4
+------
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Expose Sea Floor Depth input Relative property in the inspector
+   -  Improve platform compatibility by adding more checks to RT formats
+   -  No longer log RT format changes (use CREST_DEBUG_LOG_FORMAT_CHANGES if needed)
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix Unity 6.4 compilation errors and warnings
+   -  Fix TimeProviderCutscene broken in builds
+   -  Fix water potentially breaking in builds due to RT format
+   -  Fix Examples navigation when only new input system is active
+   -  Fix input module for old input system spamming errors when only new input system is active in Examples scene
+
+Documentation
+^^^^^^^^^^^^^
+.. bullet_list::
+
+   -  Add section dedicated to the Water Body script
+
 4.22.3
 ------
 

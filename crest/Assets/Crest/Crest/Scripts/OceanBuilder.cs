@@ -136,7 +136,7 @@ namespace Crest
         public static void CleanUp(OceanRenderer ocean)
         {
             // Not every mesh is assigned to a chunk thus we should destroy all of them here.
-            for (int i = 0; i < s_Meshes.Length; i++)
+            for (int i = 0; i < s_Meshes?.Length; i++)
             {
                 Helpers.Destroy(s_Meshes[i]);
             }

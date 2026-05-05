@@ -10,8 +10,8 @@ using System.Linq;
 using UnityEngine.Rendering;
 using UnityEditor;
 
-#if !UNITY_2020_3_OR_NEWER
-#error This version of Crest requires Unity 2020.3 or later.
+#if !UNITY_2021_3_OR_NEWER
+#error This version of Crest requires Unity 2021.3 or later.
 #endif
 
 namespace Crest

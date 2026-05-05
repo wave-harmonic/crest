@@ -51,7 +51,7 @@ To augment / complement this written documentation we published a video availabl
 Requirements
 ------------
 
--  Unity: `UnityMinVersion` or later
+-  Unity: `UnityMinVersionFull` or later
 -  :link:`Shader compilation target 4.5 <{UnityDocLink}/SL-ShaderCompileTargets.html>` or above
 -  Crest does **not** support OpenGL or WebGL backends
 

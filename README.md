@@ -77,7 +77,7 @@ Full [documentation](https://crest.readthedocs.io/en/latest) is available online
 
 <hr><h3 align="center">REQUIREMENTS</h3><hr>
 
-* Unity: 2020.3 or later
+* Unity: 2021.3.45f2 or later
 * [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above
 * *Crest* does **not** support OpenGL or WebGL backends
 
@@ -97,6 +97,7 @@ Extract the files and copy anything under *crest/Assets/Crest* into an existing 
 
 If you are using any of the following *Unity* versions, then use the provided *Crest* version:
 
+- 2022.3: [4.22.4](https://github.com/wave-harmonic/crest/releases/tag/4.22.4)
 - 2019.4: [4.11](https://github.com/wave-harmonic/crest/releases/tag/4.11)
 - 2018.4: [4.2](https://github.com/wave-harmonic/crest/releases/tag/4.2)
 

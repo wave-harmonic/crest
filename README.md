@@ -101,7 +101,7 @@ Extract the files and copy anything under *crest/Assets/Crest* into an existing 
 
 If you are using any of the following *Unity* versions, then use the provided *Crest* version:
 
-- 2022.3: [4.22.4](https://github.com/wave-harmonic/crest/releases/tag/4.22.4)
+- 2020.3: [4.22.4](https://github.com/wave-harmonic/crest/releases/tag/4.22.4)
 - 2019.4: [4.11](https://github.com/wave-harmonic/crest/releases/tag/4.11)
 - 2018.4: [4.2](https://github.com/wave-harmonic/crest/releases/tag/4.2)
 

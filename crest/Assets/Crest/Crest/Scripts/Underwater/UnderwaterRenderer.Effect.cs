@@ -36,6 +36,8 @@ namespace Crest
             public static readonly int s_CrestSubSurfaceBase = Shader.PropertyToID("_CrestSubSurfaceBase");
             public static readonly int s_CrestSubSurfaceSunFallOff = Shader.PropertyToID("_CrestSubSurfaceSunFallOff");
 
+            public static readonly int s_CrestIsOverlay = Shader.PropertyToID("_CrestIsOverlay");
+
             // Built-ins
             public static readonly int s_WorldSpaceLightPos0 = Shader.PropertyToID("_WorldSpaceLightPos0");
             public static readonly int s_LightColor0 = Shader.PropertyToID("_LightColor0");
@@ -130,7 +132,8 @@ namespace Crest
                 _debug._viewStencil,
                 _filterOceanData,
                 ref _currentOceanMaterial,
-                _enableShaderAPI
+                _enableShaderAPI,
+                _overlay
             );
 
             // Call after UpdatePostProcessMaterial as it copies material from ocean which will overwrite this.
@@ -287,7 +290,8 @@ namespace Crest
             bool debugViewStencil,
             int dataSliceOffset,
             ref Material currentOceanMaterial,
-            bool setGlobalShaderData
+            bool setGlobalShaderData,
+            bool overlay = false
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -433,6 +437,8 @@ namespace Crest
                 Helpers.SetShaderVector(underwaterPostProcessMaterial, ShaderIDs.s_CrestAmbientLighting, sphericalHarmonicsData._ambientLighting[0], setGlobalShaderData);
                 UnityEngine.Profiling.Profiler.EndSample();
             }
+
+            underwaterPostProcessMaterial.SetFloat(ShaderIDs.s_CrestIsOverlay, overlay ? 1f : 0f);
         }
     }
 }

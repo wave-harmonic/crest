@@ -61,6 +61,9 @@ namespace Crest
         [Tooltip("The underwater effect will render in this layer (can be excluded in camera's culling mask).")]
         public int _layer = 4; // Water
 
+        [Tooltip("When enabled, underwater will only render on objects for this camera.")]
+        public bool _overlay;
+
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
         // data in/out), as more filtering was better in testing.
@@ -152,6 +155,7 @@ namespace Crest
 #endif
 
         bool _currentEnableShaderAPI;
+        bool _currentOverlay;
 
         // This will be the primary camera and matches OceanRenderer.Instance.ViewCamera.
         public static UnderwaterRenderer Instance { get; private set; }
@@ -239,12 +243,17 @@ namespace Crest
 
         void Enable()
         {
-            SetupOceanMask();
-            OnEnableMask();
+            if (!_overlay)
+            {
+                SetupOceanMask();
+                OnEnableMask();
+            }
+
             SetupUnderwaterEffect();
             AddCommandBuffers(_camera);
 
             _currentEnableShaderAPI = _enableShaderAPI;
+            _currentOverlay = _overlay;
 
 #if UNITY_EDITOR
             EnableEditMode();
@@ -272,6 +281,16 @@ namespace Crest
                 _sampleHeightHelper.Sample(out var waterHeight);
                 _heightAboveWater = _camera.transform.position.y - waterHeight;
             }
+
+#if UNITY_EDITOR
+            if (_currentOverlay != _overlay)
+            {
+                OnDisable();
+                OnEnable();
+
+                _currentOverlay = _overlay;
+            }
+#endif
 
             if (_enableShaderAPI != _currentEnableShaderAPI && _underwaterEffectCommandBuffer != null)
             {
@@ -315,8 +334,12 @@ namespace Crest
         void AddCommandBuffers(Camera camera)
         {
             // Handle both forward and deferred.
-            camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
-            camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
+            if (_oceanMaskCommandBuffer != null)
+            {
+                camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, _oceanMaskCommandBuffer);
+                camera.AddCommandBuffer(CameraEvent.BeforeGBuffer, _oceanMaskCommandBuffer);
+            }
+
             camera.AddCommandBuffer(_enableShaderAPI ? CameraEvent.BeforeForwardAlpha : CameraEvent.AfterForwardAlpha, _underwaterEffectCommandBuffer);
         }
 
@@ -398,7 +421,11 @@ namespace Crest
                 _gpuInverseViewProjectionMatrix = (GL.GetGPUProjectionMatrix(_camera.projectionMatrix, false) * _camera.worldToCameraMatrix).inverse;
             }
 
-            OnPreRenderOceanMask();
+            if (!_overlay)
+            {
+                OnPreRenderOceanMask();
+            }
+
             OnPreRenderUnderwaterEffect();
 
             _firstRender = false;

@@ -19,6 +19,8 @@ TEXTURE2D_X(_CrestOceanMaskDepthTexture);
 
 #include "UnderwaterEffectShared.hlsl"
 
+bool _CrestIsOverlay;
+
 struct Attributes
 {
 #if CREST_WATER_VOLUME
@@ -73,6 +75,13 @@ real4 Frag (Varyings input) : SV_Target
 	const int2 positionSS = input.positionCS.xy;
 	half3 sceneColour = LOAD_TEXTURE2D_X(_CrestCameraColorTexture, positionSS).rgb;
 	float rawDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+
+	// Discard the background for overlays.
+	if (_CrestIsOverlay && rawDepth == 0.0)
+	{
+		discard;
+	}
+
 	const float mask = LOAD_TEXTURE2D_X(_CrestOceanMaskTexture, positionSS).r;
 	const float rawOceanDepth = LOAD_TEXTURE2D_X(_CrestOceanMaskDepthTexture, positionSS).r;
 

@@ -57,6 +57,10 @@ namespace Crest
         [Tooltip("Rendering mode of the underwater effect (and ocean). See the documentation for more details.")]
         public Mode _mode;
 
+        [Layer]
+        [Tooltip("The underwater effect will render in this layer (can be excluded in camera's culling mask).")]
+        public int _layer = 4; // Water
+
         // This adds an offset to the cascade index when sampling ocean data, in effect smoothing/blurring it. Default
         // to shifting the maximum amount (shift from lod 0 to penultimate lod - dont use last lod as it cross-fades
         // data in/out), as more filtering was better in testing.
@@ -364,7 +368,7 @@ namespace Crest
                 return;
             }
 
-            if (!Helpers.MaskIncludesLayer(_camera.cullingMask, OceanRenderer.Instance.Layer))
+            if (!Helpers.MaskIncludesLayer(_camera.cullingMask, _layer))
             {
                 _oceanMaskCommandBuffer?.Clear();
                 _underwaterEffectCommandBuffer?.Clear();

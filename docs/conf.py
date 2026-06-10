@@ -190,8 +190,8 @@ rst_prolog = rst_prolog + """
 .. set:: RPMinVersion 10.10
 .. set:: UPMDocLinkBase \https://docs.unity3d.com/Packages
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
-.. set:: UnityMinVersion 2021.3
-.. set:: UnityMinVersionFull 2021.3.45f2
+.. set:: UnityMinVersion 2022.3
+.. set:: UnityMinVersionFull 2022.3.62f3
 .. set:: UnityDocsLinkBase https://docs.unity3d.com/{UnityMinVersion}/Documentation
 .. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersion}/Documentation/Manual
 .. set:: UnityDocScriptLink {UnityDocsLinkBase}/ScriptReference

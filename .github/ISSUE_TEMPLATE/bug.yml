@@ -47,7 +47,7 @@ body:
   attributes:
     label: Unity Version
     description: Provide the **full version number**, including the patch portion, i.e. 2019.1.0f2.
-    placeholder: 2021.3.45f2
+    placeholder: 2022.3.62f3
   validations:
     required: true
 - type: input

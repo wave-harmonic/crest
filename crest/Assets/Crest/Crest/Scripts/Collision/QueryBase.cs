@@ -476,7 +476,7 @@ namespace Crest
                 }
 
                 ReadbackRequest request;
-                request._dataTimestamp = Time.time - Time.deltaTime;
+                request._dataTimestamp = Time.time;
                 request._request = AsyncGPUReadback.Request(_computeBufResults, _dataArrivedAction);
                 request._segments = _segmentRegistrarRingBuffer.Current._segments;
                 _requests.Add(request);

@@ -432,15 +432,15 @@ namespace Crest
         /// </summary>
         public float SeaLevel => Root.position.y;
 
-        [HideInInspector] public LodTransform _lodTransform;
-        [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
-        [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
-        [HideInInspector] public LodDataMgrClipSurface _lodDataClipSurface;
-        [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
-        [HideInInspector] public LodDataMgrFlow _lodDataFlow;
-        [HideInInspector] public LodDataMgrFoam _lodDataFoam;
-        [HideInInspector] public LodDataMgrShadow _lodDataShadow;
-        [HideInInspector] public LodDataMgrAlbedo _lodDataAlbedo;
+        [HideInInspector, System.NonSerialized] public LodTransform _lodTransform;
+        [HideInInspector, System.NonSerialized] public LodDataMgrAnimWaves _lodDataAnimWaves;
+        [HideInInspector, System.NonSerialized] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
+        [HideInInspector, System.NonSerialized] public LodDataMgrClipSurface _lodDataClipSurface;
+        [HideInInspector, System.NonSerialized] public LodDataMgrDynWaves _lodDataDynWaves;
+        [HideInInspector, System.NonSerialized] public LodDataMgrFlow _lodDataFlow;
+        [HideInInspector, System.NonSerialized] public LodDataMgrFoam _lodDataFoam;
+        [HideInInspector, System.NonSerialized] public LodDataMgrShadow _lodDataShadow;
+        [HideInInspector, System.NonSerialized] public LodDataMgrAlbedo _lodDataAlbedo;
 
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
@@ -558,8 +558,8 @@ namespace Crest
 
             public float _maxWavelength;
         }
-        public ComputeBuffer _bufCascadeDataTgt;
-        public ComputeBuffer _bufCascadeDataSrc;
+        internal ComputeBuffer _bufCascadeDataTgt;
+        internal ComputeBuffer _bufCascadeDataSrc;
 
         // This must exactly match struct with same name in HLSL
         // :PerCascadeInstanceData
@@ -573,8 +573,8 @@ namespace Crest
             // Align to 32 bytes
             public Vector3 __padding;
         }
-        public ComputeBuffer _bufPerCascadeInstanceData;
-        public ComputeBuffer _bufPerCascadeInstanceDataSource;
+        internal ComputeBuffer _bufPerCascadeInstanceData;
+        internal ComputeBuffer _bufPerCascadeInstanceDataSource;
 
         BufferedData<CascadeParams[]> _cascadeParams;
         BufferedData<PerCascadeInstanceData[]> _perCascadeInstanceData;

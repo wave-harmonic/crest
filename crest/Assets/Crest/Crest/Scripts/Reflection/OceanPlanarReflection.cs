@@ -410,7 +410,9 @@ namespace Crest
                 _camReflections.enabled = false;
                 _camReflections.transform.SetPositionAndRotation(transform.position, transform.rotation);
                 _camReflectionsSkybox = _camReflections.gameObject.AddComponent<Skybox>();
+#if !UNITY_6000_5_OR_NEWER
                 _camReflections.gameObject.AddComponent<FlareLayer>();
+#endif
                 _camReflections.cameraType = CameraType.Reflection;
             }
 

@@ -1635,7 +1635,7 @@ namespace Crest
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnReLoadScripts()
         {
-            Instance = Helpers.FindFirstObjectByType<OceanRenderer>();
+            Instance = Helpers.FindAnyObjectByType<OceanRenderer>();
         }
 
         private void OnDrawGizmos()

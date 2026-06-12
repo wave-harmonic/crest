@@ -89,7 +89,7 @@ namespace Crest
                     result = new CollProviderNull();
                     break;
                 case CollisionSources.GerstnerWavesCPU:
-                    result = Helpers.FindFirstObjectByType<ShapeGerstnerBatched>();
+                    result = Helpers.FindAnyObjectByType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
                     if (!OceanRenderer.RunningWithoutGPU)

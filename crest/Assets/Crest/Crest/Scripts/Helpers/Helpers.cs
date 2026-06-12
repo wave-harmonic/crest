@@ -344,18 +344,22 @@ namespace Crest
             }
         }
 
-        internal static T[] FindObjectsByType<T>() where T : Object
+        internal static T[] FindObjectsByType<T>(FindObjectsInactive inactive = FindObjectsInactive.Exclude) where T : Object
         {
-#if UNITY_2023_3_OR_NEWER
-            return Object.FindObjectsByType<T>(FindObjectsSortMode.None);
+#if UNITY_6000_4_OR_NEWER
+            return Object.FindObjectsByType<T>(inactive);
+#elif UNITY_6000_0_OR_NEWER
+            return Object.FindObjectsByType<T>(inactive, FindObjectsSortMode.None);
 #else
             return Object.FindObjectsOfType<T>();
 #endif
         }
 
-        internal static T FindFirstObjectByType<T>() where T : Object
+        internal static T FindAnyObjectByType<T>() where T : Object
         {
-#if UNITY_2023_3_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            return Object.FindAnyObjectByType<T>();
+#elif UNITY_6000_0_OR_NEWER
             return Object.FindFirstObjectByType<T>();
 #else
             return Object.FindObjectOfType<T>();

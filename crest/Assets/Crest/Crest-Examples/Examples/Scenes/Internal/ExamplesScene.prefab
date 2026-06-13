@@ -5,17 +5,13 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3750062382151631032, guid: 7c2511cd54ca84f02977b64a55693638,
         type: 3}
       propertyPath: m_Name
       value: ExamplesScene
-      objectReference: {fileID: 0}
-    - target: {fileID: 3750062382151631033, guid: 7c2511cd54ca84f02977b64a55693638,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3750062382151631033, guid: 7c2511cd54ca84f02977b64a55693638,
         type: 3}
@@ -68,4 +64,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7c2511cd54ca84f02977b64a55693638, type: 3}

@@ -474,11 +474,6 @@ namespace Crest
             // Cache the camera for further down.
             var camera = ocean.ViewCamera;
 
-#if CREST_SRP
-#pragma warning disable 618
-            using (new ProfilingSample(buffer, "CrestSampleShadows"))
-#pragma warning restore 618
-#endif
             {
                 var lt = ocean._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
